@@ -1,0 +1,176 @@
+---
+name: Test qubership-logging-operator installation
+
+on:
+  workflow_run:
+    workflows: ["Build Artifacts"]
+    types:
+      - completed
+  workflow_dispatch: null
+  pull_request:
+    branches:
+      - main
+
+env:
+  kind_name: kind-cluster
+  opensearch_namespace: opensearch
+  namespace: logging
+  max_attempts: 40
+  delay: 10
+
+jobs:
+  Run-Integration-Tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          path: qubership-logging-operator
+
+      - name: Display GitHub Context
+        run: |
+          echo "GitHub Context: ${{ toJSON(github) }}"
+
+      - name: Set up Kind
+        run: |
+          curl -sLo ./kind https://kind.sigs.k8s.io/dl/v0.27.0/kind-linux-amd64
+          chmod +x ./kind
+          sudo mv ./kind /usr/local/bin/
+          kind create cluster --name ${{ env.kind_name }}
+
+      - name: Install Helm
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+      - name: Checkout opensearch repo
+        uses: actions/checkout@v4
+        with:
+          repository: Netcracker/qubership-opensearch
+          path: qubership-opensearch
+
+      - name: Create values.yaml for opensearch
+        run: |
+          cat <<EOF > opensearch_values.yaml
+          opensearch:
+            master:
+              enabled: true
+              persistence:
+                enabled: true
+                storageClass: standard
+              replicas: 1
+              tls:
+                enabled: false
+            sysctl:
+              enabled: true
+          dashboards:
+            enabled: true
+            ingress:
+              enabled: true
+          monitoring:
+            enabled: true
+          dbaasAdapter:
+            enabled: false
+          curator:
+            enabled: true
+          EOF
+
+      - name: Install Opensearch
+        run: |
+          helm upgrade --install opensearch \
+            --namespace=${{ env.opensearch_namespace }} \
+            --create-namespace \
+            ./qubership-opensearch/charts/helm/opensearch-service/ \
+            -f ./opensearch_values.yaml
+
+      - name: Check Opensearch Deployment Status
+        uses: Netcracker/qubership-test-pipelines/actions/shared/check-status-provisioner@update_actions
+        with:
+          namespace: ${{ env.opensearch_namespace }}
+
+      - name: Create values.yaml for logging-operator
+        run: |
+          image_value=$(echo "${{ github.sha }}" | tr '[:upper:]' '[:lower:]')
+          cat <<EOF > logging_values.yaml
+          skipMetricsService: false
+          containerRuntimeType: containerd
+          operatorImage: ghcr.io/netcracker/qubership-logging-operator:$image_value
+          graylog:
+            install: true
+            mongoStorageClassName: standard
+            graylogStorageClassName: standard
+            initContainerDockerImage: alpine:3.17.2
+            elasticsearchHost: http://admin:admin@opensearch.opensearch:9200
+            indexShards: "1"
+            indexReplicas: "0"
+          cloudEventsReader:
+            dockerImage: ghcr.io/netcracker/qubership-kube-events-reader:main
+          fluentbit:
+            install: true
+            configmapReload:
+              dockerImage: ghcr.io/jimmidyson/configmap-reload:v0.13.1
+            graylogHost: graylog-service
+            graylogPort: 12201
+          integrationTests:
+            install: true
+            tags: smoke
+            image: ghcr.io/netcracker/qubership-logging-integration-tests:$image_value
+            externalGraylogServer: "false"
+            graylogHost: graylog-service
+            graylogPort: 9000
+          EOF
+
+      - name: Install qubership-logging-operator
+        run: |
+          helm upgrade --install qubership-logging-operator \
+            --namespace=${{ env.namespace }} \
+            --create-namespace \
+            --debug \
+            ./qubership-logging-operator/charts/qubership-logging-operator \
+            -f ./logging_values.yaml
+
+      - name: Check integration tests status
+        run: |
+          echo "Checking status of integration tests..."
+          attempt=1
+          max_attempts=${{ env.max_attempts }}
+          while [[ $attempt -le $max_attempts ]]; do
+            echo "Attempt $attempt/$max_attempts": Checking integration-tests pod status...
+            phase=$(kubectl get pod -l name=logging-integration-tests-runner -n ${{ env.namespace }} -o jsonpath='{.items[0].status.phase}' 2>/dev/null || echo "NotFound")
+            if [[ "$phase" == "Running" ]]; then
+                echo "Integration tests pod is in Running state."
+                break
+              elif [[ "$phase" == "Failed" || "$phase" == "Error" ]]; then
+                echo "Integration tests pod failed with status: $phase"
+                exit 1
+              else
+                echo "Integration tests pod status: $phase. Retrying in ${{ env.delay }} seconds..."
+                sleep "${{ env.delay }}"
+                ((attempt++))
+              fi
+          done
+          if [[ $phase != "Running" ]]; then
+            echo "ERROR: Maximum attempts reached. Integration tests pod is not in Running state."
+            exit 1
+          fi
+
+          echo "Checking integration tests results..."
+          attempt=1
+          while [[ $attempt -le $max_attempts ]]; do
+            echo "Attempt $attempt/$max_attempts": Checking tests results...
+            passed=$(kubectl logs -l name=logging-integration-tests-runner -n ${{ env.namespace }} --tail=-1 | grep -E "Tests.*PASS")
+            if [[ -z "$passed" ]]; then
+              echo "ERROR: No 'Tests PASS' found in logs. Retrying in ${{ env.delay }} seconds..."
+              sleep "${{ env.delay }}"
+              ((attempt++))
+            else
+              echo "SUCCESS: Tests passed"
+              exit 0
+            fi
+          done
+          echo "ERROR: Maximum attempts reached. No 'Tests PASS' found in logs."
+          exit 1
+
+      - name: Cleanup
+        run: |
+          kind delete cluster --name ${{ env.kind_name }}

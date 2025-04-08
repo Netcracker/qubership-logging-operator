@@ -84,10 +84,29 @@ jobs:
             -f ./opensearch_values.yaml
 
       - name: Check Opensearch Deployment Status
-        uses: Netcracker/qubership-test-pipelines/actions/shared/check-status-provisioner@update_actions
-        with:
-          namespace: ${{ env.opensearch_namespace }}
-
+        run: | 
+          echo "Checking status of opensearch-status-provisioner..."
+          attempt=1
+          max_attempts=${{ env.max_attempts }}
+          while [[ $attempt -le $max_attempts ]]; do
+            echo "Attempt $attempt/$max_attempts: Checking opensearch-status-provisioner pod status..."
+            phase=$(kubectl get pod -l name=opensearch-status-provisioner -n ${{ env.opensearch_namespace }} -o jsonpath='{.items[0].status.phase}' 2>/dev/null || echo "NotFound")
+            if [[ "$phase" == "Succeeded" ]]; then
+                echo "Opensearch status provisioner job has succeeded."
+                break
+              elif [[ "$phase" == "Failed" || "$phase" == "Error" ]]; then
+                echo "Opensearch status provisioner job failed with status: $phase"
+                exit 1
+              else
+                echo "Opensearch status provisioner job status: $phase. Retrying in ${{ env.delay }} seconds..."
+                sleep "${{ env.delay }}"
+                ((attempt++))
+              fi
+          done
+          if [[ $phase != "Succeeded" ]]; then
+            echo "ERROR: Maximum attempts reached. Opensearch status provisioner job has not succeeded."
+            exit 1
+          fi
       - name: Create values.yaml for logging-operator
         run: |
           image_value=$(echo "${{ github.sha }}" | tr '[:upper:]' '[:lower:]')
@@ -135,7 +154,7 @@ jobs:
           attempt=1
           max_attempts=${{ env.max_attempts }}
           while [[ $attempt -le $max_attempts ]]; do
-            echo "Attempt $attempt/$max_attempts": Checking integration-tests pod status...
+            echo "Attempt $attempt/$max_attempts: Checking integration-tests pod status..."
             phase=$(kubectl get pod -l name=logging-integration-tests-runner -n ${{ env.namespace }} -o jsonpath='{.items[0].status.phase}' 2>/dev/null || echo "NotFound")
             if [[ "$phase" == "Running" ]]; then
                 echo "Integration tests pod is in Running state."

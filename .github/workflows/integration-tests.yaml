@@ -40,6 +40,12 @@ jobs:
         run: |
           curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 
+      - name: Install required crds
+        run: |
+          kubectl apply -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/heads/main/charts/qubership-monitoring-operator/charts/grafana-operator/crds/integreatly.org_grafanadashboards.yaml
+          kubectl apply -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/heads/main/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_prometheusrules.yaml
+          kubectl apply -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/heads/main/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_servicemonitors.yaml
+
       - name: Checkout opensearch repo
         uses: actions/checkout@v4
         with:

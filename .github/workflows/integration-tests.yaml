@@ -60,6 +60,11 @@ jobs:
                 enabled: false
             sysctl:
               enabled: true
+            securityConfig:
+              authc:
+                basic:
+                  username: "admin"
+                  password: "admin"
           dashboards:
             enabled: true
             ingress:
@@ -70,6 +75,8 @@ jobs:
             enabled: false
           curator:
             enabled: true
+            username: "admin"
+            password: "admin"
           EOF
 
       - name: Install Opensearch

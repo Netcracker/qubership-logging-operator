@@ -125,7 +125,7 @@ jobs:
           cat <<EOF > logging_values.yaml
           skipMetricsService: false
           containerRuntimeType: containerd
-          operatorImage: ghcr.io/netcracker/qubership-logging-operator:$image_value
+          operatorImage: ghcr.io/netcracker/qubership-logging-operator:sha-$image_value
           graylog:
             install: true
             mongoStorageClassName: standard
@@ -146,7 +146,7 @@ jobs:
           integrationTests:
             install: true
             tags: smoke
-            image: ghcr.io/netcracker/qubership-logging-integration-tests:$image_value
+            image: ghcr.io/netcracker/qubership-logging-integration-tests:sha-$image_value
             externalGraylogServer: "false"
             graylogHost: graylog-service
             graylogPort: 9000

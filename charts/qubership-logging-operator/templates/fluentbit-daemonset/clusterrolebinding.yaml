@@ -3,10 +3,10 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: fluentbit-cluster-reader
+  name: logging-fluentbit-cluster-reader
   labels:
-    name: fluentbit-cluster-reader
-    app.kubernetes.io/name: fluentbit-cluster-reader
+    name: logging-fluentbit-cluster-reader
+    app.kubernetes.io/name: logging-fluentbit-cluster-reader
     app.kubernetes.io/component: fluentbit
     app.kubernetes.io/part-of: logging
   {{- if .Values.fluentbit.labels }}
@@ -19,7 +19,7 @@ metadata:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: {{ .Values.openshiftDeploy | ternary "view" "logging-fluentbit-cluster-role" }}
+  name: {{ .Values.openshiftDeploy | default false | ternary "view" "logging-fluentbit-cluster-role" }}
 subjects:
   - kind: ServiceAccount
     name: logging-fluentbit

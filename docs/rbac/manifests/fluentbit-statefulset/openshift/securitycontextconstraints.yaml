@@ -20,9 +20,10 @@ requiredDropCapabilities: []
 allowedCapabilities: []
 volumes:
   - configMap
-  - secret
   - emptyDir
+  - hostPath
   - persistentVolumeClaim
+  - secret
 allowHostNetwork: false
 allowHostPorts: false
 allowHostPID: false

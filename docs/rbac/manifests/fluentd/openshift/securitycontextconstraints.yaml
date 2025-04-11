@@ -26,8 +26,8 @@ requiredDropCapabilities: []
 allowedCapabilities: []
 volumes:
   - configMap
-  - secret
   - hostPath
+  - secret
 allowHostNetwork: false
 allowHostPorts: false
 allowHostPID: false

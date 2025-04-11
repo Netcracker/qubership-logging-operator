@@ -128,6 +128,7 @@ type Graylog struct {
 	MaxNumberOfIndices                       int                          `json:"maxNumberOfIndices,omitempty"`
 	LogsRotationSizeGb                       int                          `json:"logsRotationSizeGb,omitempty"`
 	InputPort                                int                          `json:"inputPort"`
+	Replicas                                 *int                         `json:"replicas,omitempty"`
 	S3Archive                                bool                         `json:"s3Archive"`
 }
 

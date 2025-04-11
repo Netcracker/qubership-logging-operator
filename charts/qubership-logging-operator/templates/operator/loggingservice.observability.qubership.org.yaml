@@ -25,6 +25,9 @@ spec:
   graylog:
     dockerImage: {{ template "graylog.image" . }}
     initSetupImage: {{ template "init-setup.image" . }}
+    {{- if hasKey .Values.graylog "replicas" }}
+    replicas: {{ .Values.graylog.replicas }}
+    {{- end }}
     {{- if .Values.graylog.affinity }}
     affinity: 
       {{- toYaml .Values.graylog.affinity | nindent 6 }}

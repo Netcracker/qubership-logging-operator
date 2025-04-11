@@ -27,9 +27,10 @@ allowedCapabilities: []
 volumes:
   - 'configMap'
   - 'emptyDir'
+  - 'hostPath'
+  - 'persistentVolumeClaim'
   - 'projected'
   - 'secret'
-  - 'persistentVolumeClaim'
 allowHostNetwork: false
 allowHostPorts: false
 allowHostPID: false

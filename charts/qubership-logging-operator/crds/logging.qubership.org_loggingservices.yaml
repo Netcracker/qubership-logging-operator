@@ -10400,6 +10400,8 @@ spec:
                     type: string
                   processbufferProcessors:
                     type: integer
+                  replicas:
+                    type: integer
                   ringSize:
                     type: integer
                   s3Archive:

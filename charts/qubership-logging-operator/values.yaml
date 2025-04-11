@@ -159,6 +159,13 @@ graylog:
   #
   # dockerImage: graylog/graylog:5.2.7
 
+  # A number of replicas for Graylog.
+  # Type: int
+  # Mandatory: no
+  # Default: 1
+  #
+  replicas: 1
+
   # If specified, the pod's scheduling constraints
   # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#affinity-v1-core
   # Type: object

@@ -24,7 +24,7 @@ function update_level(tag, timestamp, record)
       return 2, timestamp, record
     end
     if (record["level"] == "fatal") then
-      record["level"] = "emerg"
+      record["level"] = "crit"
       return 2, timestamp, record
     end
     if (record["level"] == "critical") then

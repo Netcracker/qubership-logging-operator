@@ -13,7 +13,7 @@ ${DEPLOYMENT_FILE}              ${FILES_PATH}/deployment.yaml
 ${CONFIG_FILE}                  ${FILES_PATH}/config.yaml
 ${DATE_TIME_REGEXP}             [0-9]{4}\-[0-9]{2}\-[0-9]{2}T[0-9]{2}\:[0-9]{2}:[0-9]{2}
 ${TAG_PREFIX}                   parsed.kubernetes.var.log.pods.${NAMESPASE}_
-${FATAL_LEVEL}                  2
+${FATAL_LEVEL}                  1
 ${ERROR_LEVEL}                  3
 ${WARN_LEVEL}                   4
 ${INFO_LEVEL}                   6

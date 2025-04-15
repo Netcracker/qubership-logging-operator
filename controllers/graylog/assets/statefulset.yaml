@@ -10,11 +10,6 @@ metadata:
     app.kubernetes.io/part-of: logging
     app.kubernetes.io/managed-by: logging-operator
 spec:
-  {{ if ne .Values.Graylog.Replicas nil }}
-  replicas: {{ .Values.Graylog.Replicas }}
-  {{ else }}
-  replicas: 1
-  {{ end }}
   selector:
     matchLabels:
       name: graylog
@@ -23,6 +18,11 @@ spec:
       maxSurge: 25
       maxUnavailable: 25
     type: RollingUpdate
+  {{- if ne .Values.Graylog.Replicas nil }}
+  replicas: {{ .Values.Graylog.Replicas }}
+  {{- else }}
+  replicas: 1
+  {{- end }}
   template:
     metadata:
       labels:

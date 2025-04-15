@@ -1,5 +1,5 @@
 kind: ClusterRoleBinding
-apiVersion: rbac.authorization.k8s.io/v1 
+apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: logging-fluentbit-cluster-reader
 roleRef:
@@ -10,3 +10,4 @@ subjects:
   - kind: ServiceAccount
     name: logging-fluentbit
     namespace: logging-service
+

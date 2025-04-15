@@ -1,7 +1,7 @@
 branches-template:
-  main: "{{ref-name}}-{{timestamp}}, {{ref-name}}-{{short-sha}}, {{short-sha}}"
-  feature/*: "{{ref-name}}-{{timestamp}}, {{ref-name}}-{{short-sha}}, {{short-sha}}"
-  hotfix/*: "{{ref-name}}-{{timestamp}}, {{ref-name}}-{{short-sha}}, {{short-sha}}"
-  bugfix/*: "{{ref-name}}-{{timestamp}}, {{ref-name}}-{{short-sha}}, {{short-sha}}"
+- main: "{{ref-name}}-{{timestamp}}, {{ref-name}}-{{short-sha}}, {{short-sha}}"
+- feature/*: "{{ref-name}}-{{timestamp}}, {{ref-name}}-{{short-sha}}, {{short-sha}}"
+- hotfix/*: "{{ref-name}}-{{timestamp}}, {{ref-name}}-{{short-sha}}, {{short-sha}}"
+- bugfix/*: "{{ref-name}}-{{timestamp}}, {{ref-name}}-{{short-sha}}, {{short-sha}}"
 dist-tags:
-  main: "main"
+- main: "main"

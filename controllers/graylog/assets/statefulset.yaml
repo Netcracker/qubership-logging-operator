@@ -10,7 +10,11 @@ metadata:
     app.kubernetes.io/part-of: logging
     app.kubernetes.io/managed-by: logging-operator
 spec:
-  replicas: {{ if ne .Values.Graylog.Replicas nil }}{{ .Values.Graylog.Replicas }}{{ else }}1{{ end }}
+  {{- if ne .Values.Graylog.Replicas nil }}
+  replicas: {{ .Values.Graylog.Replicas }}
+  {{- else }}
+  replicas: 1
+  {{- end }}
   selector:
     matchLabels:
       name: graylog

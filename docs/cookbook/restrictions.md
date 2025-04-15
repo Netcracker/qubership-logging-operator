@@ -1,3 +1,4 @@
+<!-- markdownlint-disable MD041 -->
 This document describes different limits, restrictions, recommendations and best practices for logs.
 
 # Table of Content

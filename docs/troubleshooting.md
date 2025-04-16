@@ -455,7 +455,7 @@ field with name `timestamp`.
 Next, you have to check its type using requests to OpenSearch API. The following requests will help you:
 
 * If you don't know index name or want to check the field type in all indexes:
-  
+
     ```bash
     GET /_mapping/field/<field>
     ```
@@ -634,7 +634,7 @@ There are some issues in FluentBit and FluentD that could lead to parse parts of
 For example, from the log:
 
 ```bash
-[2024-09-30T04:59:40.498] [DEBUG] [request_id=1a04d001-37e6-418b-bc7f-4904d4dfc753] [tenant_id=-] [thread=main-8e36d] [class=mongo:storage.go:236] [traceId=0000000000000000176d565380a60f8b] [spanId=04546e4d3320dc9b] try to delete objects from certificates by filter map[$and:[map[meta.status:map[$ne:trusted]] map[$or:[map[meta.deactivatedAt:map[$lte:2024-08-31 04:59:40.498507159 +0000 UTC m=+6199354.549415617]] map[details.validTo:map[$lte:2024-08-31 04:59:40.498507159 +0000 UTC m=+6199354.549415617]]]]]] 
+[2024-09-30T04:59:40.498] [DEBUG] [request_id=1a04d001-37e6-418b-bc7f-4904d4dfc753] [tenant_id=-] [thread=main-8e36d] [class=mongo:storage.go:236] [traceId=0000000000000000176d565380a60f8b] [spanId=04546e4d3320dc9b] try to delete objects from certificates by filter map[$and:[map[meta.status:map[$ne:trusted]] map[$or:[map[meta.deactivatedAt:map[$lte:2024-08-31 04:59:40.498507159 +0000 UTC m=+6199354.549415617]] map[details.validTo:map[$lte:2024-08-31 04:59:40.498507159 +0000 UTC m=+6199354.549415617]]]]]]
 ```
 
 expect `key=value` from the `message` part

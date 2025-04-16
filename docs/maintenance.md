@@ -110,7 +110,7 @@ To restore logging from backup:
    For example: `20180809T102744` (date and time of backup)
 
 4. Use one of the backup names and run the following script:
-  
+
     ```bash
     ./restore-logging.sh #{backup_name_here}
     ```

@@ -495,7 +495,7 @@ These parameters appear in Graylog logs when you create a Kafka input:
     check.crcs = true
     client.dns.lookup = use_all_dns_ips
     client.id = gl2-44a226cb-651c122a84432b72c19abb66-0
-    client.rack = 
+    client.rack =
     connections.max.idle.ms = 540000
     default.api.timeout.ms = 60000
     enable.auto.commit = true

@@ -283,7 +283,7 @@ graylog:
       baseDN: "OU=IRQA_LDAP,DC=testad,DC=local"
       bindDN: "otrk_super"
       bindPassword: <otrk_admin_password>
-      bindPasswordSecret: 
+      bindPasswordSecret:
         name: graylog-auth-proxy-secret
         key: bindPassword
       searchFilter: "(SAMAccountName=%(username)s)"

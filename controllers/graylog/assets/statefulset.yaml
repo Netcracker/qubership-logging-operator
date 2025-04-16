@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: graylog
-  namespace: {{ .Release.Namespace }}
+  namespace: "{{ .Release.Namespace }}"
   labels:
     name: graylog
     app.kubernetes.io/name: graylog
@@ -10,7 +10,11 @@ metadata:
     app.kubernetes.io/part-of: logging
     app.kubernetes.io/managed-by: logging-operator
 spec:
+  {{- if ne .Values.Graylog.Replicas nil }}
+  replicas: {{ .Values.Graylog.Replicas }}
+  {{- else }}
   replicas: 1
+  {{- end }}
   selector:
     matchLabels:
       name: graylog

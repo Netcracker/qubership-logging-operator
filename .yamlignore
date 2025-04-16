@@ -1,1 +1,2 @@
 **/charts/*/templates
+**/controllers/graylog/assets/statefulset.yaml

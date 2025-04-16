@@ -10,13 +10,13 @@ metadata:
     app.kubernetes.io/part-of: logging
     app.kubernetes.io/managed-by: logging-operator
 spec:
-  {{- if ne .Values.Graylog.Replicas nil }}
   # yamllint disable
+  {{- if ne .Values.Graylog.Replicas nil }}
   replicas: {{ .Values.Graylog.Replicas }}
-  # yamllint enable
   {{- else }}
   replicas: 1
   {{- end }}
+  # yamllint enable
   selector:
     matchLabels:
       name: graylog

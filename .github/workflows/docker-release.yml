@@ -22,7 +22,7 @@ jobs:
     steps:
     - name: Check if tag exists
       id: check_tag
-      uses: netcracker/qubership-workflow-hub/actions/tag-action@fix/tag-action
+      uses: netcracker/qubership-workflow-hub/actions/tag-action@main
       with:
         ref: ${{ github.ref }}
         check-tag: 'true'
@@ -82,7 +82,7 @@ jobs:
         commit_message: "Update chart version to v${{ github.event.inputs.version }}"
 
     - name: "Create release tag"
-      uses: netcracker/qubership-workflow-hub/actions/tag-action@fix/tag-action
+      uses: netcracker/qubership-workflow-hub/actions/tag-action@main
       with:
         ref: ${{ github.ref }}
         check-tag: 'false'

@@ -47,7 +47,7 @@ spec:
         {{ .Values.nodeSelectorKey | indent 8 }}: {{ .Values.nodeSelectorValue }}
       {{- end }}
       {{- if .Values.affinity }}
-      affinity: 
+      affinity:
         {{- toYaml .Values.affinity | nindent 8 }}
       {{- end }}
       {{- if .Values.priorityClassName }}

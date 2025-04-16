@@ -32,7 +32,7 @@ data:
         level:
           - WARN
         message:
-          - Parsed flag --collector.filesystem.fs-types-exclude go_warn_log    
+          - Parsed flag --collector.filesystem.fs-types-exclude go_warn_log
     - name: "go"
       messagesPerSec: 10
       generationTime: 1

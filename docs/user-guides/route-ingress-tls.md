@@ -29,7 +29,7 @@ spec:
   host: <specify-your-target-host-here>
   to:
     kind: Service
-    name: graylog-service 
+    name: graylog-service
     weight: 100
   port:
     targetPort: graylog
@@ -53,7 +53,7 @@ spec:
   host: <specify-your-target-host-here>
   to:
     kind: Service
-    name: graylog-service 
+    name: graylog-service
     weight: 100
   port:
     targetPort: graylog
@@ -75,7 +75,7 @@ spec:
   host: <specify-your-target-host-here>
   to:
     kind: Service
-    name: graylog-service 
+    name: graylog-service
     weight: 100
   port:
     targetPort: graylog

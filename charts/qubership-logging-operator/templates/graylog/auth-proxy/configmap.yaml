@@ -34,7 +34,7 @@ data:
     ldap-starttls: {{ .Values.graylog.authProxy.ldap.startTls }}
     ldap-over-ssl: {{ .Values.graylog.authProxy.ldap.overSsl }}
     auth-tls-insecure-skip-verify: {{ .Values.graylog.authProxy.ldap.skipVerify }}
-    
+
     {{- if .Values.graylog.authProxy.ldap.ca }}
     {{- if and .Values.graylog.authProxy.ldap.ca.secretName .Values.graylog.authProxy.ldap.ca.secretKey }}
     auth-tls-ca-file: /usr/share/ssl/auth/ca.crt

@@ -945,7 +945,7 @@ graylog:
       key:
         secretName: graylog-input-tls-assets-0
         secretKey: graylog-input.key
-      
+
       # Integration with cert-manager
       generateCerts:
         enabled: true
@@ -995,10 +995,10 @@ graylog:
   openSearch:
     http:
       credentials:
-        username: 
+        username:
           name: openSearch-credentials-secret
           key: httpRequestUsername
-        password: 
+        password:
           name: openSearch-credentials-secret
           key: httpRequestPassword
       tlsConfig:
@@ -1012,7 +1012,7 @@ graylog:
           name: secret-certificate
           key: cert.key
         insecureSkipVerify: false
-    url: openSearch host 
+    url: openSearch host
 ```
 
 [Back to TOC](#table-of-content)
@@ -1061,10 +1061,10 @@ graylog:
   contentPacks:
     - http:
         credentials:
-          username: 
+          username:
             name: contentPack-credentials-secret
             key: httpRequestUsername
-          password: 
+          password:
             name: contentPack-credentials-secret
             key: httpRequestPassword
         tlsConfig:
@@ -1192,7 +1192,7 @@ graylog:
     roleMapping: '["Reader"]'
     streamMapping: ''
     requestsTimeout: 30
-    
+
     authType: 'ldap'
 
     ldap:
@@ -1321,7 +1321,7 @@ graylog:
       ca:
         secretName: graylog-auth-proxy-oauth-ca
         secretKey: ca.crt
-      
+
       clientID: graylog-auth-proxy
       clientSecret: <client-secret>
       scopes: "openid profile roles"
@@ -1946,7 +1946,7 @@ fluentd:
     limits:
       cpu: 500m
       memory: 512Mi
-  
+
   # Graylog input settings
   systemLogging: true
   systemLogType: varlogmessages

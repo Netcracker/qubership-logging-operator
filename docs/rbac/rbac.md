@@ -212,7 +212,7 @@ Steps to execute:
 
 * Set parameter for deploy to skip CRD-s creation `--skip-crds`
 * Set parameter for skip creation of cluster-wide RBAC entities
-  
+
     ```yaml
     createClusterAdminEntities: false
     ```

@@ -7,6 +7,9 @@
 .idea/
 *.iml
 
+# vim
+*.swp
+
 # Python
 venv/
 .mypy_cache/

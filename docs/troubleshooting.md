@@ -603,7 +603,7 @@ The symptoms (from small overload to significant overload):
 
 [Back to TOC](#table-of-content)
 
-# OpenSearch
+## OpenSearch
 
 ### Limit of total fields has been exceeded
 

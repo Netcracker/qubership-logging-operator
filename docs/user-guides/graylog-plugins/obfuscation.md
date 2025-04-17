@@ -4,13 +4,13 @@ The plugin support filtration by streams and fields. Only selected streams and f
 
 The plugin configuration is displayed in the **Configurations** page as shown in the image below.
 
-![Graylog Obfuscation Plugin Configuration](/docs/images/plugins/obfuscation-configuration.png)
+![Graylog Obfuscation Plugin Configuration](../../images/plugins/obfuscation-configuration.png)
 
 # Configuration Parameters
 
 The **Obfuscation Plugin Configuration** page with its parameters is shown in the image below.
 
-![Obfuscation Configuration Page](/docs/images/plugins/obfuscation-plugin-configuration-page.png)
+![Obfuscation Configuration Page](../../images/plugins/obfuscation-plugin-configuration-page.png)
 
 The plugin configuration parameters are as follows:
 
@@ -23,7 +23,7 @@ The plugin configuration parameters are as follows:
   The stream titles should be unique. The stream filter will work only if Pipeline Processor and Message Filter Chain
   is enabled and located higher, than Message Obfuscator.
 
-![Message Processors Configuration](/docs/images/plugins/message-processors-configuration.png)
+![Message Processors Configuration](../../images/plugins/message-processors-configuration.png)
 
 * `Sensitive Regular Expressions` - The regex used for catching sensitive data in the text. For example, `find`.
   This parameter includes the following information:

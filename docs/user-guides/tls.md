@@ -130,7 +130,7 @@ This section describes base deployment schemes of Logging in Cloud and which con
 
 This deployment schema now positioned as default.
 
-![TLS: Graylog on VM](/docs/images/tls/graylog-vm.png)
+![TLS: Graylog on VM](../images/tls/graylog-vm.png)
 
 In this schema:
 
@@ -161,7 +161,7 @@ Details how to configure TLS for this deployment schema see at sections:
 
 ## Graylog in Cloud
 
-![TLS: Graylog in Cloud](/docs/images/tls/graylog-cloud.png)
+![TLS: Graylog in Cloud](../images/tls/graylog-cloud.png)
 
 In this schema:
 

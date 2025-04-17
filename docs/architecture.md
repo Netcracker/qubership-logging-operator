@@ -152,7 +152,7 @@ This section describes the Logging stack deployment in the on-premise Kubernetes
 Non-HA deployment supports for both clients: FluentD and FluentBit. Each client sends processed messages directly in
 Graylog.
 
-![Non-HA](/docs/images/architecture/cloud-fluentbit.png)
+![Non-HA](../docs/images/architecture/cloud-fluentbit.png)
 
 ### HA deployment scheme
 
@@ -170,7 +170,7 @@ Other components can't be deployed in more than 1 replica (or it has no sense):
 * MongoDB - currently deploying as a sidecar of Graylog so can't be run in more than 1 replica
 * Cloud Event Reader - stateless service and can be run in N replicas, but it has no make sense
 
-![Non-HA](/docs/images/architecture/cloud-fluentbit-ha.png)
+![Non-HA](../docs/images/architecture/cloud-fluentbit-ha.png)
 
 ### DR deployment scheme
 

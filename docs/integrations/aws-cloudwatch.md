@@ -195,7 +195,7 @@ To publish PostgreSQL logs to CloudWatch Logs using the AWS console:
 
 **Note:** Please keep in mind that AWS can change UI and some fields can change names or positions.
 
-![Configure RDS to send logs in CloudWatch](/docs/images/cloudwatch/rds-pg-logs.png)
+![Configure RDS to send logs in CloudWatch](../images/cloudwatch/rds-pg-logs.png)
 
 _Enable CloudWatch logs for RDS_
 
@@ -246,11 +246,11 @@ To enable log publishing to CloudWatch using the AWS console:
 
 **Note:** Please keep in mind that AWS can change UI and some fields can change names or positions.
 
-![ElasticSearch logs settings](/docs/images/cloudwatch/elasticsearch-logs.png)
+![ElasticSearch logs settings](../images/cloudwatch/elasticsearch-logs.png)
 
 _Logs configuration section for ElasticSeach / OpenSearch_
 
-![ElasticSearch logs configuration diaglog](/docs/images/cloudwatch/elasticsearch-logs-creation-dialog.png)
+![ElasticSearch logs configuration diaglog](../images/cloudwatch/elasticsearch-logs-creation-dialog.png)
 
 _Logs configuration dialog for ElasticSeach / OpenSearch_
 
@@ -268,7 +268,7 @@ To publish Apache Kafka logs to CloudWatch Logs using the AWS console:
 
 **Note:** Please keep in mind that AWS can change UI and some fields can change names or positions.
 
-![Kafka logs settings](/docs/images/cloudwatch/kafka-logs.png)
+![Kafka logs settings](../images/cloudwatch/kafka-logs.png)
 
 _Logs configuration section for Apache Kafka_
 
@@ -286,7 +286,7 @@ To publish Apache MQ logs to CloudWatch Logs using the AWS console:
 
 **Note:** Please keep in mind that AWS can change UI and some fields can change names or positions.
 
-![RabbitMQ logs settings ](/docs/images/cloudwatch/rabbitmq-log.png)
+![RabbitMQ logs settings ](../images/cloudwatch/rabbitmq-log.png)
 
 _Logs configuration section for RabbitMQ_
 
@@ -388,7 +388,7 @@ input in
 Now go into the Graylog Web Interface and start a new `AWS Kinesis/CloudWatch` input.
 It will ask you for some simple parameters like the Kinesis Stream name you are writing your Flow Logs to.
 
-![Graylog AWS Plugin](/docs/images/cloudwatch/aws-logs-plugin.png)
+![Graylog AWS Plugin](../images/cloudwatch/aws-logs-plugin.png)
 
 _Configuration in Graylog AWS plugin_
 

@@ -56,7 +56,7 @@ flowchart LR
 You can deploy the `graylog-auth-proxy` as part of the Graylog container with the `logging-operator`.
 In this document, we will talk about the features of the configuration and installation of the `graylog-auth-proxy`.
 You can see more information about the deployment of the logging-operator in general
-[in the installation guide](/docs/installation.md).
+[in the installation guide](../installation.md).
 
 You must set `.Values.graylog.authProxy.install` to `true` to allow installation. In addition, you need to
 configure several parameters to properly connect to the SSO provider (e.g. to LDAP or OAuth server).

@@ -1,3 +1,5 @@
+# Graylog Obfuscation Plugin
+
 The Graylog Obfuscation Plugin scans input logs, searches text sensitive data, and anonymizes it.
 The search operation is performed using a regular expression.
 The plugin support filtration by streams and fields. Only selected streams and fields are obfuscated.
@@ -25,18 +27,18 @@ The plugin configuration parameters are as follows:
 
 ![Message Processors Configuration](../../images/plugins/message-processors-configuration.png)
 
-* `Sensitive Regular Expressions` - The regex used for catching sensitive data in the text. For example, `find`.
+* `Sensitive Regular Expressions` - The regular expression used for catching sensitive data in the text. For example, `find`.
   This parameter includes the following information:
-  * ID - The unique ID of the regex.
+  * ID - The unique ID of the regular expression.
   * Name - The readable name.
-  * Pattern - The regex pattern written for the java regex engine.
-  * Importance - The number used to resolve conflicts in the search. If two regex catch different parts in one word,
-    the conflict is resolved by using the maximum importance value of the regex patterns.
-* `White Regular Expressions` - The regex used for filtering white words from all the catch sensitive data.
+  * Pattern - The regular expression pattern written for the java regular expression engine.
+  * Importance - The number used to resolve conflicts in the search. If two regular expression catch different parts in one word,
+    the conflict is resolved by using the maximum importance value of the regular expression patterns.
+* `White Regular Expressions` - The regular expression used for filtering white words from all the catch sensitive data.
   For example, `matched`. This parameter includes the following information:
-  * ID - The unique ID of the regex.
+  * ID - The unique ID of the regular expression.
   * Name - The readable name.
-  * Pattern - The regex pattern written for the java regex engine.
+  * Pattern - The regular expression pattern written for the java regular expression engine.
 
 ## Buttons
 

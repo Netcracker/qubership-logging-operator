@@ -1,3 +1,5 @@
+# Introduction
+
 This document describes how to integrate Logging agents and Graylog with AWS CloudWatch.
 
 # Table of Content
@@ -79,7 +81,7 @@ To create User need:
 
 1. Open IAM, select Users
 2. Click `Add Users`
-3. Enter user name and do not forgot set `Access key - Programmatic access` to generate access key
+3. Enter username and do not forgot set `Access key - Programmatic access` to generate access key
 4. Select early created group or permissions
 5. Create user and save `Access Key` and `Secret Access Key`
 
@@ -216,7 +218,7 @@ All information about available logs in CloudWatch you can read in official docu
 
 To enable log publishing to CloudWatch using the AWS console:
 
-1. Open the `Amazon ElasticSearch` console at [https://console.aws.amazon.com/es](https://console.aws.amazon.com/es).
+1. Open the `Amazon ElasticSearch` console at [https://console.aws.amazon.com/aos/home](https://console.aws.amazon.com/aos/home).
 2. Select the domain you want to update.
 3. On the `Logs` tab, select a log type and choose `Setup`.
 4. Create a CloudWatch log group, or choose an existing one.

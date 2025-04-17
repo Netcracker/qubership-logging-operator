@@ -1,3 +1,5 @@
+# Introduction
+
 This document describe how to configure Graylog in different cases.
 
 # Table of Content
@@ -457,7 +459,7 @@ Logging-backuper is installed on the Graylog host machine by the deploy-logging-
 
 To run the backup process:
 
-1. Navigate to `GRAYLOG_HOST` by ssh.
+1. Navigate to `GRAYLOG_HOST` by SSH.
 1. Execute the command, `curl -XPOST localhost:8080/backup`.
 
 ### Running Restore Process
@@ -477,7 +479,7 @@ To change the password locally:
 1. Navigate to the graylog folder in root home, `sudo -i` then `cd ~/graylog`
 2. Use the `change-password.sh` script to change the password with the following parameters:
 
-   * `--user (-u)` - To specify the user name
+   * `--user (-u)` - To specify the username
    * `--oldpass (-op)` - To specify the current password
    * `--newpass (-np)` - To specify the new password
    * `--confirmpass (-cp)` - To confirm the new password
@@ -490,12 +492,12 @@ To change the password remotely:
 2. Use `change-password.sh` script to change the password with the following parameters:
 
    * `--hosts (-h)` - To specify hosts
-   * `--user (-u)` - To specify the user name
+   * `--user (-u)` - To specify the username
    * `--oldpass (-op)` - To specify the current password
    * `--newpass (-np)` - To specify the new password
    * `--confirmpass (-cp)` - To confirm the new password
-   * `--sshuser` - To specify ssh login
-   * `--sshkey` - To specify the path for ssh key of hosts
+   * `--sshuser` - To specify SSH login
+   * `--sshkey` - To specify the path for SSH key of hosts
 
 3. Wait for `[INFO] Password was successfully changed` message
 

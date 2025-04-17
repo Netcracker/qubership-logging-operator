@@ -392,7 +392,7 @@ If you log in to Graylog UI, go to `System -> Nodes` and see that info about Ela
 Then, if you click on the node's name (`44a226cb/graylog-0` from the example above), you'll probably face an error like
 this:
 
-![Unavailable node details](/docs/images/graylog/wrong-certificate-details.png)
+![Unavailable node details](../docs/images/graylog/wrong-certificate-details.png)
 
 In this case, you should check that your Graylog's TLS certificate is not expired and contains valid alt names (e.g.
 it must contain `graylog-service.logging.svc` if your Graylog is deployed into the `logging` namespace in the Cloud).
@@ -576,7 +576,7 @@ The symptoms (from small overload to significant overload):
 
 ### Common performance principles
 
-* First of all, check the hardware resources of your Graylog instance according to the [table](/docs/installation.md#hwe-and-limits).
+* First of all, check the hardware resources of your Graylog instance according to the [table](installation.md#hwe).
   The most important thing is disk speed and almost all performance issues can be solved by increasing it.
 * Use `sysbench` to measure disk speed
 * RAM and CPU are the second priority but it is also important

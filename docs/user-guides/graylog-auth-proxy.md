@@ -1,3 +1,5 @@
+# Introduction
+
 Graylog-auth-proxy is a service that syncs users from an SSO provider (such as Active Directory) with
 users in Graylog. The service works as a reverse proxy for the Graylog server.
 
@@ -31,7 +33,7 @@ Graylog server. If user wants to access to the Graylog UI via the proxy, they ne
 from SSO provider. Then the proxy verifies these creds and adds user with the same username and random password
 to Graylog and gives him the rights (attaches roles and shares several streams) based on the proxy configuration and
 some attributes of the user from SSO provider. If the proxy is integrated with OAuth service, the credentials
-are verified on the OAuth server side. If the user is already exist in the Graylog, graylog-auth-proxy tries
+are verified on the OAuth server-side. If the user is already exist in the Graylog, graylog-auth-proxy tries
 to update it.
 
 After successful authentication graylog-auth-proxy adds a trusted header with the username to each request that goes to
@@ -94,7 +96,7 @@ Search is conducted on behalf of the user specified in the `bindDn` parameter. A
 for this user. This password can be set in 2 different ways:
 
 1. As plain text in the `bindPassword` parameter
-2. (*recommended*) You can create htpasswd file that contains password encoded in Base64. Path to this file on VM
+2. (*recommended*) You can create htpasswd file that contains password encoded in base64. Path to this file on VM
    should be specified in the `htpasswd` parameter
 
 Also, you should set correct `searchFilter` if needed. Usually you can use the default value `(cn=%(username)s)` for
@@ -196,7 +198,7 @@ The `ldap.bindPasswordSecret` parameter uses `v1.SecretKeySelector` structure.
 See [Kubernetes docs](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#secretkeyselector-v1-core)
 to figure out how to customize this parameter.
 
-**Note:** Bind password will be encoded in Base64 twice. It means that the password will be **double encoded**
+**Note:** Bind password will be encoded in base64 twice. It means that the password will be **double encoded**
 in the Secret. This is required due to the way graylog-auth-proxy works.
 
 ### LDAP over SSL
@@ -338,7 +340,7 @@ Click on the `Next` button to go to the `Capability config` page: turn on `Clien
 uncheck the `Direct access grants` box.
 
 Click on the `Next` button to go to the `Login settings` page: the only required field here is `Valid redirect URIs`
-which must include the host name of your Graylog server with `/code` path: `http(-s)://<graylog-host>/code`.
+which must include the hostname of your Graylog server with `/code` path: `http(-s)://<graylog-host>/code`.
 
 Click on the `Save` button the client is ready.
 
@@ -489,7 +491,7 @@ The `oauth.clientCredentialsSecret` parameter uses `v1.SecretKeySelector` struct
 See [Kubernetes docs](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#secretkeyselector-v1-core)
 to figure out how to customize this parameter.
 
-**Note:** Client Secret will be encoded in Base64 twice. It means that the password will be **double encoded**
+**Note:** Client Secret will be encoded in base64 twice. It means that the password will be **double encoded**
 in the Secret. This is required due to the way graylog-auth-proxy works.
 
 ### OAuth service with TLS

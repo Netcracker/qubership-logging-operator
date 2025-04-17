@@ -72,7 +72,7 @@ If you are unable to connect to the virtual machine using SSH, check the network
 
 To check for errors, navigate to the **System > Overview** tab.
 
-![graylog-system-overview](/docs/images/graylog/system-overview.png)
+![graylog-system-overview](../docs/images/graylog/system-overview.png)
 
 Navigate to the deployed FluentD (usually it is the "logging" project), and see the pods' health-check reports.
 
@@ -252,7 +252,7 @@ Run the redeploy of the Logging service procedure with the corrected `graylog_he
 2. Navigate to `top`
 3. Check the resource consumption. You can also check resource consumption using System Monitoring if available.
    Define what kind of resource (CPU/RAM/HDD IOPS) is not enough according to the
-   [documentation](/docs/installation.md#hwe-and-limits).
+   [documentation](../docs/installation.md#hwe).
 
 **How to fix:**
 
@@ -387,7 +387,7 @@ but this will not change the time inside the `message` field  (it will be equal 
 
 If you log in to Graylog UI, go to `System -> Nodes` and see that info about Elastic nodes is unavailable:
 
-![Node info is unavailable](/docs/images/graylog/wrong-certificate-nodes-info.png)
+![Node info is unavailable](../docs/images/graylog/wrong-certificate-nodes-info.png)
 
 Then, if you click on the node's name (`44a226cb/graylog-0` from the example above), you'll probably face an error like
 this:

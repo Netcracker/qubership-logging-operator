@@ -1,6 +1,8 @@
+# Troubleshooting
+
 This section describes the common problems while connecting to Graylog and the ways to troubleshoot them.
 
-# Table of Content
+## Table of Content
 
 * [Table of Content](#table-of-content)
 * [Graylog](#graylog)
@@ -40,13 +42,13 @@ This section describes the common problems while connecting to Graylog and the w
 * [ConfigMap Reloader](#configmap-reloader)
   * [Fluent container restarts after changing ConfigMap](#fluent-container-restarts-after-changing-configmap)
 
-# Graylog
+## Graylog
 
-## Problems with Connection to Graylog
+### Problems with Connection to Graylog
 
 There are some problems that you may face while connecting to Graylog. These are explained below.
 
-### Unable to Connect to Graylog via Browser
+#### Unable to Connect to Graylog via Browser
 
 To identify the root cause:
 
@@ -68,7 +70,7 @@ If you are unable to connect to the virtual machine using SSH, check the network
 
 [Back to TOC](#table-of-content)
 
-### Unable to Read Log Messages
+#### Unable to Read Log Messages
 
 To check for errors, navigate to the **System > Overview** tab.
 
@@ -78,7 +80,7 @@ Navigate to the deployed FluentD (usually it is the "logging" project), and see 
 
 [Back to TOC](#table-of-content)
 
-### Ingress/Route to Graylog cyclic redirect
+#### Ingress/Route to Graylog cyclic redirect
 
 Applicable for DR no-vIP schema only.
 
@@ -94,11 +96,11 @@ To fix it manual actions are required. Route URL needs to be added into _os_sni_
 
 [Back to TOC](#table-of-content)
 
-## Typical Issues
+### Typical Issues
 
 The typical issues that you may face are given below.
 
-### HDD Full on Graylog VM
+#### HDD Full on Graylog VM
 
 **Symptoms:**
 
@@ -159,7 +161,7 @@ The typical issues that you may face are given below.
 
 [Back to TOC](#table-of-content)
 
-### Graylog Container OOM Killed (out of RAM)
+#### Graylog Container OOM Killed (out of RAM)
 
 **Symptoms:**
 
@@ -238,7 +240,7 @@ Run the redeploy of the Logging service procedure with the corrected `graylog_he
 
 [Back to TOC](#table-of-content)
 
-### Low Graylog Performance
+#### Low Graylog Performance
 
 **Symptoms:**
 
@@ -282,7 +284,7 @@ Wait for journal utilization will reduce to values 0-5%. After that, you can run
 
 [Back to TOC](#table-of-content)
 
-### Graylog Not Processing Messages
+#### Graylog Not Processing Messages
 
 **Symptoms:**
 
@@ -306,7 +308,7 @@ Possible reasons and solutions:
 * [Low Graylog Performance](#low-graylog-performance)
 * OpenSearch issue. Restarting the containers can help in this case. For more information, see [Low Graylog performance](#low-graylog-performance).
 
-### Index Oversized
+#### Index Oversized
 
 **Symptoms:**
 
@@ -337,7 +339,7 @@ curl -X DELETE -u <username>:<password> -H "X-Requested-By: graylog" https://loc
 
 [Back to TOC](#table-of-content)
 
-### Negative number of Unprocessed Messages
+#### Negative number of Unprocessed Messages
 
 If you have a negative number of unprocessed messages in the `Disk Journal` section it means that
 you clean the journal directory but not completely.
@@ -373,7 +375,7 @@ and set parameter `message_journal_enabled=false`.
 
 [Back to TOC](#table-of-content)
 
-### Incorrect timestamps in Graylog
+#### Incorrect timestamps in Graylog
 
 If you have different time values (time zones) in the `message`,  the `time`, and the `timestamp` fields,
 need to check the timezone on nodes. The timezone must be set to UTC on each node.
@@ -383,7 +385,7 @@ but this will not change the time inside the `message` field  (it will be equal 
 
 [Back to TOC](#table-of-content)
 
-### Information about OpenSearch nodes is unavailable
+#### Information about OpenSearch nodes is unavailable
 
 If you log in to Graylog UI, go to `System -> Nodes` and see that info about Elastic nodes is unavailable:
 
@@ -402,9 +404,9 @@ If you use a self-signed certificate,
 
 [Back to TOC](#table-of-content)
 
-### Widgets do not show data with errors
+#### Widgets do not show data with errors
 
-In case of problems with indexes in OpenSearch Graylog can show errors on the widgets.
+In case of problems with indices in OpenSearch Graylog can show errors on the widgets.
 
 For example with messages:
 
@@ -434,7 +436,7 @@ This error usually occurs when:
 * Created a Stream that routes messages in custom OpenSearch index
 
 Created custom OpenSearch index may have fields declared with incorrect type or non-declared fields.
-The second reason is most typical for custom indexes.
+The second reason is most typical for custom indices.
 
 OpenSearch has a dynamic typing and a set of fields in the index. It means that OpenSearch
 tries to automatically select a type for a new field if you didn't declare the field, and OpenSearch
@@ -454,7 +456,7 @@ field with name `timestamp`.
 
 Next, you have to check its type using requests to OpenSearch API. The following requests will help you:
 
-* If you don't know index name or want to check the field type in all indexes:
+* If you don't know index name or want to check the field type in all indices:
 
     ```bash
     GET /_mapping/field/<field>
@@ -478,11 +480,11 @@ the `date` type for this field.
 
 **How to avoid this issue:**
 
-You have to remember about dynamic typing and declare all fields for custom OpenSearch indexes.
+You have to remember about dynamic typing and declare all fields for custom OpenSearch indices.
 
 [Back to TOC](#table-of-content)
 
-### Deflector exists as an index and is not an alias
+#### Deflector exists as an index and is not an alias
 
 Graylog uses a special OpenSearch alias to write and read logs always in the last index. This alias has
 a postfix `_deflector` and it is managed by Graylog.
@@ -542,15 +544,15 @@ After upgrade will be successfully complete you can start all inputs.
 
 **How to avoid this issue:**
 
-You shouldn't create indexes with postfix `_deflector` and use it as an alias. It's a reserved alias by Graylog.
+You shouldn't create indices with postfix `_deflector` and use it as an alias. It's a reserved alias by Graylog.
 
-During updates that should be created Streams that use custom indexes, you must stop all Graylog Inputs.
+During updates that should be created Streams that use custom indices, you must stop all Graylog Inputs.
 
 [Back to TOC](#table-of-content)
 
-## Performance tuning
+### Performance tuning
 
-### Typical symptoms of performance issues and common words
+#### Typical symptoms of performance issues and common words
 
 Graylog uses OpenSearch as backend storage for log data. Graylog itself acts as an incoming logs receiver and processor.
 Graylog does not require many resources and in regular operations, it cannot be overloaded.
@@ -570,11 +572,11 @@ The symptoms (from small overload to significant overload):
 3. Logs search does not show recent logs (because they are in Graylog's journal, not in OpenSearch)
 4. Graylog UI slowness, random 500 and 503 errors
 5. Graylog UI is down
-6. Graylog VM CPU is fully utilized, VM became unresponsive even via ssh
+6. Graylog VM CPU is fully utilized, VM became unresponsive even via SSH
 
 [Back to TOC](#table-of-content)
 
-### Common performance principles
+#### Common performance principles
 
 * First of all, check the hardware resources of your Graylog instance according to the [table](installation.md#hwe).
   The most important thing is disk speed and almost all performance issues can be solved by increasing it.
@@ -584,16 +586,16 @@ The symptoms (from small overload to significant overload):
 
 [Back to TOC](#table-of-content)
 
-## Extra tips and tricks
+### Extra tips and tricks
 
-### /srv/docker/graylog/graylog/config/graylog.conf
+#### /srv/docker/graylog/graylog/config/graylog.conf
 
 * `processbuffer_processors`, `outputbuffer_processors` - set to CPU count / 2.
 * `ring_size` - set to 131072 or to 262144 if you have 4+ RAM for Graylog. Higher values are not recommended
 
 [Back to TOC](#table-of-content)
 
-### Crackdown for heavy loads
+#### Crackdown for heavy loads
 
 * Remove the `Logs Routing` pipeline from Graylog. It will save the CPU, but logs routing to streams will be lost.
 * Disable disk journal in Graylog to prevent disk concurrency between Graylog and OpenSearch.
@@ -603,7 +605,7 @@ The symptoms (from small overload to significant overload):
 
 # OpenSearch
 
-## Limit of total fields has been exceeded
+### Limit of total fields has been exceeded
 
 **Symptoms:**
 
@@ -634,7 +636,11 @@ There are some issues in FluentBit and FluentD that could lead to parse parts of
 For example, from the log:
 
 ```bash
-[2024-09-30T04:59:40.498] [DEBUG] [request_id=1a04d001-37e6-418b-bc7f-4904d4dfc753] [tenant_id=-] [thread=main-8e36d] [class=mongo:storage.go:236] [traceId=0000000000000000176d565380a60f8b] [spanId=04546e4d3320dc9b] try to delete objects from certificates by filter map[$and:[map[meta.status:map[$ne:trusted]] map[$or:[map[meta.deactivatedAt:map[$lte:2024-08-31 04:59:40.498507159 +0000 UTC m=+6199354.549415617]] map[details.validTo:map[$lte:2024-08-31 04:59:40.498507159 +0000 UTC m=+6199354.549415617]]]]]]
+[2024-09-30T04:59:40.498] [DEBUG] [request_id=1a04d001-37e6-418b-bc7f-4904d4dfc753] [tenant_id=-] [thread=main-8e36d] 
+[class=mongo:storage.go:236] [traceId=0000000000000000176d565380a60f8b] [spanId=04546e4d3320dc9b] try to delete objects 
+from certificates by filter map[$and:[map[meta.status:map[$ne:trusted]] map[$or:[map[meta.deactivatedAt:map[$lte:2024-08-31 
+04:59:40.498507159 +0000 UTC m=+6199354.549415617]] map[details.validTo:map[$lte:2024-08-31 04:59:40.498507159 +0000 UTC 
+m=+6199354.549415617]]]]]]
 ```
 
 expect `key=value` from the `message` part
@@ -701,7 +707,7 @@ where `<index_name>` can contain some indices separated by a comma, or "*", see
 curl -X PUT -u <username>:<password> -H 'Content-Type: application/json' -d '{"index.blocks.write": "false"}' http://localhost:9200/<index_name>/_settings
 ```
 
-## Errors `no such index [.opendistro-ism-config]`
+### Errors `no such index [.opendistro-ism-config]`
 
 **Symptoms:**
 
@@ -752,7 +758,7 @@ There are four theoretical ways to avoid/remove this error:
 
 The option with upgrade OpenSearch to 2.x version now is not available, it's just a theoretical option.
 
-## OpenSearch uses more than 32 GB of RAM
+### OpenSearch uses more than 32 GB of RAM
 
 In case of a high load to Graylog and OpenSearch, you may want to allocate more than ~32 GB RAM
 for OpenSearch. After that, you may notice that OpenSearch performance got even worse.
@@ -800,7 +806,7 @@ performance issues you have.
 
 [Back to TOC](#table-of-content)
 
-## Index read-only Warnings
+### Index read-only Warnings
 
 **Symptoms:**
 
@@ -831,7 +837,7 @@ For example:
   curl -X GET -u <username>:<password> http://localhost:9200/_cat/indices
   ```
 
-* To remove indices by name, by some names (use colon `,` as separator) or regex:
+* To remove indices by name, by some names (use colon `,` as separator) or regular expression:
 
   ```bash
   curl -X DELETE -u <username>:<password> http://localhost:9200/<index_name_or_regex>
@@ -887,9 +893,9 @@ the free space can be fully occupied. Ensure that the rotation configuration is 
 
 [Back to TOC](#table-of-content)
 
-# FluentD
+## FluentD
 
-## FluentD worker killed and restart with SIGKILL
+### FluentD worker killed and restart with SIGKILL
 
 **Symptoms:**
 
@@ -939,7 +945,7 @@ There are two solutions that exist to fix this issue:
 
 [Back to TOC](#table-of-content)
 
-## FluentD generate a high DiskIO read load
+### FluentD generate a high DiskIO read load
 
 **Symptoms:**
 
@@ -958,7 +964,7 @@ So please refer to it to check root cause and how to fix it.
 
 [Back to TOC](#table-of-content)
 
-## FluentD failed to flush buffer, data too big
+### FluentD failed to flush buffer, data too big
 
 **Symptoms:**
 
@@ -1038,9 +1044,9 @@ in FluentD configuration. To do that you need to:
 
 [Back to TOC](#table-of-content)
 
-# FluentBit
+## FluentBit
 
-## Connection timeout to Graylog in FluentBit
+### Connection timeout to Graylog in FluentBit
 
 **Symptoms:**
 
@@ -1081,7 +1087,7 @@ next parameters:
 
 [Back to TOC](#table-of-content)
 
-## FluentBit stuck and stopped sending logs to Graylog
+### FluentBit stuck and stopped sending logs to Graylog
 
 **Symptoms:**
 
@@ -1133,9 +1139,9 @@ If you want to solve problem manually, follow steps below (it is temporary solut
 
 [Back to TOC](#table-of-content)
 
-# ConfigMap Reloader
+## ConfigMap Reloader
 
-## Fluent container restarts after changing ConfigMap
+### Fluent container restarts after changing ConfigMap
 
 **Symptoms:**
 

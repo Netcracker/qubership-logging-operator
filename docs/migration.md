@@ -1,8 +1,8 @@
-# Introduction
+# Migration guide
 
 Fluentd -> Fluent bit migration guide
 
-# Table of Content
+## Table of Content
 
 * [Table of Content](#table-of-content)
 * [Migration from FluentD to FluentBit](#migration-from-fluentd-to-fluentbit)
@@ -14,9 +14,9 @@ Fluentd -> Fluent bit migration guide
     * [Upgrade procedure for HA FluentBit](#upgrade-procedure-for-ha-fluentbit)
   * [HWE for HA FluentBit](#hwe-for-ha-fluentbit)
 
-# Migration from FluentD to FluentBit
+## Migration from FluentD to FluentBit
 
-## Install case
+### Install case
 
 To install Fluent-bit use parameter `fluentbit.install: true`.
 All parameters for Fluent-bit and Fluentd are similar.
@@ -64,9 +64,9 @@ There are several differences in fields-naming:
 | `-`                | kubernetes_labels_controller-revision-hash                      |
 | `-`                | kubernetes_labels_pod-template-generation                       |
 
-## Upgrade case
+### Upgrade case
 
-### HWE for FluentBit
+#### HWE for FluentBit
 
 FluentBit starts with the following resources:
 
@@ -80,7 +80,7 @@ resources:
     memory: 512Mi
 ```
 
-### Upgrade procedure
+#### Upgrade procedure
 
 To upgrade from Fluentd to FluentBit use the parameters:
 
@@ -93,12 +93,12 @@ fluentbit:
 
 In this case `logging-operator` uninstalls all FluentD entities and installs FluentBit.
 
-## High-availability FluentBit
+### High-availability FluentBit
 
 There are some cases when you have high load of logs or you need to save all logs even if Graylog is not available for
 a long time.
 
-### Upgrade procedure for HA FluentBit
+#### Upgrade procedure for HA FluentBit
 
 You can upgrade HA Fluentbit from Fluentd directly or from FluentBit. The procedures are the same.
 You need to set the following parameters:
@@ -115,7 +115,7 @@ fluentbit:
 The other required or necessary parameters are listed in the
 [Installation Guide](installation.md).
 
-## HWE for HA FluentBit
+### HWE for HA FluentBit
 
 The schema requires more resources for proper work with a high amount of data.
 The default resources requirement is:

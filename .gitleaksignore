@@ -1,5 +1,6 @@
 /tmp/lint/docs/installation.md:private-key:660
 /github/workspace/docs/configuration.md:curl-auth-header:189
+/github/workspace/docs/configuration.md:curl-auth-header:191
 /github/workspace/docs/installation.md:private-key:660
 /github/workspace/api/v1alpha1/loggingservice_types.go:generic-api-key:628
 /github/workspace/api/v1alpha1/loggingservice_types.go:generic-api-key:631

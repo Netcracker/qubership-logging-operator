@@ -1,8 +1,8 @@
-# Introduction
+# Graylog configuration
 
 This document describe how to configure Graylog in different cases.
 
-# Table of Content
+## Table of Content
 
 * [Table of Content](#table-of-content)
 * [Using FluentD/FluentBit with compression](#using-fluentdfluentbit-with-compression)
@@ -40,7 +40,7 @@ This document describe how to configure Graylog in different cases.
     * [Logout events](#logout-events)
     * [Change password events](#change-password-events)
 
-# Using FluentD/FluentBit with compression
+## Using FluentD/FluentBit with compression
 
 `logging-operator` uses GELF protocol to send logs over TCP protocol to Graylog.
 When using TCP protocol, typically the network usage will be high and CPU usage will be low.
@@ -48,7 +48,7 @@ Whenever there is a need to reduce network usage, UDP protocol can be used.
 
 **Note:** This will increase the CPU load.
 
-## FluentBit
+### FluentBit
 
 [FluentBit](https://docs.fluentbit.io/manual/pipeline/outputs/gelf) offers using GELF over UDP protocol
 and it automatically compresses logs. Graylog already has a feature to automatically decompress
@@ -57,7 +57,7 @@ logs when it receives data over GELF UDP.
 It is necessary to set `.Values.fluentbit.graylogProtocol` with the value `udp` to enable
 compression and transferring the logs over UDP.
 
-## FluentD
+### FluentD
 
 FluentD does not offer default mechanism to compress logs when GELF is used as output plugin.
 FluentD has a [buffer](https://docs.fluentd.org/configuration/buffer-section) section which provides an ability
@@ -66,11 +66,11 @@ to compress data before writing data to buffer chunks.
 It is necessary to set `.Values.fluentd.compress` with the value `gzip` to enable compression before
 writing data to buffer chunks.
 
-# Using Graylog
+## Using Graylog
 
 You can use Graylog to view the logs for services, search and filter logs, and so on as described in the sections below.
 
-## Viewing Logs of a Specific Microservice
+### Viewing Logs of a Specific Microservice
 
 You can view logs of a specific microservice using the following methods:
 
@@ -88,7 +88,7 @@ To view logs of a specific microservice use the **Search** tab:
 For more information about Graylog search query language, refer to
 [Writing Search Queries](https://go2docs.graylog.org/5-2/making_sense_of_your_log_data/writing_search_queries.html).
 
-## Create Stream
+### Create Stream
 
 To create a new stream:
 
@@ -107,7 +107,7 @@ To create a new stream:
 For more information about streams, refer to
 [Streams](https://go2docs.graylog.org/5-2/making_sense_of_your_log_data/streams.html).
 
-## Searching and Filtering Records
+### Searching and Filtering Records
 
 To create searching and filtering logs, navigate to the **Search** tab and enter your search criteria.
 The search criteria can be built from any combination of fields in a log message according to the Graylog search query language.
@@ -136,7 +136,7 @@ The search criteria parameters are as follows:
 * `pod_name` specifies the pod name.
 * `time/timestamp` specifies the timestamp.
 
-## Saving Custom Search
+### Saving Custom Search
 
 You can save search criteria as a named query for quick usage in the future.
 
@@ -211,11 +211,11 @@ curl --location --request POST 'https://GRAYLOG_HOST/api/api/views/search' \
 }'
 ```
 
-## Logs Description
+### Logs Description
 
 This section provides detailed descriptions of logs collected in Graylog OOB.
 
-### Log Fields
+#### Log Fields
 
 The list of log fields is as follows:
 
@@ -242,7 +242,7 @@ The list of log fields is as follows:
 
 All other fields are technical and can be ignored.
 
-### List of OOB streams
+#### List of OOB streams
 
 The list of OOB streams is as follows:
 
@@ -256,7 +256,7 @@ The list of OOB streams is as follows:
 * `Kubernetes events` include logs with key-value `kind=KubernetesEvent`. The stream includes Kubernetes events sent as
   logs to Graylog form cloud-events-reader.
 
-## Cleaning Logs
+### Cleaning Logs
 
 Graylog uses Elasticsearch indices that are grouped into Graylog index sets to store log messages.
 ach index set has its settings, which include index rotation and data retention.
@@ -292,11 +292,11 @@ The configuration for the rotation policy is shown in the following image.
 
 ![Configure Rotation Policy](../docs/images/graylog/configure-rotation-policy.png)
 
-## Exporting Logs
+### Exporting Logs
 
 The logs can be exported as described in the following sections.
 
-### Exporting via WEB-Interface
+#### Exporting via WEB-Interface
 
 You can export the results of a search request to a CSV format through the Web interface.
 
@@ -305,11 +305,11 @@ To export a search request:
 1. Perform a search.
 2. From the **...** button, click **Export to CSV**.
 
-## Authenticating and Managing Users
+### Authenticating and Managing Users
 
 The information on authentication and managing users is as follows:
 
-### Roles
+#### Roles
 
 By default, there are next user roles available:
 
@@ -333,7 +333,7 @@ A role is created as shown in the following image.
 
 ![Create Roles](../docs/images/graylog/create-roles.png)
 
-### Users
+#### Users
 
 By default, there are the following users:
 
@@ -361,7 +361,7 @@ A user is created as shown in the following image.
 For more information about Graylog search query language, refer to
 [Export Results as CSV](https://go2docs.graylog.org/5-2/interacting_with_your_log_data/export_results_as_csv.html)
 
-### LDAP integration
+#### LDAP integration
 
 To configure LDAP/AD integration, refer to the official Graylog documentation:
 [Authentication](https://go2docs.graylog.org/5-2/setting_up_graylog/permission_management.html?Highlight=ldap#Authentication)
@@ -374,7 +374,7 @@ To configure LDAP/AD integration, refer to the official Graylog documentation:
   Refer to the official issue in the following link
   [https://github.com/Graylog2/graylog2-server/issues/2267](https://github.com/Graylog2/graylog2-server/issues/2267)
 
-## Audit Logs
+### Audit Logs
 
 Sensitive or audit logs require special processing in terms of storing time and viewing permissions.
 Such processing is delivered to OOB.
@@ -401,7 +401,7 @@ An example of using `log_id` with the value `audit` is given in the following im
 
 ![Stream Rule](../docs/images/graylog/stream-rule.png)
 
-## System Logs
+### System Logs
 
 Operation system logs from platform VMs such as Kubernetes nodes, Logging VM, Monitoring VM, and so on,
 are collected into a separate stream, `System logs`, which is provided to OOB.
@@ -409,25 +409,25 @@ are collected into a separate stream, `System logs`, which is provided to OOB.
 This stream contains `/var/log/messages` logs from the VMs.
 The stream logs are stored in the same `Default index set` as any other typical logs.
 
-## Integration Logs
+### Integration Logs
 
 The stream contains all logs with one of the following markers:
 
 * `[logType=int]`
 * `[log_type=int]`
 
-## Access Logs
+### Access Logs
 
 The stream contains all logs with one of the following markers:
 
 * `[logType=access]`
 * `[log_type=access]`
 
-## Ingress Nginx Logs
+### Ingress Nginx Logs
 
 The stream contains all logs from pods `ingress-nginx`.
 
-## Sending Logs to External Destination (SIEM)
+### Sending Logs to External Destination (SIEM)
 
 The following `output` protocols are supported:
 
@@ -449,20 +449,20 @@ The configure logs parameters are as follows.
 * Transport protocol (TCP/UDP)
 * Destination port (make sure this port is opened for Graylog container)
 
-## Logging Application Backuper
+### Logging Application Backuper
 
 Logging-backuper allows you to make backups of all logging applications such as Graylog, OpenSearch, MongoDB, and so on,
 and to restore if some exceptional case occurs.
 Logging-backuper is installed on the Graylog host machine by the deploy-logging-backuper job.
 
-### Running Backup Process
+#### Running Backup Process
 
 To run the backup process:
 
 1. Navigate to `GRAYLOG_HOST` by SSH.
 1. Execute the command, `curl -XPOST localhost:8080/backup`.
 
-### Running Restore Process
+#### Running Restore Process
 
 To run the restore process:
 
@@ -472,7 +472,7 @@ To run the restore process:
 3. Use one of the backup names and run `./restore-logging.sh #{backup_name_here}`. For example, `./restore-logging.sh 20180809T102744`.
 4. Wait for the `restore successful` message.
 
-### Changing Password
+#### Changing Password
 
 To change the password locally:
 
@@ -503,19 +503,19 @@ To change the password remotely:
 
 **Note:** If the external destination is unreachable, then the logs are not forwarded to it until it is active.
 
-## Graylog Plugins System
+### Graylog Plugins System
 
 Graylog supports custom extensions using plugins.
 To configure plugins, navigate to **System/Configurations > Configurations** as shown in the following image.
 
 ![Path to Configuration Page](../docs/images/graylog/configuration-page.png)
 
-### Graylog Obfuscation Plugin
+#### Graylog Obfuscation Plugin
 
 The Graylog Obfuscation Plugin is necessary for anonymization of sensitive data in the logs.
 For more information, see [Graylog Obfuscation Plugin](https://github.com/Netcracker/qubership-graylog-obfuscation-plugin/blob/main/README.md).
 
-## Graylog Audit logs
+### Graylog Audit logs
 
 The Graylog has audit logs on three security events. The information about that event is taken from access logs.
 The graylog audit logs can be found in `Audit logs` stream for `graylog_graylog_1` container name.
@@ -526,7 +526,7 @@ The format of access logs:
 [time][level][ip address][user][access url][user agent][status]
 ```
 
-### Login events
+#### Login events
 
 The event on login consists of two log record, where in the first record describe the fact of login
 and in second record describe who perform login to Graylog. On success login used 200 http code, on failed login
@@ -546,7 +546,7 @@ Examples:
 [2020-09-16T07:46:13,272][DEBUG]0.0.0.0 admin [-] "GET api/users/admin" Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.83 Safari/537.36 200 -1
 ```
 
-### Logout events
+#### Logout events
 
 Examples:
 
@@ -554,7 +554,7 @@ Examples:
 [2020-09-16T07:46:07,845][DEBUG]0.0.0.0 admin [-] "DELETE api/system/sessions/cef0692d-1154-4bb4-ba48-1f9abda83c1c" Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.83 Safari/537.36 204 -1
 ```
 
-### Change password events
+#### Change password events
 
 Examples:
 

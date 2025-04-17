@@ -8,7 +8,7 @@ The plugin configuration is displayed in the **Configurations** page as shown in
 
 ![Graylog Obfuscation Plugin Configuration](../../images/plugins/obfuscation-configuration.png)
 
-# Configuration Parameters
+## Configuration Parameters
 
 The **Obfuscation Plugin Configuration** page with its parameters is shown in the image below.
 
@@ -40,7 +40,7 @@ The plugin configuration parameters are as follows:
   * Name - The readable name.
   * Pattern - The regular expression pattern written for the java regular expression engine.
 
-## Buttons
+### Buttons
 
 * The **Reset** button resets the obfuscation configuration to its default.
 * The **Save** button stores the obfuscation configuration. The configuration is applied immediately.

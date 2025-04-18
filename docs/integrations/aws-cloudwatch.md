@@ -1,25 +1,28 @@
+# AWS CloudWatch
+
 This document describes how to integrate Logging agents and Graylog with AWS CloudWatch.
 
-# Table of Content
+## Table of Content
 
-* [Table of Content](#table-of-content)
-* [Collect logs and flow logs from AWS Managed Services](#collect-logs-and-flow-logs-from-aws-managed-services)
-  * [Preparation](#preparation)
-    * [Configure IAM](#configure-iam)
-    * [Use Logging integration with VPC](#use-logging-integration-with-vpc)
-  * [Configure CloudWatch Log Group](#configure-cloudwatch-log-group)
-    * [Configure AWS Services send logs to CloudWatch](#configure-aws-services-send-logs-to-cloudwatch)
-      * [Configure AWS Flow Logs](#configure-aws-flow-logs)
-    * [Configure AWS EKS (Kubernetes)](#configure-aws-eks-kubernetes)
-    * [Configure AWS RDS (PostgreSQL)](#configure-aws-rds-postgresql)
-    * [Configure AWS Keyspaces (Cassandra)](#configure-aws-keyspaces-cassandra)
-    * [Configure AWS ElasticSearch / OpenSearch](#configure-aws-elasticsearch--opensearch)
-    * [Configure AWS MSK (Kafka)](#configure-aws-msk-kafka)
-    * [Configure Amazon MQ (Rabbit MQ)](#configure-amazon-mq-rabbit-mq)
-  * [Configure AWS Kinesis](#configure-aws-kinesis)
-  * [Configure Graylog with AWS Plugin](#configure-graylog-with-aws-plugin)
+* [AWS CloudWatch](#aws-cloudwatch)
+  * [Table of Content](#table-of-content)
+  * [Collect logs and flow logs from AWS Managed Services](#collect-logs-and-flow-logs-from-aws-managed-services)
+    * [Preparation](#preparation)
+      * [Configure IAM](#configure-iam)
+      * [Use Logging integration with VPC](#use-logging-integration-with-vpc)
+    * [Configure CloudWatch Log Group](#configure-cloudwatch-log-group)
+      * [Configure AWS Services send logs to CloudWatch](#configure-aws-services-send-logs-to-cloudwatch)
+        * [Configure AWS Flow Logs](#configure-aws-flow-logs)
+      * [Configure AWS EKS (Kubernetes)](#configure-aws-eks-kubernetes)
+      * [Configure AWS RDS (PostgreSQL)](#configure-aws-rds-postgresql)
+      * [Configure AWS Keyspaces (Cassandra)](#configure-aws-keyspaces-cassandra)
+      * [Configure AWS ElasticSearch / OpenSearch](#configure-aws-elasticsearch--opensearch)
+      * [Configure AWS MSK (Kafka)](#configure-aws-msk-kafka)
+      * [Configure Amazon MQ (Rabbit MQ)](#configure-amazon-mq-rabbit-mq)
+    * [Configure AWS Kinesis](#configure-aws-kinesis)
+    * [Configure Graylog with AWS Plugin](#configure-graylog-with-aws-plugin)
 
-# Collect logs and flow logs from AWS Managed Services
+## Collect logs and flow logs from AWS Managed Services
 
 To collect logs from AWS Managed Service we offer to use the Graylog [AWS Plugin](https://github.com/Graylog2/graylog-plugin-aws)
 which can get logs by the following flow:
@@ -33,12 +36,12 @@ to be attempted or not. This basically means that the plugin will try to find ce
 and enrich the log message with more information about the AWS entity (like a EC2 box, an ELB instance,
 a RDS database, …) automatically.
 
-## Preparation
+### Preparation
 
 This section describes all necessary preparation steps to configure Graylog and it AWS plugin to collect logs
 from AWS CloudWatch.
 
-### Configure IAM
+#### Configure IAM
 
 IAM permissions required to use this feature:
 
@@ -79,11 +82,11 @@ To create User need:
 
 1. Open IAM, select Users
 2. Click `Add Users`
-3. Enter user name and do not forgot set `Access key - Programmatic access` to generate access key
+3. Enter username and do not forgot set `Access key - Programmatic access` to generate access key
 4. Select early created group or permissions
 5. Create user and save `Access Key` and `Secret Access Key`
 
-### Use Logging integration with VPC
+#### Use Logging integration with VPC
 
 **Important!** It is a very important step if you are using VPC. Without VPC Endpoint for CloudWatch it
 exported can not get access to it endpoint (non global, non regional).
@@ -124,7 +127,7 @@ To add VPC Endpoint need:
 6. Click `Create Endpoint`
 7. Repeat for all necessary services from list above
 
-## Configure CloudWatch Log Group
+### Configure CloudWatch Log Group
 
 **Important!** It's a mandatory step which you should execute before configure Amazon Kinesis data stream.
 
@@ -142,12 +145,12 @@ To create a log group:
 For example below suppose we create a group called `all-cloudwatch-logs`. In this group we will send all logs
 from all AWS Managed Services.
 
-### Configure AWS Services send logs to CloudWatch
+#### Configure AWS Services send logs to CloudWatch
 
 Almost all AWS Managed Services integrated with CloudWatch. But they has a different settings in different places.
 This section is intended to describe how to configure CloudWatch logs for the most frequently used services.
 
-#### Configure AWS Flow Logs
+##### Configure AWS Flow Logs
 
 **Note:** This step is optional and need only in case when you want to collect `Flow Logs`. Graylog will
 collect from another AWS Manager Service without configured `Flow Logs`.
@@ -171,7 +174,7 @@ and you can view them in your CloudWatch console.To find these logs:
 3. Choose the necessary `Log Group` and select `Stream`.
 4. Click on stream name and see all raw logs, or specify any filters.
 
-### Configure AWS EKS (Kubernetes)
+#### Configure AWS EKS (Kubernetes)
 
 For collect metrics from EKS into Kubernetes should install FluentD which deploy as a part of Logging.
 So there is no need specific CloudWatch configuration.
@@ -179,7 +182,7 @@ So there is no need specific CloudWatch configuration.
 **Note:** Logs collection from EKS can work without using Graylog AWS Plugin, because logs are collecting directly
 from FluentD.
 
-### Configure AWS RDS (PostgreSQL)
+#### Configure AWS RDS (PostgreSQL)
 
 All information about available logs in CloudWatch you can read in official documentation
 [PostgreSQL database log files](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_LogAccess.Concepts.PostgreSQL.html).
@@ -195,11 +198,11 @@ To publish PostgreSQL logs to CloudWatch Logs using the AWS console:
 
 **Note:** Please keep in mind that AWS can change UI and some fields can change names or positions.
 
-![Configure RDS to send logs in CloudWatch](/docs/images/cloudwatch/rds-pg-logs.png)
+![Configure RDS to send logs in CloudWatch](../images/cloudwatch/rds-pg-logs.png)
 
 _Enable CloudWatch logs for RDS_
 
-### Configure AWS Keyspaces (Cassandra)
+#### Configure AWS Keyspaces (Cassandra)
 
 All information about available logs in CloudWatch you can read in official documentation
 [Logging Amazon Keyspaces API calls with AWS CloudTrail](https://docs.aws.amazon.com/keyspaces/latest/devguide/logging-using-cloudtrail.html).
@@ -209,14 +212,14 @@ CloudTrail logs, a service that provides a record of actions taken by a user, ro
 CloudTrail captures Data Definition Language (DDL) API calls for Amazon Keyspaces as events. The calls that are captured
 include calls from the Amazon Keyspaces console and code calls to the Amazon Keyspaces API operations.
 
-### Configure AWS ElasticSearch / OpenSearch
+#### Configure AWS ElasticSearch / OpenSearch
 
 All information about available logs in CloudWatch you can read in official documentation
 [Monitoring OpenSearch logs with Amazon CloudWatch Logs](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/createdomain-configure-slow-logs.html).
 
 To enable log publishing to CloudWatch using the AWS console:
 
-1. Open the `Amazon ElasticSearch` console at [https://console.aws.amazon.com/es](https://console.aws.amazon.com/es).
+1. Open the `Amazon ElasticSearch` console at [https://console.aws.amazon.com/aos/home](https://console.aws.amazon.com/aos/home).
 2. Select the domain you want to update.
 3. On the `Logs` tab, select a log type and choose `Setup`.
 4. Create a CloudWatch log group, or choose an existing one.
@@ -246,15 +249,15 @@ To enable log publishing to CloudWatch using the AWS console:
 
 **Note:** Please keep in mind that AWS can change UI and some fields can change names or positions.
 
-![ElasticSearch logs settings](/docs/images/cloudwatch/elasticsearch-logs.png)
+![ElasticSearch logs settings](../images/cloudwatch/elasticsearch-logs.png)
 
 _Logs configuration section for ElasticSeach / OpenSearch_
 
-![ElasticSearch logs configuration diaglog](/docs/images/cloudwatch/elasticsearch-logs-creation-dialog.png)
+![ElasticSearch logs configuration diaglog](../images/cloudwatch/elasticsearch-logs-creation-dialog.png)
 
 _Logs configuration dialog for ElasticSeach / OpenSearch_
 
-### Configure AWS MSK (Kafka)
+#### Configure AWS MSK (Kafka)
 
 All information about available logs in CloudWatch you can read in official documentation
 [Kafka Logging](https://docs.aws.amazon.com/msk/latest/developerguide/msk-logging.html).
@@ -268,11 +271,11 @@ To publish Apache Kafka logs to CloudWatch Logs using the AWS console:
 
 **Note:** Please keep in mind that AWS can change UI and some fields can change names or positions.
 
-![Kafka logs settings](/docs/images/cloudwatch/kafka-logs.png)
+![Kafka logs settings](../images/cloudwatch/kafka-logs.png)
 
 _Logs configuration section for Apache Kafka_
 
-### Configure Amazon MQ (Rabbit MQ)
+#### Configure Amazon MQ (Rabbit MQ)
 
 All information about available logs in CloudWatch you can read in official documentation
 [Configuring RabbitMQ logs](https://docs.aws.amazon.com/amazon-mq/latest/developer-guide/security-logging-monitoring-rabbitmq.html).
@@ -286,11 +289,11 @@ To publish Apache MQ logs to CloudWatch Logs using the AWS console:
 
 **Note:** Please keep in mind that AWS can change UI and some fields can change names or positions.
 
-![RabbitMQ logs settings ](/docs/images/cloudwatch/rabbitmq-log.png)
+![RabbitMQ logs settings ](../images/cloudwatch/rabbitmq-log.png)
 
 _Logs configuration section for RabbitMQ_
 
-## Configure AWS Kinesis
+### Configure AWS Kinesis
 
 Create a Kinesis stream using the `AWS CLI` tools:
 
@@ -374,21 +377,21 @@ You should now see Flow Logs being written into your Kinesis stream.
 
 Also state of Kinesis streams you can see in AWS Console:
 
-1. Open the `Amazon Kinesis` console at [https://console.aws.amazon.com/kinesis].
+1. Open the `Amazon Kinesis` console at [https://console.aws.amazon.com/kinesis/home].
 2. In the navigation pane, choose `Data Streams` then choose the one of configured streams.
 3. In the opened page you can see some parameters of stream configuration and see metrics (In/Out data and so on).
 
-## Configure Graylog with AWS Plugin
+### Configure Graylog with AWS Plugin
 
 **Warning!** AWS Plugin has been deprecated in favor of the new
-[AWS Kinesis/CloudWatch](http://docs.graylog.org/en/3.1/pages/integrations/inputs/aws_kinesis_cloudwatch_input.html#aws-kinesis-cloudwatch-input)
+[AWS Kinesis/CloudWatch](https://go2docs.graylog.org/current/getting_in_log_data/aws_kinesis_cloudwatch_input.html)
 input in
 [graylog-integrations-plugin](https://github.com/Graylog2/graylog-plugin-integrations).
 
 Now go into the Graylog Web Interface and start a new `AWS Kinesis/CloudWatch` input.
 It will ask you for some simple parameters like the Kinesis Stream name you are writing your Flow Logs to.
 
-![Graylog AWS Plugin](/docs/images/cloudwatch/aws-logs-plugin.png)
+![Graylog AWS Plugin](../images/cloudwatch/aws-logs-plugin.png)
 
 _Configuration in Graylog AWS plugin_
 

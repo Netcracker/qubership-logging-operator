@@ -1,6 +1,8 @@
+# TLS
+
 This guide contains information of how to configure TLS for Logging components.
 
-# Table of Content
+## Table of Content
 
 * [Table of Content](#table-of-content)
 * [Steps to renew certificates](#steps-to-renew-certificates)
@@ -25,7 +27,7 @@ This guide contains information of how to configure TLS for Logging components.
   * [Fluent-bit in cloud with manually created secrets](#fluent-bit-in-cloud-with-manually-created-secrets)
   * [Fluent-bit in cloud with cert-manager integration](#fluent-bit-in-cloud-with-cert-manager-integration)
 
-# Steps to renew certificates
+## Steps to renew certificates
 
 TLS certificates have a limited duration, and you can update them over time by replacing the content of
 corresponding Secrets. Cert-manager can do that automatically if you set `renewBefore` parameter for certificate.
@@ -42,7 +44,7 @@ steps are required. The table below reflects actions required after updating the
 
 After restart, components may be unavailable for a short time.
 
-# Self-signed certificate generation
+## Self-signed certificate generation
 
 You must have a correct certificate to use it for TLS: it has to contain valid IPs and DNS names as alt names,
 and it must not be expired.
@@ -122,15 +124,15 @@ If you [configure TLS for Graylog HTTP interface into Cloud](#configure-tls-for-
 you should configure `.graylog.tls.http.cert` parameter for the certificate and `.graylog.tls.http.key` parameter for
 the private key.
 
-# Logging deploy schemes
+## Logging deploy schemes
 
 This section describes base deployment schemes of Logging in Cloud and which connections can be closed by TLS.
 
-## Graylog on VM
+### Graylog on VM
 
 This deployment schema now positioned as default.
 
-![TLS: Graylog on VM](/docs/images/tls/graylog-vm.png)
+![TLS: Graylog on VM](../images/tls/graylog-vm.png)
 
 In this schema:
 
@@ -159,9 +161,9 @@ Details how to configure TLS for this deployment schema see at sections:
 * [Configure TLS for Fluentd output](#configure-tls-for-fluentd-output) or
   [Configure TLS for FluentBit output](#configure-tls-for-fluentbit-output)
 
-## Graylog in Cloud
+### Graylog in Cloud
 
-![TLS: Graylog in Cloud](/docs/images/tls/graylog-cloud.png)
+![TLS: Graylog in Cloud](../images/tls/graylog-cloud.png)
 
 In this schema:
 
@@ -203,11 +205,11 @@ Details how to configure TLS for this deployment schema see at sections:
 * [Configure TLS for Fluentd output](#configure-tls-for-fluentd-output) or
   [Configure TLS for FluentBit output](#configure-tls-for-fluentbit-output)
 
-## Configure TLS for Logging
+### Configure TLS for Logging
 
 This section describe how to configure TLS for various components into Logging stack.
 
-### Configure TLS for Graylog UI on VM
+#### Configure TLS for Graylog UI on VM
 
 TLS for Graylog UI works through Nginx reverse proxy.
 
@@ -231,12 +233,12 @@ ssl_certificate_key=nginx/logging.pem
 
 where:
 
-* `ssl_certificate` is TLS certificate filename (.crt) that is presented on Deploy VM from the `certificates.zip` zip
+* `ssl_certificate` is TLS certificate filename (.crt) that is presented on Deploy VM from the `certificates.zip` ZIP
   archive. Required for HTTPS UI access. If empty - self-signed certificate will be generated automatically.
 * `ssl_certificate_key` is TLS certificate key filename (.pem) that is presented on Deploy VM from
-  the `certificates.zip` zip archive. Required for HTTPS UI access.
+  the `certificates.zip` ZIP archive. Required for HTTPS UI access.
 
-### Configure TLS for Graylog Inputs on VM
+#### Configure TLS for Graylog Inputs on VM
 
 TLS for Graylog Inputs works directly through Graylog. Third party applications are not used.
 
@@ -269,9 +271,9 @@ tls_key_password=awesome_password
 
 * `tls_enabled` allow to enable TLS for Graylog input. The possible values are `true`/`false`.
 * `tls_cert_file` is TLS certificate filename (.crt) that is presented on Deploy VM from the `certificates.zip`
-  zip archive. Required for input with TLS.
+  ZIP archive. Required for input with TLS.
 * `tls_key_file` is TLS certificate key filename (.pem or .key) that is presented on Deploy VM from
-  the `certificates.zip` zip archive. Required for input with TLS.
+  the `certificates.zip` ZIP archive. Required for input with TLS.
 * `tls_key_password` the password for the TLS certificate key file for Graylog input.
 
 **Note (not recommended, may be insecure)**: If you set `tls_enabled` to `true`, but _did not_ set
@@ -282,7 +284,7 @@ If you want to enable/disable TLS for Graylog input quickly, you can do it throu
 login to Graylog UI -> `System/Inputs` -> `Inputs` -> choose the input and click on `More actions` -> `Edit input`
 -> check or uncheck `Enable TLS`.
 
-### Configure TLS for Graylog Inputs into Cloud
+#### Configure TLS for Graylog Inputs into Cloud
 
 To configure TLS between Graylog and Fluentd/FluentBit need to configure TLS settings on both sides:
 
@@ -348,7 +350,7 @@ Parameters that configure TLS for Graylog Inputs stored in the `.graylog.tls.inp
 * `.graylog.tls.input.keyFilePassword` - The password to unlock the private key used for securing Graylog input.
   The data type is `Str`.
 
-### Configure TLS for Graylog HTTP interface into Cloud
+#### Configure TLS for Graylog HTTP interface into Cloud
 
 To configure TLS for HTTP interface (it's used for ElasticSearch) need to execute the following actions:
 
@@ -437,7 +439,7 @@ Parameters that configure TLS for Graylog HTTP interface stored in the `.graylog
 * `.graylog.tls.http.keyFilePassword` - The password to unlock the private key used for securing the HTTP interface.
   The data type is `Str`.
 
-### Configure TLS for Fluentd output
+#### Configure TLS for Fluentd output
 
 To configure TLS for Fluentd output need to execute the following actions:
 
@@ -503,7 +505,7 @@ where:
   The data type is `Bool`. The default value is `false`.
 * `.fluentd.tls.noVerify` - Disable peer verification. The data type is `Bool`. The default value is `false`.
 
-### Configure TLS for FluentBit output
+#### Configure TLS for FluentBit output
 
 FluentBit has another parameters to enable TLS output:
 
@@ -557,7 +559,7 @@ where:
 * `.fluentbit.tls.verify` - Force certificate validation. The data type is `Bool`. The default value is `true`.
 * `.fluentbit.tls.keyPasswd` - Optional password for private key file. The data type is `Str`.
 
-### About cert-manager
+#### About cert-manager
 
 [Cert-manager](https://cert-manager.io/) is X.509 certificate controller for Kubernetes and OpenShift workloads. It will
 obtain certificates from a variety of Issuers, both popular public Issuers as well as private Issuers, and ensure
@@ -590,7 +592,7 @@ In order for cert-manager to generate a secret containing certificates and priva
 
 The generated secret can be used in pods later as a volume.
 
-#### Logging-operator integration with cert-manager
+##### Logging-operator integration with cert-manager
 
 If you use logging-operator, you don't need to create cert-manager resources for its components manually.
 
@@ -631,9 +633,9 @@ created:
 Issuer `logging-ca-issuer` will be used for every certificate generated by cert-manager for logging-operator, if
 `clusterIssuerName` is not specified for the component.
 
-# Examples
+## Examples
 
-## Graylog in cloud with manually created secrets
+### Graylog in cloud with manually created secrets
 
 ```yaml
 graylog:
@@ -659,7 +661,7 @@ graylog:
       keyFilePassword: password # Optional
 ```
 
-## Graylog in cloud with cert-manager integration
+### Graylog in cloud with cert-manager integration
 
 ```yaml
 graylog:
@@ -682,7 +684,7 @@ graylog:
         renewBefore: 15                           # Optional
 ```
 
-## Fluentd in cloud with manually created secrets
+### Fluentd in cloud with manually created secrets
 
 ```yaml
 fluentd:
@@ -704,7 +706,7 @@ fluentd:
     noVerify: false        # Optional
 ```
 
-## Fluentd in cloud with cert-manager integration
+### Fluentd in cloud with cert-manager integration
 
 ```yaml
 fluentd:
@@ -718,7 +720,7 @@ fluentd:
       renewBefore: 15                      # Optional
 ```
 
-## Fluent-bit in cloud with manually created secrets
+### Fluent-bit in cloud with manually created secrets
 
 ```yaml
 fluentbit:
@@ -737,7 +739,7 @@ fluentbit:
     keyPasswd: password # Optional
 ```
 
-## Fluent-bit in cloud with cert-manager integration
+### Fluent-bit in cloud with cert-manager integration
 
 ```yaml
 fluentbit:

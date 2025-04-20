@@ -249,7 +249,7 @@ Image can be found from:
   {{- if .Values.operatorImage -}}
     {{- printf "%s" .Values.operatorImage -}}
   {{- else -}}
-    {{- print "logging-operator:main" -}}
+    {{- print "ghcr.io/netcracker/qubership-logging-operator:main" -}}
   {{- end -}}
 {{- end -}}
 
@@ -263,7 +263,7 @@ Image can be found from:
   {{- if .Values.graylog.dockerImage -}}
     {{- printf "%s" .Values.graylog.dockerImage -}}
   {{- else -}}
-    {{- print "graylog/graylog:5.2.7" -}}
+    {{- print "docker.io/graylog/graylog:5.2.12" -}}
   {{- end -}}
 {{- end -}}
 
@@ -277,7 +277,7 @@ Image can be found from:
   {{- if .Values.fluentd.dockerImage -}}
     {{- printf "%s" .Values.fluentd.dockerImage -}}
   {{- else -}}
-    {{- print "qubership-fluentd:main" -}}
+    {{- print "ghcr.io/netcracker/qubership-fluentd:main" -}}
   {{- end -}}
 {{- end -}}
 
@@ -291,7 +291,7 @@ Image can be found from:
   {{- if .Values.fluentd.configmapReload.dockerImage -}}
     {{- printf "%s" .Values.fluentd.configmapReload.dockerImage -}}
   {{- else -}}
-    {{- print "ghcr.io/jimmidyson/configmap-reload:v0.13.1" -}}
+    {{- print "ghcr.io/jimmidyson/configmap-reload:v0.15.0" -}}
   {{- end -}}
 {{- end -}}
 
@@ -305,7 +305,7 @@ Image can be found from:
   {{- if .Values.fluentbit.dockerImage -}}
     {{- printf "%s" .Values.fluentbit.dockerImage -}}
   {{- else -}}
-    {{- print "fluent/fluent-bit:3.2.2" -}}
+    {{- print "docker.io/fluent/fluent-bit:4.0.0" -}}
   {{- end -}}
 {{- end -}}
 
@@ -319,7 +319,7 @@ Image can be found from:
   {{- if .Values.fluentbit.configmapReload.dockerImage -}}
     {{- printf "%s" .Values.fluentbit.configmapReload.dockerImage -}}
   {{- else -}}
-    {{- print "ghcr.io/jimmidyson/configmap-reload:v0.13.1" -}}
+    {{- print "ghcr.io/jimmidyson/configmap-reload:v0.15.0" -}}
   {{- end -}}
 {{- end -}}
 
@@ -347,7 +347,7 @@ Image can be found from:
   {{- if .Values.integrationTests.image -}}
     {{- printf "%s" .Values.integrationTests.image -}}
   {{- else -}}
-    {{- print "logging-integration-tests:main" -}}
+    {{- print "ghcr.io/netcracker/qubership-logging-integration-tests:main" -}}
   {{- end -}}
 {{- end -}}
 
@@ -361,7 +361,7 @@ Image can be found from:
   {{- if .Values.graylog.initContainerDockerImage -}}
     {{- printf "%s" .Values.graylog.initContainerDockerImage -}}
   {{- else -}}
-    {{- print "graylog-plugins-init-container:main" -}}
+    {{- print "ghcr.io/netcracker/qubership-graylog-plugins-init:main" -}}
   {{- end -}}
 {{- end -}}
 
@@ -375,7 +375,7 @@ Image can be found from:
   {{- if .Values.graylog.mongodbImage -}}
     {{- printf "%s" .Values.graylog.mongodbImage -}}
   {{- else -}}
-    {{- print "mongo:5.0.30" -}}
+    {{- print "docker.io/mongo:5.0.31" -}}
   {{- end -}}
 {{- end -}}
 
@@ -389,7 +389,7 @@ Image can be found from:
   {{- if .Values.graylog.authProxy.image -}}
     {{- printf "%s" .Values.graylog.authProxy.image -}}
   {{- else -}}
-    {{- print "graylog-auth-proxy:main" -}}
+    {{- print "ghcr.io/netcracker/qubership-graylog-auth-proxy:main" -}}
   {{- end -}}
 {{- end -}}
 
@@ -403,7 +403,7 @@ Image can be found from:
   {{- if .Values.graylog.initSetupImage -}}
     {{- printf "%s" .Values.graylog.initSetupImage -}}
   {{- else -}}
-    {{- print "alpine:3.17.2" -}}
+    {{- print "docker.io/alpine:3.21.3" -}}
   {{- end -}}
 {{- end -}}
 
@@ -420,7 +420,7 @@ MongoDB 4.0 image.
   {{- if .Values.graylog.mongodb40Image -}}
     {{- printf "%s" .Values.graylog.mongodb40Image -}}
   {{- else -}}
-    {{- print "mongo:4.0.28" -}}
+    {{- print "docker.io/mongo:4.0.28" -}}
   {{- end -}}
 {{- end -}}
 
@@ -431,7 +431,7 @@ MongoDB 4.2 image.
   {{- if .Values.graylog.mongodb42Image -}}
     {{- printf "%s" .Values.graylog.mongodb42Image -}}
   {{- else -}}
-    {{- print "mongo:4.2.22" -}}
+    {{- print "docker.io/mongo:4.2.22" -}}
   {{- end -}}
 {{- end -}}
 
@@ -442,6 +442,6 @@ MongoDB 4.4 image.
   {{- if .Values.graylog.mongodb44Image -}}
     {{- printf "%s" .Values.graylog.mongodb44Image -}}
   {{- else -}}
-    {{- print "mongo:4.4.17" -}}
+    {{- print "docker.io/mongo:4.4.17" -}}
   {{- end -}}
 {{- end -}}

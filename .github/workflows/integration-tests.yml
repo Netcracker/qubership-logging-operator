@@ -1,0 +1,402 @@
+---
+name: Test Logging Installation
+
+on:
+  workflow_run:
+    workflows: ["Build Docker with Matrix Strategy"]
+    types:
+    - completed
+  workflow_dispatch: {}
+  pull_request:
+    branches:
+    - main
+
+env:
+  kind_version: v0.27.0
+  opensearch_namespace: opensearch
+  namespace: logging
+  max_attempts: 50
+  delay: 10
+
+jobs:
+  Run-Integration-Tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        path: qubership-logging-operator
+
+    - name: Set up Kind
+      run: |
+        curl -sLo ./kind https://kind.sigs.k8s.io/dl/${{ env.kind_version }}/kind-linux-amd64
+        chmod +x ./kind
+        sudo mv ./kind /usr/local/bin/
+        kind create cluster
+        docker exec kind-control-plane bash -c "mkdir - /var/log/audit && chown 1000:1000 /var/log/audit && echo 'Created /var/log/audit with the permissions:'; ls -ld  /var/log/audit"
+
+    - name: Install Helm
+      run: |
+        curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+    - name: Install required CRDs
+      run: |
+        kubectl apply -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/heads/main/charts/qubership-monitoring-operator/charts/grafana-operator/crds/integreatly.org_grafanadashboards.yaml
+        kubectl apply -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/heads/main/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_prometheusrules.yaml
+        kubectl apply -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/heads/main/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_servicemonitors.yaml
+        kubectl apply -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/heads/main/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_podmonitors.yaml
+
+    - name: Checkout opensearch repo
+      uses: actions/checkout@v4
+      with:
+        repository: Netcracker/qubership-opensearch
+        ref: release-2025.1-1.14.0
+        path: qubership-opensearch
+
+    - name: Create values.yaml for opensearch
+      run: |
+        cat <<EOF > opensearch_values.yaml
+        dashboards:
+          enabled: false
+        opensearch:
+          master:
+            enabled: true
+            replicas: 1
+            persistence:
+              enabled: true
+              storageClass: "standard"
+          securityConfig:
+            authc:
+              basic:
+                username: "admin"
+                password: "admin"
+          tls:
+            enabled: false
+        monitoring:
+          enabled: false
+        dbaasAdapter:
+          enabled: false
+        curator:
+          enabled: false
+          username: "admin"
+          password: "admin"
+        EOF
+      shell: bash
+
+    - name: Install Opensearch
+      run: |
+        helm upgrade --install opensearch \
+          --namespace=${{ env.opensearch_namespace }} \
+          --create-namespace \
+          ./qubership-opensearch/charts/helm/opensearch-service \
+          -f ./opensearch_values.yaml
+
+    - name: Check Opensearch Deployment Status
+      run: | 
+        echo "Checking status of opensearch-status-provisioner..."
+        attempt=1
+        max_attempts=${{ env.max_attempts }}
+        while [[ $attempt -le $max_attempts ]]; do
+          echo "Attempt $attempt/$max_attempts: Checking opensearch-status-provisioner pod status..."
+          phase=$(kubectl get pod -l name=opensearch-status-provisioner -n ${{ env.opensearch_namespace }} -o jsonpath='{.items[0].status.phase}' 2>/dev/null || echo "NotFound")
+          if [[ "$phase" == "Succeeded" ]]; then
+              echo "Opensearch status provisioner job has succeeded."
+              break
+            elif [[ "$phase" == "Failed" || "$phase" == "Error" ]]; then
+              echo "Opensearch status provisioner job failed with status: $phase"
+              exit 1
+            else
+              echo "Opensearch status provisioner job status: $phase. Retrying in ${{ env.delay }} seconds..."
+              sleep ${{ env.delay }}
+              ((attempt++))
+            fi
+        done
+        if [[ "$phase" != "Succeeded" ]]; then
+          echo "ERROR: Maximum attempts reached. Opensearch status provisioner job has not succeeded."
+          exit 1
+        fi
+      shell: bash
+
+    - name: Check Opensearch Cluster Health
+      run: |
+        cluster_status=$(kubectl exec -n ${{ env.opensearch_namespace }} opensearch-0 -- curl -s http://localhost:9200/_cluster/health?pretty -u admin:admin) 
+        if [[ "echo $cluster_status | jq -r .status"  = "yellow" ]]; then
+          echo "::error:: Opensearch cluster status is YELLOW. Check opensearch logs."
+          echo "$cluster_status" | jq -r
+          exit 1
+        else
+          echo "$cluster_status"
+        fi
+      shell: bash
+
+    - name: Create Values For Logging Operator Installation
+      run: |
+        TAG="${GITHUB_SHA:0:11}"
+        cat <<EOF > logging_values.yaml
+        skipMetricsService: false
+        containerRuntimeType: containerd
+        operatorImage: ghcr.io/netcracker/qubership-logging-operator:$TAG
+        graylog:
+          install: true
+          mongoStorageClassName: standard
+          graylogStorageClassName: standard
+          host: http://graylog.demo.qubership.org
+          initContainerDockerImage: alpine:3.17.2
+          elasticsearchHost: http://admin:admin@opensearch.opensearch:9200
+          indexShards: "1"
+          indexReplicas: "0"
+        cloudEventsReader:
+          dockerImage: ghcr.io/netcracker/qubership-kube-events-reader:main
+        fluentbit:
+          install: true
+          configmapReload:
+            dockerImage: ghcr.io/jimmidyson/configmap-reload:v0.13.1
+          graylogHost: graylog-service
+          graylogPort: 12201
+        fluentd:
+          install: false
+        integrationTests:
+          install: true
+          tags: smoke
+          image: ghcr.io/netcracker/qubership-logging-integration-tests:$TAG
+          externalGraylogServer: "false"
+          graylogHost: graylog-service
+          graylogPort: 9000
+        EOF
+
+    - name: Install Qubership Logging Operator
+      run: |
+        helm upgrade --install qubership-logging-operator \
+          --namespace=${{ env.namespace }} \
+          --create-namespace \
+          --debug \
+          ./qubership-logging-operator/charts/qubership-logging-operator \
+          -f ./logging_values.yaml
+        echo "Delaying ${{ env.delay }} seconds before checking logging-operator status..."
+        sleep ${{ env.delay }}
+      shell: bash
+
+    - name: Checking Logging Operator Status
+      run: |
+        echo "Checking status of logging-operator..."
+        attempt=1
+        max_attempts=${{ env.max_attempts }}
+        while [[ $attempt -le $max_attempts ]]; do
+          echo "Attempt $attempt/$max_attempts: Checking logging-operator pod status..."
+          phase=$(kubectl get pod -l name=logging-service-operator -n ${{ env.namespace }} -o jsonpath='{.items[0].status.phase}' 2>/dev/null || echo "NotFound")
+          ready=$(kubectl get pod -l name=logging-service-operator -n ${{ env.namespace }} -o jsonpath='{.items[0].status.conditions[?(@.type=="Ready")].status}' 2>/dev/null || echo "NotFound")
+          scheduled=$(kubectl get pod -l name=logging-service-operator -n ${{ env.namespace }} -o jsonpath='{.items[0].status.conditions[?(@.type=="PodScheduled")].status}' 2>/dev/null || echo "NotFound")
+          if [[ "$ready" == "True" ]]; then
+            echo "Logging operator is ready."
+            break
+          elif [[ "$ready" == "False" && "$phase" == "Running" ]]; then
+            echo "Logging operator is not ready yet. Retrying in ${{ env.delay }} seconds..."
+            sleep ${{ env.delay }}
+            ((attempt++))
+          elif [[ "$phase" == "Pending" && "$scheduled" == "True" ]]; then
+            echo "Logging operator status: $phase. Retrying in ${{ env.delay }} seconds..."
+            sleep ${{ env.delay }}
+            ((attempt++))
+          else
+            echo "Logging operator status: $phase"
+            operator_pod=$(kubectl get pod -l name=logging-service-operator -n ${{ env.namespace }} -o jsonpath='{.items[0]}' -o custom-columns=":metadata.name" --no-headers)
+            kubectl events -n ${{ env.namespace }} --for pod/"$operator_pod"
+            exit 1
+          fi
+        done
+        if [[ "$ready" != "True" ]]; then
+          echo "ERROR: Maximum attempts reached. Logging operator is not ready."
+          exit 1
+        fi
+      shell: bash
+
+    - name: Checking graylog status
+      run: |
+        echo "Waiting 10 seconds before checking graylog status..."
+        sleep ${{ env.delay }}
+        echo "Checking status of graylog..."
+        attempt=1
+        max_attempts=${{ env.max_attempts }}
+        while [[ $attempt -le $max_attempts ]]; do
+          echo "Attempt $attempt/$max_attempts: Checking graylog pod status..."
+          phase=$(kubectl get pod -l name=graylog -n ${{ env.namespace }} -o jsonpath='{.items[0].status.phase}' 2>/dev/null || echo "NotFound")
+          ready=$(kubectl get pod -l name=graylog -n ${{ env.namespace }} -o jsonpath='{.items[0].status.conditions[?(@.type=="Ready")].status}' 2>/dev/null || echo "NotFound")
+          scheduled=$(kubectl get pod -l name=graylog -n ${{ env.namespace }} -o jsonpath='{.items[0].status.conditions[?(@.type=="PodScheduled")].status}' 2>/dev/null || echo "NotFound")
+          if [[ "$ready" == "True" ]]; then
+            echo "Graylog is ready."
+            break
+          elif [[ "$ready" == "False" && "$phase" == "Running" ]]; then
+            echo "Graylog is not ready yet. Retrying in ${{ env.delay }} seconds..."
+            sleep ${{ env.delay }}
+            ((attempt++))
+          elif [[ "$phase" == "Pending" && "$scheduled" == "True" ]]; then
+            echo "Graylog status: $phase. Retrying in ${{ env.delay }} seconds..."
+            sleep ${{ env.delay }}
+            ((attempt++))
+          else
+            echo "Graylog status: $phase"
+            graylog_pod=$(kubectl get pod -l name=graylog -n ${{ env.namespace }} -o jsonpath='{.items[0]}' -o custom-columns=":metadata.name" --no-headers)
+            kubectl events -n ${{ env.namespace }} --for pod/"$graylog_pod"
+            exit 1
+          fi
+        done
+        if [[ "$ready" != "True" ]]; then
+          echo "ERROR: Maximum attempts reached. Graylog is not ready."
+          exit 1
+        fi
+      shell: bash
+
+    - name: Check integration tests status
+      run: |
+        echo "Checking status of integration tests..."
+        attempt=1
+        max_attempts=${{ env.max_attempts }}
+        while [[ $attempt -le $max_attempts ]]; do
+          echo "Attempt $attempt/$max_attempts: Checking integration-tests pod status..."
+          phase=$(kubectl get pod -l name=logging-integration-tests-runner -n ${{ env.namespace }} -o jsonpath='{.items[0].status.phase}' 2>/dev/null || echo "NotFound")
+          ready=$(kubectl get pod -l name=logging-integration-tests-runner -n ${{ env.namespace }} -o jsonpath='{.items[0].status.conditions[?(@.type=="Ready")].status}' 2>/dev/null || echo "NotFound")
+          scheduled=$(kubectl get pod -l name=logging-integration-tests-runner -n ${{ env.namespace }} -o jsonpath='{.items[0].status.conditions[?(@.type=="PodScheduled")].status}' 2>/dev/null || echo "NotFound")
+          if [[ "$ready" == "True" ]]; then
+            echo "Integration tests pod is ready."
+            break
+          elif [[ "$ready" == "False" && "$phase" == "Running" ]]; then
+            echo "Integration tests pod is not ready yet. Retrying in ${{ env.delay }} seconds..."
+            sleep ${{ env.delay }}
+            ((attempt++))
+          elif [[ "$phase" == "Pending" && "$scheduled" == "True" ]]; then
+            echo "Integration tests pod status: $phase. Retrying in ${{ env.delay }} seconds..."
+            sleep ${{ env.delay }}
+            ((attempt++))
+          else
+            echo "Integration tests pod status: $phase"
+            tests_pod=$(kubectl get pod -l name=logging-integration-tests-runner -n ${{ env.namespace }} -o jsonpath='{.items[0]}' -o custom-columns=":metadata.name" --no-headers)
+            kubectl events -n ${{ env.namespace }} --for pod/"$tests_pod"
+            exit 1
+          fi
+        done
+        if [[ "$ready" != "True" ]]; then
+          echo "ERROR: Maximum attempts reached. Integration tests pod is not ready."
+          exit 1
+        fi
+      shell: bash
+
+    - name: Check integration tests results
+      run: |
+        echo "Checking integration tests results..."
+        attempt=1
+        max_attempts=${{ env.max_attempts }}
+        while [[ $attempt -le $max_attempts ]]; do
+          echo "Attempt $attempt/$max_attempts: Checking tests results..."
+          logs=$(kubectl logs -l name=logging-integration-tests-runner -n ${{ env.namespace }} --tail=-1)
+          if [[ -n $(echo "$logs" | grep -E "Test Indexer Cluster Status.*FAIL") && -n $(echo "$logs" | grep "yellow != green" ) ]]; then
+            if [[ -n $(echo "$logs" | grep -E "Tests.*FAIL") ]]; then
+              stats_line=$(echo "$logs" | grep -E '[0-9]+\ tests,\ [0-9]+\ passed,\ [0-9]+\ failed,\ [0-9]+\ skipped' | tail -n 1)
+              read total passed failed skipped <<< $(echo "$stats_line" | awk '{ gsub(",", "", $0); print $1, $3, $5, $7}')
+              if [[ "$failed" == "1" ]]; then
+                warning=$(echo "$logs" | grep "yellow != green")
+                echo "Smoke test completed with 1 warning:"
+                echo -e "$warning\n==========================="
+                echo "Total: $total"
+                echo "Failed: $failed"
+                echo "Skipped: $skipped"
+                echo "Passed: $passed"
+                exit 0
+              else
+                "ERROR: Smoke test has more than 1 failed steps"
+                exit 1
+              fi
+            else
+              echo "Smoke test in not completed yet. Checking in $delay seconds..."
+              sleep $delay
+              ((attempt++))
+            fi
+          elif [[ -n $(echo "$logs" | grep -E "Test Indexer Cluster Status.*PASS") ]]; then
+            if [[ -n $(echo "$logs" | grep -E "Tests.*FAIL") ]]; then
+              echo "ERROR: Some smoke test steps have failed. Check logs."
+              exit 1
+            elif [[ -n $(echo "$logs" | grep -E "Tests.*PASS") ]]; then
+              echo "Smoke test passed."
+              exit 0
+            else
+              echo "Smoke test is not completed yet. Checking in $delay seconds..."
+              sleep $delay
+              ((attempt++))
+            fi
+          else
+            echo "Smoke test is not completed yet. Checking in $delay seconds..."
+            sleep $delay
+            ((attempt++))
+          fi
+        done
+        echo "ERROR: Maximum attempts reached waiting for Integration test completion"
+        exit 1
+      shell: bash
+
+    - name: Save Opensearch Artifacts
+      if: always()
+      run: |
+        mkdir -p "artifacts/${{ env.opensearch_namespace }}"
+        kubectl get pods -n "${{ env.opensearch_namespace }}" > artifacts/pods.txt
+        kubectl get events -n "${{ env.opensearch_namespace }}" --sort-by=.metadata.creationTimestamp > artifacts/events.txt
+        kubectl get pods -n "${{ env.opensearch_namespace }}" -o jsonpath='{range .items[*]}{.metadata.name}{" "}{.spec.containers[*].name}{"\n"}{end}' | while read -r pod containers; do
+          for container in $containers; do
+            echo "Fetching logs in ${{ env.opensearch_namespace }} namespace for pod: $pod, container: $container"
+            if logs=$(kubectl logs -n "${{ env.opensearch_namespace }}" "$pod" -c "$container" 2>&1); then
+              echo "$logs" > "artifacts/${{ env.opensearch_namespace }}/$pod-$container.log"
+            else
+              echo "Could not fetch logs for $pod/$container: $logs" >&2
+            fi
+            if logs=$(kubectl logs -n "${{ env.opensearch_namespace }}" "$pod" -c "$container" --previous 2>&1); then
+              echo "$logs" > "artifacts/${{ env.opensearch_namespace }}/$pod-$container-previous.log"
+            else
+              echo "Could not fetch previous opensearch_namespace logs for $pod/$container: $logs" >&2
+            fi
+          done
+        done
+      shell: bash
+
+    - name: Save Logging Artifacts
+      if: always()
+      run: |
+        mkdir -p "artifacts/${{ env.namespace }}"
+        kubectl get pods -n "${{ env.namespace }}" > artifacts/pods.txt
+        kubectl get events -n "${{ env.namespace }}" --sort-by=.metadata.creationTimestamp > artifacts/events.txt
+        kubectl get pods -n "${{ env.namespace }}" -o jsonpath='{range .items[*]}{.metadata.name}{" "}{.spec.containers[*].name}{"\n"}{end}' | while read -r pod containers; do
+          for container in $containers; do
+            echo "Fetching logs in ${{ env.namespace }} namespace for pod: $pod, container: $container"
+            if logs=$(kubectl logs -n "${{ env.namespace }}" "$pod" -c "$container" 2>&1); then
+              echo "$logs" > "artifacts/${{ env.namespace }}/$pod-$container.log"
+            else
+              echo "Could not fetch logs for $pod/$container: $logs" >&2
+            fi
+            if logs=$(kubectl logs -n "${{ env.namespace }}" "$pod" -c "$container" --previous 2>&1); then
+              echo "$logs" > "artifacts/${{ env.namespace }}/$pod-$container-previous.log"
+            else
+              echo "Could not fetch previous container logs for $pod/$container: $logs" >&2
+            fi
+          done
+        done
+      shell: bash
+
+    - name: Generate artifact name
+      if: always()
+      env:
+        HEAD_REF: ${{ github.head_ref || github.ref_name }}
+      run: |
+        # ▶️ Generate artifact name
+        release_name=$(echo "$HEAD_REF" | tr '/' '_' || echo "")
+        ARTIFACT_NAME="${{ github.job }}_${{ env.namespace }}_${release_name}_artifacts_$(date -u +'%Y%m%d%H%M%S')"
+        echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> $GITHUB_ENV
+      shell: bash
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: ${{ env.ARTIFACT_NAME }}
+        path: artifacts/
+
+    - name: Cleanup
+      run: |
+        kind delete cluster --name ${{ env.kind_name }}

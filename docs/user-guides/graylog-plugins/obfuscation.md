@@ -1,5 +1,3 @@
-# Graylog Obfuscation Plugin
-
 The Graylog Obfuscation Plugin scans input logs, searches text sensitive data, and anonymizes it.
 The search operation is performed using a regular expression.
 The plugin support filtration by streams and fields. Only selected streams and fields are obfuscated.
@@ -8,7 +6,13 @@ The plugin configuration is displayed in the **Configurations** page as shown in
 
 ![Graylog Obfuscation Plugin Configuration](../../images/plugins/obfuscation-configuration.png)
 
-## Configuration Parameters
+# Table of Content
+
+* [Table of Content](#table-of-content)
+* [Configuration Parameters](#configuration-parameters)
+  * [Buttons](#buttons)
+
+# Configuration Parameters
 
 The **Obfuscation Plugin Configuration** page with its parameters is shown in the image below.
 
@@ -40,7 +44,7 @@ The plugin configuration parameters are as follows:
   * Name - The readable name.
   * Pattern - The regular expression pattern written for the java regular expression engine.
 
-### Buttons
+## Buttons
 
 * The **Reset** button resets the obfuscation configuration to its default.
 * The **Save** button stores the obfuscation configuration. The configuration is applied immediately.

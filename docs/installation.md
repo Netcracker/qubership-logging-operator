@@ -734,11 +734,11 @@ Examples:
 ```yaml
 graylog:
   install: true
-  dockerImage: graylog/graylog:5.2.7
+  dockerImage: graylog/graylog:5.2.12
   createIngress: true
 
   # Init image settings
-  initSetupImage: alpine:3.18
+  initSetupImage: alpine:3.21
   initContainerDockerImage: graylog-plugins-init-container:main
   initResources:
     requests:
@@ -749,7 +749,7 @@ graylog:
       memory: 256Mi
 
   # MongoDB sidecar settings
-  mongoDBImage: mongo:5.0.19
+  mongoDBImage: mongo:5.0.31
   mongoUpgrade: true
   mongoDBUpgrade:
     mongoDBImage40: mongo:4.0.28
@@ -1420,7 +1420,7 @@ Examples:
 ```yaml
 fluentbit:
   install: true
-  dockerImage: fluent/fluent-bit:3.1.7
+  dockerImage: fluent/fluent-bit:4.0.0
 
   graylogOutput: true
   graylogHost: graylog.logging.svc
@@ -1498,7 +1498,7 @@ Example of FluentBit configuration with Loki output enabled:
 ```yaml
 fluentbit:
   install: true
-  dockerImage: fluent/fluent-bit:3.1.7
+  dockerImage: fluent/fluent-bit:4.0.0
 
   graylogOutput: false
 
@@ -1636,7 +1636,7 @@ Examples:
 fluentbit:
   aggregator:
     install: true
-    dockerImage: fluent/fluent-bit:3.1.7
+    dockerImage: fluent/fluent-bit:4.0.0
     replicas: 2
 
     tolerations:
@@ -1690,11 +1690,11 @@ Example of FluentBit HA configuration with Loki output enabled:
 ```yaml
 fluentbit:
   install: true
-  dockerImage: fluent/fluent-bit:3.1.7
+  dockerImage: fluent/fluent-bit:4.0.0
 
   aggregator:
     install: true
-    dockerImage: fluent/fluent-bit:3.1.7
+    dockerImage: fluent/fluent-bit:4.0.0
     replicas: 2
     graylogOutput: false
     output:

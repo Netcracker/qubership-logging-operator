@@ -18,7 +18,7 @@ def add_security_context_to_deployment(path_to_file, namespace):
         if 'logging-service-operator' in pod.metadata.name:
             security_context = pod.spec.security_context
             break
-    if security_context == None:
+    if security_context is None:
         return deployment
     deployment['spec']['template']['spec']['securityContext'] = security_context
     return deployment

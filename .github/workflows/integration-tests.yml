@@ -51,12 +51,14 @@ jobs:
       uses: actions/checkout@v4
       with:
         repository: Netcracker/qubership-opensearch
-        ref: release-2025.1-1.14.0
+        ref: release-2025.2-1.14.4
         path: qubership-opensearch
 
     - name: Create values.yaml for opensearch
       run: |
         cat <<EOF > opensearch_values.yaml
+        operator:
+          dockerImage: ghcr.io/netcracker/qubership-opensearch-operator:release-2025.2-1.14.4
         dashboards:
           enabled: false
         opensearch:

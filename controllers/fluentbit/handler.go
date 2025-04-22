@@ -170,7 +170,7 @@ func (r *FluentbitReconciler) CreateOrUpdate(cr *loggingService.LoggingService, 
 					return false, err
 				}
 
-				return false, nil
+				return true, nil
 			}
 
 			r.Log.Info("The config map is not changed")

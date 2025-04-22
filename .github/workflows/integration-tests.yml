@@ -337,8 +337,8 @@ jobs:
       if: always()
       run: |
         mkdir -p "artifacts/${{ env.opensearch_namespace }}"
-        kubectl get pods -n "${{ env.opensearch_namespace }}" > artifacts/pods.txt
-        kubectl get events -n "${{ env.opensearch_namespace }}" --sort-by=.metadata.creationTimestamp > artifacts/events.txt
+        kubectl get pods -n "${{ env.opensearch_namespace }}" > artifacts/${{ env.opensearch_namespace }}/pods.txt
+        kubectl get events -n "${{ env.opensearch_namespace }}" --sort-by=.metadata.creationTimestamp > artifacts/${{ env.opensearch_namespace }}/events.txt
         kubectl get pods -n "${{ env.opensearch_namespace }}" -o jsonpath='{range .items[*]}{.metadata.name}{" "}{.spec.containers[*].name}{"\n"}{end}' | while read -r pod containers; do
           for container in $containers; do
             echo "Fetching logs in ${{ env.opensearch_namespace }} namespace for pod: $pod, container: $container"
@@ -350,7 +350,7 @@ jobs:
             if logs=$(kubectl logs -n "${{ env.opensearch_namespace }}" "$pod" -c "$container" --previous 2>&1); then
               echo "$logs" > "artifacts/${{ env.opensearch_namespace }}/$pod-$container-previous.log"
             else
-              echo "Could not fetch previous opensearch_namespace logs for $pod/$container: $logs" >&2
+              :
             fi
           done
         done
@@ -360,8 +360,8 @@ jobs:
       if: always()
       run: |
         mkdir -p "artifacts/${{ env.namespace }}"
-        kubectl get pods -n "${{ env.namespace }}" > artifacts/pods.txt
-        kubectl get events -n "${{ env.namespace }}" --sort-by=.metadata.creationTimestamp > artifacts/events.txt
+        kubectl get pods -n "${{ env.namespace }}" > artifacts/${{ env.namespace }}/pods.txt
+        kubectl get events -n "${{ env.namespace }}" --sort-by=.metadata.creationTimestamp > artifacts/${{ env.namespace }}/events.txt
         kubectl get pods -n "${{ env.namespace }}" -o jsonpath='{range .items[*]}{.metadata.name}{" "}{.spec.containers[*].name}{"\n"}{end}' | while read -r pod containers; do
           for container in $containers; do
             echo "Fetching logs in ${{ env.namespace }} namespace for pod: $pod, container: $container"
@@ -373,7 +373,7 @@ jobs:
             if logs=$(kubectl logs -n "${{ env.namespace }}" "$pod" -c "$container" --previous 2>&1); then
               echo "$logs" > "artifacts/${{ env.namespace }}/$pod-$container-previous.log"
             else
-              echo "Could not fetch previous container logs for $pod/$container: $logs" >&2
+              :
             fi
           done
         done

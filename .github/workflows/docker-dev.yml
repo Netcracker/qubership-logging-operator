@@ -112,9 +112,14 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Trigger completion event
+  completion-trigger:
+    name: "Trigger completion event"
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Custom Event
       uses: netcracker/qubership-workflow-hub/actions/custom-event@v1.0.0
       with:
         event-type: "dev_build_completed"
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}

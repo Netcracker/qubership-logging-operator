@@ -2,14 +2,9 @@
 name: Test Logging Installation
 
 on:
-  workflow_run:
-    workflows: ["Build Docker with Matrix Strategy"]
-    types:
-    - completed
+  repository_dispatch:
+    types: [dev_build_completed]
   workflow_dispatch: {}
-  pull_request:
-    branches:
-    - main
 
 env:
   kind_version: v0.27.0
@@ -132,6 +127,18 @@ jobs:
         fi
       shell: bash
 
+    - name: Wait for Dev Docker Build completion
+      uses: kachick/wait-other-jobs@v3.8.0
+      timeout-minutes: 10
+      with:
+        wait-list: |
+          [
+            {
+              "workflowFile": "docker-dev.yml",
+              "jobName": "Build Docker Images"
+            }
+          ]
+
     - name: Create Values For Logging Operator Installation
       run: |
         TAG="${GITHUB_SHA:0:11}"
@@ -172,9 +179,7 @@ jobs:
       run: |
         helm upgrade --install qubership-logging-operator \
           --namespace=${{ env.namespace }} \
-          --create-namespace \
-          --debug \
-          ./qubership-logging-operator/charts/qubership-logging-operator \
+          --create-namespace ./qubership-logging-operator/charts/qubership-logging-operator \
           -f ./logging_values.yaml
         echo "Delaying ${{ env.delay }} seconds before checking logging-operator status..."
         sleep ${{ env.delay }}

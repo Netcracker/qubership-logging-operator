@@ -111,3 +111,10 @@ jobs:
           tags: ${{ needs.perform-version.outputs.tags }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Trigger completion event 
+        uses: netcracker/qubership-workflow-hub/actions/custom-event@v1.0.0
+        with:
+          event_type: "dev_build_completed"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

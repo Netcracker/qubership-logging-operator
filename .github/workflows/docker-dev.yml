@@ -111,16 +111,11 @@ jobs:
         tags: ${{ needs.perform-version.outputs.tags }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  completion-trigger:
-    name: "Trigger completion event"
+  
+  # Job to ensure completion is only signaled AFTER all matrix jobs finish
+  notify-completion:
     needs: [build]
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
-    - name: Custom Event
-      uses: netcracker/qubership-workflow-hub/actions/custom-event@v1.0.0
-      with:
-        event-type: dev_build_completed
-        github-token: ${{ secrets.GITHUB_TOKEN }}
+      - run: echo "All matrix jobs completed"
+

@@ -666,6 +666,7 @@ graylog:
 | `initSetupImage`                           | string                                                                                                                 | no        | `-`                                                                             | Image for init container for Graylog                                                                                                                                                                  |
 | `initContainerDockerImage`                 | string                                                                                                                 | no        | `-`                                                                             | Image to initialize plugins for Graylog                                                                                                                                                               |
 | `initResources`                            | [core/v1.Resources](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#resourcerequirements-v1-core) | no        | `{requests: {cpu: 50m, memory: 128Mi}, limits: {cpu: 100m, memory: 256Mi}}`     | The resources describe to compute resource requests and limits for single Pods                                                                                                                        |
+| `replicas`                           | integer                                                                                                                | no                                                                                                                                                                                                                                | `1`                                                                                        | Number of Graylog pods                                                                              |
 | `mongoDBImage`                             | string                                                                                                                 | no        | `-`                                                                             | Image of MongoDB to use for Graylog deployment                                                                                                                                                        |
 | `mongoUpgrade`                             | string                                                                                                                 | no        | `false`                                                                         | Activates automatic step-by-step upgrade of the MongoDB database. Can be used only for migration from Graylog 4 to 5                                                                                  |
 | `mongoDBUpgrade.mongoDBImage40`            | string                                                                                                                 | no        | `-`                                                                             | Image of MongoDB 4.0 to use for Graylog deployment. Using to migration from MongoDB 3.6 to 5.x                                                                                                        |
@@ -733,11 +734,11 @@ Examples:
 ```yaml
 graylog:
   install: true
-  dockerImage: graylog/graylog:5.2.7
+  dockerImage: graylog/graylog:5.2.12
   createIngress: true
 
   # Init image settings
-  initSetupImage: alpine:3.18
+  initSetupImage: alpine:3.21
   initContainerDockerImage: graylog-plugins-init-container:main
   initResources:
     requests:
@@ -748,7 +749,7 @@ graylog:
       memory: 256Mi
 
   # MongoDB sidecar settings
-  mongoDBImage: mongo:5.0.19
+  mongoDBImage: mongo:5.0.31
   mongoUpgrade: true
   mongoDBUpgrade:
     mongoDBImage40: mongo:4.0.28
@@ -944,7 +945,7 @@ graylog:
       key:
         secretName: graylog-input-tls-assets-0
         secretKey: graylog-input.key
-      
+
       # Integration with cert-manager
       generateCerts:
         enabled: true
@@ -994,10 +995,10 @@ graylog:
   openSearch:
     http:
       credentials:
-        username: 
+        username:
           name: openSearch-credentials-secret
           key: httpRequestUsername
-        password: 
+        password:
           name: openSearch-credentials-secret
           key: httpRequestPassword
       tlsConfig:
@@ -1011,7 +1012,7 @@ graylog:
           name: secret-certificate
           key: cert.key
         insecureSkipVerify: false
-    url: openSearch host 
+    url: openSearch host
 ```
 
 [Back to TOC](#table-of-content)
@@ -1060,10 +1061,10 @@ graylog:
   contentPacks:
     - http:
         credentials:
-          username: 
+          username:
             name: contentPack-credentials-secret
             key: httpRequestUsername
-          password: 
+          password:
             name: contentPack-credentials-secret
             key: httpRequestPassword
         tlsConfig:
@@ -1191,7 +1192,7 @@ graylog:
     roleMapping: '["Reader"]'
     streamMapping: ''
     requestsTimeout: 30
-    
+
     authType: 'ldap'
 
     ldap:
@@ -1320,7 +1321,7 @@ graylog:
       ca:
         secretName: graylog-auth-proxy-oauth-ca
         secretKey: ca.crt
-      
+
       clientID: graylog-auth-proxy
       clientSecret: <client-secret>
       scopes: "openid profile roles"
@@ -1419,7 +1420,7 @@ Examples:
 ```yaml
 fluentbit:
   install: true
-  dockerImage: fluent/fluent-bit:3.1.7
+  dockerImage: fluent/fluent-bit:4.0.0
 
   graylogOutput: true
   graylogHost: graylog.logging.svc
@@ -1497,7 +1498,7 @@ Example of FluentBit configuration with Loki output enabled:
 ```yaml
 fluentbit:
   install: true
-  dockerImage: fluent/fluent-bit:3.1.7
+  dockerImage: fluent/fluent-bit:4.0.0
 
   graylogOutput: false
 
@@ -1635,7 +1636,7 @@ Examples:
 fluentbit:
   aggregator:
     install: true
-    dockerImage: fluent/fluent-bit:3.1.7
+    dockerImage: fluent/fluent-bit:4.0.0
     replicas: 2
 
     tolerations:
@@ -1689,11 +1690,11 @@ Example of FluentBit HA configuration with Loki output enabled:
 ```yaml
 fluentbit:
   install: true
-  dockerImage: fluent/fluent-bit:3.1.7
+  dockerImage: fluent/fluent-bit:4.0.0
 
   aggregator:
     install: true
-    dockerImage: fluent/fluent-bit:3.1.7
+    dockerImage: fluent/fluent-bit:4.0.0
     replicas: 2
     graylogOutput: false
     output:
@@ -1945,7 +1946,7 @@ fluentd:
     limits:
       cpu: 500m
       memory: 512Mi
-  
+
   # Graylog input settings
   systemLogging: true
   systemLogType: varlogmessages

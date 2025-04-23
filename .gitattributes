@@ -4,28 +4,36 @@
 .gitignore text
 .gitleaksignore text
 .helmignore text
+.luacheckrc text
 .prettierignore text
 .yamlignore text
 
 * text=auto
+*.conf text
 *.env text eol=lf
 *.go text
 *.js text
 *.json text
+*.lua text
 *.md text
 *.mod text
+*.png binary
 *.py text
 *.robot text
+*.rule text
 *.sh text eol=lf
 *.sum text
 *.tpl text
 *.txt text
+*.work text
+*.xml text
 *.yaml text
 *.yml text
 
-LICENSE text
-Dockerfile text
 CODEOWNERS text
+Dockerfile text
+LICENSE text
+Makefile text
 
 /CHANGELOG.md merge=union
 /contributors.json merge=union

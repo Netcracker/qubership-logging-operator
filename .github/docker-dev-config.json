@@ -7,8 +7,8 @@
       },
       {
           "name": "qubership-logging-integration-tests",
-          "file": "integration-tests/Dockerfile ",
-          "context": "integration-tests"
+          "file": "test/robot-tests/Dockerfile ",
+          "context": "test/robot-tests"
       }
   ],
   "platforms" : "linux/amd64,linux/arm64"

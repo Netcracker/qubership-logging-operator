@@ -58,7 +58,7 @@ local test_strings = {
     "[2024-10-17T03:01:00.108][ERROR] [request_id=1729134060001.0.731003548650101] [tenant_id=a789eed9-217d-4b2b-8f62-09f7461b3aa0] [thread=       sds-7035] [class=o.qub.clo.crm.sds.cli.asy.BaseAsyncJobLauncher              ] [method=lambda$startJob$0             ] [version=v1] [traceId=67107dec9109eb2a9e243f8d5d2ef86d] [spanId=4b3ca3eef36c69a2] [originating_bi_id=                ] [business_identifiers=                ] Exception during job execution class org.qubership.cloud.crm.sds.client.quarkus.async.QuarkusAsyncJobLauncher: org.qubership.cloud.bss.errorhandling.exception.ErrorResponseException: httpStatus=404, errorResponse=ErrorResponse@1c4ce05{errors=[ErrorEntry@17ff7140{status=\"404\",code=\"-7000\",message=\"Endpoint not found.\",source=ErrorSource@17a8bc21{pointer=\"cloud-integration-platform-engine\"},extra={},debugDetail=\"{",
     "[2024-10-16T18:00:01.114] [DEBUG] [request_id=fe8dfb92-1118-4fd1-a1b0-19deadb2dbee] [tenant_id=-] [thread=main-9832a] [class=mongo:storage.go:236] [traceId=000000000000000039f6dc419d14fecc] [spanId=239edd5107afa67a] try to delete objects from certificates by filter map[$and:[map[meta.status:map[$ne:trusted]] map[$or:[map[meta.deactivatedAt:map[$lte:2024-09-16 18:00:01.114591759 +0000 UTC m=+7628575.165500196]] map[details.validTo:map[$lte:2024-09-16 18:00:01.114591759 +0000 UTC m=+7628575.165500196]]]]]]",
     [[
-[2024-10-17T06:47:36.834] [INFO] [request_id=f76c8bbb-f8ee-4591-ba29-f34dee5d41cd] [tenant_id=] [thread=executor-thread-48266] [class=org.qubership.cloud.keycloak.handler.dump.DumpRequestHandler] 
+[2024-10-17T06:47:36.834] [INFO] [request_id=f76c8bbb-f8ee-4591-ba29-f34dee5d41cd] [tenant_id=] [thread=executor-thread-48266] [class=org.qubership.cloud.keycloak.handler.dump.DumpRequestHandler]
 duration=92ms
 ----------------------------REQUEST---------------------------
 requestURI=/auth/realms/cloud-common/protocol/openid-connect/token
@@ -124,7 +124,7 @@ function kv_parse(tag, timestamp, record)
         end
 
         -- return 2, that means the original timestamp is not modified and the record has been modified
-        -- so it must be replaced by the returned values from the record 
+        -- so it must be replaced by the returned values from the record
         return 2, timestamp, record
     else
         -- return 0, that means the record will not be modified
@@ -157,7 +157,7 @@ function kv_parse_new_gen(tag, timestamp, record)
         end
 
         -- return 2, that means the original timestamp is not modified and the record has been modified
-        -- so it must be replaced by the returned values from the record 
+        -- so it must be replaced by the returned values from the record
         return 2, timestamp, record
     else
         -- return 0, that means the record will not be modified
@@ -217,7 +217,7 @@ function execute_test()
     local regex_msg = "%s*(%[[%d%s-:%.,T/]+%])%s*(%[%s*[%w]+%s*%])%s*(%[.+=.*%])%s*[%w%d%S]+"
     local regex_kvs = "%[([^=%[%]]+)=(%w*(.[^%[^%]]*))%]"
 
-    -- execute test scenarious 
+    -- execute test scenarious
     for i, test_string in ipairs(test_strings) do
         print("Original string:", test_string)
         time, level, kvs = string.match(test_string, regex_msg)

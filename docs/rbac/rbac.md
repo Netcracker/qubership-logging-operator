@@ -1,7 +1,9 @@
+# How to install `logging-operator` with restricted privileges
+
 This document describes which privileges the `logging-operator` requires and how to install the `logging-operator`
 with restricted privileges.
 
-# Table of Content
+## Table of Content
 
 * [Table of Content](#table-of-content)
 * [Overview](#overview)
@@ -22,7 +24,7 @@ with restricted privileges.
     * [FluentBit StatefulSet cluster objects](#fluentbit-statefulset-cluster-objects)
   * [Graylog cluster objects](#graylog-cluster-objects)
 
-# Overview
+## Overview
 
 In general, the application requires a set of `Roles` to have access to resources inside the namespace
 where it is deployed and a set of `ClusterRoles` to have limited access for cluster-scoped resources
@@ -49,12 +51,12 @@ In restricted privileges mode the logging operator doesn't have permission to cr
 the namespace where it is deployed (except its custom resources) and has limited permissions to read, list or watch
 resources outside its namespace and cluster-scoped resources.
 
-# Explanation of using permissions
+## Explanation of using permissions
 
 This section describes per logging component why these components require cluster-wide permissions, and how to avoid
 using these permissions (of course, if possible).
 
-## Logging operator permissions
+### Logging operator permissions
 
 The logging operator requires `ClusterRole` and `ClusterRoleBinding` also to access Nodes information
 to set container runtime type from nodes to read and process logs correctly.
@@ -72,7 +74,7 @@ Permissions in logging-operator `ClusterRole`:
     - watch
 ```
 
-## FluentD permissions
+### FluentD permissions
 
 The FluentD requires a `ClusterRole` with permissions to get/list/watch permissions to collect metadata of PODs
 not enrich logs with metadata about their origin:
@@ -103,7 +105,7 @@ Depending on using Cloud type and version FluentD can require different configur
 **Note:** It's not possible to run FluentD without access to `hostPath`! In the current deployment schema,
 it's not possible to avoid using `privileged` PSS or specific PSP or SCC.
 
-## FluentBit permissions
+### FluentBit permissions
 
 The FluentBit requires a `ClusterRole` with permissions to get/list/watch permissions to collect metadata of PODs
 not enrich logs with metadata about their origin:
@@ -134,7 +136,7 @@ Depending on using Cloud type and version FluentBit can require different config
 **Note:** It's not possible to run FluentBit without access to `hostPath`! In the current deployment schema,
 it's not possible to avoid using `privileged` PSS or specific PSP or SCC.
 
-## Cloud event reader permissions
+### Cloud event reader permissions
 
 The cloud event reader requires a `ClusterRole` with permissions to get/list/watch permissions to collect
 Kubernetes events:
@@ -153,14 +155,14 @@ Kubernetes events:
 
 Default `ClusterRole` with the name `view` can be used to cover these permissions.
 
-## Graylog permissions
+### Graylog permissions
 
 The Graylog requires a `ClusterRole` with permissions to PSP or SCC:
 
 * Kubernetes < 1.25 - Need to use `PodSecurityPolicy` with name `logging-graylog`
 * OpenShift 4.x - Need to use `SecurityContextConstraints` with name `logging-graylog`
 
-# Deploy with restricted privileges
+## Deploy with restricted privileges
 
 The logging operator can be deployed with restricted permissions.
 
@@ -170,7 +172,7 @@ like `ClusterRole`, `ClusterRoleBinding`, `CustomResourceDefinitions` and so on.
 To do a successful installation the set of cluster-scoped resources should be created manually
 **before** deploy under a user with enough permissions to do it.
 
-## Before you begin
+### Before you begin
 
 * Installed and configured `kubectl`
 * ServiceAccount with permissions to manage `ClusterRole`, `ClusterRoleBinding`, `CustomResourceDefinitions` in the
@@ -192,7 +194,7 @@ rules:
   verbs: ["*"]
 ```
 
-## All cluster-wide objects
+### All cluster-wide objects
 
 The full step-by-step guide on how to create necessary resources is described below.
 
@@ -210,12 +212,12 @@ Steps to execute:
 
 * Set parameter for deploy to skip CRD-s creation `--skip-crds`
 * Set parameter for skip creation of cluster-wide RBAC entities
-  
+
     ```yaml
     createClusterAdminEntities: false
     ```
 
-## Custom Resource Definitions
+### Custom Resource Definitions
 
 The `logging-operator` and its downstream component require a `CustomResourceDefinition` resource to control
 an application.
@@ -231,7 +233,7 @@ To create the specified resources you can use the command (from a terminal opene
 kubectl create -f docs/crds/
 ```
 
-## Cloud event reader cluster objects
+### Cloud event reader cluster objects
 
 The resources with cluster scope access should be created when deployed with restricted privileges:
 
@@ -243,7 +245,7 @@ To create the specified resources you can use the command (from a terminal opene
 kubectl apply -f manifests/cloud-event-reader/ --recursive=true
 ```
 
-## FluentD cluster objects
+### FluentD cluster objects
 
 The resources with cluster scope access should be created when deployed with restricted privileges:
 
@@ -266,18 +268,18 @@ where `<cloud_type>`:
 * `kubernetes` in case of deployment in Kubernetes
 * `openshift` in case of deployment in OpenShift
 
-## FluentBit cluster objects
+### FluentBit cluster objects
 
-### FluentBit DaemonSet cluster objects
+#### FluentBit DaemonSet cluster objects
 
 The resources with cluster scope access should be created when deployed with restricted privileges:
 
 * Kubernetes:
   * `ClusterRole` with name [\<NAMESPACE>-logging-fluentbit-cluster-role](/docs/rbac/manifests/fluentbit-daemonset/kubernetes/clusterrole.yaml)
-  * `ClusterRoleBinding` with name [\<NAMESPACE>-fluentbit-cluster-reader](/docs/rbac/manifests/fluentbit-daemonset/kubernetes/clusterrole-binding.yaml)
+  * `ClusterRoleBinding` with name [\<NAMESPACE>-logging-fluentbit-cluster-reader](/docs/rbac/manifests/fluentbit-daemonset/kubernetes/clusterrole-binding.yaml)
   * `PodSecurityPolicy` with name [\<NAMESPACE>-logging-fluentbit](/docs/rbac/manifests/fluentbit-daemonset/kubernetes/podsecuritypolicy.yaml)
 * OpenShift:
-  * `ClusterRoleBinding` with name [\<NAMESPACE>-fluentbit-cluster-reader](/docs/rbac/manifests/fluentbit-daemonset/openshift/clusterrole-binding.yaml)
+  * `ClusterRoleBinding` with name [\<NAMESPACE>-logging-fluentbit-cluster-reader](/docs/rbac/manifests/fluentbit-daemonset/openshift/clusterrole-binding.yaml)
   * `SecurityContextConstraints` with name [\<NAMESPACE>-logging-fluentbit](/docs/rbac/manifests/fluentbit-daemonset/openshift/securitycontextconstraints.yaml)
 
 To create the specified resources you can use the command (from a terminal opened in the document folder):
@@ -286,7 +288,7 @@ To create the specified resources you can use the command (from a terminal opene
 kubectl apply -f manifests/fluentbit-daemonset/kubernetes --recursive=true
 ```
 
-### FluentBit StatefulSet cluster objects
+#### FluentBit StatefulSet cluster objects
 
 The resources with cluster scope access should be created when deployed with restricted privileges:
 
@@ -304,7 +306,7 @@ To create the specified resources you can use the command (from a terminal opene
 kubectl apply -f manifests/fluentbit-statefulset/kubernetes --recursive=true
 ```
 
-## Graylog cluster objects
+### Graylog cluster objects
 
 The resources with cluster scope access should be created when deployed with restricted privileges:
 

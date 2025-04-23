@@ -25,8 +25,11 @@ spec:
   graylog:
     dockerImage: {{ template "graylog.image" . }}
     initSetupImage: {{ template "init-setup.image" . }}
+    {{- if hasKey .Values.graylog "replicas" }}
+    replicas: {{ .Values.graylog.replicas }}
+    {{- end }}
     {{- if .Values.graylog.affinity }}
-    affinity: 
+    affinity:
       {{- toYaml .Values.graylog.affinity | nindent 6 }}
     {{- end }}
     mongoDBImage: {{ template "mongodb.image" . }}
@@ -317,7 +320,7 @@ spec:
     {{- if .Values.fluentd.excludePath }}
     excludePath:
       {{- toYaml .Values.fluentd.excludePath | nindent 6 }}
-    {{- end }} 
+    {{- end }}
     {{- if .Values.fluentd.systemLogType }}
     systemLogType: {{ .Values.fluentd.systemLogType }}
     {{- else }}
@@ -432,7 +435,7 @@ spec:
       {{- toYaml .Values.fluentd.tolerations | nindent 6 }}
     {{- end }}
     {{- if .Values.fluentd.affinity }}
-    affinity: 
+    affinity:
       {{- toYaml .Values.fluentd.affinity | nindent 6 }}
     {{- end }}
     {{- if .Values.fluentd.additionalVolumes }}
@@ -644,7 +647,7 @@ spec:
       {{- toYaml .Values.fluentbit.tolerations | nindent 6 }}
     {{- end }}
     {{- if .Values.fluentbit.affinity }}
-    affinity: 
+    affinity:
       {{- toYaml .Values.fluentbit.affinity | nindent 6 }}
     {{- end }}
     {{- if .Values.fluentbit.additionalVolumes }}
@@ -831,7 +834,7 @@ spec:
         {{- toYaml .Values.fluentbit.aggregator.tolerations | nindent 8 }}
       {{- end }}
       {{- if .Values.fluentbit.aggregator.affinity }}
-      affinity: 
+      affinity:
         {{- toYaml .Values.fluentbit.aggregator.affinity | nindent 8 }}
       {{- end }}
       {{- if .Values.fluentbit.aggregator.startupTimeout }}
@@ -947,7 +950,7 @@ spec:
     nodeSelectorValue: {{ .Values.cloudEventsReader.nodeSelectorValue }}
     {{- end }}
     {{- if .Values.cloudEventsReader.affinity }}
-    affinity: 
+    affinity:
       {{- toYaml .Values.cloudEventsReader.affinity | nindent 6 }}
     {{- end }}
     {{- if .Values.cloudEventsReader.labels }}

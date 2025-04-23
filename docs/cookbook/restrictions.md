@@ -1,3 +1,4 @@
+<!-- markdownlint-disable MD041 -->
 This document describes different limits, restrictions, recommendations and best practices for logs.
 
 # Table of Content
@@ -91,7 +92,7 @@ FluentD supports the following log levels (case insensitive):
 | ---------------------- | --------------------- | -------------------- |
 | `0` or start from `e`  | `emerg`, `emergency`  | `Unknown`            |
 | `1` or start from `a`  | `alert`               | `Unknown`            |
-| `2` or start from`c`   | `crit`, `critical`    | `Fatal`              |
+| `2` or start from `c`  | `crit`, `critical`    | `Critical`           |
 | `3` or start from `er` | `error`               | `Error`              |
 | `4` or start from `w`  | `warn`, `warning`     | `Warning`            |
 | `5` or start from `n`  | `notice`              | `Informational`      |
@@ -99,6 +100,7 @@ FluentD supports the following log levels (case insensitive):
 | `7` or start from `d`  | `debug`               | `Debug`              |
 <!-- markdownlint-enable line-length -->
 
+'Fatal' log level is not supported. It's mapped as 'Unknown' with '1' Log level.
 The source code using the Gelf output plugin:
 [https://github.com/hotschedules/fluent-plugin-gelf-hs/blob/master/lib/fluent/gelf_util.rb#L23-L51](https://github.com/hotschedules/fluent-plugin-gelf-hs/blob/master/lib/fluent/gelf_util.rb#L23-L51).
 

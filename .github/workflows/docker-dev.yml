@@ -116,6 +116,8 @@ jobs:
     name: "Trigger completion event"
     needs: [build]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
     - name: Custom Event
       uses: netcracker/qubership-workflow-hub/actions/custom-event@v1.0.0

@@ -121,5 +121,4 @@ jobs:
       uses: netcracker/qubership-workflow-hub/actions/custom-event@v1.0.0
       with:
         event-type: "dev_build_completed"
-      env:
         github-token: ${{ secrets.GITHUB_TOKEN }}

@@ -189,7 +189,7 @@ Curl example:
 curl --location --request POST 'https://GRAYLOG_HOST/api/api/views/search' \
 --header 'Content-Type: application/json' \
 --header 'X-Requested-By: cli' \
---header 'Authorization: Basic YWRtaW46YWRtaW4=' \
+--header 'Authorization: Basic <credentials in base64>' \
 -k \
 --data '{
   "id": "5f33c6369de1b46a5aa085c3",

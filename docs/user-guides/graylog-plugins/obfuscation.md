@@ -36,8 +36,8 @@ The plugin configuration parameters are as follows:
   * ID - The unique ID of the regular expression.
   * Name - The readable name.
   * Pattern - The regular expression pattern written for the java regular expression engine.
-  * Importance - The number used to resolve conflicts in the search. If two regular expression catch different parts in one word,
-    the conflict is resolved by using the maximum importance value of the regular expression patterns.
+  * Importance - The number used to resolve conflicts in the search. If two regular expression catch different parts
+    in one word, the conflict is resolved by using the maximum importance value of the regular expression patterns.
 * `White Regular Expressions` - The regular expression used for filtering white words from all the catch sensitive data.
   For example, `matched`. This parameter includes the following information:
   * ID - The unique ID of the regular expression.

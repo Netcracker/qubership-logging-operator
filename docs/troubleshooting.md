@@ -72,7 +72,7 @@ If you are unable to connect to the virtual machine using SSH, check the network
 
 To check for errors, navigate to the **System > Overview** tab.
 
-![graylog-system-overview](/docs/images/graylog/system-overview.png)
+![graylog-system-overview](../docs/images/graylog/system-overview.png)
 
 Navigate to the deployed FluentD (usually it is the "logging" project), and see the pods' health-check reports.
 
@@ -252,7 +252,7 @@ Run the redeploy of the Logging service procedure with the corrected `graylog_he
 2. Navigate to `top`
 3. Check the resource consumption. You can also check resource consumption using System Monitoring if available.
    Define what kind of resource (CPU/RAM/HDD IOPS) is not enough according to the
-   [documentation](/docs/installation.md#hwe-and-limits).
+   [documentation](../docs/installation.md#hwe).
 
 **How to fix:**
 
@@ -387,12 +387,12 @@ but this will not change the time inside the `message` field  (it will be equal 
 
 If you log in to Graylog UI, go to `System -> Nodes` and see that info about Elastic nodes is unavailable:
 
-![Node info is unavailable](/docs/images/graylog/wrong-certificate-nodes-info.png)
+![Node info is unavailable](../docs/images/graylog/wrong-certificate-nodes-info.png)
 
 Then, if you click on the node's name (`44a226cb/graylog-0` from the example above), you'll probably face an error like
 this:
 
-![Unavailable node details](/docs/images/graylog/wrong-certificate-details.png)
+![Unavailable node details](../docs/images/graylog/wrong-certificate-details.png)
 
 In this case, you should check that your Graylog's TLS certificate is not expired and contains valid alt names (e.g.
 it must contain `graylog-service.logging.svc` if your Graylog is deployed into the `logging` namespace in the Cloud).
@@ -404,7 +404,7 @@ If you use a self-signed certificate,
 
 ### Widgets do not show data with errors
 
-In case of problems with indexes in OpenSearch Graylog can show errors on the widgets.
+In case of problems with indices in OpenSearch Graylog can show errors on the widgets.
 
 For example with messages:
 
@@ -434,7 +434,7 @@ This error usually occurs when:
 * Created a Stream that routes messages in custom OpenSearch index
 
 Created custom OpenSearch index may have fields declared with incorrect type or non-declared fields.
-The second reason is most typical for custom indexes.
+The second reason is most typical for custom indices.
 
 OpenSearch has a dynamic typing and a set of fields in the index. It means that OpenSearch
 tries to automatically select a type for a new field if you didn't declare the field, and OpenSearch
@@ -454,7 +454,7 @@ field with name `timestamp`.
 
 Next, you have to check its type using requests to OpenSearch API. The following requests will help you:
 
-* If you don't know index name or want to check the field type in all indexes:
+* If you don't know index name or want to check the field type in all indices:
 
     ```bash
     GET /_mapping/field/<field>
@@ -478,7 +478,7 @@ the `date` type for this field.
 
 **How to avoid this issue:**
 
-You have to remember about dynamic typing and declare all fields for custom OpenSearch indexes.
+You have to remember about dynamic typing and declare all fields for custom OpenSearch indices.
 
 [Back to TOC](#table-of-content)
 
@@ -542,9 +542,9 @@ After upgrade will be successfully complete you can start all inputs.
 
 **How to avoid this issue:**
 
-You shouldn't create indexes with postfix `_deflector` and use it as an alias. It's a reserved alias by Graylog.
+You shouldn't create indices with postfix `_deflector` and use it as an alias. It's a reserved alias by Graylog.
 
-During updates that should be created Streams that use custom indexes, you must stop all Graylog Inputs.
+During updates that should be created Streams that use custom indices, you must stop all Graylog Inputs.
 
 [Back to TOC](#table-of-content)
 
@@ -570,13 +570,13 @@ The symptoms (from small overload to significant overload):
 3. Logs search does not show recent logs (because they are in Graylog's journal, not in OpenSearch)
 4. Graylog UI slowness, random 500 and 503 errors
 5. Graylog UI is down
-6. Graylog VM CPU is fully utilized, VM became unresponsive even via ssh
+6. Graylog VM CPU is fully utilized, VM became unresponsive even via SSH
 
 [Back to TOC](#table-of-content)
 
 ### Common performance principles
 
-* First of all, check the hardware resources of your Graylog instance according to the [table](/docs/installation.md#hwe-and-limits).
+* First of all, check the hardware resources of your Graylog instance according to the [table](installation.md#hwe).
   The most important thing is disk speed and almost all performance issues can be solved by increasing it.
 * Use `sysbench` to measure disk speed
 * RAM and CPU are the second priority but it is also important
@@ -634,7 +634,11 @@ There are some issues in FluentBit and FluentD that could lead to parse parts of
 For example, from the log:
 
 ```bash
-[2024-09-30T04:59:40.498] [DEBUG] [request_id=1a04d001-37e6-418b-bc7f-4904d4dfc753] [tenant_id=-] [thread=main-8e36d] [class=mongo:storage.go:236] [traceId=0000000000000000176d565380a60f8b] [spanId=04546e4d3320dc9b] try to delete objects from certificates by filter map[$and:[map[meta.status:map[$ne:trusted]] map[$or:[map[meta.deactivatedAt:map[$lte:2024-08-31 04:59:40.498507159 +0000 UTC m=+6199354.549415617]] map[details.validTo:map[$lte:2024-08-31 04:59:40.498507159 +0000 UTC m=+6199354.549415617]]]]]]
+[2024-09-30T04:59:40.498] [DEBUG] [request_id=1a04d001-37e6-418b-bc7f-4904d4dfc753] [tenant_id=-] [thread=main-8e36d] 
+[class=mongo:storage.go:236] [traceId=0000000000000000176d565380a60f8b] [spanId=04546e4d3320dc9b] try to delete objects 
+from certificates by filter map[$and:[map[meta.status:map[$ne:trusted]] map[$or:[map[meta.deactivatedAt:map[$lte:2024-08-31 
+04:59:40.498507159 +0000 UTC m=+6199354.549415617]] map[details.validTo:map[$lte:2024-08-31 04:59:40.498507159 +0000 UTC 
+m=+6199354.549415617]]]]]]
 ```
 
 expect `key=value` from the `message` part
@@ -831,7 +835,7 @@ For example:
   curl -X GET -u <username>:<password> http://localhost:9200/_cat/indices
   ```
 
-* To remove indices by name, by some names (use colon `,` as separator) or regex:
+* To remove indices by name, by some names (use colon `,` as separator) or regular expression:
 
   ```bash
   curl -X DELETE -u <username>:<password> http://localhost:9200/<index_name_or_regex>

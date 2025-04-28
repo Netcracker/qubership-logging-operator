@@ -130,7 +130,7 @@ This section describes base deployment schemes of Logging in Cloud and which con
 
 This deployment schema now positioned as default.
 
-![TLS: Graylog on VM](/docs/images/tls/graylog-vm.png)
+![TLS: Graylog on VM](../images/tls/graylog-vm.png)
 
 In this schema:
 
@@ -161,7 +161,7 @@ Details how to configure TLS for this deployment schema see at sections:
 
 ## Graylog in Cloud
 
-![TLS: Graylog in Cloud](/docs/images/tls/graylog-cloud.png)
+![TLS: Graylog in Cloud](../images/tls/graylog-cloud.png)
 
 In this schema:
 
@@ -231,10 +231,10 @@ ssl_certificate_key=nginx/logging.pem
 
 where:
 
-* `ssl_certificate` is TLS certificate filename (.crt) that is presented on Deploy VM from the `certificates.zip` zip
+* `ssl_certificate` is TLS certificate filename (.crt) that is presented on Deploy VM from the `certificates.zip` ZIP
   archive. Required for HTTPS UI access. If empty - self-signed certificate will be generated automatically.
 * `ssl_certificate_key` is TLS certificate key filename (.pem) that is presented on Deploy VM from
-  the `certificates.zip` zip archive. Required for HTTPS UI access.
+  the `certificates.zip` ZIP archive. Required for HTTPS UI access.
 
 ### Configure TLS for Graylog Inputs on VM
 
@@ -269,9 +269,9 @@ tls_key_password=awesome_password
 
 * `tls_enabled` allow to enable TLS for Graylog input. The possible values are `true`/`false`.
 * `tls_cert_file` is TLS certificate filename (.crt) that is presented on Deploy VM from the `certificates.zip`
-  zip archive. Required for input with TLS.
+  ZIP archive. Required for input with TLS.
 * `tls_key_file` is TLS certificate key filename (.pem or .key) that is presented on Deploy VM from
-  the `certificates.zip` zip archive. Required for input with TLS.
+  the `certificates.zip` ZIP archive. Required for input with TLS.
 * `tls_key_password` the password for the TLS certificate key file for Graylog input.
 
 **Note (not recommended, may be insecure)**: If you set `tls_enabled` to `true`, but _did not_ set

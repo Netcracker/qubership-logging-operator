@@ -95,7 +95,7 @@ To create a new stream:
 3. Specify the required parameters
 4. Click **Save**
 
-    ![Create Stream](/docs/images/graylog/create-streame.png)
+    ![Create Stream](../docs/images/graylog/create-streame.png)
 
 5. Click **Manage Rules** for your stream
 6. For example, you can upload one message
@@ -141,7 +141,7 @@ You can save search criteria as a named query for quick usage in the future.
 After the search criteria are set, click **Save**, enter a name for the current query, and save it.
 The saved search is available by the **Load** button for quick access.
 
-![Saving custom search](/docs/images/graylog/saved-search.png)
+![Saving custom search](../docs/images/graylog/saved-search.png)
 
 Custom saved searches can be added automatically after the Graylog deployment through REST API.
 
@@ -189,7 +189,7 @@ Curl example:
 curl --location --request POST 'https://GRAYLOG_HOST/api/api/views/search' \
 --header 'Content-Type: application/json' \
 --header 'X-Requested-By: cli' \
---header 'Authorization: Basic YWRtaW46YWRtaW4=' \
+--header 'Authorization: Basic <credentials in base64>' \
 -k \
 --data '{
   "id": "5f33c6369de1b46a5aa085c3",
@@ -288,7 +288,7 @@ To view and edit the policies:
 
 The configuration for the rotation policy is shown in the following image.
 
-![Configure Rotation Policy](/docs/images/graylog/configure-rotation-policy.png)
+![Configure Rotation Policy](../docs/images/graylog/configure-rotation-policy.png)
 
 ## Exporting Logs
 
@@ -316,7 +316,7 @@ By default, there are next user roles available:
 * Operator - The Operator has ReadOnly rights for all streams on the system except of 'Audit logs'.
 * AuditViewer - The AuditViewer has ReadOnly rights for all streams on the system.
 
-![Default Roles](/docs/images/graylog/default-roles.png)
+![Default Roles](../docs/images/graylog/default-roles.png)
 
 You can also create new user roles.
 
@@ -329,7 +329,7 @@ To create a new user role:
 
 A role is created as shown in the following image.
 
-![Create Roles](/docs/images/graylog/create-roles.png)
+![Create Roles](../docs/images/graylog/create-roles.png)
 
 ### Users
 
@@ -341,7 +341,7 @@ By default, there are the following users:
 
 The default users are shown in the following image.
 
-![Default Users](/docs/images/graylog/default-users.png)
+![Default Users](../docs/images/graylog/default-users.png)
 
 You can create a new user in the system.
 
@@ -354,7 +354,7 @@ To create a new user:
 
 A user is created as shown in the following image.
 
-![Create Users](/docs/images/graylog/create-users.png)
+![Create Users](../docs/images/graylog/create-users.png)
 
 For more information about Graylog search query language, refer to
 [Export Results as CSV](https://go2docs.graylog.org/5-2/interacting_with_your_log_data/export_results_as_csv.html)
@@ -397,7 +397,7 @@ It is recommended to write audit logs that combine `log_id` with the value `audi
 Generally, more complicated and tricky criteria for audit logs can take place, depending on your application.
 An example of using `log_id` with the value `audit` is given in the following image.
 
-![Stream Rule](/docs/images/graylog/stream-rule.png)
+![Stream Rule](../docs/images/graylog/stream-rule.png)
 
 ## System Logs
 
@@ -457,7 +457,7 @@ Logging-backuper is installed on the Graylog host machine by the deploy-logging-
 
 To run the backup process:
 
-1. Navigate to `GRAYLOG_HOST` by ssh.
+1. Navigate to `GRAYLOG_HOST` by SSH.
 1. Execute the command, `curl -XPOST localhost:8080/backup`.
 
 ### Running Restore Process
@@ -477,7 +477,7 @@ To change the password locally:
 1. Navigate to the graylog folder in root home, `sudo -i` then `cd ~/graylog`
 2. Use the `change-password.sh` script to change the password with the following parameters:
 
-   * `--user (-u)` - To specify the user name
+   * `--user (-u)` - To specify the username
    * `--oldpass (-op)` - To specify the current password
    * `--newpass (-np)` - To specify the new password
    * `--confirmpass (-cp)` - To confirm the new password
@@ -490,12 +490,12 @@ To change the password remotely:
 2. Use `change-password.sh` script to change the password with the following parameters:
 
    * `--hosts (-h)` - To specify hosts
-   * `--user (-u)` - To specify the user name
+   * `--user (-u)` - To specify the username
    * `--oldpass (-op)` - To specify the current password
    * `--newpass (-np)` - To specify the new password
    * `--confirmpass (-cp)` - To confirm the new password
-   * `--sshuser` - To specify ssh login
-   * `--sshkey` - To specify the path for ssh key of hosts
+   * `--sshuser` - To specify SSH login
+   * `--sshkey` - To specify the path for SSH key of hosts
 
 3. Wait for `[INFO] Password was successfully changed` message
 
@@ -506,12 +506,12 @@ To change the password remotely:
 Graylog supports custom extensions using plugins.
 To configure plugins, navigate to **System/Configurations > Configurations** as shown in the following image.
 
-![Path to Configuration Page](/docs/images/graylog/configuration-page.png)
+![Path to Configuration Page](../docs/images/graylog/configuration-page.png)
 
 ### Graylog Obfuscation Plugin
 
 The Graylog Obfuscation Plugin is necessary for anonymization of sensitive data in the logs.
-For more information, see [Graylog Obfuscation Plugin](graylog_obfuscation_plugin.md).
+For more information, see [Graylog Obfuscation Plugin](https://github.com/Netcracker/qubership-graylog-obfuscation-plugin/blob/main/README.md).
 
 ## Graylog Audit logs
 

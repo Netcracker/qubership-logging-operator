@@ -4,13 +4,19 @@ The plugin support filtration by streams and fields. Only selected streams and f
 
 The plugin configuration is displayed in the **Configurations** page as shown in the image below.
 
-![Graylog Obfuscation Plugin Configuration](/docs/images/plugins/obfuscation-configuration.png)
+![Graylog Obfuscation Plugin Configuration](../../images/plugins/obfuscation-configuration.png)
+
+# Table of Content
+
+* [Table of Content](#table-of-content)
+* [Configuration Parameters](#configuration-parameters)
+  * [Buttons](#buttons)
 
 # Configuration Parameters
 
 The **Obfuscation Plugin Configuration** page with its parameters is shown in the image below.
 
-![Obfuscation Configuration Page](/docs/images/plugins/obfuscation-plugin-configuration-page.png)
+![Obfuscation Configuration Page](../../images/plugins/obfuscation-plugin-configuration-page.png)
 
 The plugin configuration parameters are as follows:
 
@@ -23,20 +29,20 @@ The plugin configuration parameters are as follows:
   The stream titles should be unique. The stream filter will work only if Pipeline Processor and Message Filter Chain
   is enabled and located higher, than Message Obfuscator.
 
-![Message Processors Configuration](/docs/images/plugins/message-processors-configuration.png)
+![Message Processors Configuration](../../images/plugins/message-processors-configuration.png)
 
-* `Sensitive Regular Expressions` - The regex used for catching sensitive data in the text. For example, `find`.
+* `Sensitive Regular Expressions` - The regular expression used for catching sensitive data in the text. For example, `find`.
   This parameter includes the following information:
-  * ID - The unique ID of the regex.
+  * ID - The unique ID of the regular expression.
   * Name - The readable name.
-  * Pattern - The regex pattern written for the java regex engine.
-  * Importance - The number used to resolve conflicts in the search. If two regex catch different parts in one word,
-    the conflict is resolved by using the maximum importance value of the regex patterns.
-* `White Regular Expressions` - The regex used for filtering white words from all the catch sensitive data.
+  * Pattern - The regular expression pattern written for the java regular expression engine.
+  * Importance - The number used to resolve conflicts in the search. If two regular expression catch different parts
+    in one word, the conflict is resolved by using the maximum importance value of the regular expression patterns.
+* `White Regular Expressions` - The regular expression used for filtering white words from all the catch sensitive data.
   For example, `matched`. This parameter includes the following information:
-  * ID - The unique ID of the regex.
+  * ID - The unique ID of the regular expression.
   * Name - The readable name.
-  * Pattern - The regex pattern written for the java regex engine.
+  * Pattern - The regular expression pattern written for the java regular expression engine.
 
 ## Buttons
 

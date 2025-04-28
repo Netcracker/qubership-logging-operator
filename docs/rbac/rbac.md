@@ -225,7 +225,7 @@ an application.
 If you want to deploy into **Kubernetes v1.16+** in the restricted rights mode
 the following `CRD` version v1 resources should be created manually before deploy:
 
-* [loggingservices.logging.qubership.org](/docs/crds/logging.qubership.org_loggingservices.yaml)
+* [loggingservices.logging.qubership.org](../../docs/crds/observability.qubership.org_loggingservices.yaml)
 
 To create the specified resources you can use the command (from a terminal opened in the root `logging-operator` folder):
 
@@ -237,7 +237,7 @@ kubectl create -f docs/crds/
 
 The resources with cluster scope access should be created when deployed with restricted privileges:
 
-* `ClusterRoleBinding` with name [\<NAMESPACE>-cloud-events-reader-cluster-reader](/docs/rbac/manifests/cloud-event-reader/clusterrole-binding.yaml)
+* `ClusterRoleBinding` with name [\<NAMESPACE>-cloud-events-reader-cluster-reader](manifests/cloud-event-reader/clusterrole-binding.yaml)
 
 To create the specified resources you can use the command (from a terminal opened in the document folder):
 
@@ -250,12 +250,12 @@ kubectl apply -f manifests/cloud-event-reader/ --recursive=true
 The resources with cluster scope access should be created when deployed with restricted privileges:
 
 * Kubernetes:
-  * `ClusterRole` with name [\<NAMESPACE>-logging-fluentd-cluster-role](/docs/rbac/manifests/fluentd/kubernetes/clusterrole.yaml)
-  * `ClusterRoleBinding` with name [\<NAMESPACE>-fluentd-cluster-reader](/docs/rbac/manifests/fluentd/kubernetes/clusterrole-binding.yaml)
-  * `PodSecurityPolicy` with name [\<NAMESPACE>-logging-fluentd](/docs/rbac/manifests/fluentd/kubernetes/podsecuritypolicy.yaml)
+  * `ClusterRole` with name [\<NAMESPACE>-logging-fluentd-cluster-role](manifests/fluentd/kubernetes/clusterrole.yaml)
+  * `ClusterRoleBinding` with name [\<NAMESPACE>-fluentd-cluster-reader](manifests/fluentd/kubernetes/clusterrole-binding.yaml)
+  * `PodSecurityPolicy` with name [\<NAMESPACE>-logging-fluentd](manifests/fluentd/kubernetes/podsecuritypolicy.yaml)
 * OpenShift:
-  * `ClusterRoleBinding` with name [\<NAMESPACE>-fluentd-cluster-reader](/docs/rbac/manifests/fluentd/openshift/clusterrole-binding.yaml)
-  * `SecurityContextConstraints` with name [\<NAMESPACE>-logging-fluentd](/docs/rbac/manifests/fluentd/openshift/securitycontextconstraints.yaml)
+  * `ClusterRoleBinding` with name [\<NAMESPACE>-fluentd-cluster-reader](manifests/fluentd/openshift/clusterrole-binding.yaml)
+  * `SecurityContextConstraints` with name [\<NAMESPACE>-logging-fluentd](manifests/fluentd/openshift/securitycontextconstraints.yaml)
 
 To create the specified resources you can use the command (from a terminal opened in the document folder):
 
@@ -275,12 +275,12 @@ where `<cloud_type>`:
 The resources with cluster scope access should be created when deployed with restricted privileges:
 
 * Kubernetes:
-  * `ClusterRole` with name [\<NAMESPACE>-logging-fluentbit-cluster-role](/docs/rbac/manifests/fluentbit-daemonset/kubernetes/clusterrole.yaml)
-  * `ClusterRoleBinding` with name [\<NAMESPACE>-logging-fluentbit-cluster-reader](/docs/rbac/manifests/fluentbit-daemonset/kubernetes/clusterrole-binding.yaml)
-  * `PodSecurityPolicy` with name [\<NAMESPACE>-logging-fluentbit](/docs/rbac/manifests/fluentbit-daemonset/kubernetes/podsecuritypolicy.yaml)
+  * `ClusterRole` with name [\<NAMESPACE>-logging-fluentbit-cluster-role](manifests/fluentbit-daemonset/kubernetes/clusterrole.yaml)
+  * `ClusterRoleBinding` with name [\<NAMESPACE>-logging-fluentbit-cluster-reader](manifests/fluentbit-daemonset/kubernetes/clusterrole-binding.yaml)
+  * `PodSecurityPolicy` with name [\<NAMESPACE>-logging-fluentbit](manifests/fluentbit-daemonset/kubernetes/podsecuritypolicy.yaml)
 * OpenShift:
-  * `ClusterRoleBinding` with name [\<NAMESPACE>-logging-fluentbit-cluster-reader](/docs/rbac/manifests/fluentbit-daemonset/openshift/clusterrole-binding.yaml)
-  * `SecurityContextConstraints` with name [\<NAMESPACE>-logging-fluentbit](/docs/rbac/manifests/fluentbit-daemonset/openshift/securitycontextconstraints.yaml)
+  * `ClusterRoleBinding` with name [\<NAMESPACE>-logging-fluentbit-cluster-reader](manifests/fluentbit-daemonset/openshift/clusterrole-binding.yaml)
+  * `SecurityContextConstraints` with name [\<NAMESPACE>-logging-fluentbit](manifests/fluentbit-daemonset/openshift/securitycontextconstraints.yaml)
 
 To create the specified resources you can use the command (from a terminal opened in the document folder):
 
@@ -293,12 +293,12 @@ kubectl apply -f manifests/fluentbit-daemonset/kubernetes --recursive=true
 The resources with cluster scope access should be created when deployed with restricted privileges:
 
 * Kubernetes:
-  * `ClusterRole` with name [\<NAMESPACE>-logging-fluentbit-aggregator-cluster-role](/docs/rbac/manifests/fluentbit-statefulset/kubernetes/clusterrole.yaml)
-  * `ClusterRoleBinding` with name [\<NAMESPACE>-logging-fluentbit-aggregator-cluster-reader](/docs/rbac/manifests/fluentbit-statefulset/kubernetes/clusterrole-binding.yaml)
-  * `PodSecurityPolicy` with name [\<NAMESPACE>-logging-fluentbit-aggregator](/docs/rbac/manifests/fluentbit-statefulset/kubernetes/podsecuritypolicy.yaml)
+  * `ClusterRole` with name [\<NAMESPACE>-logging-fluentbit-aggregator-cluster-role](manifests/fluentbit-statefulset/kubernetes/clusterrole.yaml)
+  * `ClusterRoleBinding` with name [\<NAMESPACE>-logging-fluentbit-aggregator-cluster-reader](manifests/fluentbit-statefulset/kubernetes/clusterrole-binding.yaml)
+  * `PodSecurityPolicy` with name [\<NAMESPACE>-logging-fluentbit-aggregator](manifests/fluentbit-statefulset/kubernetes/podsecuritypolicy.yaml)
 * OpenShift:
-  * `ClusterRoleBinding` with name [\<NAMESPACE>-logging-fluentbit-aggregator-cluster-reader](/docs/rbac/manifests/fluentbit-statefulset/openshift/clusterrole-binding.yaml)
-  * `SecurityContextConstraints` with name [\<NAMESPACE>-logging-fluentbit-aggregator](/docs/rbac/manifests/fluentbit-statefulset/openshift/securitycontextconstraints.yaml)
+  * `ClusterRoleBinding` with name [\<NAMESPACE>-logging-fluentbit-aggregator-cluster-reader](manifests/fluentbit-statefulset/openshift/clusterrole-binding.yaml)
+  * `SecurityContextConstraints` with name [\<NAMESPACE>-logging-fluentbit-aggregator](manifests/fluentbit-statefulset/openshift/securitycontextconstraints.yaml)
 
 To create the specified resources you can use the command (from a terminal opened in the document folder):
 
@@ -311,11 +311,11 @@ kubectl apply -f manifests/fluentbit-statefulset/kubernetes --recursive=true
 The resources with cluster scope access should be created when deployed with restricted privileges:
 
 * Kubernetes:
-  * `ClusterRole` with name [\<NAMESPACE>-logging-graylog-cluster-role](/docs/rbac/manifests/graylog/kubernetes/clusterrole.yaml)
-  * `ClusterRoleBinding` with name [\<NAMESPACE>-graylog-cluster-role](/docs/rbac/manifests/graylog/kubernetes/clusterrole-binding.yaml)
-  * `PodSecurityPolicy` with name [\<NAMESPACE>-logging-graylog](/docs/rbac/manifests/graylog/kubernetes/podsecuritypolicy.yaml)
+  * `ClusterRole` with name [\<NAMESPACE>-logging-graylog-cluster-role](manifests/graylog/kubernetes/clusterrole.yaml)
+  * `ClusterRoleBinding` with name [\<NAMESPACE>-graylog-cluster-role](manifests/graylog/kubernetes/clusterrole-binding.yaml)
+  * `PodSecurityPolicy` with name [\<NAMESPACE>-logging-graylog](manifests/graylog/kubernetes/podsecuritypolicy.yaml)
 * OpenShift:
-  * `SecurityContextConstraints` with name [\<NAMESPACE>-logging-graylog](/docs/rbac/manifests/graylog/openshift/securitycontextconstraints.yaml)
+  * `SecurityContextConstraints` with name [\<NAMESPACE>-logging-graylog](manifests/graylog/openshift/securitycontextconstraints.yaml)
 
 To create the specified resources you can use the command (from a terminal opened in the document folder):
 

@@ -33,7 +33,7 @@ The main features are as follows:
 
 All these documents provided to customer:
 
-* [Architecture](/docs/architecture.md)
-* [Installation](/docs/installation.md)
-* [Maintenance](/docs/maintenance.md)
-* [Troubleshooting](/docs/troubleshooting.md)
+* [Architecture](docs/architecture.md)
+* [Installation](docs/installation.md)
+* [Maintenance](docs/maintenance.md)
+* [Troubleshooting](docs/troubleshooting.md)

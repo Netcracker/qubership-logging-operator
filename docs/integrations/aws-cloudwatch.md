@@ -13,7 +13,7 @@ This document describes how to integrate Logging agents and Graylog with AWS Clo
     * [Configure AWS EKS (Kubernetes)](#configure-aws-eks-kubernetes)
     * [Configure AWS RDS (PostgreSQL)](#configure-aws-rds-postgresql)
     * [Configure AWS Keyspaces (Cassandra)](#configure-aws-keyspaces-cassandra)
-    * [Configure AWS ElasticSearch / OpenSearch](#configure-aws-elasticsearch--opensearch)
+    * [Configure AWS OpenSearch](#configure-aws-opensearch)
     * [Configure AWS MSK (Kafka)](#configure-aws-msk-kafka)
     * [Configure Amazon MQ (Rabbit MQ)](#configure-amazon-mq-rabbit-mq)
   * [Configure AWS Kinesis](#configure-aws-kinesis)
@@ -79,7 +79,7 @@ To create User need:
 
 1. Open IAM, select Users
 2. Click `Add Users`
-3. Enter user name and do not forgot set `Access key - Programmatic access` to generate access key
+3. Enter username and do not forgot set `Access key - Programmatic access` to generate access key
 4. Select early created group or permissions
 5. Create user and save `Access Key` and `Secret Access Key`
 
@@ -195,7 +195,7 @@ To publish PostgreSQL logs to CloudWatch Logs using the AWS console:
 
 **Note:** Please keep in mind that AWS can change UI and some fields can change names or positions.
 
-![Configure RDS to send logs in CloudWatch](/docs/images/cloudwatch/rds-pg-logs.png)
+![Configure RDS to send logs in CloudWatch](../images/cloudwatch/rds-pg-logs.png)
 
 _Enable CloudWatch logs for RDS_
 
@@ -209,14 +209,14 @@ CloudTrail logs, a service that provides a record of actions taken by a user, ro
 CloudTrail captures Data Definition Language (DDL) API calls for Amazon Keyspaces as events. The calls that are captured
 include calls from the Amazon Keyspaces console and code calls to the Amazon Keyspaces API operations.
 
-### Configure AWS ElasticSearch / OpenSearch
+### Configure AWS OpenSearch
 
 All information about available logs in CloudWatch you can read in official documentation
 [Monitoring OpenSearch logs with Amazon CloudWatch Logs](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/createdomain-configure-slow-logs.html).
 
 To enable log publishing to CloudWatch using the AWS console:
 
-1. Open the `Amazon ElasticSearch` console at [https://console.aws.amazon.com/es](https://console.aws.amazon.com/es).
+1. Open the `Amazon ElasticSearch` console at [https://console.aws.amazon.com/aos/home](https://console.aws.amazon.com/aos/home).
 2. Select the domain you want to update.
 3. On the `Logs` tab, select a log type and choose `Setup`.
 4. Create a CloudWatch log group, or choose an existing one.
@@ -246,11 +246,11 @@ To enable log publishing to CloudWatch using the AWS console:
 
 **Note:** Please keep in mind that AWS can change UI and some fields can change names or positions.
 
-![ElasticSearch logs settings](/docs/images/cloudwatch/elasticsearch-logs.png)
+![ElasticSearch logs settings](../images/cloudwatch/elasticsearch-logs.png)
 
 _Logs configuration section for ElasticSeach / OpenSearch_
 
-![ElasticSearch logs configuration diaglog](/docs/images/cloudwatch/elasticsearch-logs-creation-dialog.png)
+![ElasticSearch logs configuration diaglog](../images/cloudwatch/elasticsearch-logs-creation-dialog.png)
 
 _Logs configuration dialog for ElasticSeach / OpenSearch_
 
@@ -268,7 +268,7 @@ To publish Apache Kafka logs to CloudWatch Logs using the AWS console:
 
 **Note:** Please keep in mind that AWS can change UI and some fields can change names or positions.
 
-![Kafka logs settings](/docs/images/cloudwatch/kafka-logs.png)
+![Kafka logs settings](../images/cloudwatch/kafka-logs.png)
 
 _Logs configuration section for Apache Kafka_
 
@@ -286,7 +286,7 @@ To publish Apache MQ logs to CloudWatch Logs using the AWS console:
 
 **Note:** Please keep in mind that AWS can change UI and some fields can change names or positions.
 
-![RabbitMQ logs settings ](/docs/images/cloudwatch/rabbitmq-log.png)
+![RabbitMQ logs settings ](../images/cloudwatch/rabbitmq-log.png)
 
 _Logs configuration section for RabbitMQ_
 
@@ -374,21 +374,21 @@ You should now see Flow Logs being written into your Kinesis stream.
 
 Also state of Kinesis streams you can see in AWS Console:
 
-1. Open the `Amazon Kinesis` console at [https://console.aws.amazon.com/kinesis].
+1. Open the `Amazon Kinesis` console at [https://console.aws.amazon.com/kinesis/home].
 2. In the navigation pane, choose `Data Streams` then choose the one of configured streams.
 3. In the opened page you can see some parameters of stream configuration and see metrics (In/Out data and so on).
 
 ## Configure Graylog with AWS Plugin
 
 **Warning!** AWS Plugin has been deprecated in favor of the new
-[AWS Kinesis/CloudWatch](http://docs.graylog.org/en/3.1/pages/integrations/inputs/aws_kinesis_cloudwatch_input.html#aws-kinesis-cloudwatch-input)
+[AWS Kinesis/CloudWatch](https://go2docs.graylog.org/current/getting_in_log_data/aws_kinesis_cloudwatch_input.html)
 input in
 [graylog-integrations-plugin](https://github.com/Graylog2/graylog-plugin-integrations).
 
 Now go into the Graylog Web Interface and start a new `AWS Kinesis/CloudWatch` input.
 It will ask you for some simple parameters like the Kinesis Stream name you are writing your Flow Logs to.
 
-![Graylog AWS Plugin](/docs/images/cloudwatch/aws-logs-plugin.png)
+![Graylog AWS Plugin](../images/cloudwatch/aws-logs-plugin.png)
 
 _Configuration in Graylog AWS plugin_
 

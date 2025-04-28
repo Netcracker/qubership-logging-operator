@@ -111,7 +111,7 @@ fluentbit:
 ```
 
 The other required or necessary parameters are listed in the
-[Installation Guide](/docs/installation.md).
+[Installation Guide](installation.md).
 
 ## HWE for HA FluentBit
 

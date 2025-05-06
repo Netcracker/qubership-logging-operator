@@ -51,3 +51,7 @@ spec:
       - min: 0
         max: 65535
   readOnlyRootFilesystem: false
+  template:
+    metadata:
+      annotations:
+        seccomp.security.alpha.kubernetes.io/pod: "docker/default"

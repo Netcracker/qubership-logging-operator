@@ -3,7 +3,6 @@ kind: PodSecurityPolicy
 metadata:
   annotations:
     kubernetes.io/description: logging-graylog psp is used for the graylog-service
-    seccomp.security.alpha.kubernetes.io/pod: "docker/default"
   name: logging-graylog
   labels:
     name: logging-graylog
@@ -51,7 +50,6 @@ spec:
       - min: 0
         max: 65535
   readOnlyRootFilesystem: false
-  template:
-    metadata:
-      annotations:
-        seccomp.security.alpha.kubernetes.io/pod: "docker/default"
+  securityContext:
+    seccompProfile:
+      type: RuntimeDefault

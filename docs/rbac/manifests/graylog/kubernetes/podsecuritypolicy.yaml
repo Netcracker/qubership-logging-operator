@@ -51,6 +51,3 @@ spec:
       - min: 0
         max: 65535
   readOnlyRootFilesystem: false
-  securityContext:
-    seccompProfile:
-      type: RuntimeDefault

@@ -3,6 +3,7 @@ kind: PodSecurityPolicy
 metadata:
   annotations:
     kubernetes.io/description: logging-fluentbit psp is used for the fluentbit daemonset
+    seccomp.security.alpha.kubernetes.io/pod: "docker/default"
   name: logging-fluentbit
 spec:
   privileged: false
@@ -11,6 +12,7 @@ spec:
   # but we can provide it for defense in depth.
   requiredDropCapabilities:
     - ALL
+    - NET_RAW
   # Allow core volume types.
   volumes:
     - 'configMap'
@@ -29,8 +31,7 @@ spec:
   hostIPC: false
   hostPID: false
   runAsUser:
-    # Permits the container to run with root privileges as well.
-    rule: 'RunAsAny'
+    rule: 'MustRunAsNonRoot'
   seLinux:
     # This policy assumes the nodes are using AppArmor rather than SELinux.
     rule: 'RunAsAny'

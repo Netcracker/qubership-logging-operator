@@ -53,10 +53,21 @@ spec:
       {{- if .Values.priorityClassName }}
       priorityClassName: {{ .Values.priorityClassName }}
       {{- end }}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1100
       containers:
         - name: operator
           image: {{ template "logging-operator.image" . }}
           command: ["/manager"]
+          securityContext:
+            allowPrivilegeEscalation: false
+            seccompProfile:
+              type: RuntimeDefault
+            capabilities:
+              drop:
+                - NET_RAW
+                - ALL
           args:
             - '--pprof-enable={{ .Values.pprof.install }}'
             {{- if .Values.pprof.install }}

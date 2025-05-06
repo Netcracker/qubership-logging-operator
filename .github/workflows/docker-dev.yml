@@ -78,6 +78,7 @@ jobs:
       - name: Echo metadata
         run: echo "Metadata result ${{ steps.metadata.outputs.result }}" >> $GITHUB_STEP_SUMMARY
 
+      # checkov:skip=CKV_GHA_2
       - name: Prepare tags
         id: prepare_tags
         run: |

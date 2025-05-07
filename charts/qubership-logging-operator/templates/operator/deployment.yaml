@@ -42,7 +42,6 @@ spec:
       {{- end }}
     spec:
       serviceAccountName: logging-service-operator
-      automountServiceAccountToken: false
       {{- if and .Values.nodeSelectorKey .Values.nodeSelectorValue }}
       nodeSelector:
         {{ .Values.nodeSelectorKey | indent 8 }}: {{ .Values.nodeSelectorValue }}

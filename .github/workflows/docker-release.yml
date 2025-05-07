@@ -1,3 +1,4 @@
+---
 name: Logging Operator Release
 run-name: "Logging Operator Release ${{ inputs.version }}"
 on:

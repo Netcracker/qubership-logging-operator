@@ -3,7 +3,6 @@ kind: Deployment
 metadata:
   labels:
     name: qubership-log-generator
-    namespace: {{ .Release.Namespace }}
     metrics: qubership-log-generator
   name: qubership-log-generator
 spec:

@@ -48,6 +48,11 @@ func forwarderConfigMap(cr *loggingService.LoggingService, dynamicParameters uti
 		configMapData["input-custom.conf"] = cr.Spec.Fluentbit.CustomInputConf
 	}
 
+	// Set custom filters from parameters
+	if cr.Spec.Fluentbit.CustomFilterConf != "" {
+		configMapData["filter-custom.conf"] = cr.Spec.Fluentbit.CustomFilterConf
+	}
+
 	// Set custom scripts from parameters
 	if cr.Spec.Fluentbit.CustomLuaScriptConf != nil {
 		for scriptName, script := range cr.Spec.Fluentbit.CustomLuaScriptConf {

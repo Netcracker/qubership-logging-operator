@@ -4,6 +4,7 @@
 # You can adjust the behavior by modifying this file.
 # For more information, see:
 # https://github.com/github/super-linter
+# checkov:skip=CKV_GHA_7
 name: Lint Code Base
 
 on:

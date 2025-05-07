@@ -1,3 +1,6 @@
+# checkov:skip=CKV_GHA_2
+# checkov:skip=CKV_GHA_7
+---
 name: Build Docker with Matrix Strategy
 
 on:

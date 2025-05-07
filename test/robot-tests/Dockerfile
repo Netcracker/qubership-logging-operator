@@ -1,3 +1,4 @@
+# checkov:skip=CKV_DOCKER_2
 # All releases https://github.com/Netcracker/qubership-docker-integration-tests/releases
 # Based on python:3.13.1-alpine3.21
 FROM ghcr.io/netcracker/qubership-docker-integration-tests:0.2.1

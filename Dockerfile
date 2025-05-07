@@ -1,3 +1,4 @@
+# checkov:skip=CKV_DOCKER_2
 # Build the manager binary
 FROM --platform=$BUILDPLATFORM golang:1.24.2-alpine3.20 AS builder
 

@@ -3,7 +3,7 @@ kind: PodSecurityPolicy
 metadata:
   annotations:
     kubernetes.io/description: logging-fluentd psp is used for the fluentd daemonset
-    seccomp.security.alpha.kubernetes.io/pod: "docker/default"
+    seccomp.security.alpha.kubernetes.io/defaultProfileName: "docker/default"
   name: logging-fluentd
   labels:
     name: logging-fluentd

@@ -2,12 +2,13 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    # checkov:skip=CKV_K8S_21
     name: qubership-log-generator
+    namespace: {{ .Release.Namespace }}
     metrics: qubership-log-generator
   name: qubership-log-generator
 spec:
   replicas: 1
+  automountServiceAccountToken: false
   selector:
     matchLabels:
       name: qubership-log-generator
@@ -57,6 +58,8 @@ spec:
           imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsUser: 10001
             capabilities:
               drop:
                 - NET_RAW
@@ -66,7 +69,6 @@ spec:
       dnsPolicy: ClusterFirst
       securityContext:
         runAsNonRoot: true
-        runAsUser: 1100
         seccompProfile:
           type: RuntimeDefault
       schedulerName: default-scheduler

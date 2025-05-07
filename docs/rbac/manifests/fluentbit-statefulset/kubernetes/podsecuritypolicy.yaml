@@ -10,7 +10,6 @@ spec:
   allowPrivilegeEscalation: false
   requiredDropCapabilities:
     - ALL
-    - NET_RAW
   volumes:
     - 'configMap'
     - 'secret'

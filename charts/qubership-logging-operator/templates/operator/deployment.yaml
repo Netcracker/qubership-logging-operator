@@ -67,7 +67,6 @@ spec:
               type: RuntimeDefault
             capabilities:
               drop:
-                - NET_RAW
                 - ALL
           args:
             - '--pprof-enable={{ .Values.pprof.install }}'

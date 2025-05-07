@@ -61,7 +61,6 @@ spec:
             runAsUser: 10001
             capabilities:
               drop:
-                - NET_RAW
                 - ALL
       restartPolicy: Always
       terminationGracePeriodSeconds: 30

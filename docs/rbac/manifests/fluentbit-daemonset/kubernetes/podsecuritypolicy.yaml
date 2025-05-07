@@ -12,7 +12,6 @@ spec:
   # but we can provide it for defense in depth.
   requiredDropCapabilities:
     - ALL
-    - NET_RAW
   # Allow core volume types.
   volumes:
     - 'configMap'

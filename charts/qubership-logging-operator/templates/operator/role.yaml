@@ -17,7 +17,7 @@ rules:
   - apiGroups:
       - logging.qubership.org
     resources:
-      - '*'
+      - loggingservices
     verbs:
       - create
       - get

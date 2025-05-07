@@ -7,7 +7,6 @@ metadata:
   name: qubership-log-generator
 spec:
   replicas: 1
-  automountServiceAccountToken: false
   selector:
     matchLabels:
       name: qubership-log-generator
@@ -17,6 +16,7 @@ spec:
         metrics: qubership-log-generator
         name: qubership-log-generator
     spec:
+      automountServiceAccountToken: false
       volumes:
         - name: config
           configMap:

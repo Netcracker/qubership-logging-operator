@@ -101,17 +101,17 @@ jobs:
         component: ${{ fromJson(needs.load-docker-build-components.outputs.component) }}
     needs: [prepare-chart-and-tag, load-docker-build-components]
     steps:
-      - name: "Docker Build"
-        id: docker_build
-        uses: netcracker/qubership-workflow-hub/actions/docker-action@main
-        with:
-          ref: v${{ inputs.version }}
-          download-artifact: false
-          dry-run: ${{ inputs.dry-run }}
-          component: ${{ toJson(matrix.component) }}
-          platforms: ${{ needs.load-docker-build-components.outputs.platforms }}
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+    - name: "Docker Build"
+      id: docker_build
+      uses: netcracker/qubership-workflow-hub/actions/docker-action@main
+      with:
+        ref: v${{ inputs.version }}
+        download-artifact: false
+        dry-run: ${{ inputs.dry-run }}
+        component: ${{ toJson(matrix.component) }}
+        platforms: ${{ needs.load-docker-build-components.outputs.platforms }}
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
   github-release:
     needs: [docker-build]
     uses: netcracker/qubership-workflow-hub/.github/workflows/release-drafter.yml@main

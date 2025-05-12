@@ -498,3 +498,23 @@ Return container securityContext section for operator pods
     {{- end }}
   {{- end }}
 {{- end -}}
+
+{{- define "operator.readinessProbe" -}}
+readinessProbe:
+  tcpSocket:
+    port: 8383
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  failureThreshold: 3
+  timeoutSeconds: 1
+{{- end -}}
+
+{{- define "operator.livenessProbe" -}}
+livenessProbe:
+  tcpSocket:
+    port: 8383
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  failureThreshold: 3
+  timeoutSeconds: 3
+{{- end -}}

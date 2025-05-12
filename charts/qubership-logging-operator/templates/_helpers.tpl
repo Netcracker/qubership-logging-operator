@@ -445,3 +445,56 @@ MongoDB 4.4 image.
     {{- print "docker.io/mongo:4.4.17" -}}
   {{- end -}}
 {{- end -}}
+
+{{/*
+Return securityContext section for operator pods
+*/}}
+{{- define "operator.securityContext" -}}
+  {{- if .Values.securityContext }}
+    {{- toYaml .Values.securityContext | nindent 8 }}
+    {{- if not (.Capabilities.APIVersions.Has "apps.openshift.io/v1") }}
+      {{- if not .Values.securityContext.runAsUser }}
+        runAsUser: 10001
+      {{- end }}
+    {{- end }}
+    {{- if (eq (.Values.securityContext.runAsNonRoot | toString) "false") }}
+      runAsNonRoot: false
+    {{- else }}
+      runAsNonRoot: true
+    {{- end }}
+    {{- if and (ge .Capabilities.KubeVersion.Minor "25") (not .Values.securityContext.seccompProfile) }}
+      seccompProfile:
+        type: "RuntimeDefault"
+    {{- end }}
+  {{- else }}
+       runAsUser: 10001
+       runAsNonRoot: true
+    {{- if ge .Capabilities.KubeVersion.Minor "25" }}
+       seccompProfile:
+         type: "RuntimeDefault"
+    {{- end }}
+  {{- end }}
+{{- end -}}
+
+{{/*
+Return container securityContext section for operator pods
+*/}}
+{{- define "operator.containerSecurityContext" -}}
+  {{- if ge .Capabilities.KubeVersion.Minor "25" }}
+    {{- if .Values.containerSecurityContext }}
+      {{- toYaml .Values.containerSecurityContext | nindent 12 }}
+    {{- else }}
+           allowPrivilegeEscalation: false
+           readOnlyRootFilesystem: true
+           capabilities:
+             drop:
+               - ALL
+    {{- end }}
+  {{- else }}
+    {{- if .Values.containerSecurityContext }}
+      {{- toYaml .Values.containerSecurityContext | nindent 12 }}
+    {{- else }}
+      {}
+    {{- end }}
+  {{- end }}
+{{- end -}}

@@ -56,17 +56,10 @@ spec:
           terminationMessagePolicy: File
           imagePullPolicy: Always
           securityContext:
-            allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: true
-            runAsUser: 10001
-            capabilities:
-              drop:
-                - ALL
+            {{- include "operator.containerSecurityContext" . }}
       restartPolicy: Always
       terminationGracePeriodSeconds: 30
       dnsPolicy: ClusterFirst
       securityContext:
-        runAsNonRoot: true
-        seccompProfile:
-          type: RuntimeDefault
+        {{- include "operator.SecurityContext" . }}
       schedulerName: default-scheduler

@@ -54,20 +54,13 @@ spec:
       priorityClassName: {{ .Values.priorityClassName }}
       {{- end }}
       securityContext:
-        runAsNonRoot: true
-        runAsUser: 10001
+        {{- include "operator.securityContext" . }}
       containers:
         - name: operator
           image: {{ template "logging-operator.image" . }}
           command: ["/manager"]
           securityContext:
-            allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: true
-            seccompProfile:
-              type: RuntimeDefault
-            capabilities:
-              drop:
-                - ALL
+            {{- include "operator.containerSecurityContext" . }}
           args:
             - '--pprof-enable={{ .Values.pprof.install }}'
             {{- if .Values.pprof.install }}

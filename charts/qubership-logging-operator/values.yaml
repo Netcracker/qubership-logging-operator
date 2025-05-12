@@ -68,49 +68,49 @@ annotations: {}
 # Mandatory: no
 #
 securityContext: {}
-  # The UID to run the entrypoint of the container process.
-  # Defaults to user specified in image metadata if unspecified.
-  # Type: integer
-  # Mandatory: no
-  #
-  # runAsUser: 10001
+# The UID to run the entrypoint of the container process.
+# Defaults to user specified in image metadata if unspecified.
+# Type: integer
+# Mandatory: no
+#
+# runAsUser: 10001
 
-  # Set mandatory flag to run as non root user
-  # Type: bool
-  # Mandatory: no
-  #
-  # runAsNonRoot: true
+# Set mandatory flag to run as non root user
+# Type: bool
+# Mandatory: no
+#
+# runAsNonRoot: true
 
-  # Seccomp profile for Pod
-  # Valid options for type include 'RuntimeDefault', 'Unconfined', and 'Localhost'.
-  # Type: object
-  # Mandatory: no
-  #
-  # seccompProfile:
-  #   type: RuntimeDefault
+# Seccomp profile for Pod
+# Valid options for type include 'RuntimeDefault', 'Unconfined', and 'Localhost'.
+# Type: object
+# Mandatory: no
+#
+# seccompProfile:
+#   type: RuntimeDefault
 
 containerSecurityContext: {}
-  # Controls whether a process can gain more privileges than its parent process.
-  # This bool directly controls whether the 'no_new_privs' flag gets set on the container process.
-  # Type: bool
-  # Mandatory: no
-  #
-  # allowPrivilegeEscalation: false
+# Controls whether a process can gain more privileges than its parent process.
+# This bool directly controls whether the 'no_new_privs' flag gets set on the container process.
+# Type: bool
+# Mandatory: no
+#
+# allowPrivilegeEscalation: false
 
-  # A read-only root file system helps to enforce an immutable infrastructure strategy; the container
-  # only needs to write on the mounted volume that persists the state
-  # Type: bool
-  # Mandatory: no
-  #
-  # readOnlyRootFilesystem: true
+# A read-only root file system helps to enforce an immutable infrastructure strategy; the container
+# only needs to write on the mounted volume that persists the state
+# Type: bool
+# Mandatory: no
+#
+# readOnlyRootFilesystem: true
 
-  # Allow to give or drop a process some privileges, but not all the privileges of the root user.
-  # Type: object
-  # Mandatory: no
-  #
-  # capabilities:
-  #   drop:
-  #   - ALL
+# Allow to give or drop a process some privileges, but not all the privileges of the root user.
+# Type: object
+# Mandatory: no
+#
+# capabilities:
+#   drop:
+#   - ALL
 
 # qubership-logging-operator pprof
 # Type: object

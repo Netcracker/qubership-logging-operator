@@ -61,5 +61,5 @@ spec:
       terminationGracePeriodSeconds: 30
       dnsPolicy: ClusterFirst
       securityContext:
-        {{- include "operator.SecurityContext" . }}
+        {{- include "operator.securityContext" . }}
       schedulerName: default-scheduler

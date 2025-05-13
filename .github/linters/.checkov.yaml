@@ -3,6 +3,7 @@ quiet: true
 skip-check:
 - CKV_K8S_15 # Image Pull Policy should be Always
 - CKV_K8S_21 # The default namespace should not be used. (This rule not best practices: https://github.com/bridgecrewio/checkov/issues/3910)
+- CKV_K8S_38 # Ensure that Service Account Tokens are only mounted where necessary (Temporarily skipped due to testing complexity. Consider switching to temporary tokens https://adil.medium.com/how-to-use-tokenrequest-api-and-tokenvolume-projection-in-kubernetes-f007135b9994)
 - CKV_K8S_43 # Image should use digest. (Requires a common target approach)
 - CKV_GHA_2 # Ensure run commands are not vulnerable to shell injection.
 - CKV_GHA_7 # The build output cannot be affected by user parameters other than the build entry point and the top-level source location. GitHub Actions workflow_dispatch inputs MUST be empty

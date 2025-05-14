@@ -1,2 +1,3 @@
 **/charts/*/templates
 **/controllers/graylog/assets/statefulset.yaml
+**/test/robot-tests/src/source_files/fake_generator

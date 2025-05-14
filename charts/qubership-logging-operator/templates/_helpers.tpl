@@ -305,7 +305,7 @@ Image can be found from:
   {{- if .Values.fluentbit.dockerImage -}}
     {{- printf "%s" .Values.fluentbit.dockerImage -}}
   {{- else -}}
-    {{- print "docker.io/fluent/fluent-bit:4.0.0" -}}
+    {{- print "docker.io/fluent/fluent-bit:4.0.1" -}}
   {{- end -}}
 {{- end -}}
 

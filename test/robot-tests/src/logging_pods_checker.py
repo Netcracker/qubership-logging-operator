@@ -41,6 +41,8 @@ if __name__ == '__main__':
 
     print("Checking logging agents (fluentd/fluentbit) are ready")
     timeout_start = time.time()
+    numberAvailable = 0
+    desiredNumberScheduled = 0
     while time.time() < timeout_start + timeout:
         try:
             daemon_sets = k8s_lib.get_daemon_sets(namespace)

@@ -1,0 +1,24 @@
+---
+name: Link Checker
+
+on:
+  push: null
+  repository_dispatch: null
+  workflow_dispatch: null
+
+jobs:
+  linkChecker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Link Checker
+        id: lychee
+        uses: lycheeverse/lychee-action@v2
+        with:
+          # Check all markdown, 429 Too many requests also acceptable
+          args: --base . --verbose --no-progress './**/*.md' --accept 100..=103,200..=299,429
+          # Use json as output format (instead of markdown)
+          format: markdown
+          # Don't fail action on broken links
+          fail: false

@@ -115,5 +115,5 @@ spec:
               memory: {{ default "256Mi" .Values.integrationTests.resources.limits.memory }}
               cpu: {{ default "200m" .Values.integrationTests.resources.limits.cpu }}
           terminationMessagePath: /dev/termination-log
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
 {{- end }}

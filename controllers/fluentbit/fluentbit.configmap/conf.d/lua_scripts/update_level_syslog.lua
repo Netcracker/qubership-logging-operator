@@ -31,7 +31,37 @@ function update_level(tag, timestamp, record)
       record["level"] = "crit"
       return 2, timestamp, record
     end
+    if (record["level"] == "severe") then
+      record["level"] = "emerg"
+      return 2, timestamp, record
+    end
+    if (string.find(record["level"], "info") ~= nil) then
+      record["level"] = "info"
+      return 2, timestamp, record
+    end
 
+    if (record["klog"] == "true" ) then
+      if record["level"] == "i" then
+        record["level"] = "info"
+        return 2, timestamp, record
+      end
+      if record["level"] == "w" then
+        record["level"] = "warning"
+        return 2, timestamp, record
+      end
+      if record["level"] == "f" then
+        record["level"] = "emerg"
+        return 2, timestamp, record
+      end
+      if record["level"] == "v" then
+        record["level"] = "debug"
+        return 2, timestamp, record
+      end
+      if record["level"] == "e" then
+        record["level"] = "err"
+        return 2, timestamp, record
+      end
+    end
     -- return 0, that the record will not be modified
     return 0, timestamp, record
   end

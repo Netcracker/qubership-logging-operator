@@ -69,3 +69,22 @@ function update_level(tag, timestamp, record)
   -- return 0, that the record will not be modified
   return 0, timestamp, record
 end
+function update_mongo_level(tag, timestamp, record)
+    if not record or not record["level"] or type(record["level"]) ~= "string" then
+        return 0, timestamp, record
+    end
+    local first_char = record["level"]:sub(1, 1)  -- Get first letter
+    local level_map = {
+        D = "debug",
+        I = "info",
+        W = "warning",
+        E = "err",
+        F = "emerg"
+    }
+    if level_map[first_char] then
+        record["level"] = level_map[first_char]
+        return 2, timestamp, record
+    end
+
+    return 0, timestamp, record
+end

@@ -40,28 +40,6 @@ function update_level(tag, timestamp, record)
       return 2, timestamp, record
     end
 
-    if (record["klog"] == "true" ) then
-      if record["level"] == "i" then
-        record["level"] = "info"
-        return 2, timestamp, record
-      end
-      if record["level"] == "w" then
-        record["level"] = "warning"
-        return 2, timestamp, record
-      end
-      if record["level"] == "f" then
-        record["level"] = "emerg"
-        return 2, timestamp, record
-      end
-      if record["level"] == "v" then
-        record["level"] = "debug"
-        return 2, timestamp, record
-      end
-      if record["level"] == "e" then
-        record["level"] = "err"
-        return 2, timestamp, record
-      end
-    end
     -- return 0, that the record will not be modified
     return 0, timestamp, record
   end
@@ -69,6 +47,26 @@ function update_level(tag, timestamp, record)
   -- return 0, that the record will not be modified
   return 0, timestamp, record
 end
+
+function update_klog_level(tag, timestamp, record)
+  if not record or not record["level"] or type(record["level"]) ~= "string" then
+    return 0, timestamp, record
+  end
+  local first_char = record["level"]:sub(1, 1)  -- Get first letter
+  local level_map = {
+    V = "debug",
+    I = "info",
+    W = "warning",
+    E = "err",
+    F = "emerg"
+    }
+  if level_map[first_char] then
+    record["level"] = level_map[first_char]
+    return 2, timestamp, record
+  end
+  return 0, timestamp, record  
+end
+
 function update_mongo_level(tag, timestamp, record)
     if not record or not record["level"] or type(record["level"]) ~= "string" then
         return 0, timestamp, record

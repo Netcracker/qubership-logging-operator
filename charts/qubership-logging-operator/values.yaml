@@ -2057,14 +2057,14 @@ fluentbit:
   # The regexp for the first line of multiline filter
   # Type: string
   # Mandatory: no
-  # Default: "/^(\\[\\d{4}\\-\\d{2}\\-\\d{2}|\\{\\\"|\\u001b\\[.{1,5}m\\d{2}\\:\\d{2}\\:\\d{2}).*/"
+  # Default: "/^(\\[\\d{4}\\-\\d{2}\\-\\d{2}|\\{\\\"|\\u001b\\[.{1,5}m\\d{2}\\:\\d{2}\\:\\d{2}|[A-Z]\\d{4}\\s\\d{2}:\\d{2}:\\d{2}\\.\\d+\\s+\\d+\\s\\S+:\\d+\\]\\s+Trace\\[\\d+\\]:)/"
   #
   multilineFirstLineRegexp: ~
 
   # The regexp for the other lines of multiline filter
   # Type: string
   # Mandatory: no
-  # Default: "/^(\\[\\d{4}\\-\\d{2}\\-\\d{2}|\\{\\\"|\\u001b\\[.{1,5}m\\d{2}\\:\\d{2}\\:\\d{2}).*/"
+  # Default: "/^(?!\\[\\d{4}\\-\\d{2}\\-\\d{2}|\\{\\\"|\\u001b\\[.{1,5}m\\d{2}\\:\\d{2}\\:\\d{2}|[A-Z]\\d{4}\\s\\d{2}:\\d{2}:\\d{2}\\.\\d+)"
   #
   multilineOtherLinesRegexp: ~
 
@@ -2572,7 +2572,7 @@ fluentbit:
     # The regexp for the other lines of multiline filter
     # Type: string
     # Mandatory: no
-    # Default: "/^(?!\\[\\d{4}\\-\\d{2}\\-\\d{2}|\\{\\\"|\\u001b\\[.{1,5}m\\d{2}\\:\\d{2}\\:\\d{2}|[A-Z]\\d{4}\\s\\d{2}:\\d{2}:\\d{2}\\.\\d+\\s+\\d+\\s\\S+:\\d+\\]\\s+Trace\\[\\d+\\]:)"
+    # Default: "/^(?!\\[\\d{4}\\-\\d{2}\\-\\d{2}|\\{\\\"|\\u001b\\[.{1,5}m\\d{2}\\:\\d{2}\\:\\d{2}|[A-Z]\\d{4}\\s\\d{2}:\\d{2}:\\d{2}\\.\\d+)"
     #
     multilineOtherLinesRegexp: ~
 

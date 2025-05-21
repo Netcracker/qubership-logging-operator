@@ -659,7 +659,7 @@ spec:
       {{- toYaml .Values.fluentbit.additionalVolumeMounts | nindent 6 }}
     {{- end }}
     multilineFirstLineRegexp: {{ default "/^(\\[\\d{4}\\-\\d{2}\\-\\d{2}|\\{\\\"|\\u001b\\[.{1,5}m\\d{2}\\:\\d{2}\\:\\d{2}|[A-Z]\\d{4}\\s\\d{2}:\\d{2}:\\d{2}\\.\\d+\\s+\\d+\\s\\S+:\\d+\\]\\s+Trace\\[\\d+\\]:)/" .Values.fluentbit.multilineFirstLineRegexp }}
-    multilineOtherLinesRegexp: {{ default "/^(?!\\[\\d{4}\\-\\d{2}\\-\\d{2}|\\{\\\"|\\u001b\\[.{1,5}m\\d{2}\\:\\d{2}\\:\\d{2}|[A-Z]\\d{4}\\s\\d{2}:\\d{2}:\\d{2}\\.\\d+\\s+\\d+\\s\\S+:\\d+\\]\\s+Trace\\[\\d+\\]:)/" .Values.fluentbit.multilineOtherLinesRegexp }}
+    multilineOtherLinesRegexp: {{ default "/^(?!\\[\\d{4}\\-\\d{2}\\-\\d{2}|\\{\\\"|\\u001b\\[.{1,5}m\\d{2}\\:\\d{2}\\:\\d{2}|[A-Z]\\d{4}\\s\\d{2}:\\d{2}:\\d{2}\\.\\d+)/" .Values.fluentbit.multilineOtherLinesRegexp }}
     {{- if .Values.fluentbit.extraFields }}
     extraFields:
       {{- toYaml .Values.fluentbit.extraFields | nindent 6 }}
@@ -847,7 +847,7 @@ spec:
         storageSize: {{ default "2Gi" .Values.fluentbit.aggregator.volume.storageSize }}
       {{- end }}
       multilineFirstLineRegexp: {{ default "/^(\\[\\d{4}\\-\\d{2}\\-\\d{2}|\\{\\\"|\\u001b\\[.{1,5}m\\d{2}\\:\\d{2}\\:\\d{2}|[A-Z]\\d{4}\\s\\d{2}:\\d{2}:\\d{2}\\.\\d+\\s+\\d+\\s\\S+:\\d+\\]\\s+Trace\\[\\d+\\]:)/" .Values.fluentbit.aggregator.multilineFirstLineRegexp }}
-      multilineOtherLinesRegexp: {{ default "/^(?!\\[\\d{4}\\-\\d{2}\\-\\d{2}|\\{\\\"|\\u001b\\[.{1,5}m\\d{2}\\:\\d{2}\\:\\d{2}|[A-Z]\\d{4}\\s\\d{2}:\\d{2}:\\d{2}\\.\\d+\\s+\\d+\\s\\S+:\\d+\\]\\s+Trace\\[\\d+\\]:)/" .Values.fluentbit.aggregator.multilineOtherLinesRegexp }}
+      multilineOtherLinesRegexp: {{ default "/^(?!\\[\\d{4}\\-\\d{2}\\-\\d{2}|\\{\\\"|\\u001b\\[.{1,5}m\\d{2}\\:\\d{2}\\:\\d{2}|[A-Z]\\d{4}\\s\\d{2}:\\d{2}:\\d{2}\\.\\d+)/" .Values.fluentbit.aggregator.multilineOtherLinesRegexp }}
       {{- if .Values.fluentbit.aggregator.extraFields }}
       extraFields:
         {{- toYaml .Values.fluentbit.aggregator.extraFields | nindent 8 }}

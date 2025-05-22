@@ -64,7 +64,7 @@ function update_klog_level(tag, timestamp, record)
     record["level"] = level_map[first_char]
     return 2, timestamp, record
   end
-  return 0, timestamp, record  
+  return 0, timestamp, record
 end
 
 function update_mongo_level(tag, timestamp, record)

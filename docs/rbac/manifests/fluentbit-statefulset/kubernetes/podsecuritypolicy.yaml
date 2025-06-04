@@ -3,13 +3,10 @@ kind: PodSecurityPolicy
 metadata:
   annotations:
     kubernetes.io/description: logging-fluentbit-aggregator psp is used for the fluentbit aggregator stateful set
-    seccomp.security.alpha.kubernetes.io/defaultProfileName: "docker/default"
   name: logging-fluentbit-aggregator
 spec:
   privileged: false
   allowPrivilegeEscalation: false
-  requiredDropCapabilities:
-    - ALL
   volumes:
     - 'configMap'
     - 'secret'
@@ -19,7 +16,7 @@ spec:
   hostIPC: false
   hostPID: false
   runAsUser:
-    rule: 'MustRunAsNonRoot'
+    rule: 'RunAsAny'
   seLinux:
     rule: 'RunAsAny'
   supplementalGroups:

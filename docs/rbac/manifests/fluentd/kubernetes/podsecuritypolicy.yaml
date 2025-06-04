@@ -3,7 +3,6 @@ kind: PodSecurityPolicy
 metadata:
   annotations:
     kubernetes.io/description: logging-fluentd psp is used for the fluentd daemonset
-    seccomp.security.alpha.kubernetes.io/defaultProfileName: "docker/default"
   name: logging-fluentd
   labels:
     name: logging-fluentd
@@ -27,7 +26,7 @@ spec:
   hostIPC: false
   hostPID: false
   runAsUser:
-    rule: 'MustRunAsNonRoot'
+    rule: 'RunAsAny'
   seLinux:
     # This policy assumes the nodes are using AppArmor rather than SELinux.
     rule: 'RunAsAny'

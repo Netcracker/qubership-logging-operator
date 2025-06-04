@@ -294,10 +294,10 @@ The resources with cluster scope access should be created when deployed with res
 
 * Kubernetes:
   * `ClusterRole` with name [\<NAMESPACE>-logging-fluentbit-aggregator-cluster-role](manifests/fluentbit-statefulset/kubernetes/clusterrole.yaml)
-  * `ClusterRoleBinding` with name [\<NAMESPACE>-logging-fluentbit-aggregator-cluster-reader](manifests/fluentbit-statefulset/kubernetes/clusterrole-binding.yaml)
+  * `ClusterRoleBinding` with name [\<NAMESPACE>-logging-fluentbit-agg-cluster-reader](manifests/fluentbit-statefulset/kubernetes/clusterrole-binding.yaml)
   * `PodSecurityPolicy` with name [\<NAMESPACE>-logging-fluentbit-aggregator](manifests/fluentbit-statefulset/kubernetes/podsecuritypolicy.yaml)
 * OpenShift:
-  * `ClusterRoleBinding` with name [\<NAMESPACE>-logging-fluentbit-aggregator-cluster-reader](manifests/fluentbit-statefulset/openshift/clusterrole-binding.yaml)
+  * `ClusterRoleBinding` with name [\<NAMESPACE>-logging-fluentbit-agg-cluster-reader](manifests/fluentbit-statefulset/openshift/clusterrole-binding.yaml)
   * `SecurityContextConstraints` with name [\<NAMESPACE>-logging-fluentbit-aggregator](manifests/fluentbit-statefulset/openshift/securitycontextconstraints.yaml)
 
 To create the specified resources you can use the command (from a terminal opened in the document folder):

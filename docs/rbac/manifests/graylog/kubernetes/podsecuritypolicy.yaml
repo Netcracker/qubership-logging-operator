@@ -3,6 +3,7 @@ kind: PodSecurityPolicy
 metadata:
   annotations:
     kubernetes.io/description: logging-graylog psp is used for the graylog-service
+    seccomp.security.alpha.kubernetes.io/defaultProfileName: docker/default
   name: logging-graylog
   labels:
     name: logging-graylog
@@ -16,8 +17,8 @@ spec:
   # allowPrivilegeEscalation: false
   # This is redundant with non-root + disallow privilege escalation,
   # but we can provide it for defense in depth.
-  #requiredDropCapabilities:
-  #  - ALL
+  # requiredDropCapabilities:
+  #   - ALL
   # Allow core volume types.
   volumes:
     - 'configMap'
@@ -32,7 +33,6 @@ spec:
     - min: 0
       max: 65535
   runAsUser:
-    # Permits the container to run with root privileges as well.
     rule: 'RunAsAny'
   seLinux:
     # This policy assumes the nodes are using AppArmor rather than SELinux.

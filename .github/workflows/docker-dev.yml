@@ -1,3 +1,4 @@
+---
 name: Build Docker with Matrix Strategy
 run-name: "Image for ${{ github.event.repository.name }}: ${{ github.run_number }} - ${{ github.actor }}"
 on:

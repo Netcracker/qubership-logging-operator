@@ -1,6 +1,7 @@
 module github.com/Netcracker/qubership-logging-operator
 
-go 1.23.0
+go 1.24.0
+
 toolchain go1.24.1
 
 require (
@@ -10,9 +11,9 @@ require (
 	github.com/google/go-cmp v0.7.0
 	go.uber.org/zap v1.27.0
 	golang.org/x/crypto v0.37.0 // indirect
-	k8s.io/api v0.33.0
-	k8s.io/apimachinery v0.33.0
-	k8s.io/client-go v0.33.0
+	k8s.io/api v0.33.1
+	k8s.io/apimachinery v0.33.1
+	k8s.io/client-go v0.33.1
 	sigs.k8s.io/controller-runtime v0.20.4
 )
 

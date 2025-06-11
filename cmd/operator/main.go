@@ -1,19 +1,3 @@
-/*
-Copyright 2021.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
-
 package main
 
 import (
@@ -107,7 +91,7 @@ func main() {
 	}
 
 	skipMetricsService, found := os.LookupEnv("SKIP_METRICS_SERVICE")
-	if !found || !(skipMetricsService == "true") {
+	if !found || skipMetricsService != "true" {
 		// Add to the below struct any other metrics ports you want to expose.
 		servicePorts := []v1.ServicePort{
 			{Port: metricsPort, Name: "http-metrics", Protocol: v1.ProtocolTCP, TargetPort: intstr.IntOrString{Type: intstr.Int, IntVal: metricsPort}},

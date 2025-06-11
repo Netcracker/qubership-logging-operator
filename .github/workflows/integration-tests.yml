@@ -7,7 +7,6 @@ on:
     branches:
     - main
 
-
 env:
   kind_version: v0.27.0
   opensearch_namespace: opensearch
@@ -29,17 +28,7 @@ jobs:
 
     - name: Set up kind
       run: |
-        ARCH=$(uname -m)
-        if [ "$ARCH" = "x86_64" ]; then
-          ARCH=amd64
-        elif [ "$ARCH" = "aarch64" ]; then
-          ARCH=arm64
-        else
-          echo "Unsupported architecture: $ARCH"
-          exit 1
-        fi
-
-        curl -sLo ./kind https://kind.sigs.k8s.io/dl/${{ env.kind_version }}/kind-linux-${ARCH}
+        curl -sLo ./kind https://kind.sigs.k8s.io/dl/${{ env.kind_version }}/kind-linux-amd64
         chmod +x ./kind
         sudo mv ./kind /usr/local/bin/
         kind create cluster
@@ -71,27 +60,6 @@ jobs:
     - name: Build qubership-logging-integration-tests
       uses: docker/build-push-action@v6
       with:
-        load: false
-        no-cache: true
-        context: ./qubership-logging-operator/test/robot-tests
-        file: ./qubership-logging-operator/test/robot-tests/Dockerfile
-        platforms: linux/amd64,linux/arm64
-        push: true
-        tags: ghcr.io/${{ env.REPOSITORY_OWNER }}/qubership-logging-integration-tests:${{ env.TAG }}
-    - name: Build amd64 image for kind (qubership-logging-operator)
-      uses: docker/build-push-action@v6
-      with:
-        load: true
-        no-cache: true
-        context: ./qubership-logging-operator
-        file: ./qubership-logging-operator/Dockerfile
-        platforms: linux/amd64
-        push: false
-        tags: ghcr.io/${{ env.REPOSITORY_OWNER }}/qubership-logging-operator:${{ env.TAG }}
-
-    - name: Build amd64 image for kind (integration-tests)
-      uses: docker/build-push-action@v6
-      with:
         load: true
         no-cache: true
         context: ./qubership-logging-operator/test/robot-tests
@@ -99,11 +67,6 @@ jobs:
         platforms: linux/amd64
         push: false
         tags: ghcr.io/${{ env.REPOSITORY_OWNER }}/qubership-logging-integration-tests:${{ env.TAG }}
-
-    - name: Load docker images in kind cluster
-      run: |
-        kind load docker-image ghcr.io/${{ env.REPOSITORY_OWNER }}/qubership-logging-operator:${{ env.TAG }}
-        kind load docker-image ghcr.io/${{ env.REPOSITORY_OWNER }}/qubership-logging-integration-tests:${{ env.TAG }}
 
     - name: Load docker images in kind cluster
       run: |

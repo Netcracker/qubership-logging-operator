@@ -3,6 +3,8 @@ package utils
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"net/http/httputil"
@@ -51,6 +53,14 @@ func (connector *GraylogConnector) SendRequestToOpenSearch(method string, urlPat
 	}
 
 	defer response.Body.Close()
+
+	if response.StatusCode >= 400 {
+		bodyBytes, err := io.ReadAll(response.Body)
+		if err != nil {
+			return fmt.Errorf("failed to read error response body: %v", err)
+		}
+		return fmt.Errorf("request failed with status %d: %s", response.StatusCode, string(bodyBytes))
+	}
 
 	b, err := httputil.DumpResponse(response, true)
 	if err != nil {

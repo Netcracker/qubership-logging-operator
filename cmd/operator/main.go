@@ -107,7 +107,7 @@ func main() {
 	}
 
 	skipMetricsService, found := os.LookupEnv("SKIP_METRICS_SERVICE")
-	if !(found && skipMetricsService == "true") {
+	if !found || !(skipMetricsService == "true") {
 		// Add to the below struct any other metrics ports you want to expose.
 		servicePorts := []v1.ServicePort{
 			{Port: metricsPort, Name: "http-metrics", Protocol: v1.ProtocolTCP, TargetPort: intstr.IntOrString{Type: intstr.Int, IntVal: metricsPort}},

@@ -115,6 +115,15 @@ func DownloadFile(fullURLFile string, fileName string) error {
 	}
 
 	defer resp.Body.Close()
+
+	if resp.StatusCode >= 400 {
+		bodyBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return fmt.Errorf("failed to read error response body: %v", err)
+		}
+		return fmt.Errorf("request failed with status %d: %s", resp.StatusCode, string(bodyBytes))
+	}
+
 	size, err := io.Copy(file, resp.Body)
 	if err != nil {
 		return err

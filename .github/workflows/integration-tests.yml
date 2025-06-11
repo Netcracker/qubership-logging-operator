@@ -50,12 +50,12 @@ jobs:
     - name: Build qubership-logging-operator
       uses: docker/build-push-action@v6
       with:
-        load: false
+        load: true
         no-cache: true
         context: ./qubership-logging-operator
         file: ./qubership-logging-operator/Dockerfile
-        platforms: linux/amd64,linux/arm64
-        push: true
+        platforms: linux/amd64
+        push: false
         tags: ghcr.io/${{ env.REPOSITORY_OWNER }}/qubership-logging-operator:${{ env.TAG }}
     - name: Build qubership-logging-integration-tests
       uses: docker/build-push-action@v6

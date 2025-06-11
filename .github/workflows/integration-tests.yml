@@ -7,7 +7,6 @@ on:
     branches:
     - main
 
-
 env:
   kind_version: v0.27.0
   opensearch_namespace: opensearch
@@ -33,7 +32,7 @@ jobs:
         chmod +x ./kind
         sudo mv ./kind /usr/local/bin/
         kind create cluster
-        docker exec kind-control-plane bash -c "mkdir - /var/log/audit && chown 1000:1000 /var/log/audit && echo 'Created /var/log/audit with the permissions:'; ls -ld  /var/log/audit"
+        docker exec kind-control-plane bash -c "mkdir -p /var/log/audit && chown 1000:1000 /var/log/audit && echo 'Created /var/log/audit with the permissions:'; ls -ld /var/log/audit"
     - name: Set tag and repository owner
       run: |
         echo "TAG=${GITHUB_SHA:0:11}" >> $GITHUB_ENV
@@ -42,6 +41,12 @@ jobs:
       uses: docker/setup-qemu-action@v3
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
     - name: Build qubership-logging-operator
       uses: docker/build-push-action@v6
       with:
@@ -62,6 +67,7 @@ jobs:
         platforms: linux/amd64
         push: false
         tags: ghcr.io/${{ env.REPOSITORY_OWNER }}/qubership-logging-integration-tests:${{ env.TAG }}
+
     - name: Load docker images in kind cluster
       run: |
         kind load docker-image ghcr.io/${{ env.REPOSITORY_OWNER }}/qubership-logging-operator:${{ env.TAG }}

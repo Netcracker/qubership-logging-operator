@@ -55,12 +55,12 @@ func GeneratePodMonitor(s *v1.Service, sInterval string, sTimeout string) *promv
 
 	return &promv1.PodMonitor{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      s.ObjectMeta.Name,
-			Namespace: s.ObjectMeta.Namespace,
+			Name:      s.Name,
+			Namespace: s.Namespace,
 			Labels: map[string]string{
-				"name":                         s.ObjectMeta.Name,
-				"app.kubernetes.io/name":       s.ObjectMeta.Name,
-				"app.kubernetes.io/instance":   GetInstanceLabel(s.ObjectMeta.Name, s.ObjectMeta.Namespace),
+				"name":                         s.Name,
+				"app.kubernetes.io/name":       s.Name,
+				"app.kubernetes.io/instance":   GetInstanceLabel(s.Name, s.Namespace),
 				"app.kubernetes.io/component":  "monitoring",
 				"app.kubernetes.io/part-of":    "logging",
 				"app.kubernetes.io/managed-by": "logging-operator",

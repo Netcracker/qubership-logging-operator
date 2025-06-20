@@ -10,7 +10,7 @@ function first_count_fields(tag, timestamp, record)
     record["orig_field_count"] = count
     return 2, timestamp, record
 end
--- Count fields in a record after parsing 
+-- Count fields in a record after parsing
 function second_count_fields(tag, timestamp, record)
     if record["log"] ~= nil then
         local count = 0

@@ -1,26 +1,4 @@
 
-# Table of Content
-
-* [Table of Content](#table-of-content)
-* [Overview](#overview)
-  * [Graylog](#graylog)
-  * [OpenSearch/ElasticSearch](#opensearchelasticsearch)
-  * [MongoDB](#mongodb)
-  * [FluentBit/FluentD](#fluentbitfluentd)
-  * [Configmap Reload](#configmap-reload)
-  * [Cloud Events Reader](#cloud-events-reader)
-  * [Logging backup daemon](#logging-backup-daemon)
-* [Supported deployment schemes](#supported-deployment-schemes)
-  * [On-prem](#on-prem)
-    * [Non-HA deployment scheme scheme](#non-ha-deployment-scheme-scheme)
-    * [HA deployment scheme](#ha-deployment-scheme)
-    * [DR deployment scheme](#dr-deployment-scheme)
-  * [Integration with managed services](#integration-with-managed-services)
-    * [AWS OpenSearch](#aws-opensearch)
-    * [AWS CloudWatch](#aws-cloudwatch)
-    * [Azure Log Analytic](#azure-log-analytic)
-  * [Integration with other vendor solutions](#integration-with-other-vendor-solutions)
-    * [Splunk](#splunk)
 
 # Overview
 
@@ -65,7 +43,7 @@ Graylog supports many input protocols, and can interact with almost all log agen
 * Operations Services Logs Collection - For services that are deployed on dedicated VMs such as Logging, Monitoring,
   and Deploy VM, `td-agent`, an RPM version of Fluentd is installed on these VMs.
 
-## Graylog
+### Graylog
 
 The log processing engine. It receives logs from collectors such as `FluentBit`/`FluentD` in this case, processes them,
 and sends them to the storage. It also contains Web UI for configuring and viewing the logs.
@@ -74,7 +52,7 @@ Official documentation:
 
 * Graylog [https://go2docs.graylog.org/5-2/home.htm](https://go2docs.graylog.org/5-2/home.htm)
 
-## OpenSearch/ElasticSearch
+### OpenSearch/ElasticSearch
 
 Used by Graylog as a log storage.
 
@@ -90,13 +68,13 @@ Official documentation:
 * OpenSearch [https://opensearch.org/docs/latest/](https://opensearch.org/docs/latest/)
 * ElasticSearch [https://www.elastic.co/guide/index.html](https://www.elastic.co/guide/index.html)
 
-## MongoDB
+### MongoDB
 
 The small instance of `MongoDB` used by `Graylog` as a settings storage.
 
 `MongoDB` is a document database designed for ease of application development and scaling.
 
-## FluentBit/FluentD
+### FluentBit/FluentD
 
 `FluentBit` is a CNCF sub-project under the umbrella of `FluentD`.
 
@@ -120,7 +98,7 @@ Official documentation:
 * FluentBit [https://docs.fluentbit.io/](https://docs.fluentbit.io/)
 * FluentD [https://docs.fluentd.org/](https://docs.fluentd.org/)
 
-## ConfigMap Reload
+### ConfigMap Reload
 
 `ConfigMap-reload` is a simple binary to trigger a reload when Kubernetes ConfigMaps or Secrets,
 mounted into pods, are updated. It watches mounted volume dirs and notifies the target process that
@@ -131,7 +109,7 @@ Official documentation:
 
 * ConfigMap-reload [https://github.com/jimmidyson/configmap-reload/pkgs/container/configmap-reload](https://github.com/jimmidyson/configmap-reload/pkgs/container/configmap-reload)
 
-## Cloud Events Reader
+### Cloud Events Reader
 
 Cloud Events Reader is a deployment that observes for Kubernetes events and prints it to logs in predefined format
 (to be processed by Fluentd/FluentBit). It is deployed as a part of the Logging stack.
@@ -139,22 +117,22 @@ Cloud Events Reader is a deployment that observes for Kubernetes events and prin
 It implements Kubernetes controller that watches for kind Event with API version events.k8s.io/v1 adding and modifying
 and prints formatted data of event in stdout.
 
-## Logging backup daemon
+### Logging backup daemon
 
-# Supported deployment schemes
+## Supported deployment schemes
 
-## On-prem
+### On-prem
 
 This section describes the Logging stack deployment in the on-premise Kubernetes in different schemes.
 
-### Non-HA deployment scheme scheme
+#### Non-HA deployment scheme scheme
 
 Non-HA deployment supports for both clients: FluentD and FluentBit. Each client sends processed messages directly in
 Graylog.
 
-![Non-HA](../docs/images/architecture/cloud-fluentbit.png)
+![Non-HA](images/architecture/cloud-fluentbit.png)
 
-### HA deployment scheme
+#### HA deployment scheme
 
 Now the Logging stack partially supports High-Availability deploy in the Cloud.
 
@@ -170,9 +148,9 @@ Other components can't be deployed in more than 1 replica (or it has no sense):
 * MongoDB - currently deploying as a sidecar of Graylog so can't be run in more than 1 replica
 * Cloud Event Reader - stateless service and can be run in N replicas, but it has no make sense
 
-![Non-HA](../docs/images/architecture/cloud-fluentbit-ha.png)
+![Non-HA](images/architecture/cloud-fluentbit-ha.png)
 
-### DR deployment scheme
+#### DR deployment scheme
 
 Currently Logging in the Cloud has no specific deployment schema.
 It means that on both sites all Logging components will deploy in the Cloud independently. And you will have
@@ -181,11 +159,11 @@ two (or more) Logging stacks on your right and left Kubernetes.
 If you try to plan your Kubernetes DR deployment, you need to multiply the required resources by 2
 (or more if you have more Kubernetes in the DR schema).
 
-## Integration with managed services
+### Integration with managed services
 
 This section describes the abilities of Logging stack deploy using Public Cloud Managed Services.
 
-### AWS OpenSearch
+#### AWS OpenSearch
 
 **Type:** Graylog integration
 
@@ -195,7 +173,7 @@ Graylog in the Cloud requires separated OpenSearch/ElasticSearch to store logs. 
 a lot of managed services (including AWS OpenSearch) you can replace self-managed OpenSearch clusters
 with AWS Managed Service.
 
-### AWS CloudWatch
+#### AWS CloudWatch
 
 **Type:** FluentBit integration
 
@@ -207,7 +185,7 @@ FluentBit can send data to `AWS CloudWatch` in two schemes:
 For more details, on how to configure integration with `AWS CloudWatch` please refer to the integration guide
 [Amazon CloudWatch](https://docs.fluentbit.io/manual/pipeline/outputs/cloudwatch).
 
-### Azure Log Analytic
+#### Azure Log Analytic
 
 **Type:** FluentBit integration
 
@@ -219,12 +197,12 @@ FluentBit can send data to `Azure Log Analytic` in two schemes:
 For more details, on how to configure integration with `Azure Log Analytic` please refer to the integration guide
 [Azure Log Analytic](https://docs.fluentbit.io/manual/pipeline/outputs/azure).
 
-## Integration with other vendor solutions
+### Integration with other vendor solutions
 
 This section describes possible integrations of the Logging stack with solutions from other vendors.
 For example, Splunk, New Relic, Datadog and so on.
 
-### Splunk
+#### Splunk
 
 **Type:** FluentBit integration
 

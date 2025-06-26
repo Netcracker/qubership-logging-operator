@@ -1,25 +1,6 @@
 This document provides information about integration options for logging agents (FluentD or FluentBit) as producers
 for Kafka and Graylog as a consumer for Kafka.
 
-# Table of Content
-
-* [Table of Content](#table-of-content)
-* [Kafka](#kafka)
-  * [Before you begin](#before-you-begin)
-  * [Configuring FluentD output to Kafka](#configuring-fluentd-output-to-kafka)
-    * [Plaintext](#plaintext)
-    * [SASL plaintext](#sasl-plaintext)
-    * [SASL over SSL](#sasl-over-ssl)
-  * [Configuring FluentBit output to Kafka](#configuring-fluentbit-output-to-kafka)
-    * [Plaintext](#plaintext-1)
-    * [SASL plaintext](#sasl-plaintext-1)
-    * [SASL over SSL](#sasl-over-ssl-1)
-  * [Configuring Graylog input from Kafka](#configuring-graylog-input-from-kafka)
-    * [SASL plaintext](#sasl-plaintext-2)
-    * [SASL over SSL](#sasl-over-ssl-2)
-    * [Example of Kafka consumer parameters](#example-of-kafka-consumer-parameters)
-* [Links](#links)
-
 # Kafka
 
 Apache Kafka is an open-source distributed event streaming platform used by thousands of companies for high-performance
@@ -27,7 +8,7 @@ data pipelines, streaming analytics, data integration, and mission-critical appl
 
 Kafka can aggregate data from producers (e.g. logging agents) and give this data to consumers.
 
-## Before you begin
+### Before you begin
 
 You should find out a several things before you begin:
 
@@ -50,7 +31,7 @@ new topics in the Kafka by themselves in some cases.
 Please notice that if you connect to Kafka in the Cloud **from outside the Cloud** (e.g. if your Graylog has been
 installed on the virtual machine), you may need to take additional steps to open access to Kafka.
 
-## Configuring FluentD output to Kafka
+### Configuring FluentD output to Kafka
 
 FluentD uses [fluent-plugin-kafka](https://github.com/fluent/fluent-plugin-kafka) to send logs to Kafka brokers.
 
@@ -69,7 +50,7 @@ send logs to the default Graylog output.
 not recommended parameters**, so the responsibility for tuning and adapting the configuration for a specific environment
 lies with the users themselves.
 
-### Plaintext
+#### Plaintext
 
 To configure the simplest Kafka output with protocol `plaintext` in FluentD you can add the following `custom output`
 config in the FluentD configuration during deploy:
@@ -101,7 +82,7 @@ fluentd:
 **NOTE:** The `<buffer>` section can be helpful for stability of FluentD work, but it may take up a lot of disk space in
 a short time, so please use this feature with caution.
 
-### SASL plaintext
+#### SASL plaintext
 
 If your Kafka uses `sasl_plaintext` as a security protocol, you should add parameters `username`, `password` and
 `scram_mechanism` if you use SCRAM (we use `SCRAM-SHA-512` in this example):
@@ -139,7 +120,7 @@ the same parameters can be set in the other tools, for example: `sha512`.
 **NOTE:** The `<buffer>` section can be helpful for stability of FluentD work, but it may take up a lot of disk space in
 a short time, so please use this feature with caution.
 
-### SASL over SSL
+#### SASL over SSL
 
 If your Kafka uses `sasl_ssl` as a security protocol, you have to follow the following steps:
 
@@ -230,7 +211,7 @@ fluentd:
       ...
 ```
 
-## Configuring FluentBit output to Kafka
+### Configuring FluentBit output to Kafka
 
 FluentBit has a built-in plugin to send collected logs to Kafka. So you only need to configure it.
 
@@ -241,7 +222,7 @@ Configuration parameters can be found
 not recommended parameters**, so the responsibility for tuning and adapting the configuration for a specific environment
 lies with the users themselves.
 
-### Plaintext
+#### Plaintext
 
 To configure the simplest Kafka output with protocol `plaintext` in FluentBit you can add the following `custom output`
 config in the FluentBit configuration during deploy:
@@ -259,7 +240,7 @@ fluentbit:
         rdkafka.security.protocol                   plaintext
 ```
 
-### SASL plaintext
+#### SASL plaintext
 
 If your Kafka uses `sasl_plaintext` as a security protocol, you should add parameters `username`, `password` and
 `scram_mechanism` if you use SCRAM (we use `SCRAM-SHA-512` in this example):
@@ -280,7 +261,7 @@ fluentbit:
         rdkafka.sasl.mechanism                      SCRAM-SHA-512
 ```
 
-### SASL over SSL
+#### SASL over SSL
 
 If your Kafka uses `sasl_ssl` as a security protocol, you have to follow the following steps:
 
@@ -356,7 +337,7 @@ fluentbit:
       ...
 ```
 
-## Configuring Graylog input from Kafka
+### Configuring Graylog input from Kafka
 
 You can configure your Graylog server as a Kafka consumer to collect logs from its topics. You need to configure
 a specific Graylog `input` to do it.
@@ -396,7 +377,7 @@ There are a several examples for the `Custom Kafka properties` fields below.
 not recommended parameters**, so the responsibility for tuning and adapting the configuration for a specific environment
 lies with the users themselves.
 
-### SASL plaintext
+#### SASL plaintext
 
 If the Kafka uses `sasl_plaintext` security protocol with `SCRAM-SHA-512` as a SASL mechanism:
 
@@ -410,7 +391,7 @@ security.protocol=SASL_PLAINTEXT
 required parameter and its location is matter. For example, during tests the Graylog input failed if this parameter is
 removed or placed in the end of the parameters list.
 
-### SASL over SSL
+#### SASL over SSL
 
 If your Kafka uses `sasl_ssl` as a security protocol, you have to follow the following steps:
 
@@ -483,7 +464,7 @@ graylog:
         ...
 ```
 
-### Example of Kafka consumer parameters
+#### Example of Kafka consumer parameters
 
 These parameters appear in Graylog logs when you create a Kafka input:
 
@@ -567,7 +548,7 @@ These parameters appear in Graylog logs when you create a Kafka input:
     value.deserializer = class org.apache.kafka.common.serialization.ByteArrayDeserializer
 ```
 
-# Links
+## Links
 
 * [fluent-plugin-kafka](https://github.com/fluent/fluent-plugin-kafka)
 * [FluentD documentation about Kafka output](https://docs.fluentd.org/output/kafka)

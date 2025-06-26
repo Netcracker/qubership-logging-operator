@@ -1,25 +1,11 @@
 <!-- markdownlint-disable MD041 -->
 This document describes different limits, restrictions, recommendations and best practices for logs.
 
-# Table of Content
-
-* [Table of Content](#table-of-content)
-* [Limits](#limits)
-  * [Limits for Graylog](#limits-for-graylog)
-  * [Limits for OpenSearch/ElasticSearch instance](#limits-for-opensearchelasticsearch-instance)
-  * [Limits for OpenSearch/ElasticSearch index](#limits-for-opensearchelasticsearch-index)
-  * [Limits for OpenSearch/ElasticSearch fields](#limits-for-opensearchelasticsearch-fields)
-  * [Limits for CRI](#limits-for-cri)
-* [Restrictions](#restrictions)
-  * [Supported log levels](#supported-log-levels)
-  * [Default log level](#default-log-level)
-  * [Content of fields/labels for text log format](#content-of-fieldslabels-for-text-log-format)
-
 # Limits
 
 This section describes limits related to using a centralized log server.
 
-## Limits for Graylog
+### Limits for Graylog
 
 Graylog GELF UDP has the following limits:
 
@@ -32,7 +18,7 @@ Graylog GELF UDP has the following limits:
 | Max GELF UDP total size   | `181760 bytes` (~ `177 KiB`) |
 <!-- markdownlint-enable line-length -->
 
-## Limits for OpenSearch/ElasticSearch instance
+### Limits for OpenSearch/ElasticSearch instance
 
 <!-- markdownlint-disable line-length -->
 | Type                          | Limits        |
@@ -40,7 +26,7 @@ Graylog GELF UDP has the following limits:
 | Max shards count per IndexSet | `1000 shards` |
 <!-- markdownlint-enable line-length -->
 
-## Limits for OpenSearch/ElasticSearch index
+### Limits for OpenSearch/ElasticSearch index
 
 <!-- markdownlint-disable line-length -->
 | Type                                   | Limits                                  |
@@ -52,7 +38,7 @@ Graylog GELF UDP has the following limits:
 | Max word/term size                     | `32 KiB` (8192 symbols for UTF-8)       |
 <!-- markdownlint-enable line-length -->
 
-## Limits for OpenSearch/ElasticSearch fields
+### Limits for OpenSearch/ElasticSearch fields
 
 <!-- markdownlint-disable line-length -->
 | Field type   | Limits                                                                                                                     |
@@ -65,7 +51,7 @@ Graylog GELF UDP has the following limits:
 | `SHORT_TEXT` | A field of this type can be up to `100 bytes` in length. If a field exceeds `100 bytes` in length, the field is truncated. |
 <!-- markdownlint-enable line-length -->
 
-## Limits for CRI
+### Limits for CRI
 
 <!-- markdownlint-disable line-length -->
 | Type                          | Limits    |
@@ -75,11 +61,11 @@ Graylog GELF UDP has the following limits:
 | Container max log files       | `10 MiB`  |
 <!-- markdownlint-enable line-length -->
 
-# Restrictions
+## Restrictions
 
 This section describes different restrictions related to log parsing and using a centralized log server.
 
-## Supported log levels
+### Supported log levels
 
 FluentBit and FluentD by itself can parse any log and log levels in the logs. However, we are using Graylog
 as a centralized logging server. Output plugins used to send logs in Graylog restrict the list of supported
@@ -121,11 +107,11 @@ FluentBit supports the following log levels (case insensitive):
 
 [https://github.com/fluent/fluent-bit/blob/master/src/flb_pack_gelf.c#L563-L592](https://github.com/fluent/fluent-bit/blob/master/src/flb_pack_gelf.c#L563-L592)
 
-## Default log level
+### Default log level
 
 In case, if Graylog doesn't receive the log level in the message it will set the `Informational` as a default.
 
-## Content of fields/labels for text log format
+### Content of fields/labels for text log format
 
 The field/label in logs can contain almost all symbols. But there are two restrictions:
 

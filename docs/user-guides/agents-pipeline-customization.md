@@ -1,42 +1,11 @@
 This document describes how you can customize a data pipeline
 `Input -> filter 1 -> ... -> filter N -> Output` in the logging agents (FluentD, Fluent-bit).
 
-# Table of Contents
-
-* [Table of Contents](#table-of-contents)
-* [FluentD](#fluentd)
-  * [Input customization](#input-customization)
-    * [Customization of the out-of-box configuration](#customization-of-the-out-of-box-configuration)
-    * [Custom input configuration](#custom-input-configuration)
-  * [Filters customization](#filters-customization)
-    * [Customization of the out-of-box configuration](#customization-of-the-out-of-box-configuration-1)
-    * [Append fields to every log message](#append-fields-to-every-log-message)
-    * [Custom filter configuration](#custom-filter-configuration)
-  * [Output customization](#output-customization)
-    * [Customization of the out-of-box configuration](#customization-of-the-out-of-box-configuration-2)
-    * [Custom output configuration](#custom-output-configuration)
-  * [Scenarios](#scenarios)
-    * [Send a specific type of logs to custom output](#send-a-specific-type-of-logs-to-custom-output)
-* [FluentBit](#fluentbit)
-  * [Input customization](#input-customization-1)
-    * [Customization of the out-of-box configuration](#customization-of-the-out-of-box-configuration-3)
-    * [Custom input configuration](#custom-input-configuration-1)
-  * [Filters customization](#filters-customization-1)
-    * [Customization of the out-of-box configuration](#customization-of-the-out-of-box-configuration-4)
-    * [Append fields to every log message](#append-fields-to-every-log-message-1)
-    * [Custom filter configuration](#custom-filter-configuration-1)
-  * [Output customization](#output-customization-1)
-    * [Customization of the out-of-box configuration](#customization-of-the-out-of-box-configuration-5)
-    * [Custom output configuration](#custom-output-configuration-1)
-  * [Scenarios](#scenarios-1)
-    * [Send a specific type of logs to custom output](#send-a-specific-type-of-logs-to-custom-output-1)
-* [FluentBit Aggregator](#fluentbit-aggregator)
-
 # FluentD
 
-## Input customization
+### Input customization
 
-### Customization of the out-of-box configuration
+#### Customization of the out-of-box configuration
 
 Parameters that affect out-of-box input configuration:
 
@@ -48,7 +17,7 @@ Parameters that affect out-of-box input configuration:
 You can find the full list of FluentD parameters in
 [the installation guide](../installation.md#fluentd).
 
-### Custom input configuration
+#### Custom input configuration
 
 You can add your own custom part of the input pipeline configuration by using `fluentd.customInputConf`.
 Example of the custom input configuration:
@@ -63,9 +32,9 @@ fluentd:
     </source>
 ```
 
-## Filters customization
+### Filters customization
 
-### Customization of the out-of-box configuration
+#### Customization of the out-of-box configuration
 
 Parameters that affect out-of-box filters configuration:
 
@@ -77,7 +46,7 @@ Parameters that affect out-of-box filters configuration:
 You can find the full list of FluentD parameters in
 [the installation guide](../installation.md#fluentd).
 
-### Append fields to every log message
+#### Append fields to every log message
 
 You can add your own custom fields (labels) to every log messages, for example, to identify the source of sent logs
 on the Graylog server later.
@@ -99,7 +68,7 @@ identical.
 
 This filter works after all other filters except the custom filter.
 
-### Custom filter configuration
+#### Custom filter configuration
 
 You can add your own custom part of the filtering pipeline configuration by using `fluentd.customFilterConf`.
 Example of the custom filtration configuration:
@@ -114,9 +83,9 @@ fluentd:
     </filter>
 ```
 
-## Output customization
+### Output customization
 
-### Customization of the out-of-box configuration
+#### Customization of the out-of-box configuration
 
 Parameters that affect out-of-box output configuration:
 
@@ -128,7 +97,7 @@ Parameters that affect out-of-box output configuration:
 You can find the full list of FluentD parameters in
 [the installation guide](../installation.md#fluentd).
 
-### Custom output configuration
+#### Custom output configuration
 
 You can add your own custom part of the output pipeline configuration by using `fluentd.customOutputConf`.
 Example of the custom output configuration:
@@ -143,9 +112,9 @@ fluentd:
     </store>
 ```
 
-## Scenarios
+### Scenarios
 
-### Send a specific type of logs to custom output
+#### Send a specific type of logs to custom output
 
 **Objective**:
 
@@ -243,11 +212,11 @@ fluentd:
 
   **Note:** These are just examples, not recommended configurations.
 
-# FluentBit
+## FluentBit
 
-## Input customization
+### Input customization
 
-### Customization of the out-of-box configuration
+#### Customization of the out-of-box configuration
 
 Parameters that affect out-of-box input configuration:
 
@@ -258,7 +227,7 @@ Parameters that affect out-of-box input configuration:
 You can find the full list of FluentBit parameters in
 [the installation guide](../installation.md#fluentbit).
 
-### Custom input configuration
+#### Custom input configuration
 
 You can add your own custom part of the input pipeline configuration by using `fluentbit.customInputConf`.
 Example of the custom input configuration:
@@ -272,9 +241,9 @@ fluentbit:
       Name   <name>
 ```
 
-## Filters customization
+### Filters customization
 
-### Customization of the out-of-box configuration
+#### Customization of the out-of-box configuration
 
 Parameters that affect out-of-box filters configuration:
 
@@ -286,7 +255,7 @@ Parameters that affect out-of-box filters configuration:
 You can find the full list of FluentBit parameters in
 [the installation guide](../installation.md#fluentbit).
 
-### Append fields to every log message
+#### Append fields to every log message
 
 You can add your own custom fields (labels) to every log messages, for example, to identify the source of sent logs
 on the Graylog server later.
@@ -305,7 +274,7 @@ fluentbit:
 
 This filter works after all other filters except the custom filter. The filter is based on `record_modifier` plugin.
 
-### Custom filter configuration
+#### Custom filter configuration
 
 You can add your own custom part of the filtering pipeline configuration by using `fluentbit.customFilterConf`.
 Example of the custom filtration configuration:
@@ -321,9 +290,9 @@ fluentbit:
       Record testField fluent-bit
 ```
 
-## Output customization
+### Output customization
 
-### Customization of the out-of-box configuration
+#### Customization of the out-of-box configuration
 
 Parameters that affect out-of-box output configuration:
 
@@ -337,7 +306,7 @@ Parameters that affect out-of-box output configuration:
 You can find the full list of FluentBit parameters in
 [the installation guide](../installation.md#fluentbit).
 
-### Custom output configuration
+#### Custom output configuration
 
 You can add your own custom part of the output pipeline configuration by using `fluentbit.customOutputConf`.
 Example of the custom output configuration:
@@ -352,9 +321,9 @@ fluentbit:
       Match fluent.*
 ```
 
-## Scenarios
+### Scenarios
 
-### Send a specific type of logs to custom output
+#### Send a specific type of logs to custom output
 
 **Objective**:
 
@@ -419,7 +388,7 @@ You can define these type of logs by including `access-control` marker in log (o
 
   **Note:** These are just examples, not recommended configurations.
 
-# FluentBit Aggregator
+## FluentBit Aggregator
 
 The way to customize the data pipeline in the FluentBit in Aggregator mode is almost the same as for
 the standard [FluentBit](#fluentbit) except the following differences:

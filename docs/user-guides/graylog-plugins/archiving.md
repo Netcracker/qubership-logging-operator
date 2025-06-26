@@ -18,12 +18,12 @@ We know two ways how you can configure archiving in Graylog:
 * Pay for the Enterprise version where this feature exists
 * Use our custom archiving plugin for Graylog
 
-# Custom Archiving Plugin
+## Custom Archiving Plugin
 
 Graylog uses OpenSearch (ElasticSearch in old versions) to store data after processing.
 This plugin is installed in Graylog and uses the OpenSearch API to archive or restore data.
 
-## Archiving process
+### Archiving process
 
 How the archiving process works:
 
@@ -59,7 +59,7 @@ There are two options for how OpenSearch can save snapshots:
 * in S3-compatible storage (AWS S3, MinIO, and so on), but for OpenSearch 1.x needs to install the additional plugin
   (since OpenSearch 2.x it is included in OpenSearch vanilla image)
 
-## Restoring archived data
+### Restoring archived data
 
 This plugin can restore early archived data. It can restore previously created snapshots from local storage (verified)
 and potentially from S3-compatible storage (unverified).
@@ -86,7 +86,7 @@ IndexSet and associated Stream for the restored Index.
 Currently, the archiving plugin has no logic to add IndexSet and Stream for restored Indices in Graylog.
 So after restoring you should manually add these objects.
 
-## Configuration
+### Configuration
 
 The archiving plugin has no UI and can't be configured from the Graylog Web interface.
 It has the configuration file, but better to use API to configure it.

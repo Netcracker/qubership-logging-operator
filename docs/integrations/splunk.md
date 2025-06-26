@@ -1,15 +1,6 @@
 This document provides information about integration options with Splunk logging agents such as
 FluentD or FluentBit.
 
-# Table of Content
-
-* [Table of Content](#table-of-content)
-* [Splunk](#splunk)
-  * [Before you begin](#before-you-begin)
-  * [Integration FluentD with Splunk](#integration-fluentd-with-splunk)
-  * [Integration FluentBit with Splunk](#integration-fluentbit-with-splunk)
-* [Links](#links)
-
 # Splunk
 
 Splunk is a software that helps capture, index and correlate real-time data in a searchable repository, from which
@@ -17,14 +8,14 @@ it can generate graphs, reports, alerts, dashboards and visualizations.
 
 For logging cases, Splunk can collect logs from a lot of sources, and store and analyze collected logs.
 
-## Before you begin
+### Before you begin
 
 * Address of Splunk that you will use to send logs (host and port)
 * Token to auth in Splunk and that will use to send logs
   * Splunk CloudPlatform - [Use authentication tokens](https://docs.splunk.com/Documentation/SplunkCloud/latest/Security/UseAuthTokens)
   * Splunk Enterprise - [Use authentication tokens](https://docs.splunk.com/Documentation/Splunk/9.0.4/Security/UseAuthTokens)
 
-## Integration FluentD with Splunk
+### Integration FluentD with Splunk
 
 **Support since:** logging-fluentd 7.7.0
 
@@ -97,7 +88,7 @@ fluentd:
     </match>
 ```
 
-## Integration FluentBit with Splunk
+### Integration FluentBit with Splunk
 
 **NOTE:** Remember that all examples of configuration in this document are **just examples,
 not recommended parameters**, so the responsibility for tuning and adapting the configuration for a specific environment
@@ -121,7 +112,7 @@ fluentbit:
         TLS.Verify   Off
 ```
 
-# Links
+## Links
 
 * [Use authentication tokens](https://docs.splunk.com/Documentation/SplunkCloud/latest/Security/UseAuthTokens)
 * [Use authentication tokens](https://docs.splunk.com/Documentation/Splunk/9.0.4/Security/UseAuthTokens)

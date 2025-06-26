@@ -1,17 +1,5 @@
 Fluentd -> Fluent bit migration guide
 
-# Table of Content
-
-* [Table of Content](#table-of-content)
-* [Migration from FluentD to FluentBit](#migration-from-fluentd-to-fluentbit)
-  * [Install case](#install-case)
-  * [Upgrade case](#upgrade-case)
-    * [HWE for FluentBit](#hwe-for-fluentbit)
-    * [Upgrade procedure](#upgrade-procedure)
-  * [High-availability FluentBit](#high-availability-fluentbit)
-    * [Upgrade procedure for HA FluentBit](#upgrade-procedure-for-ha-fluentbit)
-  * [HWE for HA FluentBit](#hwe-for-ha-fluentbit)
-
 # Migration from FluentD to FluentBit
 
 ## Install case

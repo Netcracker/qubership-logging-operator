@@ -1,17 +1,6 @@
 This document provides information about deploy Logging Service in AWS Kubernetes Service and configure AWS
 OpenSearch as storage.
 
-# Table of Content
-
-* [Table of Content](#table-of-content)
-* [Before you begin](#before-you-begin)
-* [Configuration](#configuration)
-  * [Configure AWS OpenSearch](#configure-aws-opensearch)
-    * [Fine-grained access control](#fine-grained-access-control)
-      * [Use internal user database](#use-internal-user-database)
-      * [IAM roles](#iam-roles)
-  * [Deploy Logging Service](#deploy-logging-service)
-
 # Before you begin
 
 * [Architectural Considerations](https://go2docs.graylog.org/4-x/planning_your_deployment/planning_your_deployment.html)
@@ -24,11 +13,11 @@ OpenSearch as storage.
   * CPU: >= 2 cores
   * Memory: >= 8 Gb
 
-# Configuration
+## Configuration
 
 This document describe how to configure AWS and Logging to deploy.
 
-## Configure AWS OpenSearch
+### Configure AWS OpenSearch
 
 Before you start deploy Logging need to create AWS OpenSearch domain. Or you also can use already
 exists domain.
@@ -197,7 +186,7 @@ To check that domain already exists or create new via AWS Console need:
 If you want to create or update Domain via AWS CLI or want to read original instruction, you can read
 the official documentation [Creating and managing Amazon OpenSearch Service domains](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/createupdatedomains.html).
 
-### Fine-grained access control
+#### Fine-grained access control
 
 For OpenSearch there some options
 [Fine-grained access control](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/fgac.html).
@@ -209,7 +198,7 @@ We can configure AWS OpenSearch domain to work with:
 * Identity-based policies - OpenSearch will use IAM and IAM Users or Roles for auth (*not supported case for now*)
 * No authentication
 
-#### Use internal user database
+##### Use internal user database
 
 To configure domain use internal user database need to navigate:
 
@@ -230,7 +219,7 @@ graylog:
   elasticsearchHost: https://<login>:<password>@<opensearch_url>
 ```
 
-#### IAM roles
+##### IAM roles
 
 **Warning!** Currently Graylog doesn't allow use AWS OpenSearch with AWS IAM roles! Use other authentification options.
 
@@ -247,7 +236,7 @@ OpenSearch will use IAM and IAM Users or Roles for auth
 but graylog has no native support of IAM Roles.
 So we can't use IAM Users and IAM Roles with Logging Service.
 
-## Deploy Logging Service
+### Deploy Logging Service
 
 To deploy Logging in AWS Kubernetes Service and with using AWS OpenSearch you need prepare AWS OpenSearch
 (see above). And next deploy service with the following parameters:

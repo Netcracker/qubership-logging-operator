@@ -1,16 +1,5 @@
 This section describes the Logging Service dashboards.
 
-# Table of Content
-
-* [Table of Content](#table-of-content)
-* [Overview](#overview)
-* [Monitoring](#monitoring)
-  * [Metrics](#metrics)
-  * [Dashboards](#dashboards)
-* [Logging](#logging)
-* [Tracing](#tracing)
-* [Profiler](#profiler)
-
 # Overview
 
 | Observability part        | Integration status                |
@@ -20,7 +9,7 @@ This section describes the Logging Service dashboards.
 | [Tracing](#tracing)       | ⛔️ No, Graylog has no this feature |
 | [Profiler](#profiler)     | ⛔️ No, due the license             |
 
-# Monitoring
+## Monitoring
 
 All Logging components that have valuable metrics are already integrated with Monitoring.
 It means that:
@@ -36,13 +25,13 @@ Components with metrics:
 * FluentBit
 * FluentD
 
-## Metrics
+### Metrics
 
 * Graylog - [https://go2docs.graylog.org/5-0/interacting_with_your_log_data/metrics.html#PrometheusMetricExporting](https://go2docs.graylog.org/5-0/interacting_with_your_log_data/metrics.html#PrometheusMetricExporting)
 * FluentBit - [https://docs.fluentbit.io/manual/administration/monitoring](https://docs.fluentbit.io/manual/administration/monitoring)
 * FluentD - [https://docs.fluentd.org/monitoring-fluentd/monitoring-prometheus](https://docs.fluentd.org/monitoring-fluentd/monitoring-prometheus)
 
-# Logging
+## Logging
 
 The Logging agent, FluentBit or FluentD in the Cloud by default collects logs from all nodes.
 So the logging agents will collect all logs from Logging components in the Cloud:
@@ -118,11 +107,11 @@ Log format examples for different tools in the Logging stack:
     {"time":"2024-03-07T09:22:58.432","involvedObjectKind":"GrafanaFolder","involvedObjectNamespace":"monitoring","involvedObjectName":"public-stats-folder","involvedObjectUid":"80acdb27-cde8-4b96-acd5-cff761072684","involvedObjectApiVersion":"integreatly.org/v1alpha1","involvedObjectResourceVersion":"47301469","reason":"Success","type":"Normal","message":"folder monitoring/public-stats-folder successfully submitted","kind":"KubernetesEvent"}
     ```
 
-# Tracing
+## Tracing
 
 Graylog has no integration with Tracing, neither with Jaeger nor with OpenTelemetry.
 
-# Profiler
+## Profiler
 
 Graylog has no integration with Cloud Diagnostic Toolset / Profiler.
 

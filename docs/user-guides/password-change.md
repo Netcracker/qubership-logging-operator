@@ -1,28 +1,18 @@
 The document provides information about changing users\` passwords process in Graylog:
 
-# Table of Content
-
-* [Table of Content](#table-of-content)
-* [Overview](#overview)
-* [Change user password in Cloud](#change-user-password-in-cloud)
-  * [Change password in Graylog UI](#change-password-in-graylog-ui)
-  * [Change password using Graylog REST API](#change-password-using-graylog-rest-api)
-* [Change root user password in Cloud](#change-root-user-password-in-cloud)
-  * [Change password in Kubernetes Secret](#change-password-in-kubernetes-secret)
-
 # Overview
 
 Graylog has default root user usually named admin. Other users can be created and configured in UI. They have special
 roles with pre-configured permissions.
 
-# Change user password in Cloud
+## Change user password in Cloud
 
 There are two ways of changing password:
 
 * Using UI interface
 * Using Graylog REST API
 
-## Change password in Graylog UI
+### Change password in Graylog UI
 
 To change users password need to:
 
@@ -33,10 +23,10 @@ To change users password need to:
 5. Find on the page `New Password` and `Repeat Password` fields and fill them
 6. Click the button `Change Password`
 
-## Change password using Graylog REST API
+### Change password using Graylog REST API
 
 To change user password need to know it's ID that consists of 24 symbols (`[a-z0-9]`).
-It can be found in url in browser on user's page or if you have grants you can get it by GET request
+It can be found in URL in browser on user's page or if you have grants you can get it by GET request
 `http://<host>/api/users`.
 
 To send request you can be authorized as user you want to change.
@@ -69,14 +59,14 @@ According to Graylog API Browser there are possible error status codes:
 * `403` - The requesting user has insufficient privileges to update the password for the given user.
 * `404` - User does not exist.
 
-# Change root user password in Cloud
+## Change root user password in Cloud
 
 The root password in Graylog can't be changes as credentials for regular users. The credentials for this user
 stored in Graylog configuration file.
 
 So for Graylog in the Cloud there is only one way how to change password for root user.
 
-## Change password in Kubernetes Secret
+### Change password in Kubernetes Secret
 
 The password for Graylog's root user store in the Kubernetes Secret with the name `graylog-secret` (can be set using
 a deployment parameter `graylogSecretName`). And mount inside as an environment variable.

@@ -1,34 +1,11 @@
 Graylog-auth-proxy is a service that syncs users from an SSO provider (such as Active Directory) with
 users in Graylog. The service works as a reverse proxy for the Graylog server.
 
-# Table of Contents
-
-* [Table of Contents](#table-of-contents)
-* [Supported deploy schemes](#supported-deploy-schemes)
-* [How it works](#how-it-works)
-* [Installation](#installation)
-  * [Connecting to LDAP](#connecting-to-ldap)
-    * [Storing of LDAP bind password](#storing-of-ldap-bind-password)
-    * [LDAP over SSL](#ldap-over-ssl)
-    * [LDAP with STARTTLS](#ldap-with-starttls)
-      * [Configuration examples for LDAP mode](#configuration-examples-for-ldap-mode)
-  * [Connecting to OAuth authorization server](#connecting-to-oauth-authorization-server)
-    * [Integration with Keycloak](#integration-with-keycloak)
-      * [Keycloak configuration](#keycloak-configuration)
-        * [Realm](#realm)
-        * [Client](#client)
-        * [Client scopes](#client-scopes)
-        * [Users](#users)
-      * [Proxy configuration](#proxy-configuration)
-      * [Configuration examples for integration with Keycloak](#configuration-examples-for-integration-with-keycloak)
-    * [Storing of OAuth Client Secret](#storing-of-oauth-client-secret)
-    * [OAuth service with TLS](#oauth-service-with-tls)
-
 # Supported deploy schemes
 
 Currently, graylog-auth-proxy supports as SSO provider only LDAP (or AD) server.
 
-# How it works
+## How it works
 
 During working process graylog-auth-proxy connects to an SSO provider and handles all requests that are going to the
 Graylog server. If user wants to access to the Graylog UI via the proxy, they need to enter credentials for a user
@@ -55,7 +32,7 @@ flowchart LR
     B -->|successful login| D[Graylog]
 ```
 
-# Installation
+## Installation
 
 You can deploy the `graylog-auth-proxy` as part of the Graylog container with the `logging-operator`.
 In this document, we will talk about the features of the configuration and installation of the `graylog-auth-proxy`.
@@ -66,7 +43,7 @@ You must set `.Values.graylog.authProxy.install` to `true` to allow installation
 configure several parameters to properly connect to the SSO provider (e.g. to LDAP or OAuth server).
 You can find the list of parameters in the [installation guide](../installation.md#graylog-auth-proxy).
 
-## Connecting to LDAP
+### Connecting to LDAP
 
 If you want to use LDAP as an SSO provider, you have to specify parameter `authType` as `ldap`.
 
@@ -189,7 +166,7 @@ admin,auditViewer,operator,telegraf_operator,graylog-sidecar,graylog_api_th_user
 
 Otherwise, this can lead to unpredictable consequences.
 
-### Storing of LDAP bind password
+#### Storing of LDAP bind password
 
 You must set password for LDAP bind user specified in the `ldap.bindDN` parameter as value of the `ldap.bindPassword`
 parameter during deploy for correct LDAP connection. In this case, the password will be stored in the Secret with
@@ -203,7 +180,7 @@ to figure out how to customize this parameter.
 **Note:** Bind password will be encoded in base64 twice. It means that the password will be **double encoded**
 in the Secret. This is required due to the way graylog-auth-proxy works.
 
-### LDAP over SSL
+#### LDAP over SSL
 
 If your LDAP server has a port with an ability to connect to it with SSL encryption, you should prefer an LDAP over SSL
 instead of insecure LDAP connection.
@@ -236,7 +213,7 @@ the certificate in the Secret) to the `ca.secretKey` parameter.
 Client certificate and private key can be set the similar way as CA to `cert` and `key` parameters respectively.
 You might use them if you need to support mTLS connection with the client verification.
 
-### LDAP with STARTTLS
+#### LDAP with STARTTLS
 
 STARTTLS is a feature that allows using TLS encryption over the simple LDAP (not LDAPS) protocol.
 The newest RFC **recommends using LDAP over SSL instead of STARTTLS**.
@@ -244,7 +221,7 @@ The newest RFC **recommends using LDAP over SSL instead of STARTTLS**.
 Connection with STARTTLS is almost the same as the connection over SSL except the URL that should start with `ldap://`.
 Also, you should set `startTls: true` instead of `overSsl`.
 
-#### Configuration examples for LDAP mode
+##### Configuration examples for LDAP mode
 
 Simple configuration without role mapping, stream sharing or any deep customization (for Active Directory server):
 
@@ -297,7 +274,7 @@ graylog:
     streamMapping: '"CN=otrk_admins,OU=OTRK_Groups,OU=IRQA_LDAP,DC=testad,DC=local":["All messages/manage","all events/view"] | "CN=otrk_users,OU=OTRK_Groups,OU=IRQA_LDAP,DC=testad,DC=local":["All events"] | ["System logs/view"]'
 ```
 
-## Connecting to OAuth authorization server
+### Connecting to OAuth authorization server
 
 If you want to use OAuth authorization server as an SSO provider, you have to specify parameter `authType` as `oauth`.
 
@@ -307,9 +284,9 @@ Then you have to specify mandatory parameters for OAuth protocol. You can find t
 The best way to explain these parameters is to configure the proxy for using a specific service as an example.
 You can find such example below.
 
-### Integration with Keycloak
+#### Integration with Keycloak
 
-#### Keycloak configuration
+##### Keycloak configuration
 
 In this guide we assume that you already have a working Keycloak service in the cloud and have access to its UI
 as a user **with admin permissions**.
@@ -317,7 +294,7 @@ Deployment configuration of the Keycloak server is not a goal of this guide.
 
 Let's assume that you have logged in to the Keycloak UI as an admin user located at `https://mykeycloak.com`.
 
-##### Realm
+###### Realm
 
 You have to choose a realm when you want to create a client entity for graylog-auth-proxy. Remember that realm is an
 isolated area in your Keycloak cluster, so you can't gain access to users and clients from the one realm when you
@@ -328,7 +305,7 @@ If you want to create a new realm, click on the drop-down list in the left top c
 
 Let's assume that the name of the realm is `myrealm`.
 
-##### Client
+###### Client
 
 Go to the `Clients` section (choose it in the menu on the left side of the screen) and click on the `Create client`
 button.
@@ -349,7 +326,7 @@ Click on the `Save` button the client is ready.
 Click on your new client on the `Clients list` tab and go to the `Credentials` tab. Copy the `Client Secret` for
 configuring of the proxy later.
 
-##### Client scopes
+###### Client scopes
 
 Let's assume that you want to map roles and streams in Graylog to specific roles of users from Keycloak.
 
@@ -358,7 +335,7 @@ click on the `realm roles`. Turn on the `Add to userinfo` switch and click on th
 
 After the steps above the proxy will be able to get information about roles attached to the specific users.
 
-##### Users
+###### Users
 
 **You can skip this step if you chose an existing realm and already have a set of created users.**
 
@@ -375,7 +352,7 @@ The new user has no credentials, so you have to go to the `Credentials` tab and 
 Enter the password for the user and click on the `Save` button. If you want to make user to change their password
 during the first login, keep the `Temporary` switch turned on, otherwise turn it off.
 
-#### Proxy configuration
+##### Proxy configuration
 
 Required parameters for integration with the Keycloak server:
 
@@ -407,7 +384,7 @@ Optional parameters for integration with the Keycloak server:
 * `oauth.skipVerify`, `oauth.ca`, `oauth.cert`, `oauth.key` - TLS configuration for the OAuth service
 * `oauth.clientCredentialsSecret` - configuration of the Kubernetes Secret where is Client Secret stored
 
-#### Configuration examples for integration with Keycloak
+##### Configuration examples for integration with Keycloak
 
 **The examples below use values from the [Keycloak configuration section](#keycloak-configuration).**
 
@@ -482,7 +459,7 @@ graylog:
     streamMapping: '"test_admin_role":["All messages/manage","all events/view"] | ["System logs/view"]'
 ```
 
-### Storing of OAuth Client Secret
+#### Storing of OAuth Client Secret
 
 You must set OAuth Client Secret as value of the `oauth.clientSecret`. In this case, the password will be stored
 in the Secret with the name that specified in `oauth.clientCredentialsSecret.name` parameter
@@ -496,7 +473,7 @@ to figure out how to customize this parameter.
 **Note:** Client Secret will be encoded in base64 twice. It means that the password will be **double encoded**
 in the Secret. This is required due to the way graylog-auth-proxy works.
 
-### OAuth service with TLS
+#### OAuth service with TLS
 
 Differences in the configuration between insecure and secure connections:
 

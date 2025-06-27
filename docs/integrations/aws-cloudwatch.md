@@ -1,24 +1,5 @@
 This document describes how to integrate Logging agents and Graylog with AWS CloudWatch.
 
-# Table of Content
-
-* [Table of Content](#table-of-content)
-* [Collect logs and flow logs from AWS Managed Services](#collect-logs-and-flow-logs-from-aws-managed-services)
-  * [Preparation](#preparation)
-    * [Configure IAM](#configure-iam)
-    * [Use Logging integration with VPC](#use-logging-integration-with-vpc)
-  * [Configure CloudWatch Log Group](#configure-cloudwatch-log-group)
-    * [Configure AWS Services send logs to CloudWatch](#configure-aws-services-send-logs-to-cloudwatch)
-      * [Configure AWS Flow Logs](#configure-aws-flow-logs)
-    * [Configure AWS EKS (Kubernetes)](#configure-aws-eks-kubernetes)
-    * [Configure AWS RDS (PostgreSQL)](#configure-aws-rds-postgresql)
-    * [Configure AWS Keyspaces (Cassandra)](#configure-aws-keyspaces-cassandra)
-    * [Configure AWS OpenSearch](#configure-aws-opensearch)
-    * [Configure AWS MSK (Kafka)](#configure-aws-msk-kafka)
-    * [Configure Amazon MQ (Rabbit MQ)](#configure-amazon-mq-rabbit-mq)
-  * [Configure AWS Kinesis](#configure-aws-kinesis)
-  * [Configure Graylog with AWS Plugin](#configure-graylog-with-aws-plugin)
-
 # Collect logs and flow logs from AWS Managed Services
 
 To collect logs from AWS Managed Service we offer to use the Graylog [AWS Plugin](https://github.com/Graylog2/graylog-plugin-aws)

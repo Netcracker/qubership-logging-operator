@@ -1,15 +1,6 @@
 This document provides information about integration options with Splunk logging agents such as
 FluentD or FluentBit.
 
-# Table of Content
-
-* [Table of Content](#table-of-content)
-* [Splunk](#splunk)
-  * [Before you begin](#before-you-begin)
-  * [Integration FluentD with Splunk](#integration-fluentd-with-splunk)
-  * [Integration FluentBit with Splunk](#integration-fluentbit-with-splunk)
-* [Links](#links)
-
 # Splunk
 
 Splunk is a software that helps capture, index and correlate real-time data in a searchable repository, from which
@@ -121,7 +112,7 @@ fluentbit:
         TLS.Verify   Off
 ```
 
-# Links
+## Links
 
 * [Use authentication tokens](https://docs.splunk.com/Documentation/SplunkCloud/latest/Security/UseAuthTokens)
 * [Use authentication tokens](https://docs.splunk.com/Documentation/Splunk/9.0.4/Security/UseAuthTokens)

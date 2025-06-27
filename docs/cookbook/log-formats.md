@@ -1,23 +1,5 @@
 This document describes log format agreements.
 
-# Table of Content
-
-* [Table of Content](#table-of-content)
-* [Logs Collection in the Cloud](#logs-collection-in-the-cloud)
-* [Log Format for Applications](#log-format-for-applications)
-  * [Logs Traceability](#logs-traceability)
-  * [Complex Format Example](#complex-format-example)
-  * [JSON logs](#json-logs)
-  * [Special Log Categories](#special-log-categories)
-    * [Audit Logs](#audit-logs)
-      * [JSON Audit logs](#json-audit-logs)
-    * [System Logs](#system-logs)
-* [Collecting Logs from Other Source](#collecting-logs-from-other-source)
-* [Best Practices for Logging](#best-practices-for-logging)
-  * [Log Amount and Content](#log-amount-and-content)
-  * [Logging Levels](#logging-levels)
-  * [Log level configuration](#log-level-configuration)
-
 # Logs Collection in the Cloud
 
 This section provides information on how the logs are collected in the Cloud.
@@ -32,7 +14,7 @@ The high-level flow of logs collection is as follows:
 There is another flow for direct logs streaming from application to Graylog.
 It can be done using the log4j/slf4j/logback GELF plugins.
 
-# Log Format for Applications
+## Log Format for Applications
 
 It is necessary to have the same log format in all the applications to allow:
 
@@ -71,7 +53,7 @@ In this case all the features work.
 **Note:** In order to keep compatibility with SaaS microservice-framework,
 it also supports multiline logs for `YYYY-MM-DD %m%n` format.
 
-## Logs Traceability
+### Logs Traceability
 
 In order to track operations across services, it is *mandatory* to have the `X-Request-ID` HTTP header in the logs.
 
@@ -82,7 +64,7 @@ This field is parsed separately on Graylog side to `request_id` in each log entr
 
 **Note**: It is already included in the OOB configuration in the microservice-framework library.
 
-## Complex Format Example
+### Complex Format Example
 
 This section describes a complex format example.
 
@@ -111,7 +93,7 @@ The message with the pattern above is sent as follows:
   For example, a message "MySpecialMethod thread=my_thread1 my very important log".
 * It also has some metadata fields added by Kubernetes.
 
-## JSON logs
+### JSON logs
 
 Logs in pure JSON format also supported.
 Such logs must be in single line JSON format.
@@ -124,11 +106,11 @@ JSON log example:
 {"level":"info","task_name":"77bbfc6a-bda7-438f-b75f-168e3749f173","task_uuid":"ed4ca56b-4abb-4482-9e24-d70241264b7a","work_item_uuid":"0acd8972-d8aa-41e5-b3f4-e869bf5533a6","time":"2020-07-16T06:22:43Z","message":"Processing task."}
 ```
 
-## Special Log Categories
+### Special Log Categories
 
 Several special log categories are supported OOB. Based on some criteria logs are routed into separate streams in Graylog.
 
-### Audit Logs
+#### Audit Logs
 
 You need to add some marker for logs which contain messages that are sensitive and should be processed
 in a special way by Graylog.
@@ -143,11 +125,11 @@ The following criteria for audit logs are provided with Graylog OOB:
 * VMs audit logs: The `tag` field must match exactly `parsed.var.log.audit.audit.log`.
 * Graylog audit logs: The `container_name` field must match the regular expression `(graylog_web_1|graylog_graylog_1|graylog_mongo_1|graylog_elasticsearch_1)`.
 
-#### JSON Audit logs
+##### JSON Audit logs
 
 Logs in JSON format marked as Audit log if json body contains key-value `"logType":"audit"`.
 
-### System Logs
+#### System Logs
 
 Some logs are interpreted as system logs. The system logs are not application logs but logs of low-level parts
 of the PaaS solution:
@@ -157,7 +139,7 @@ of the PaaS solution:
 
 The criteria for audit logs provided with Graylog OOB is the `tag` field must exactly match `parsed.var.log.messages|parsed.var.log.syslog|systemd`.
 
-# Collecting Logs from Other Source
+## Collecting Logs from Other Source
 
 The logs from any other source, not supported by OOB, can be routed to Graylog. The configuration depends on logs source.
 Following are some examples:
@@ -171,11 +153,11 @@ Following are some examples:
 **Note**: It is not allowed to send direct logs to Graylog's Elasticsearch. Graylog encapsulates Elasticsearch
 and uses it as a backend log storage.
 
-# Best Practices for Logging
+## Best Practices for Logging
 
 This section provides information about best practices of logs content and configuration.
 
-## Log Amount and Content
+### Log Amount and Content
 
 It is very important to understand about optimal log amount.
 Too many logs with a lot of information are not useful for quick and efficient analysis of errors and incidents.
@@ -193,7 +175,7 @@ To write optimal logs, you can follow some rules:
   Provide helpful information for investigations later.
 * Track interaction with other services/systems.
 
-## Logging Levels
+### Logging Levels
 
 You can use different log levels. Printing trace logs after each line of code can be helpful sometimes,
 but it is not possible to write such logs every time.
@@ -213,7 +195,7 @@ For example, log4j levels description:
 * `DEBUG` - Designates fine-grained informational events that are most useful to debug an application
 * `TRACE` - Designates finer-grained informational events than `DEBUG`
 
-## Log level configuration
+### Log level configuration
 
 The application should provide an ability to change the logging settings anytime without changing the source code
 and without redeploying the application.

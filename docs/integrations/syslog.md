@@ -1,19 +1,6 @@
 This document provides information about integration options with any external systems using syslog
 format (for example any SIEM systems).
 
-# Table of Content
-
-* [Table of Content](#table-of-content)
-* [Syslog](#syslog)
-  * [Before you begin](#before-you-begin)
-  * [Common limits/restrictions](#common-limitsrestrictions)
-    * [Messages length limits](#messages-length-limits)
-    * [Multiline messages](#multiline-messages)
-  * [Send logs using syslog in FluentD](#send-logs-using-syslog-in-fluentd)
-    * [Filter logs and send only filtered to Syslog for FluentD](#filter-logs-and-send-only-filtered-to-syslog-for-fluentd)
-  * [Send logs using syslog in FluentBit](#send-logs-using-syslog-in-fluentbit)
-    * [Filter logs and send only filtered to Syslog for FluentBit](#filter-logs-and-send-only-filtered-to-syslog-for-fluentbit)
-
 # Syslog
 
 Syslog has been around for a number of decades and provides a protocol used for transporting event messages

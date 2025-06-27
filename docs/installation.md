@@ -1,71 +1,17 @@
 
-# Table of Content
+# Installation Guide
 
-* [Table of Content](#table-of-content)
-* [Prerequisites](#prerequisites)
-  * [Common](#common)
-    * [Storage](#storage)
-      * [OpenSearch/ElasticSearch supported versions](#opensearchelasticsearch-supported-versions)
-      * [Graylog Persistence Volumes](#graylog-persistence-volumes)
-      * [HostPath Persistence Volumes](#hostpath-persistence-volumes)
-      * [Storage capacity planning](#storage-capacity-planning)
-        * [Log `storm`](#log-storm)
-        * [Indices with rotation by size](#indices-with-rotation-by-size)
-        * [Indices with rotation by time or messages count](#indices-with-rotation-by-time-or-messages-count)
-  * [Kubernetes](#kubernetes)
-  * [OpenShift](#openshift)
-  * [Amazon Web Services (AWS)](#amazon-web-services-aws)
-  * [Azure](#azure)
-  * [Google Cloud](#google-cloud)
-* [Best practices and recommendations](#best-practices-and-recommendations)
-  * [HWE](#hwe)
-    * [Small](#small)
-    * [Medium](#medium)
-    * [Large](#large)
-  * [Logging on different OS](#logging-on-different-os)
-    * [System logs](#system-logs)
-    * [Audit logs](#audit-logs)
-    * [Kubernetes and container logs](#kubernetes-and-container-logs)
-* [Parameters](#parameters)
-  * [Root](#root)
-  * [Graylog](#graylog)
-    * [Graylog TLS](#graylog-tls)
-    * [OpenSearch](#opensearch)
-    * [ContentPacks](#contentpacks)
-    * [Graylog Streams](#graylog-streams)
-    * [Graylog Auth Proxy](#graylog-auth-proxy)
-      * [Graylog Auth Proxy LDAP](#graylog-auth-proxy-ldap)
-      * [Graylog Auth Proxy OAuth](#graylog-auth-proxy-oauth)
-  * [FluentBit](#fluentbit)
-    * [FluentBit Aggregator](#fluentbit-aggregator)
-    * [FluentBit TLS](#fluentbit-tls)
-  * [FluentD](#fluentd)
-    * [FluentD TLS](#fluentd-tls)
-  * [Cloud Events Reader](#cloud-events-reader)
-  * [Integration tests](#integration-tests)
-* [Installation](#installation)
-  * [Before you begin](#before-you-begin)
-  * [On-prem](#on-prem)
-* [Post Installation Steps](#post-installation-steps)
-  * [Configuring URL whitelist](#configuring-url-whitelist)
-* [Upgrade](#upgrade)
-* [Post Deploy Checks](#post-deploy-checks)
-  * [Jobs Post Deploy Check](#jobs-post-deploy-check)
-  * [Smoke test](#smoke-test)
-* [Frequently asked questions](#frequently-asked-questions)
-* [Footnotes](#footnotes)
+## Prerequisites
 
-# Prerequisites
-
-## Common
+### Common
 
 * Kubernetes 1.21+ or OpenShift 4.10+
 * kubectl 1.21+ or oc 4.10+ CLI
 * Helm 3.0+
 
-### Storage
+#### Storage
 
-#### OpenSearch/ElasticSearch supported versions
+##### OpenSearch/ElasticSearch supported versions
 
 In the case of deploy Graylog in the Cloud, you should use OpenSearch or ElasticSearch only specified below versions.
 
@@ -86,7 +32,7 @@ Information about compatibility mode:
 
 * [Moving from open-source Elasticsearch to OpenSearch](https://opensearch.org/blog/moving-from-opensource-elasticsearch-to-opensearch/)
 
-#### Graylog Persistence Volumes
+##### Graylog Persistence Volumes
 
 Graylog requires two Persistence Volumes (PVs):
 
@@ -99,7 +45,7 @@ types: NFS, AWS EFS, Azure File or any other NFS-like storage.
 For Graylog `journald` storage please select a storage with enough throughput and speed. Graylog may execute a lot of
 read and write operations in `journald` when it will have a high load.
 
-#### HostPath Persistence Volumes
+##### HostPath Persistence Volumes
 
 **Note:** In case of Graylog deployment with `hostPath` PV you **must** correctly set `nodeSelector` parameter
 for unambiguously determine of node to install Graylog.
@@ -151,7 +97,7 @@ If you are using a OS with SELinux you may need to set SELinux security context:
 chcon -R unconfined_u:object_r:container_file_t:s0 /mnt/graylog-0
 ```
 
-#### Storage capacity planning
+##### Storage capacity planning
 
 To calculate the total storage size required to store logs from you environment need to calculate
 how many logs planning store in **each** Stream/Index.
@@ -187,7 +133,7 @@ and so on.
 In the case of storing a big log count (by size), better to increase the max index size
 from 1 Gb to 5-10-20 Gb.
 
-##### Log `storm`
+###### Log `storm`
 
 Do not forgot to add in you calculations reserve for case of `log storm`.
 In some cases, problems with one service can lead to increased log generation in other related services.
@@ -203,7 +149,7 @@ THe simple example:
 In this example, in the case of problems with PostgreSQL in Graylog may be send 200000 logs per minute
 instead of 2000 per minute which we expect during the normal work.
 
-##### Indices with rotation by size
+###### Indices with rotation by size
 
 You **have to estimate** how many logs per day your Graylog received for each Stream/Index.
 
@@ -252,7 +198,7 @@ But in this case, you have to be very accurate because the load can change over 
 You can't calculate it only for one time point, you have to calculate for the time range
 and next calculate the average or max value.
 
-##### Indices with rotation by time or messages count
+###### Indices with rotation by time or messages count
 
 In the case, if you want to use Streams with Indices rotated by time or message count,
 you **have to be extremely careful** and estimate the expected incoming log flow very well.
@@ -279,7 +225,7 @@ with rotation by time or messages count. But you can try to start from the formu
   **Note:** Please keep in mind, that each message has a lot of meta information (additional fields),
   like `namespace`, `pod`, `container`, labels and others that also should be include in the 1 message size.
 
-## Kubernetes
+### Kubernetes
 
 According to the platform\'s third-party support policy now we are supporting deploy in Kubernetes N +- 2.
 
@@ -329,9 +275,7 @@ metadata:
     pod-security.kubernetes.io/enforce-version: latest
 ```
 
-[Back to TOC](#table-of-content)
-
-## OpenShift
+### OpenShift
 
 **Note:** OpenShift 4.x is based on Kubernetes and regularly picks up new Kubernetes releases. So compatibility with
 OpenShift you can track by Kubernetes version. To understand which Kubernetes version OpenShift use you can read
@@ -360,9 +304,7 @@ fluentd:
   securityContextPrivileged: true
 ```
 
-[Back to TOC](#table-of-content)
-
-## Amazon Web Services (AWS)
+### Amazon Web Services (AWS)
 
 | AWS Managed Service | Graylog support |
 | ------------------- | --------------- |
@@ -380,9 +322,7 @@ hardware resources not less than:
 
 Details about the required HWE can be found in the section [HWE](#hwe).
 
-[Back to TOC](#table-of-content)
-
-## Azure
+### Azure
 
 | AWS Managed Service | Graylog support |
 | ------------------- | --------------- |
@@ -391,9 +331,7 @@ Details about the required HWE can be found in the section [HWE](#hwe).
 Azure has no officially managed OpenSearch or ElasticSearch. You can find only custom solutions
 in the Azure marketplace from other vendors.
 
-[Back to TOC](#table-of-content)
-
-## Google Cloud
+### Google Cloud
 
 | AWS Managed Service | Graylog support |
 | ------------------- | --------------- |
@@ -402,11 +340,9 @@ in the Azure marketplace from other vendors.
 Google has no officially managed OpenSearch or ElasticSearch. You can find only custom solutions
 in the Google marketplace from other vendors.
 
-[Back to TOC](#table-of-content)
+## Best practices and recommendations
 
-# Best practices and recommendations
-
-## HWE
+### HWE
 
 The following table shows the typical throughput/HWE ratio:
 
@@ -434,9 +370,7 @@ OpenSearch/ElasticSearch:
 | Disk speed, Mb/s               | 2      | 5         | 10         | 20         | 30          | 50          | 100                        |
 <!-- markdownlint-enable line-length -->
 
-[Back to TOC](#table-of-content)
-
-### Small
+#### Small
 
 Resources in this profile were calculated for the average load `<= 3000` messages per second.
 
@@ -456,9 +390,7 @@ So please use carefully, adjust if necessary and better to execute SVT for Loggi
 OpenSearch Cluster (recommended) or OpenSearch single instance that will deploy in the Cloud. Please refer
 to the OpenSearch documentation to find OpenSearch hardware requirements.
 
-[Back to TOC](#table-of-content)
-
-### Medium
+#### Medium
 
 Resources in this profile were calculated for the average load between `> 3000` and `<= 10000` messages per second.
 
@@ -478,9 +410,7 @@ So please use carefully, adjust if necessary and better to execute SVT for Loggi
 OpenSearch Cluster (recommended) or OpenSearch single instance that will deploy in the Cloud. Please refer
 to the OpenSearch documentation to find OpenSearch hardware requirements.
 
-[Back to TOC](#table-of-content)
-
-### Large
+#### Large
 
 Resources in this profile were calculated for the average load `> 10000` messages per second.
 
@@ -500,15 +430,13 @@ So please use carefully, adjust if necessary and better to execute SVT for Loggi
 OpenSearch Cluster (recommended) or OpenSearch single instance that will deploy in the Cloud. Please refer
 to the OpenSearch documentation to find OpenSearch hardware requirements.
 
-[Back to TOC](#table-of-content)
-
-## Logging on different OS
+### Logging on different OS
 
 Logging agents (Fluentd, FluentBit) in the logging-service are configured to scrape logs from certain log files
 from the node: system logs, audit logs, kube logs, containers logs.
 But some OS have different locations for these files or may not contain them at all.
 
-### System logs
+#### System logs
 
 Different OS have different locations for their system logs files. The most important system logs are global log journal
 (`/var/log/syslog` by (r)syslogd, `/var/log/messages` by systemd, `/var/log/journal` by systemd-journald)
@@ -537,7 +465,7 @@ so auth logs on the host would be useless for such concept.
  [^2]: **COS uses journald** as a main solution for system logs, and most likely the logs are located in
 the default path for journald.
 
-### Audit logs
+#### Audit logs
 
 Audit logs are managed by `auditd` daemon that is installed by default on the most OS, but there are several exceptions.
 
@@ -559,7 +487,7 @@ The following table describes which OS have auditd by default:
 | COS             | ✗ No (disabled by default, [can be installed by using the special DaemonSet with auditd](https://cloud.google.com/kubernetes-engine/docs/how-to/linux-auditd-logging)) |
 <!-- markdownlint-enable line-length -->
 
-### Kubernetes and container logs
+#### Kubernetes and container logs
 
 The location of Kubernetes and containers logs is independent of the OS the node is running on.
 
@@ -568,13 +496,11 @@ OpenShift).
 
 The location of containers logs depends on the container engine (docker, containerd, cri-o).
 
-[Back to TOC](#table-of-content)
-
-# Parameters
+## Parameters
 
 The configurable parameters are described as follows.
 
-## Root
+### Root
 
 It\'s a common section that contains some generic parameters.
 
@@ -644,9 +570,7 @@ nodeSelectorKey: kubernetes.io/os
 nodeSelectorValue: linux
 ```
 
-[Back to TOC](#table-of-content)
-
-## Graylog
+### Graylog
 
 The `graylog` section contains parameters to enable and configure Graylog deployment in the Cloud.
 
@@ -837,9 +761,7 @@ graylog:
     ...
 ```
 
-[Back to TOC](#table-of-content)
-
-### Graylog TLS
+#### Graylog TLS
 
 The `graylog.tls` section contains parameters to enable TLS for Graylog WebUI and default Inputs.
 This section contains two subsections `http` for WebUI and `input` for Graylog\'s Inputs.
@@ -955,9 +877,7 @@ graylog:
         renewBefore: 15
 ```
 
-[Back to TOC](#table-of-content)
-
-### OpenSearch
+#### OpenSearch
 
 The `opensearch` section contains OpenSearch HTTP parameters.
 
@@ -1015,9 +935,7 @@ graylog:
     url: openSearch host
 ```
 
-[Back to TOC](#table-of-content)
-
-### ContentPacks
+#### ContentPacks
 
 The `contentpacks` section contains graylog content pack parameters.
 
@@ -1083,9 +1001,7 @@ graylog:
         ...
 ```
 
-[Back to TOC](#table-of-content)
-
-### Graylog Streams
+#### Graylog Streams
 
 The `graylog.streams` section contains parameters to enable, disable or modify the retention strategy of default
 Graylog's Streams.
@@ -1137,9 +1053,7 @@ graylog:
       rotationPeriod: "P1M15D"
 ```
 
-[Back to TOC](#table-of-content)
-
-### Graylog Auth Proxy
+#### Graylog Auth Proxy
 
 The `graylog.authProxy` section contains parameters to enable and configure graylog-auth-proxy.
 This is a proxy that allows authentication and authorization of users for the Graylog server using third-party databases
@@ -1199,9 +1113,7 @@ graylog:
       ...
 ```
 
-[Back to TOC](#table-of-content)
-
-#### Graylog Auth Proxy LDAP
+##### Graylog Auth Proxy LDAP
 
 The `graylog.authProxy.ldap` section contains parameters to configure LDAP provider for `graylog-auth-proxy`.
 
@@ -1264,9 +1176,7 @@ graylog:
         key: password
 ```
 
-[Back to TOC](#table-of-content)
-
-#### Graylog Auth Proxy OAuth
+##### Graylog Auth Proxy OAuth
 
 The `graylog.authProxy.oauth` section contains parameters to configure OAuth provider for `graylog-auth-proxy`.
 
@@ -1332,9 +1242,7 @@ graylog:
         key: clientSecret
 ```
 
-[Back to TOC](#table-of-content)
-
-## FluentBit
+### FluentBit
 
 The `fluentbit` section contains parameters to enable and configure FluentBit logging agent.
 
@@ -1554,9 +1462,7 @@ fluentbit:
           net.connect_timeout 20
 ```
 
-[Back to TOC](#table-of-content)
-
-### FluentBit Aggregator
+#### FluentBit Aggregator
 
 The `fluentbit.aggregator` section contains parameters to enable and configure the FluentBit aggregator.
 It can be used to balance the load from FluentBit to Graylog and provide an ability to store logs in case of Graylog
@@ -1749,9 +1655,7 @@ fluentbit:
             net.connect_timeout 20
 ```
 
-[Back to TOC](#table-of-content)
-
-### FluentBit TLS
+#### FluentBit TLS
 
 The `fluentbit.tls` or `fluentbit.aggregator.tls` section contains parameters to configure TLS for
 FluentBit Graylog Output.
@@ -1827,9 +1731,7 @@ fluentbit:
       renewBefore: 15
 ```
 
-[Back to TOC](#table-of-content)
-
-## FluentD
+### FluentD
 
 The `fluentd` section contains parameters to configure FluentD logging agent.
 
@@ -2057,9 +1959,7 @@ fluentd:
         custom_headers header:value
 ```
 
-[Back to TOC](#table-of-content)
-
-### FluentD TLS
+#### FluentD TLS
 
 The `fluentd.tls` section contains parameters to configure TLS for FluentD Graylog Output.
 
@@ -2130,9 +2030,7 @@ fluentd:
       renewBefore: 15
 ```
 
-[Back to TOC](#table-of-content)
-
-## Cloud Events Reader
+### Cloud Events Reader
 
 The `cloudEventsReader` section contains parameters to configure cloud-events-reader that collects and exposes
 Kubernetes/OpenShift events.
@@ -2181,9 +2079,7 @@ cloudEventsReader:
   nodeSelectorValue: linux
 ```
 
-[Back to TOC](#table-of-content)
-
-## Integration tests
+### Integration tests
 
 The `integrationTests` section contains parameters to enable integration tests that can verify deployment of
 Graylog, FluentBit or FluentD.
@@ -2248,26 +2144,22 @@ integrationTests:
     customResourcePath: logging.qubership.org/v11/logging-operator/loggingservices/logging-service
 ```
 
-[Back to TOC](#table-of-content)
-
-# Installation
+## Installation
 
 This section describes how to install Logging and its components to the Kubernetes.
 
-## Before you begin
+### Before you begin
 
 * Make sure that selecting OpenSearch is working and has enough resources to handle a load from Graylog
   (in case of deploying Graylog in the Cloud)
 
-[Back to TOC](#table-of-content)
-
-## On-prem
+### On-prem
 
 TBD
 
-# Post Installation Steps
+## Post Installation Steps
 
-## Configuring URL whitelist
+### Configuring URL whitelist
 
 After successful deploy you can configure URL whitelist.
 There are certain components in Graylog which will perform outgoing HTTP requests. Among those, are event notifications
@@ -2289,24 +2181,20 @@ If the URL is equal to this string, it is considered to be whitelisted.
 Whitelist entries of type `Regex` contain a regular expression. If a URL matches the regular expression, the URL is
 considered to be whitelisted. Graylog uses the Java Pattern class to evaluate regular expressions.
 
-[Back to TOC](#table-of-content)
+## Upgrade
 
-# Upgrade
-
-# Post Deploy Checks
+## Post Deploy Checks
 
 There are some options to check after deployment that Logging is deployed and working correctly.
 
 So this topic should cover the theme of how to check that Logging is working now.
 
-[Back to TOC](#table-of-content)
+### Jobs Post Deploy Check
 
-## Jobs Post Deploy Check
-
-## Smoke test
+### Smoke test
 
 ```bash
-# verify installation
+## verify installation
 $oc get pods -n logging
 NAME                                               READY     STATUS             RESTARTS   AGE
 events-reader-64d6698bb8-tfp5l                     1/1       Running            0          1m
@@ -2314,6 +2202,6 @@ logging-fluentd-sh86l                              1/1       Running            
 logging-service-operator-7b586d8767-lpwzl          1/1       Running            0          1m
 ```
 
-# Frequently asked questions
+## Frequently asked questions
 
-# Footnotes
+## Footnotes

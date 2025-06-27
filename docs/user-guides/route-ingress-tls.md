@@ -1,13 +1,5 @@
 This guide contains information of how to configure TLS for ingress and route in Logging components.
 
-# Table of Content
-
-* [Table of Content](#table-of-content)
-* [Ingress NGINX Controller With TLS](#ingress-nginx-controller-with-tls)
-* [Route In Openshift](#route-in-openshift)
-  * [Route Without TLS](#route-without-tls)
-  * [Route With TLS](#route-with-tls)
-
 # Ingress NGINX Controller With TLS
 
 * Deploy graylog with `tls` as per parameters specified in Installation Guide
@@ -15,9 +7,9 @@ and `Ingress` with `tls` must be successfully created.
 
 It can work with generated secret using `cert-manager` or with custom certificates.
 
-# Route In Openshift
+## Route In Openshift
 
-## Route Without TLS
+### Route Without TLS
 
 ```yaml
 kind: Route
@@ -35,9 +27,9 @@ spec:
     targetPort: graylog
 ```
 
-## Route With TLS
+### Route With TLS
 
-`Edge` Termination Type route will be auto generated alongwith Ingress, try to access route url.
+`Edge` Termination Type route will be auto generated alongwith Ingress, try to access route URL.
 
 If you face `502 Bad Response.` then you have to create `reencrypt` Route manually.
 Please deploy graylog without Ingress e.g. `graylog.createIngress: false`

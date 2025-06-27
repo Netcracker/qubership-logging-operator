@@ -1,20 +1,6 @@
 <!-- markdownlint-disable MD041 -->
 This document describes different limits, restrictions, recommendations and best practices for logs.
 
-# Table of Content
-
-* [Table of Content](#table-of-content)
-* [Limits](#limits)
-  * [Limits for Graylog](#limits-for-graylog)
-  * [Limits for OpenSearch/ElasticSearch instance](#limits-for-opensearchelasticsearch-instance)
-  * [Limits for OpenSearch/ElasticSearch index](#limits-for-opensearchelasticsearch-index)
-  * [Limits for OpenSearch/ElasticSearch fields](#limits-for-opensearchelasticsearch-fields)
-  * [Limits for CRI](#limits-for-cri)
-* [Restrictions](#restrictions)
-  * [Supported log levels](#supported-log-levels)
-  * [Default log level](#default-log-level)
-  * [Content of fields/labels for text log format](#content-of-fieldslabels-for-text-log-format)
-
 # Limits
 
 This section describes limits related to using a centralized log server.
@@ -75,7 +61,7 @@ Graylog GELF UDP has the following limits:
 | Container max log files       | `10 MiB`  |
 <!-- markdownlint-enable line-length -->
 
-# Restrictions
+## Restrictions
 
 This section describes different restrictions related to log parsing and using a centralized log server.
 

@@ -6,12 +6,6 @@ The plugin configuration is displayed in the **Configurations** page as shown in
 
 ![Graylog Obfuscation Plugin Configuration](../../images/plugins/obfuscation-configuration.png)
 
-# Table of Content
-
-* [Table of Content](#table-of-content)
-* [Configuration Parameters](#configuration-parameters)
-  * [Buttons](#buttons)
-
 # Configuration Parameters
 
 The **Obfuscation Plugin Configuration** page with its parameters is shown in the image below.

@@ -1,15 +1,3 @@
-
-# Table of Content
-
-* [Table of Content](#table-of-content)
-* [Graylog maintenance](#graylog-maintenance)
-  * [Logging Backup](#logging-backup)
-  * [Eviction Policy Configuration](#eviction-policy-configuration)
-  * [Logging Backup Daemon Manual Deployment](#logging-backup-daemon-manual-deployment)
-  * [Manual Backup](#manual-backup)
-  * [Restore](#restore)
-* [Update Fluents' Configmap](#update-fluents-configmap)
-
 # Graylog Maintenance
 
 This section describes the general Graylog maintenance guidelines for maintenance operations such
@@ -80,7 +68,7 @@ Click **Run**.
 
 The logging backuper is up and running on LoggingVM.
 
-## Manual Backup
+### Manual Backup
 
 The logging-backuper does the backups by schedule.
 
@@ -117,7 +105,7 @@ To restore logging from backup:
 
 5. Wait until the `restore successful` message is displayed
 
-# Update Fluents' Configmap
+## Update Fluents' Configmap
 
 Since R2024.4 you can manually update Fluents' configuration without restarting pods.
 It realised by configmap-reload sidecar in each Fluents' container.

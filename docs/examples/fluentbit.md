@@ -1,6 +1,8 @@
 # FluentBit Examples
 
-FluentBit is a lightweight and high-performance log processor and forwarder. These examples demonstrate various FluentBit deployment scenarios, from basic setups to advanced configurations with custom processing.
+FluentBit is a lightweight and high-performance log processor and forwarder.
+These examples demonstrate various FluentBit deployment scenarios,
+from basic setups to advanced configurations with custom processing.
 
 ## Simple Deployment
 
@@ -27,6 +29,7 @@ Advanced FluentBit configuration with custom Lua script for specialized log proc
 ```
 
 This configuration demonstrates:
+
 - Custom Lua script for date/time conversion to UTC
 - Graylog output configuration
 - Custom log processing logic
@@ -41,6 +44,7 @@ Combined high availability and custom processing configuration:
 ```
 
 This advanced configuration provides:
+
 - High availability setup with multiple instances
 - Custom Lua scripts for log transformation
 - Enhanced reliability and processing capabilities
@@ -61,4 +65,4 @@ This advanced configuration provides:
 - **Simple Deployment**: Basic log collection and forwarding
 - **High Availability**: Mission-critical environments requiring redundancy
 - **Custom Processing**: Complex log transformation requirements
-- **Hybrid Configurations**: Combining HA with custom processing logic 
+- **Hybrid Configurations**: Combining HA with custom processing logic

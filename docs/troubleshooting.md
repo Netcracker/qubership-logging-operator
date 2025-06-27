@@ -28,7 +28,6 @@ then try to restart the container with the problem.
 
 If you are unable to connect to the virtual machine using SSH, check the network connection using the `ping` command.
 
-
 #### Unable to Read Log Messages
 
 To check for errors, navigate to the **System > Overview** tab.
@@ -36,7 +35,6 @@ To check for errors, navigate to the **System > Overview** tab.
 ![graylog-system-overview](images/graylog/system-overview.png)
 
 Navigate to the deployed FluentD (usually it is the "logging" project), and see the pods' health-check reports.
-
 
 #### Ingress/Route to Graylog cyclic redirect
 
@@ -51,7 +49,6 @@ with HTTPS certificates on them, this route will not work. It returns 302 (redir
 getting an infinite loop.
 
 To fix it manual actions are required. Route URL needs to be added into _os_sni_passthrough.map_ file on Load Balancers.
-
 
 ### Typical Issues
 
@@ -115,7 +112,6 @@ The typical issues that you may face are given below.
 
    If some index has `"read_only_allow_delete": "true"` it means that this index is blocked and new data
    can't be store in it. So you should unlock this index.
-
 
 #### Graylog Container OOM Killed (out of RAM)
 
@@ -194,7 +190,6 @@ Run the redeploy of the Logging service procedure with the corrected `graylog_he
 
    ```
 
-
 #### Low Graylog Performance
 
 **Symptoms:**
@@ -236,7 +231,6 @@ Go to detailed information about node by /system/nodes and button `Details`.
 Wait for the input buffer to be freed. This will mean that Graylog has processed the messages.
 
 Wait for journal utilization will reduce to values 0-5%. After that, you can run input.
-
 
 #### Graylog Not Processing Messages
 
@@ -291,7 +285,6 @@ Delete an oversized index manually by executing the following command on the Log
 curl -X DELETE -u <username>:<password> -H "X-Requested-By: graylog" https://localhost/api/system/indexer/indices/<index name>
 ```
 
-
 #### Negative number of Unprocessed Messages
 
 If you have a negative number of unprocessed messages in the `Disk Journal` section it means that
@@ -326,7 +319,6 @@ docker start graylog_graylog_1
 If you'd like to switch off the journal messages, you should also update `/srv/docker/graylog/graylog/config/graylog.conf`
 and set parameter `message_journal_enabled=false`.
 
-
 #### Incorrect timestamps in Graylog
 
 If you have different time values (time zones) in the `message`,  the `time`, and the `timestamp` fields,
@@ -334,7 +326,6 @@ need to check the timezone on nodes. The timezone must be set to UTC on each nod
 
 Or you can change the timezone in the user settings in the Graylog to the timezone that is set on the nodes,
 but this will not change the time inside the `message` field  (it will be equal UTC timezone).
-
 
 #### Information about OpenSearch nodes is unavailable
 
@@ -352,7 +343,6 @@ it must contain `graylog-service.logging.svc` if your Graylog is deployed into t
 
 If you use a self-signed certificate,
 [the article about certificate generation](user-guides/tls.md#self-signed-certificate-generation) can be useful for you.
-
 
 #### Widgets do not show data with errors
 
@@ -432,7 +422,6 @@ the `date` type for this field.
 
 You have to remember about dynamic typing and declare all fields for custom OpenSearch indices.
 
-
 #### Deflector exists as an index and is not an alias
 
 Graylog uses a special OpenSearch alias to write and read logs always in the last index. This alias has
@@ -497,7 +486,6 @@ You shouldn't create indices with postfix `_deflector` and use it as an alias. I
 
 During updates that should be created Streams that use custom indices, you must stop all Graylog Inputs.
 
-
 ### Performance tuning
 
 #### Typical symptoms of performance issues and common words
@@ -522,7 +510,6 @@ The symptoms (from small overload to significant overload):
 5. Graylog UI is down
 6. Graylog VM CPU is fully utilized, VM became unresponsive even via SSH
 
-
 #### Common performance principles
 
 * First of all, check the hardware resources of your Graylog instance according to the [table](installation.md#hwe).
@@ -531,7 +518,6 @@ The symptoms (from small overload to significant overload):
 * RAM and CPU are the second priority but it is also important
 * Graylog does not require much RAM. 4-8 GB is enough. Better give more RAM to OpenSearch
 
-
 ### Extra tips and tricks
 
 #### /srv/docker/graylog/graylog/config/graylog.conf
@@ -539,13 +525,11 @@ The symptoms (from small overload to significant overload):
 * `processbuffer_processors`, `outputbuffer_processors` - set to CPU count / 2.
 * `ring_size` - set to 131072 or to 262144 if you have 4+ RAM for Graylog. Higher values are not recommended
 
-
 #### Crackdown for heavy loads
 
 * Remove the `Logs Routing` pipeline from Graylog. It will save the CPU, but logs routing to streams will be lost.
 * Disable disk journal in Graylog to prevent disk concurrency between Graylog and OpenSearch.
 * Disable collection of system and audit-system logs on the FluentD side
-
 
 ## OpenSearch
 
@@ -748,7 +732,6 @@ Some examples (it's not recommendations, just examples):
 After it and after you will fix OOM in Graylog or OpenSearch you can try to analyze which other
 performance issues you have.
 
-
 ### Index read-only Warnings
 
 **Symptoms:**
@@ -834,7 +817,6 @@ curl -X PUT -u <username>:<password> -H "Content-Type: application/json" -d '{"p
 In this case, the indices are never locked in a read-only state. If the indices rotation configuration is incorrect,
 the free space can be fully occupied. Ensure that the rotation configuration is correct.
 
-
 ## FluentD
 
 ### FluentD worker killed and restart with SIGKILL
@@ -885,7 +867,6 @@ There are two solutions that exist to fix this issue:
     </store>
     ```
 
-
 ### FluentD generate a high DiskIO read load
 
 **Symptoms:**
@@ -902,7 +883,6 @@ There are two solutions that exist to fix this issue:
 
 Most probably it's a problem described in [FluentD worker killed and restart with SIGKILL](#fluentd-worker-killed-and-restart-with-sigkill).
 So please refer to it to check root cause and how to fix it.
-
 
 ### FluentD failed to flush buffer, data too big
 
@@ -982,7 +962,6 @@ in FluentD configuration. To do that you need to:
 **Note:** Read more about buffering parameters in
 [official FluentD documentation](https://docs.fluentd.org/configuration/buffer-section#buffering-parameters).
 
-
 ## FluentBit
 
 ### Connection timeout to Graylog in FluentBit
@@ -1023,7 +1002,6 @@ next parameters:
     ```
 
 3. After updating ConfigMap you should manually delete all FluentBit pods to apply changes.
-
 
 ### FluentBit stuck and stopped sending logs to Graylog
 
@@ -1075,7 +1053,6 @@ If you want to solve problem manually, follow steps below (it is temporary solut
 
 3. The last step is to delete all pods `logging-fluentbit-*`. The pods will be restarted with the last configuration.
 
-
 ## ConfigMap Reloader
 
 ### Fluent container restarts after changing ConfigMap
@@ -1100,4 +1077,3 @@ Example:
 
 2. Found the problem file: `unmatched end tag at filter-add-hostname.conf line 6,12`
 3. Fix configuration and wait for the next reload.
-

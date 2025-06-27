@@ -3,7 +3,7 @@
 This section describes the general Graylog maintenance guidelines for maintenance operations such
 as hardware upgrade and so on.
 
-### Logging Backup
+## Logging Backup
 
 Logging-backuper provides an ability to backup all logging data (logs, configuration, and so on) and to make restore if required.
 
@@ -29,7 +29,7 @@ The following parameters belong to logging-backuper:
 * `granular_eviction_policy` - The granular backup eviction policy configuration. The Logging Service does not support
   granular backups, so this parameter is not used. It exists for future improvements
 
-### Eviction Policy Configuration
+## Eviction Policy Configuration
 
 Eviction policy is a comma-separated string of policies written as `$start_time/$interval`.
 This policy splits all backups older than `$start_time` to numerous time intervals `$interval` time long.
@@ -41,7 +41,7 @@ For example:
   and leave only the newest."
 * `0/1h` policy depicts "take all backups older than now, split them in groups by 1 hour and leave only the newest."
 
-### Logging Backup Daemon Manual Deployment
+## Logging Backup Daemon Manual Deployment
 
 The logging-backuper is installed in scope of full Logging Service deployment, but backuper is an optional component
 it can be absent on a particular Logging VM.
@@ -83,7 +83,7 @@ To trigger a backup manually:
     curl -X POST localhost:8080/backup
     ```
 
-### Restore
+## Restore
 
 To restore logging from backup:
 

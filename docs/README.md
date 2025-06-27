@@ -1,6 +1,8 @@
 # Qubership Logging Operator
 
-The Qubership Logging Operator simplifies the deployment and management of comprehensive logging infrastructure in Kubernetes environments. This operator automates the setup and configuration of enterprise-grade logging components to provide centralized log collection, processing, and analysis.
+The Qubership Logging Operator simplifies the deployment and management of comprehensive logging infrastructure in
+Kubernetes environments. This operator automates the setup and configuration of enterprise-grade logging components
+to provide centralized log collection, processing, and analysis.
 
 ## What is Qubership Logging Operator?
 
@@ -23,7 +25,8 @@ The Logging Operator is a Kubernetes-native solution that deploys and manages th
 
 ## Architecture Overview
 
-The operator extends the Kubernetes API by creating custom resources and controllers that watch these resources. This follows the established Kubernetes operator pattern for managing complex applications.
+The operator extends the Kubernetes API by creating custom resources and controllers that watch these resources.
+This follows the established Kubernetes operator pattern for managing complex applications.
 
 The logging pipeline flows as follows:
 
@@ -87,6 +90,7 @@ Built with modern cloud-native technologies:
 
 ## Community & Support
 
-This project follows the Kubernetes operator pattern and is built using the Operator SDK. For more information about operators, visit the [Kubernetes Operator documentation](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/).
+This project follows the Kubernetes operator pattern and is built using the Operator SDK. For more information about
+operators, visit the [Kubernetes Operator documentation](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/).
 
-For Operator SDK details, see the [official repository](https://github.com/operator-framework/operator-sdk). 
+For Operator SDK details, see the [official repository](https://github.com/operator-framework/operator-sdk).

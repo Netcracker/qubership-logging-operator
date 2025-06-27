@@ -275,7 +275,6 @@ metadata:
     pod-security.kubernetes.io/enforce-version: latest
 ```
 
-
 ### OpenShift
 
 **Note:** OpenShift 4.x is based on Kubernetes and regularly picks up new Kubernetes releases. So compatibility with
@@ -305,7 +304,6 @@ fluentd:
   securityContextPrivileged: true
 ```
 
-
 ### Amazon Web Services (AWS)
 
 | AWS Managed Service | Graylog support |
@@ -324,7 +322,6 @@ hardware resources not less than:
 
 Details about the required HWE can be found in the section [HWE](#hwe).
 
-
 ### Azure
 
 | AWS Managed Service | Graylog support |
@@ -334,7 +331,6 @@ Details about the required HWE can be found in the section [HWE](#hwe).
 Azure has no officially managed OpenSearch or ElasticSearch. You can find only custom solutions
 in the Azure marketplace from other vendors.
 
-
 ### Google Cloud
 
 | AWS Managed Service | Graylog support |
@@ -343,7 +339,6 @@ in the Azure marketplace from other vendors.
 
 Google has no officially managed OpenSearch or ElasticSearch. You can find only custom solutions
 in the Google marketplace from other vendors.
-
 
 ## Best practices and recommendations
 
@@ -375,7 +370,6 @@ OpenSearch/ElasticSearch:
 | Disk speed, Mb/s               | 2      | 5         | 10         | 20         | 30          | 50          | 100                        |
 <!-- markdownlint-enable line-length -->
 
-
 #### Small
 
 Resources in this profile were calculated for the average load `<= 3000` messages per second.
@@ -395,7 +389,6 @@ So please use carefully, adjust if necessary and better to execute SVT for Loggi
 **Important!** In the case of deploy Graylog in the Cloud, you need to include in the calculation resources for
 OpenSearch Cluster (recommended) or OpenSearch single instance that will deploy in the Cloud. Please refer
 to the OpenSearch documentation to find OpenSearch hardware requirements.
-
 
 #### Medium
 
@@ -417,7 +410,6 @@ So please use carefully, adjust if necessary and better to execute SVT for Loggi
 OpenSearch Cluster (recommended) or OpenSearch single instance that will deploy in the Cloud. Please refer
 to the OpenSearch documentation to find OpenSearch hardware requirements.
 
-
 #### Large
 
 Resources in this profile were calculated for the average load `> 10000` messages per second.
@@ -437,7 +429,6 @@ So please use carefully, adjust if necessary and better to execute SVT for Loggi
 **Important!** In the case of deploy Graylog in the Cloud, you need to include in the calculation resources for
 OpenSearch Cluster (recommended) or OpenSearch single instance that will deploy in the Cloud. Please refer
 to the OpenSearch documentation to find OpenSearch hardware requirements.
-
 
 ### Logging on different OS
 
@@ -504,7 +495,6 @@ The location of Kubernetes logs depends on the Kubernetes version and the type o
 OpenShift).
 
 The location of containers logs depends on the container engine (docker, containerd, cri-o).
-
 
 ## Parameters
 
@@ -579,7 +569,6 @@ pprof:
 nodeSelectorKey: kubernetes.io/os
 nodeSelectorValue: linux
 ```
-
 
 ### Graylog
 
@@ -772,7 +761,6 @@ graylog:
     ...
 ```
 
-
 #### Graylog TLS
 
 The `graylog.tls` section contains parameters to enable TLS for Graylog WebUI and default Inputs.
@@ -889,7 +877,6 @@ graylog:
         renewBefore: 15
 ```
 
-
 #### OpenSearch
 
 The `opensearch` section contains OpenSearch HTTP parameters.
@@ -947,7 +934,6 @@ graylog:
         insecureSkipVerify: false
     url: openSearch host
 ```
-
 
 #### ContentPacks
 
@@ -1015,7 +1001,6 @@ graylog:
         ...
 ```
 
-
 #### Graylog Streams
 
 The `graylog.streams` section contains parameters to enable, disable or modify the retention strategy of default
@@ -1067,7 +1052,6 @@ graylog:
       rotationStrategy: "timeBased"
       rotationPeriod: "P1M15D"
 ```
-
 
 #### Graylog Auth Proxy
 
@@ -1128,7 +1112,6 @@ graylog:
     ldap:
       ...
 ```
-
 
 ##### Graylog Auth Proxy LDAP
 
@@ -1192,7 +1175,6 @@ graylog:
         name: graylog-auth-proxy-credentials
         key: password
 ```
-
 
 ##### Graylog Auth Proxy OAuth
 
@@ -1259,7 +1241,6 @@ graylog:
         name: graylog-auth-proxy-secret
         key: clientSecret
 ```
-
 
 ### FluentBit
 
@@ -1481,7 +1462,6 @@ fluentbit:
           net.connect_timeout 20
 ```
 
-
 #### FluentBit Aggregator
 
 The `fluentbit.aggregator` section contains parameters to enable and configure the FluentBit aggregator.
@@ -1675,7 +1655,6 @@ fluentbit:
             net.connect_timeout 20
 ```
 
-
 #### FluentBit TLS
 
 The `fluentbit.tls` or `fluentbit.aggregator.tls` section contains parameters to configure TLS for
@@ -1751,7 +1730,6 @@ fluentbit:
       duration: 365
       renewBefore: 15
 ```
-
 
 ### FluentD
 
@@ -1981,7 +1959,6 @@ fluentd:
         custom_headers header:value
 ```
 
-
 #### FluentD TLS
 
 The `fluentd.tls` section contains parameters to configure TLS for FluentD Graylog Output.
@@ -2053,7 +2030,6 @@ fluentd:
       renewBefore: 15
 ```
 
-
 ### Cloud Events Reader
 
 The `cloudEventsReader` section contains parameters to configure cloud-events-reader that collects and exposes
@@ -2102,7 +2078,6 @@ cloudEventsReader:
   nodeSelectorKey: kubernetes.io/os
   nodeSelectorValue: linux
 ```
-
 
 ### Integration tests
 
@@ -2169,7 +2144,6 @@ integrationTests:
     customResourcePath: logging.qubership.org/v11/logging-operator/loggingservices/logging-service
 ```
 
-
 ## Installation
 
 This section describes how to install Logging and its components to the Kubernetes.
@@ -2178,7 +2152,6 @@ This section describes how to install Logging and its components to the Kubernet
 
 * Make sure that selecting OpenSearch is working and has enough resources to handle a load from Graylog
   (in case of deploying Graylog in the Cloud)
-
 
 ### On-prem
 
@@ -2208,7 +2181,6 @@ If the URL is equal to this string, it is considered to be whitelisted.
 Whitelist entries of type `Regex` contain a regular expression. If a URL matches the regular expression, the URL is
 considered to be whitelisted. Graylog uses the Java Pattern class to evaluate regular expressions.
 
-
 ## Upgrade
 
 ## Post Deploy Checks
@@ -2216,7 +2188,6 @@ considered to be whitelisted. Graylog uses the Java Pattern class to evaluate re
 There are some options to check after deployment that Logging is deployed and working correctly.
 
 So this topic should cover the theme of how to check that Logging is working now.
-
 
 ### Jobs Post Deploy Check
 

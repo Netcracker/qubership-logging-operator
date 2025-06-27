@@ -138,7 +138,7 @@ To check that domain already exists or create new via AWS Console need:
     * If you want to use the internal user database, choose **Create master user** and specify a user
       name and password.
 
-    Whichever option you choose, the master user can access all indexes in the cluster and all OpenSearch APIs.
+    Whichever option you choose, the master user can access all indices in the cluster and all OpenSearch APIs.
     For guidance on which option to choose, see [Key concepts](https://docs.aws.amazon.com/opensearch-service/latest/developerguide/fgac.html#fgac-concepts).
     If you disable fine-grained access control, you can still control access to your domain by placing it
     within a VPC, applying a restrictive access policy, or both. You must enable node-to-node encryption
@@ -221,7 +221,7 @@ graylog:
 
 ##### IAM roles
 
-**Warning!** Currently Graylog doesn't allow use AWS OpenSearch with AWS IAM roles! Use other authentification options.
+**Warning!** Currently Graylog doesn't allow use AWS OpenSearch with AWS IAM roles! Use other authentication options.
 
 To configure domain use IAM roles need to navigate:
 

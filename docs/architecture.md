@@ -1,5 +1,3 @@
-
-
 # Overview
 
 The logging service is designed to collect various logs from different sources.
@@ -43,7 +41,7 @@ Graylog supports many input protocols, and can interact with almost all log agen
 * Operations Services Logs Collection - For services that are deployed on dedicated VMs such as Logging, Monitoring,
   and Deploy VM, `td-agent`, an RPM version of Fluentd is installed on these VMs.
 
-### Graylog
+## Graylog
 
 The log processing engine. It receives logs from collectors such as `FluentBit`/`FluentD` in this case, processes them,
 and sends them to the storage. It also contains Web UI for configuring and viewing the logs.
@@ -52,7 +50,7 @@ Official documentation:
 
 * Graylog [https://go2docs.graylog.org/5-2/home.htm](https://go2docs.graylog.org/5-2/home.htm)
 
-### OpenSearch/ElasticSearch
+## OpenSearch/ElasticSearch
 
 Used by Graylog as a log storage.
 
@@ -68,13 +66,13 @@ Official documentation:
 * OpenSearch [https://opensearch.org/docs/latest/](https://opensearch.org/docs/latest/)
 * ElasticSearch [https://www.elastic.co/guide/index.html](https://www.elastic.co/guide/index.html)
 
-### MongoDB
+## MongoDB
 
 The small instance of `MongoDB` used by `Graylog` as a settings storage.
 
 `MongoDB` is a document database designed for ease of application development and scaling.
 
-### FluentBit/FluentD
+## FluentBit/FluentD
 
 `FluentBit` is a CNCF sub-project under the umbrella of `FluentD`.
 
@@ -98,7 +96,7 @@ Official documentation:
 * FluentBit [https://docs.fluentbit.io/](https://docs.fluentbit.io/)
 * FluentD [https://docs.fluentd.org/](https://docs.fluentd.org/)
 
-### ConfigMap Reload
+## ConfigMap Reload
 
 `ConfigMap-reload` is a simple binary to trigger a reload when Kubernetes ConfigMaps or Secrets,
 mounted into pods, are updated. It watches mounted volume dirs and notifies the target process that
@@ -109,7 +107,7 @@ Official documentation:
 
 * ConfigMap-reload [https://github.com/jimmidyson/configmap-reload/pkgs/container/configmap-reload](https://github.com/jimmidyson/configmap-reload/pkgs/container/configmap-reload)
 
-### Cloud Events Reader
+## Cloud Events Reader
 
 Cloud Events Reader is a deployment that observes for Kubernetes events and prints it to logs in predefined format
 (to be processed by Fluentd/FluentBit). It is deployed as a part of the Logging stack.
@@ -117,7 +115,7 @@ Cloud Events Reader is a deployment that observes for Kubernetes events and prin
 It implements Kubernetes controller that watches for kind Event with API version events.k8s.io/v1 adding and modifying
 and prints formatted data of event in stdout.
 
-### Logging backup daemon
+## Logging backup daemon
 
 ## Supported deployment schemes
 

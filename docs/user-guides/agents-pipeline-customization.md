@@ -1,11 +1,13 @@
+# Agents pipeline customization
+
 This document describes how you can customize a data pipeline
 `Input -> filter 1 -> ... -> filter N -> Output` in the logging agents (FluentD, Fluent-bit).
 
-# FluentD
+## FluentD
 
-### Input customization
+### FluentD Input customization
 
-#### Customization of the out-of-box configuration
+#### FluentD Input Customization of the out-of-box configuration
 
 Parameters that affect out-of-box input configuration:
 
@@ -17,7 +19,7 @@ Parameters that affect out-of-box input configuration:
 You can find the full list of FluentD parameters in
 [the installation guide](../installation.md#fluentd).
 
-#### Custom input configuration
+#### FluentD Custom input configuration
 
 You can add your own custom part of the input pipeline configuration by using `fluentd.customInputConf`.
 Example of the custom input configuration:
@@ -32,9 +34,9 @@ fluentd:
     </source>
 ```
 
-### Filters customization
+### FluentD Filters customization
 
-#### Customization of the out-of-box configuration
+#### FluentD Filters Customization of the out-of-box configuration
 
 Parameters that affect out-of-box filters configuration:
 
@@ -83,9 +85,9 @@ fluentd:
     </filter>
 ```
 
-### Output customization
+### FluentD Output customization
 
-#### Customization of the out-of-box configuration
+#### FluentD Output Customization of the out-of-box configuration
 
 Parameters that affect out-of-box output configuration:
 
@@ -97,7 +99,7 @@ Parameters that affect out-of-box output configuration:
 You can find the full list of FluentD parameters in
 [the installation guide](../installation.md#fluentd).
 
-#### Custom output configuration
+#### FluentD Custom output configuration
 
 You can add your own custom part of the output pipeline configuration by using `fluentd.customOutputConf`.
 Example of the custom output configuration:
@@ -112,7 +114,7 @@ fluentd:
     </store>
 ```
 
-### Scenarios
+### FluentD Scenarios
 
 #### Send a specific type of logs to custom output
 
@@ -132,7 +134,7 @@ You can define these type of logs by including `access-control` marker in log (o
 **Configuration**:
 
 1. Add your custom filter that will rewrite tag in parameter `fluentd.customFilterConf`
-   Documentation of `rewrite_tag_filter` link is [here](https://docs.fluentd.org/output/rewrite_tag_filter).
+   Documentation of `rewrite_tag_filter` link: [rewrite_tag_filter](https://docs.fluentd.org/output/rewrite_tag_filter).
    For example:
 
    ```yaml
@@ -214,7 +216,7 @@ fluentd:
 
 ## FluentBit
 
-### Input customization
+### FluentBit Input customization
 
 #### Customization of the out-of-box configuration
 
@@ -241,9 +243,9 @@ fluentbit:
       Name   <name>
 ```
 
-### Filters customization
+### FluentBit Filters customization
 
-#### Customization of the out-of-box configuration
+#### FluentBit Customization of the out-of-box configuration
 
 Parameters that affect out-of-box filters configuration:
 
@@ -255,7 +257,7 @@ Parameters that affect out-of-box filters configuration:
 You can find the full list of FluentBit parameters in
 [the installation guide](../installation.md#fluentbit).
 
-#### Append fields to every log message
+#### Append fields to every log message in FluentBit
 
 You can add your own custom fields (labels) to every log messages, for example, to identify the source of sent logs
 on the Graylog server later.
@@ -274,7 +276,7 @@ fluentbit:
 
 This filter works after all other filters except the custom filter. The filter is based on `record_modifier` plugin.
 
-#### Custom filter configuration
+#### Custom filter configuration in FluentBit
 
 You can add your own custom part of the filtering pipeline configuration by using `fluentbit.customFilterConf`.
 Example of the custom filtration configuration:
@@ -290,9 +292,9 @@ fluentbit:
       Record testField fluent-bit
 ```
 
-### Output customization
+### FluentBit Output customization
 
-#### Customization of the out-of-box configuration
+#### FluentBit Output Customization of the out-of-box configuration
 
 Parameters that affect out-of-box output configuration:
 
@@ -306,7 +308,7 @@ Parameters that affect out-of-box output configuration:
 You can find the full list of FluentBit parameters in
 [the installation guide](../installation.md#fluentbit).
 
-#### Custom output configuration
+#### FluentBit Custom output configuration
 
 You can add your own custom part of the output pipeline configuration by using `fluentbit.customOutputConf`.
 Example of the custom output configuration:
@@ -321,9 +323,9 @@ fluentbit:
       Match fluent.*
 ```
 
-### Scenarios
+### FluentBit Scenarios
 
-#### Send a specific type of logs to custom output
+#### Send a specific type of logs to custom output using FluentBit
 
 **Objective**:
 
@@ -341,7 +343,7 @@ You can define these type of logs by including `access-control` marker in log (o
 **Configuration**:
 
 1. Add your custom filter that will rewrite tag in parameter `fluentbit.customFilterConf`
-   Documentation of `rewrite_tag` filter link is [here](https://docs.fluentbit.io/manual/pipeline/filters/rewrite-tag).
+   Documentation of `rewrite_tag` filter link: [rewrite-tag](https://docs.fluentbit.io/manual/pipeline/filters/rewrite-tag).
    For example:
 
    ```yaml
@@ -358,8 +360,8 @@ You can define these type of logs by including `access-control` marker in log (o
 
    The filter in the example checks if the logs from `your-app*` pods fits regular expression. If true, the log is
    copied with a new tag `my-tag.var.log.access-pods.log` and sent to the beginning of Fluent Bit pipeline to be
-   processed (about Fluent Bit pipeline you can read
-   [here](https://docs.fluentbit.io/manual/concepts/data-pipeline/router). In brief, each log message has a tag that is
+   processed (about Fluent Bit pipeline you can read in article
+   [router](https://docs.fluentbit.io/manual/concepts/data-pipeline/router). In brief, each log message has a tag that is
    needed to decide should any filter be applied to log and to route log to output according to tag). If the log should
    be sent both in Graylog and your custom output, the flag `true` set in `Rule` parameter.
 

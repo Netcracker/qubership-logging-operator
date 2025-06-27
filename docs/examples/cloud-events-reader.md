@@ -1,6 +1,7 @@
 # Cloud Events Reader Examples
 
-Cloud Events Reader is a component that collects Kubernetes events and forwards them to the logging pipeline. These examples show different deployment scenarios for various operational requirements.
+Cloud Events Reader is a component that collects Kubernetes events and forwards them to the logging pipeline. 
+These examples show different deployment scenarios for various operational requirements.
 
 ## Simple Deployment
 
@@ -11,6 +12,7 @@ Basic Cloud Events Reader configuration suitable for most environments:
 ```
 
 This configuration provides:
+
 - Basic resource allocation (100m CPU, 128Mi memory)
 - Standard event collection from Kubernetes API
 - Minimal resource footprint
@@ -24,6 +26,7 @@ Targeted deployment on specific nodes using node selectors:
 ```
 
 This configuration adds:
+
 - Node selector for targeted deployment
 - Same resource allocation as simple deployment
 - Useful for dedicated logging nodes or specific node pools
@@ -40,4 +43,4 @@ This configuration adds:
 
 - **Simple Deployment**: Standard Kubernetes clusters with default scheduling
 - **Node Selector**: Clusters with dedicated nodes for logging components
-- **Resource Constraints**: Environments requiring specific resource allocation 
+- **Resource Constraints**: Environments requiring specific resource allocation

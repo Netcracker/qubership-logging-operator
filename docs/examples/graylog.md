@@ -1,6 +1,7 @@
 # Graylog Examples
 
-Graylog is a centralized log management platform that provides search, analysis, and alerting capabilities. These examples demonstrate different Graylog deployment patterns for various operational requirements.
+Graylog is a centralized log management platform that provides search, analysis, and alerting capabilities.
+These examples demonstrate different Graylog deployment patterns for various operational requirements.
 
 ## Simple Deployment
 
@@ -11,6 +12,7 @@ Basic Graylog configuration with essential components:
 ```
 
 This comprehensive configuration includes:
+
 - Graylog server with Elasticsearch integration
 - FluentD agent for log collection
 - Cloud Events Reader for Kubernetes events
@@ -46,6 +48,7 @@ Graylog deployment with custom Kubernetes metadata:
 ```
 
 This configuration demonstrates:
+
 - Custom labels for resource organization
 - Annotations for operational metadata
 - Enhanced Kubernetes integration
@@ -61,6 +64,7 @@ Configuration example for upgrading to Graylog version 5:
 ```
 
 This migration configuration includes:
+
 - Version-specific parameters
 - Compatibility settings
 - Upgrade considerations
@@ -82,6 +86,7 @@ This migration configuration includes:
 ## Integration Components
 
 Most Graylog examples include integration with:
+
 - **FluentD**: Log collection and forwarding
 - **Cloud Events Reader**: Kubernetes events ingestion
 - **Elasticsearch**: Search and storage backend
@@ -93,4 +98,4 @@ Most Graylog examples include integration with:
 - **Static Storage**: On-premises with predefined storage
 - **Custom Metadata**: Enhanced Kubernetes integration and organization
 - **Version Migration**: Upgrading between Graylog versions
-- **Resource Optimization**: Specific resource allocation requirements 
+- **Resource Optimization**: Specific resource allocation requirements

@@ -1,6 +1,8 @@
 # FluentD Examples
 
-FluentD is a data collector for unified logging layer. These examples cover various runtime environments and deployment scenarios, from simple setups to complex multi-platform configurations.
+FluentD is a data collector for unified logging layer.
+These examples cover various runtime environments and deployment scenarios,
+from simple setups to complex multi-platform configurations.
 
 ## Simple Deployment
 
@@ -99,4 +101,4 @@ Configuration for alternative output destinations:
 - **OS-Specific**: Optimized configurations for different operating systems
 - **Custom Processing**: Advanced log processing and routing requirements
 - **Node Targeting**: Specific node deployment requirements
-- **Alternative Outputs**: Non-Graylog output destinations 
+- **Alternative Outputs**: Non-Graylog output destinations

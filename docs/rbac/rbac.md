@@ -3,4 +3,4 @@
 This document describes which privileges the `logging-operator` requires and how to install the `logging-operator`
 with restricted privileges.
 
-#
+TBD

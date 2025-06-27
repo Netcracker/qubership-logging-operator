@@ -5,7 +5,8 @@
 [![Helm](https://img.shields.io/badge/helm-3.0%2B-blue)](https://helm.sh/)
 [![Documentation](https://img.shields.io/badge/docs-read%20online-blue)](https://netcracker.github.io/qubership-logging-operator)
 
-Kubernetes Operator for deploying and managing a comprehensive logging stack including Graylog, FluentD, FluentBit, and K8S Events Reader.
+Kubernetes Operator for deploying and managing a comprehensive logging stack including Graylog, FluentD, FluentBit,
+and K8S Events Reader.
 
 <!-- toc -->
 
@@ -41,7 +42,7 @@ The main features are as follows:
 ### Common Prerequisites
 
 * **Kubernetes**: 1.21+ or OpenShift 4.10+
-* **CLI Tools**: kubectl 1.21+ or oc 4.10+
+* **Command-line Tools**: kubectl 1.21+ or oc 4.10+
 * **Package Manager**: Helm 3.0+
 * **Go**: 1.24+ (for development)
 
@@ -58,15 +59,17 @@ For detailed storage requirements, see the [Installation Guide](https://netcrack
 ### Quick Start with Helm
 
 1. Add the Helm repository:
-```bash
-helm repo add qubership-logging-operator https://netcracker.github.io/qubership-logging-operator
-helm repo update
-```
+
+   ```bash
+   helm repo add qubership-logging-operator https://netcracker.github.io/qubership-logging-operator
+   helm repo update
+   ```
 
 2. Install the operator:
-```bash
-helm install qubership-logging-operator qubership-logging-operator/qubership-logging-operator
-```
+
+   ```bash
+   helm install qubership-logging-operator qubership-logging-operator/qubership-logging-operator
+   ```
 
 3. Create a LoggingService custom resource to deploy your logging stack.
 
@@ -74,9 +77,11 @@ For comprehensive installation instructions, see the [Installation Guide](https:
 
 ## Usage
 
-The operator extends Kubernetes API by creating custom resources and controllers that watch these resources. Deploy logging components by creating LoggingService custom resources.
+The operator extends Kubernetes API by creating custom resources and controllers that watch these resources.
+Deploy logging components by creating LoggingService custom resources.
 
-Example usage and configuration can be found in the [Examples](https://netcracker.github.io/qubership-logging-operator/examples/) section.
+Example usage and configuration can be found in the
+[Examples](https://netcracker.github.io/qubership-logging-operator/examples/) section.
 
 ## Configuration
 
@@ -88,12 +93,14 @@ The operator supports extensive configuration options for all logging components
 * **K8S Events Reader**: Event filtering and forwarding
 
 For detailed configuration options, see:
+
 * [Configuration Guide](https://netcracker.github.io/qubership-logging-operator/configuration/)
 * [Configuration Examples](https://netcracker.github.io/qubership-logging-operator/examples/)
 
 ## API Reference
 
 Complete API documentation is available at:
+
 * [API Reference](https://netcracker.github.io/qubership-logging-operator/api/)
 * [Architecture & Components](https://netcracker.github.io/qubership-logging-operator/architecture/)
 
@@ -151,19 +158,22 @@ flowchart TB
     GL --> EXT
 ```
 
-The operator follows the standard Kubernetes operator pattern, extending the API with custom resources and controllers. For detailed architecture information, see the [Architecture Guide](https://netcracker.github.io/qubership-logging-operator/architecture/).
+The operator follows the standard Kubernetes operator pattern, extending the API with custom resources and controllers.
+For detailed architecture information, see the [Architecture Guide](https://netcracker.github.io/qubership-logging-operator/architecture/).
 
 ## Testing
 
 The project includes comprehensive testing:
 
 ### Integration Tests
+
 ```bash
 # Run integration tests
 make test-integration
 ```
 
 ### Robot Framework Tests
+
 ```bash
 # Run robot tests
 cd test/robot-tests
@@ -172,6 +182,7 @@ robot src/tests/
 ```
 
 For more testing information, see the test directories:
+
 * `test/envtests/` - Environment tests
 * `test/robot-tests/` - Robot framework tests
 

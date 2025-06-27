@@ -11,7 +11,7 @@ edit_uri: edit/main/docs/
 theme:
   name: material
   language: en
-  
+
   palette:
     # Dark theme by default
     - media: "(prefers-color-scheme)"
@@ -21,7 +21,7 @@ theme:
       toggle:
         icon: material/brightness-auto
         name: Switch to light mode
-    
+
     # Light theme option
     - media: "(prefers-color-scheme: light)"
       scheme: default
@@ -30,7 +30,7 @@ theme:
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
-    
+
     # Dark theme option (default)
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
@@ -128,47 +128,47 @@ plugins:
   - search:
       separator: '[\s\-,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
 
-# Navigation 
+# Navigation
 nav:
   - Home: README.md
   - Installation: installation.md
   - Architecture & Components:
-    - architecture.md
-    - api.md
+      - architecture.md
+      - api.md
   - Configuration:
-    - configuration.md
-    - Configuration Examples: 
-      - Overview: examples.md
-      - examples/cloud-events-reader.md
-      - examples/fluentbit.md
-      - examples/fluentd.md
-      - examples/graylog.md
-    - Cookbook:
-      - cookbook/log-formats.md
-      - cookbook/restrictions.md
+      - configuration.md
+      - Configuration Examples:
+          - Overview: examples.md
+          - examples/cloud-events-reader.md
+          - examples/fluentbit.md
+          - examples/fluentd.md
+          - examples/graylog.md
+      - Cookbook:
+          - cookbook/log-formats.md
+          - cookbook/restrictions.md
   - Integrations:
-    - integrations/aws-cloudwatch.md
-    - integrations/kafka.md
-    - integrations/splunk.md
-    - integrations/syslog.md
-    - user-guides/aws-opensearch.md
-    - user-guides/cloud-events.md
+      - integrations/aws-cloudwatch.md
+      - integrations/kafka.md
+      - integrations/splunk.md
+      - integrations/syslog.md
+      - user-guides/aws-opensearch.md
+      - user-guides/cloud-events.md
   - Security:
-    - user-guides/tls.md
-    - user-guides/graylog-auth-proxy.md
-    - rbac/rbac.md
-    - Graylog Plugins:
-      - user-guides/graylog-plugins/archiving.md
-      - user-guides/graylog-plugins/obfuscation.md
-      - user-guides/graylog-plugins/syslog-output.md
+      - user-guides/tls.md
+      - user-guides/graylog-auth-proxy.md
+      - rbac/rbac.md
+      - Graylog Plugins:
+          - user-guides/graylog-plugins/archiving.md
+          - user-guides/graylog-plugins/obfuscation.md
+          - user-guides/graylog-plugins/syslog-output.md
   - Operations:
-    - maintenance.md
-    - troubleshooting.md
-    - migration.md
-    - observability.md
-    - User Guides:
-      - user-guides/high-availability.md
-      - user-guides/manual-create-crds.md
-      - user-guides/password-change.md
-      - user-guides/route-ingress-tls.md
-      - user-guides/agents-pipeline-customization.md 
+      - maintenance.md
+      - troubleshooting.md
+      - migration.md
+      - observability.md
+      - User Guides:
+          - user-guides/high-availability.md
+          - user-guides/manual-create-crds.md
+          - user-guides/password-change.md
+          - user-guides/route-ingress-tls.md
+          - user-guides/agents-pipeline-customization.md

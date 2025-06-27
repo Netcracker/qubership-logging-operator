@@ -61,7 +61,7 @@ There are two options for how OpenSearch can save snapshots:
 
 ### Restoring archived data
 
-This plugin can restore early archived data. It can restore previously created snapshots from local storage (verified)
+This plugin can restore early archived data. It can restore previously created snapshots from localStorage (verified)
 and potentially from S3-compatible storage (unverified).
 
 But there are some restrictions:

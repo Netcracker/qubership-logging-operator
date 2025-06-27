@@ -1,6 +1,6 @@
 # Configuration Examples
 
-This section contains practical configuration examples for different components of the Qubership Logging Operator. 
+This section contains practical configuration examples for different components of the Qubership Logging Operator.
 Each example demonstrates specific use cases and deployment scenarios.
 
 ## Available Examples

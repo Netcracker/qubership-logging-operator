@@ -1,6 +1,6 @@
 # Cloud Events Reader Examples
 
-Cloud Events Reader is a component that collects Kubernetes events and forwards them to the logging pipeline. 
+Cloud Events Reader is a component that collects Kubernetes events and forwards them to the logging pipeline.
 These examples show different deployment scenarios for various operational requirements.
 
 ## Simple Deployment

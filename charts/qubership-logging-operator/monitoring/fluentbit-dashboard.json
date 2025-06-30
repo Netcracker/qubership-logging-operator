@@ -3503,7 +3503,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "4298b45e-05df-40ac-b488-23efec22e7ba"
+            "uid": "${datasource}"
           },
           "description": "Delta between input records (including multiline) and output records by pod",
           "fieldConfig": {
@@ -3585,7 +3585,7 @@
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "4298b45e-05df-40ac-b488-23efec22e7ba"
+                "uid": "${datasource}"
               },
               "disableTextWrap": false,
               "editorMode": "code",
@@ -3604,7 +3604,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "4298b45e-05df-40ac-b488-23efec22e7ba"
+            "uid": "${datasource}"
           },
           "description": "Rate of dropped records across all filters over time",
           "fieldConfig": {
@@ -3682,6 +3682,10 @@
           "pluginVersion": "11.3.0",
           "targets": [
             {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
               "editorMode": "code",
               "exemplar": false,
               "expr": "sum by (pod) (\r\n  rate(fluentbit_filter_drop_records_total{name!=\"\"}[5m]) > 0\r\n)",

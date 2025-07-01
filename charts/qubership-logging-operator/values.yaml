@@ -1714,6 +1714,28 @@ fluentbit:
   excludePath: ""
 
   output:
+    prometheus:
+      # Flag for enabling prometheus output.
+      # Type: boolean
+      # Default: false
+      # Mandatory: no
+      #
+      enabled: false
+
+      # Prometheus output host
+      # Type: string
+      # Example: 10.10.10.10. or vmsingle-k8s-vmsingle.monitoring.svc
+      # Mandatory: no
+      #
+      # host: vmsingle-k8s-vmsingle.monitoring
+
+      # Prometheus output port
+      # Type: int
+      # Example: 2021
+      # Mandatory: no
+      #
+      # port: 2021
+
     loki:
       # Flag for enabling Loki output.
       # Type: boolean
@@ -1892,6 +1914,37 @@ fluentbit:
   #
   # Example for App-deployer:
   # fluentbit.additionalVolumeMounts: '''[{"name":"datadocker","mountPath":"/data/docker"}]'''
+
+  # Prometheus alerting rules configuration.This section contains parameters for customizing alert
+  # thresholds and delays for Prometheus rules related to Fluent Bit metrics.
+  # Type: object
+  # Mandatory: no
+  prometheusRules:
+
+    # Alert delay to decrease false positive cases
+    # Type: string
+    # Mandatory: no
+    # Default: 3m
+    #
+    alertDelay: 3m
+
+    # The threshold value for the difference between the number of input and output records (input/output delta) that triggers the alert.
+    # Type: int
+    # Mandatory: no
+    # Default: 100
+    inputOutputDeltaThreshold: 100
+
+    # The threshold value for the rate of dropped records that triggers the alert.
+    # Type: int
+    # Mandatory: no
+    # Default: 10
+    dropRecordsRateThreshold: 10
+
+    # The threshold value for the rate of parse errors that triggers the alert.
+    # Type: int
+    # Mandatory: no
+    # Default: 20
+    parseErrorRateThreshold: 20
 
   # Fluent-bit configuration for TLS enabling for Graylog output.
   # Works only for TCP Graylog protocol.

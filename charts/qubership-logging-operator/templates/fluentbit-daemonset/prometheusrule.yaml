@@ -1,0 +1,82 @@
+{{- if .Values.fluentbit.install }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: prometheus-fluentbit-alerts
+  labels:
+    app.kubernetes.io/name: fluentbit-metrics-v1
+    app.kubernetes.io/component: monitoring
+    app.kubernetes.io/part-of: logging
+    role: alert-rules
+  {{- if .Values.fluentbit.labels }}
+    {{- toYaml .Values.fluentbit.labels | nindent 4 }}
+  {{- end }}
+  {{- if .Values.fluentbit.annotations }}
+  annotations:
+    {{- toYaml .Values.fluentbit.annotations | nindent 4 }}
+  {{- end }}
+spec:
+  groups:
+  - name: {{ .Release.Namespace }}-{{ .Release.Name }}
+    rules:
+    - alert: Fluentbit pods is down
+      expr: fluentbit_uptime == 0
+      for: {{ default "3m" .Values.fluentbit.prometheusRules.alertDelay }}
+      labels:
+        severity: critical
+        namespace: {{ .Release.Namespace }}
+        service: {{ .Release.Name }}
+      annotations:
+        summary: "Fluent Bit pod is down"
+        description: "Fluent Bit pod has reported uptime == 0 for more than {{ default "3m" .Values.fluentbit.prometheusRules.alertDelay }}."
+    - alert: Graylog pod not running
+      expr: kube_pod_status_phase{namespace="graylog", phase!="Running"} == 1
+      for: {{ default "3m" .Values.fluentbit.prometheusRules.alertDelay }}
+      labels:
+        severity: critical
+        namespace: {{ .Release.Namespace }}
+        service: {{ .Release.Name }}
+      annotations:
+        summary: "Graylog pod is not running"
+        description: "Graylog pod is not in Running state for more than {{ default "3m" .Values.fluentbit.prometheusRules.alertDelay }}."
+    - alert: Fluent bit high parse error rate
+      expr: rate(parse_error_total[5m]) > {{ default 20 .Values.fluentbit.prometheusRules.parseErrorRateThreshold }}
+      for: {{ default "5m" .Values.fluentbit.prometheusRules.alertDelay }}
+      labels:
+        severity: warning
+        namespace: {{ .Release.Namespace }}
+        service: {{ .Release.Name }}
+      annotations:
+        summary: "High parse error rate in Fluent Bit"
+        description: "Parse error rate is above {{ default 20 .Values.fluentbit.prometheusRules.parseErrorRateThreshold }} per {{ default "5m" .Values.fluentbit.prometheusRules.alertDelay }} minutes."
+    - alert: Fluentbit high drop records rate
+      expr: rate(drop_records_total[5m]) > {{ default 10 .Values.fluentbit.prometheusRules.dropRecordsRateThreshold }}
+      for: {{ default "5m" .Values.fluentbit.prometheusRules.alertDelay }}
+      labels:
+        severity: warning
+        namespace: {{ .Release.Namespace }}
+        service: {{ .Release.Name }}
+      annotations:
+        summary: "High drop records rate in Fluent Bit"
+        description: "Drop records rate is above {{ default 10 .Values.fluentbit.prometheusRules.dropRecordsRateThreshold }} per {{ default "5m" .Values.fluentbit.prometheusRules.alertDelay }} minutes."
+    - alert: Fluentbit input output delta spike
+      expr: abs(sum(rate(fluentbit_input_records_total[5m])) - sum(rate(fluentbit_output_proc_records_total[5m]))) > {{ default 100 .Values.fluentbit.prometheusRules.inputOutputDeltaThreshold }}
+      for: {{ default "5m" .Values.fluentbit.prometheusRules.alertDelay }}
+      labels:
+        severity: warning
+        namespace: {{ .Release.Namespace }}
+        service: {{ .Release.Name }}
+      annotations:
+        summary: "Delta spike between input and output in Fluent Bit"
+        description: "Difference between input and output records is above {{ default 100 .Values.fluentbit.prometheusRules.inputOutputDeltaThreshold }} for {{ default "5m" .Values.fluentbit.prometheusRules.alertDelay }}."
+    - alert: Fluentbit storage overlimit
+      expr: increase(storage_overlimit_total[5m]) > 0
+      for: {{ default "2m" .Values.fluentbit.prometheusRules.alertDelay }}
+      labels:
+        severity: warning
+        namespace: {{ .Release.Namespace }}
+        service: {{ .Release.Name }}
+      annotations:
+        summary: "Fluent Bit storage overlimit"
+        description: "Fluent Bit storage overlimit events detected in the last {{ default "2m" .Values.fluentbit.prometheusRules.alertDelay }}."
+{{- end }}

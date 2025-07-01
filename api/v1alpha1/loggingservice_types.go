@@ -454,8 +454,15 @@ type ConfigmapReload struct {
 	Resources   *v1.ResourceRequirements `json:"resources,omitempty"`
 }
 
+type PrometheusFluentbit struct {
+	Enabled bool   `json:"enabled,omitempty"`
+	Host    string `json:"host,omitempty"`
+	Port    int    `json:"port,omitempty"`
+}
+
 type OutputFluentbit struct {
-	Loki *LokiFluentbit `json:"loki,omitempty"`
+	Loki       *LokiFluentbit       `json:"loki,omitempty"`
+	Prometheus *PrometheusFluentbit `json:"prometheus,omitempty"`
 }
 
 type LokiFluentbit struct {

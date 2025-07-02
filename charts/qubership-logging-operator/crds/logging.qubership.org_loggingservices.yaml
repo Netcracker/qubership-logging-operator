@@ -5013,15 +5013,6 @@ spec:
                                     type: boolean
                                 type: object
                             type: object
-                          prometheus:
-                            properties:
-                              enabled:
-                                type: boolean
-                              host:
-                                type: string
-                              port:
-                                type: integer
-                            type: object
                         type: object
                       priorityClassName:
                         type: string

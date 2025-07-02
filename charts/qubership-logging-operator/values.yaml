@@ -1714,28 +1714,6 @@ fluentbit:
   excludePath: ""
 
   output:
-    prometheus:
-      # Flag for enabling prometheus output.
-      # Type: boolean
-      # Default: false
-      # Mandatory: no
-      #
-      enabled: false
-
-      # Prometheus output host
-      # Type: string
-      # Example: 10.10.10.10. or vmsingle-k8s-vmsingle.monitoring.svc
-      # Mandatory: no
-      #
-      # host: vmsingle-k8s-vmsingle.monitoring
-
-      # Prometheus output port
-      # Type: int
-      # Example: 2021
-      # Mandatory: no
-      #
-      # port: 2021
-
     loki:
       # Flag for enabling Loki output.
       # Type: boolean

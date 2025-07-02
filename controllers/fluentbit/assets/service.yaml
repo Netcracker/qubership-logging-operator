@@ -23,9 +23,9 @@ spec:
       port: 2020
       protocol: TCP
       targetPort: 2020
-{{- if and .Values.fluentbit.output.prometheus.enabled .Values.fluentbit.output.prometheus.port }}
+{{- if and .Values.Fluentbit.Output .Values.Fluentbit.Output.Prometheus.Enabled }}
     - name: metrics
-      port: {{ .Values.fluentbit.output.prometheus.port }}
+      port: {{ default 2021 .Values.Fluentbit.Output.Prometheus.Port }}
       protocol: TCP
-      targetPort: {{ .Values.fluentbit.output.prometheus.port }}
+      targetPort: {{ default 2021 .Values.Fluentbit.Output.Prometheus.Port }}
 {{- end }}

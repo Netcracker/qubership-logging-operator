@@ -23,3 +23,7 @@ spec:
       port: 2020
       protocol: TCP
       targetPort: 2020
+    - name: metrics-fluentbit
+      port: 2021
+      protocol: TCP
+      targetPort: 2021

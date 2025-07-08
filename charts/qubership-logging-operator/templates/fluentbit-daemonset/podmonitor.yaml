@@ -18,8 +18,8 @@ spec:
   jobLabel: fluentbit
   podMetricsEndpoints:
     - interval: 30s
-      path: /api/v1/metrics/prometheus
-      port: http
+      path: /metrics
+      port: log-to-metrics
     - interval: 30s
       path: /api/v2/metrics/prometheus
       port: http

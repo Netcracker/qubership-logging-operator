@@ -151,6 +151,9 @@ spec:
             - containerPort: 2020
               protocol: TCP
               name: "http"
+            - containerPort: 2021
+              protocol: TCP
+              name: "log-to-metrics"
             - containerPort: 24224
               protocol: TCP
               name: "forward"

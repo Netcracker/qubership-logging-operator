@@ -1,2 +1,4 @@
 **/charts/*/templates
 **/controllers/graylog/assets/statefulset.yaml
+**/controllers/fluentbit/assets/daemon-set.yaml
+**/controllers/fluentbit/assets/service.yaml

@@ -90,6 +90,9 @@ spec:
             - containerPort: 2020
               protocol: TCP
               name: http
+            - containerPort: 2021
+              protocol: TCP
+              name: log-to-metrics
           livenessProbe:
             httpGet:
               path: /

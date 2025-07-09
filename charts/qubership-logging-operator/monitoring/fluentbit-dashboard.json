@@ -932,7 +932,7 @@
       "type": "row"
     },
     {
-      "collapsed": false,
+      "collapsed": true,
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -940,223 +940,224 @@
         "y": 6
       },
       "id": 39,
-      "panels": [],
+      "panels": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "Show how much bytes FluentBit read or received",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisBorderShow": false,
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "barWidthFactor": 0.6,
+                "drawStyle": "line",
+                "fillOpacity": 10,
+                "gradientMode": "none",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "insertNulls": false,
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "links": [],
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              },
+              "unit": "Bps"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 7,
+            "w": 12,
+            "x": 0,
+            "y": 7
+          },
+          "id": 37,
+          "options": {
+            "legend": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "displayMode": "table",
+              "placement": "right",
+              "showLegend": true,
+              "sortBy": "Last *",
+              "sortDesc": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "none"
+            }
+          },
+          "pluginVersion": "11.3.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum(rate(fluentbit_input_bytes_total{cluster=\"$cluster\", namespace=\"$namespace\"}[1m])) by (namespace, pod)",
+              "format": "time_series",
+              "hide": false,
+              "interval": "$inter",
+              "intervalFactor": 1,
+              "legendFormat": "{{ pod }}",
+              "range": true,
+              "refId": "A"
+            }
+          ],
+          "title": "Input bytes/s",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "description": "Show how much bytes FluentBit sent to any outputs",
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisBorderShow": false,
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "barWidthFactor": 0.6,
+                "drawStyle": "line",
+                "fillOpacity": 10,
+                "gradientMode": "none",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "insertNulls": false,
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "links": [],
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              },
+              "unit": "Bps"
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 7,
+            "w": 12,
+            "x": 12,
+            "y": 7
+          },
+          "id": 40,
+          "options": {
+            "legend": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "displayMode": "table",
+              "placement": "right",
+              "showLegend": true,
+              "sortBy": "Last *",
+              "sortDesc": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "none"
+            }
+          },
+          "pluginVersion": "11.3.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum(rate(fluentbit_output_proc_bytes_total{cluster=\"$cluster\", namespace=\"$namespace\"}[1m])) by (namespace, pod)",
+              "format": "time_series",
+              "hide": false,
+              "interval": "$inter",
+              "intervalFactor": 1,
+              "legendFormat": "{{ pod }}",
+              "range": true,
+              "refId": "A"
+            }
+          ],
+          "title": "Output bytes/s",
+          "type": "timeseries"
+        }
+      ],
       "title": "Network",
       "type": "row"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "description": "Show how much bytes FluentBit read or received",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "links": [],
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "Bps"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 7,
-        "w": 12,
-        "x": 0,
-        "y": 7
-      },
-      "id": 37,
-      "options": {
-        "legend": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "displayMode": "table",
-          "placement": "right",
-          "showLegend": true,
-          "sortBy": "Last *",
-          "sortDesc": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "none"
-        }
-      },
-      "pluginVersion": "11.3.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "editorMode": "code",
-          "expr": "sum(rate(fluentbit_input_bytes_total{cluster=\"$cluster\", namespace=\"$namespace\"}[1m])) by (namespace, pod)",
-          "format": "time_series",
-          "hide": false,
-          "interval": "$inter",
-          "intervalFactor": 1,
-          "legendFormat": "{{ pod }}",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "Input bytes/s",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "description": "Show how much bytes FluentBit sent to any outputs",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "links": [],
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "Bps"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 7,
-        "w": 12,
-        "x": 12,
-        "y": 7
-      },
-      "id": 40,
-      "options": {
-        "legend": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "displayMode": "table",
-          "placement": "right",
-          "showLegend": true,
-          "sortBy": "Last *",
-          "sortDesc": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "none"
-        }
-      },
-      "pluginVersion": "11.3.0",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "editorMode": "code",
-          "expr": "sum(rate(fluentbit_output_proc_bytes_total{cluster=\"$cluster\", namespace=\"$namespace\"}[1m])) by (namespace, pod)",
-          "format": "time_series",
-          "hide": false,
-          "interval": "$inter",
-          "intervalFactor": 1,
-          "legendFormat": "{{ pod }}",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "Output bytes/s",
-      "type": "timeseries"
     },
     {
       "collapsed": true,
@@ -1164,7 +1165,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 14
+        "y": 7
       },
       "id": 49,
       "panels": [
@@ -1324,7 +1325,7 @@
             "h": 8,
             "w": 8,
             "x": 0,
-            "y": 23
+            "y": 31
           },
           "id": 45,
           "options": {
@@ -1417,7 +1418,7 @@
             "h": 8,
             "w": 8,
             "x": 8,
-            "y": 23
+            "y": 31
           },
           "id": 44,
           "options": {
@@ -1508,7 +1509,7 @@
             "h": 8,
             "w": 8,
             "x": 16,
-            "y": 23
+            "y": 31
           },
           "id": 46,
           "options": {
@@ -1550,7 +1551,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 15
+        "y": 8
       },
       "id": 34,
       "panels": [
@@ -1819,7 +1820,7 @@
             "h": 8,
             "w": 24,
             "x": 0,
-            "y": 24
+            "y": 32
           },
           "id": 35,
           "options": {
@@ -1864,7 +1865,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 16
+        "y": 9
       },
       "id": 51,
       "panels": [
@@ -2028,7 +2029,7 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 25
+            "y": 33
           },
           "id": 53,
           "options": {
@@ -2127,7 +2128,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 25
+            "y": 33
           },
           "id": 41,
           "options": {
@@ -2230,7 +2231,7 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 33
+            "y": 41
           },
           "id": 42,
           "options": {
@@ -2330,7 +2331,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 33
+            "y": 41
           },
           "id": 54,
           "options": {
@@ -2377,7 +2378,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 17
+        "y": 10
       },
       "id": 15,
       "panels": [
@@ -2643,7 +2644,7 @@
             "h": 8,
             "w": 8,
             "x": 0,
-            "y": 26
+            "y": 34
           },
           "id": 56,
           "options": {
@@ -2739,7 +2740,7 @@
             "h": 8,
             "w": 8,
             "x": 8,
-            "y": 26
+            "y": 34
           },
           "id": 26,
           "options": {
@@ -2835,7 +2836,7 @@
             "h": 8,
             "w": 8,
             "x": 16,
-            "y": 26
+            "y": 34
           },
           "id": 60,
           "options": {
@@ -2930,7 +2931,7 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 34
+            "y": 42
           },
           "id": 57,
           "options": {
@@ -3025,7 +3026,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 34
+            "y": 42
           },
           "id": 61,
           "options": {
@@ -3135,7 +3136,7 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 42
+            "y": 50
           },
           "id": 21,
           "options": {
@@ -3231,7 +3232,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 42
+            "y": 50
           },
           "id": 27,
           "options": {
@@ -3329,7 +3330,7 @@
             "h": 8,
             "w": 12,
             "x": 0,
-            "y": 50
+            "y": 58
           },
           "id": 10,
           "options": {
@@ -3431,7 +3432,7 @@
             "h": 8,
             "w": 12,
             "x": 12,
-            "y": 50
+            "y": 58
           },
           "id": 11,
           "options": {
@@ -3496,7 +3497,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 18
+        "y": 11
       },
       "id": 65,
       "panels": [
@@ -3606,18 +3607,58 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "description": "Rate of dropped records across all filters over time",
+          "description": "Rate of custom log_to_metrics counter",
           "fieldConfig": {
             "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
               "custom": {
+                "axisBorderShow": false,
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "barWidthFactor": 0.6,
+                "drawStyle": "line",
+                "fillOpacity": 0,
+                "gradientMode": "none",
                 "hideFrom": {
                   "legend": false,
                   "tooltip": false,
                   "viz": false
                 },
+                "insertNulls": false,
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
                 "scaleDistribution": {
                   "type": "linear"
+                },
+                "showPoints": "auto",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
                 }
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
               }
             },
             "overrides": []
@@ -3630,53 +3671,15 @@
           },
           "id": 67,
           "options": {
-            "calculate": true,
-            "calculation": {
-              "xBuckets": {
-                "mode": "size"
-              },
-              "yBuckets": {
-                "scale": {
-                  "type": "linear"
-                },
-                "value": ""
-              }
-            },
-            "cellGap": 1,
-            "color": {
-              "exponent": 0.5,
-              "fill": "#f29d5208",
-              "min": 1,
-              "mode": "scheme",
-              "reverse": false,
-              "scale": "linear",
-              "scheme": "RdYlGn",
-              "steps": 30
-            },
-            "exemplars": {
-              "color": "rgba(255,0,255,0.7)"
-            },
-            "filterValues": {
-              "le": 1e-9
-            },
             "legend": {
-              "show": true
-            },
-            "rowsFrame": {
-              "layout": "auto"
+              "calcs": [],
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": true
             },
             "tooltip": {
               "mode": "single",
-              "showColorScale": false,
-              "yHistogram": false
-            },
-            "yAxis": {
-              "axisLabel": "Drop rate per filter",
-              "axisPlacement": "left",
-              "decimals": -1,
-              "min": 1,
-              "reverse": false,
-              "unit": "short"
+              "sort": "none"
             }
           },
           "pluginVersion": "11.3.0",
@@ -3688,8 +3691,8 @@
               },
               "editorMode": "code",
               "exemplar": false,
-              "expr": "sum by (pod) (\r\n  rate(fluentbit_filter_drop_records_total{name!=\"\"}[5m]) > 0\r\n)",
-              "format": "heatmap",
+              "expr": "sum by (namespace, pod, container) (\r\n  rate(log_metric_counter_parse_error_total[$__rate_interval])\r\n)",
+              "format": "time_series",
               "instant": false,
               "interval": "",
               "legendFormat": "__auto",
@@ -3697,8 +3700,104 @@
               "refId": "A"
             }
           ],
-          "title": "Filter Drop Records Heatmap",
-          "type": "heatmap"
+          "title": "Parse Error Total Rate",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "custom": {
+                "axisBorderShow": false,
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "barWidthFactor": 0.6,
+                "drawStyle": "line",
+                "fillOpacity": 0,
+                "gradientMode": "none",
+                "hideFrom": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": false
+                },
+                "insertNulls": false,
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": {
+                  "type": "linear"
+                },
+                "showPoints": "auto",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "red",
+                    "value": 80
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 27
+          },
+          "id": 68,
+          "options": {
+            "legend": {
+              "calcs": [],
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "single",
+              "sort": "none"
+            }
+          },
+          "pluginVersion": "11.3.0",
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum by (name) (\r\n  rate(fluentbit_filter_drop_records_total[$__rate_interval]) > 0\r\n)",
+              "legendFormat": "__auto",
+              "range": true,
+              "refId": "A"
+            }
+          ],
+          "title": "Filter Drop Records Total Rate",
+          "type": "timeseries"
         }
       ],
       "title": "Parsing health",
@@ -3717,7 +3816,7 @@
       {
         "current": {
           "text": "vmsingle",
-          "value": "4298b45e-05df-40ac-b488-23efec22e7ba"
+          "value": "b8ea9229-5117-4408-b85f-ee622dbc108f"
         },
         "includeAll": false,
         "name": "datasource",

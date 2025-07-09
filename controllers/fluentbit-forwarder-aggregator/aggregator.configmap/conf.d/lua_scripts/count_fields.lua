@@ -24,9 +24,9 @@ function second_count_fields(tag, timestamp, record)
             count = count - 2 -- Subtracting field_count and parsed
         end
         if (count > record["orig_field_count"]) then
-            record["parsed"] = true
+            record["parsed"] = "true"
         else
-            record["parsed"] = false
+            record["parsed"] = "false"
         end
         record["field_count"] = count
         return 2, timestamp, record

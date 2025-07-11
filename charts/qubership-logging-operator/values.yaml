@@ -1906,12 +1906,6 @@ fluentbit:
     #
     alertDelay: 3m
 
-    # The threshold value for the difference between the number of input and output records (input/output delta) that triggers the alert.
-    # Type: int
-    # Mandatory: no
-    # Default: 100
-    inputOutputDeltaThreshold: 100
-
     # The threshold value for the rate of dropped records that triggers the alert.
     # Type: int
     # Mandatory: no

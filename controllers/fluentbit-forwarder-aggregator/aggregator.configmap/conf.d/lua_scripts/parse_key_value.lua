@@ -1,7 +1,7 @@
 -- input: https://docs.fluentbit.io/manual/pipeline/filters/lua#function-arguments
 -- output: https://docs.fluentbit.io/manual/pipeline/filters/lua#return-values
 function kv_parse(tag, timestamp, record)
-    if record["log"] ~= nil and type(record["log"]) ~= "table" and record["parsed"] == true then
+    if record["log"] ~= nil and type(record["log"]) ~= "table" and record["parsed"] == "true" then
         -- regex to find the end of key=value string in the original string
         -- this regex search the place:
         -- * start from ]
@@ -17,8 +17,12 @@ function kv_parse(tag, timestamp, record)
         local kvs_position = string.find(s, regex_kvs_end, 1)
         local kvs = string.sub(s, 0, kvs_position)
         if kvs ~= nil then
+            local trimmed_v
             for k, v in string.gmatch(kvs, regex_kvs) do
-                record[k] = v
+                trimmed_v = v:gsub("^%s*(.-)%s*$", "%1")
+                if trimmed_v ~= "" then
+                    record[k] = trimmed_v
+                end
             end
         else
             -- return 0, that means the record will not be modified

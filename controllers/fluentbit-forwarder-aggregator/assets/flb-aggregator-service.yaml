@@ -21,6 +21,10 @@ spec:
       protocol: TCP
       port: 2020
       targetPort: 2020
+    - name: log-to-metrics
+      protocol: TCP
+      port: 2021
+      targetPort: 2021
     - name: logging-fluentbit-aggregator
       protocol: TCP
       port: 24224

@@ -1893,6 +1893,31 @@ fluentbit:
   # Example for App-deployer:
   # fluentbit.additionalVolumeMounts: '''[{"name":"datadocker","mountPath":"/data/docker"}]'''
 
+  # Prometheus alerting rules configuration.This section contains parameters for customizing alert
+  # thresholds and delays for Prometheus rules related to Fluent Bit metrics.
+  # Type: object
+  # Mandatory: no
+  prometheusRules:
+
+    # Alert delay to decrease false positive cases
+    # Type: string
+    # Mandatory: no
+    # Default: 3m
+    #
+    alertDelay: 3m
+
+    # The threshold value for the rate of dropped records that triggers the alert.
+    # Type: int
+    # Mandatory: no
+    # Default: 10
+    dropRecordsRateThreshold: 10
+
+    # The threshold value for the rate of parse errors that triggers the alert.
+    # Type: int
+    # Mandatory: no
+    # Default: 20
+    parseErrorRateThreshold: 20
+
   # Fluent-bit configuration for TLS enabling for Graylog output.
   # Works only for TCP Graylog protocol.
   # Type: object

@@ -11,13 +11,11 @@ function kv_parse(tag, timestamp, record)
         local regex_kvs_end = "]%s*[^%[][%w%-%{%}%\\%/%.%,%!%@%#%$%%%^%&%*%(%)]%s*"
         local regex_kvs = "%[([^=%[%]\"]+)=(%w*(.[^%[%]\"]*))%]"
         local s = record["log"]
-
         -- find the end position of [key=value] pairs
         -- and copy from original string only this string part, for example:
         -- [<time>] [INFO] [key1=value1][key2=value2] ... [keyN=valueN]
         local kvs_position = string.find(s, regex_kvs_end, 1)
         local kvs = string.sub(s, 0, kvs_position)
-
         if kvs ~= nil then
             local trimmed_v
             for k, v in string.gmatch(kvs, regex_kvs) do
@@ -30,7 +28,6 @@ function kv_parse(tag, timestamp, record)
             -- return 0, that means the record will not be modified
             return 0, timestamp, record
         end
-
         -- return 2, that means the original timestamp is not modified and the record has been modified
         -- so it must be replaced by the returned values from the record
         return 2, timestamp, record

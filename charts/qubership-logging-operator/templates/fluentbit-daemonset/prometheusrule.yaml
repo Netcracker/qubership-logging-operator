@@ -1,0 +1,82 @@
+{{- if .Values.fluentbit.install }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: prometheus-fluentbit-alerts
+  labels:
+    app.kubernetes.io/name: fluentbit-metrics-v1
+    app.kubernetes.io/component: monitoring
+    app.kubernetes.io/part-of: logging
+    role: alert-rules
+  {{- if .Values.fluentbit.labels }}
+    {{- toYaml .Values.fluentbit.labels | nindent 4 }}
+  {{- end }}
+  {{- if .Values.fluentbit.annotations }}
+  annotations:
+    {{- toYaml .Values.fluentbit.annotations | nindent 4 }}
+  {{- end }}
+spec:
+  groups:
+  - name: {{ .Release.Namespace }}-{{ .Release.Name }}
+    rules:
+    - alert:
+      expr: up{job=~".*fluentbit-all-pods"} == 0
+      for: {{ default "3m" .Values.fluentbit.prometheusRules.alertDelay }}
+      labels:
+        severity: critical
+        namespace: {{ .Release.Namespace }}
+        service: {{ .Release.Name }}
+      annotations:
+        summary: "Fluent Bit pod is down"
+        description: "up metric for fluentbit-all-pods = 0 more than {{ default "3m" .Values.fluentbit.prometheusRules.alertDelay }}."
+    - alert: Graylog pod not running
+      expr: kube_pod_status_phase{pod=~".*graylog.*", phase!="Running"} == 1
+      for: {{ default "3m" .Values.fluentbit.prometheusRules.alertDelay }}
+      labels:
+        severity: critical
+        namespace: {{ .Release.Namespace }}
+        service: {{ .Release.Name }}
+      annotations:
+        summary: "Graylog pod is not running"
+        description: "Graylog pod is not in Running state for more than {{ default "3m" .Values.fluentbit.prometheusRules.alertDelay }}."
+    - alert: Fluent bit high parse error rate
+      expr: max by(namespace, pod, container) (rate(log_metric_counter_parse_error_total[5m])) > {{ default 20 .Values.fluentbit.prometheusRules.parseErrorRateThreshold }}
+      for: {{ default "5m" .Values.fluentbit.prometheusRules.alertDelay }}
+      labels:
+        severity: warning
+        namespace: {{ .Release.Namespace }}
+        service: {{ .Release.Name }}
+      annotations:
+        summary: "High parse error rate in Fluent Bit"
+        description: "Parse error rate is above {{ default 20 .Values.fluentbit.prometheusRules.parseErrorRateThreshold }} per {{ default "5m" .Values.fluentbit.prometheusRules.alertDelay }} minutes."
+    - alert: Fluentbit high drop records rate
+      expr: max by(name) (rate(fluentbit_filter_drop_records_total[5m])) > {{ default 100 .Values.fluentbit.prometheusRules.dropRecordsRateThreshold }}
+      for: {{ default "5m" .Values.fluentbit.prometheusRules.alertDelay }}
+      labels:
+        severity: warning
+        namespace: {{ .Release.Namespace }}
+        service: {{ .Release.Name }}
+      annotations:
+        summary: "High drop records rate in Fluent Bit"
+        description: "Drop records rate is above {{ default 100 .Values.fluentbit.prometheusRules.dropRecordsRateThreshold }} per {{ default "5m" .Values.fluentbit.prometheusRules.alertDelay }} minutes."
+    - alert: Fluentbit storage overlimit
+      expr: increase(fluentbit_input_storage_overlimit[5m]) > 0
+      for: {{ default "1m" .Values.fluentbit.prometheusRules.alertDelay }}
+      labels:
+        severity: warning
+        namespace: {{ .Release.Namespace }}
+        service: {{ .Release.Name }}
+      annotations:
+        summary: "Fluent Bit storage overlimit"
+        description: "Fluent Bit storage overlimit events detected in the last {{ default "1m" .Values.fluentbit.prometheusRules.alertDelay }}."
+    - alert: Fluentbit output retries
+      expr: rate(fluentbit_output_retries_total[3m]) > 0
+      for: {{ default "1m" .Values.fluentbit.prometheusRules.alertDelay }}
+      labels:
+        severity: warning
+        namespace: {{ .Release.Namespace }}
+        service: {{ .Release.Name }}
+      annotations:
+        summary: "Fluent Bit output retries detected"
+        description: "Rate of fluentbit_output_retries_total is above 0 for the last 3 minutes. This means Fluent Bit is retrying output delivery."
+{{- end }}

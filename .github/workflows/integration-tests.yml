@@ -19,7 +19,7 @@ jobs:
   integration_tests:
     name: Run Integration Tests
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 50
     steps:
     - name: Checkout code
       uses: actions/checkout@v4

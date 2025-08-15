@@ -12,7 +12,7 @@ endif
 #############
 
 # Set build version
-VERSION=14.20.0
+VERSION=14.22.0
 ARTIFACT_NAME=qubership-logging-operator
 
 # Helm charts directory

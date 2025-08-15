@@ -5,7 +5,7 @@ This page provides comprehensive instructions for installing the Qubership Loggi
 or OpenShift environment. The Logging Operator is responsible for deploying and managing various logging components,
 including Graylog, FluentBit, FluentD, and Cloud Events Reader. For information about the overall architecture
 of the system, see [Architecture](./architecture.md). For configuration details after installation,
-see [Configuration](./configuration.md).
+see [Configuration](./graylog-configuration.md).
 
 ## Table of Contents
 

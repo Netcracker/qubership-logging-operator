@@ -1,6 +1,6 @@
 # All releases https://github.com/Netcracker/qubership-docker-integration-tests/releases
 # Based on python:3.13.5-alpine3.22
-FROM ghcr.io/netcracker/qubership-docker-integration-tests:0.2.1
+FROM ghcr.io/netcracker/qubership-docker-integration-tests:0.3.2
 
 ENV ROBOT_OUTPUT=${ROBOT_HOME}/output \
     ROBOT_UID=1000 \

@@ -86,12 +86,12 @@ The message with the pattern above is sent as follows:
 
 #### Key Principles
 
-- __Rational granularity__ – log only valuable events.
-- __Troubleshooting first__ – logs must be sufficient to restore context and root‑cause issues.
-- __Structured__ – every entry is either _key=value_ text or valid JSON.
-- __Correlation ready__ – technical & business identifiers always present.
-- __Lightweight__ – minimize performance overhead.
-- __Secure__ – no sensitive data leakage.
+* __Rational granularity__ – log only valuable events.
+* __Troubleshooting first__ – logs must be sufficient to restore context and root‑cause issues.
+* __Structured__ – every entry is either _key=value_ text or valid JSON.
+* __Correlation ready__ – technical & business identifiers always present.
+* __Lightweight__ – minimize performance overhead.
+* __Secure__ – no sensitive data leakage.
 
 #### Quick‑Start Log Pattern
 
@@ -101,8 +101,8 @@ The message with the pattern above is sent as follows:
 [business_identifiers={key=value}] [traceId=?] [spanId=?] %MESSAGE%
 ```
 
-- __TIME__ `yyyy-MM-dd'T'HH:mm:ss.SSS'Z'` (ISO‑8601, UTC)
-- __LEVEL__ `ERROR | WARN | INFO | DEBUG | TRACE
+* __TIME__ `yyyy-MM-dd'T'HH:mm:ss.SSS'Z'` (ISO‑8601, UTC)
+* __LEVEL__ `ERROR | WARN | INFO | DEBUG | TRACE
 
 _JSON alternative in ndjson format_
 
@@ -114,28 +114,28 @@ _JSON alternative in ndjson format_
 
 1. Mandatory (strict order)
 
-  | Pos | Field        | Description             | Example                               |
-  | --: | ------------ | ----------------------- | ------------------------------------- |
-  |   1 | `TIME`       | Timestamp               | `[2025‑05‑02T09:16:53.018]`           |
-  |   2 | `LEVEL`      | Log level               | `[INFO]`                              |
-  |   3 | `request_id` | Request correlation ID  | `[request_id=9f09fc89‑…]`             |
-  |   4 | `tenant_id`  | Current tenant or `-`   | `[tenant_id=b0c3…]`                   |
-  |   5 | `thread`     | Thread / goroutine name | `[thread=TaskScheduler‑1]`            |
-  |   6 | `class`      | Class / module name     | `[class=o.apa.kaf.cli.NetworkClient]` |
+    | Pos | Field        | Description             | Example                               |
+    | --: | ------------ | ----------------------- | ------------------------------------- |
+    |   1 | `TIME`       | Timestamp               | `[2025‑05‑02T09:16:53.018]`           |
+    |   2 | `LEVEL`      | Log level               | `[INFO]`                              |
+    |   3 | `request_id` | Request correlation ID  | `[request_id=9f09fc89‑…]`             |
+    |   4 | `tenant_id`  | Current tenant or `-`   | `[tenant_id=b0c3…]`                   |
+    |   5 | `thread`     | Thread / goroutine name | `[thread=TaskScheduler‑1]`            |
+    |   6 | `class`      | Class / module name     | `[class=o.apa.kaf.cli.NetworkClient]` |
 
 2. Optional (free order)
 
-  <!-- markdownlint-disable line-length -->
-  | Field                  | When to Use               | Note                     | Example                                                  |
-  | ---------------------- | ------------------------- | ------------------------ | -------------------------------------------------------- |
-  | `method`               | Java only                 | Method name              | `method=createOrder`                                     |
-  | `version`              | Blue/Green deployments    | `x-version` header       | `version=v2`                                             |
-  | `error_code`           | Error catalogue           | Comma-separated list     | `error_code=PAY-401,DB-34`                               |
-  | `originating_bi_id`    | Root business interaction | UUID                     | `originating_bi_id=c771005e-1a46-44ab-b004-6c2f6b9c13d7` |
-  | `business_identifiers` | Up to 3 key/value pairs   | Runtime only             | `business_identifiers={object_id=12345,layer_id=98765}`  |
-  | `traceId`, `spanId`    | Distributed tracing       | B3 or W3C headers        | `traceId=4a1ceb… spanId=7b2fae…`                         |
-  | Custom `[key=value]`   | Exceptional needs         | Must follow parser rules | `[shard=eu-west-1a]`                                     |
-  <!-- markdownlint-enable line-length -->
+    <!-- markdownlint-disable line-length -->
+    | Field                  | When to Use               | Note                     | Example                                                  |
+    | ---------------------- | ------------------------- | ------------------------ | -------------------------------------------------------- |
+    | `method`               | Java only                 | Method name              | `method=createOrder`                                     |
+    | `version`              | Blue/Green deployments    | `x-version` header       | `version=v2`                                             |
+    | `error_code`           | Error catalogue           | Comma-separated list     | `error_code=PAY-401,DB-34`                               |
+    | `originating_bi_id`    | Root business interaction | UUID                     | `originating_bi_id=c771005e-1a46-44ab-b004-6c2f6b9c13d7` |
+    | `business_identifiers` | Up to 3 key/value pairs   | Runtime only             | `business_identifiers={object_id=12345,layer_id=98765}`  |
+    | `traceId`, `spanId`    | Distributed tracing       | B3 or W3C headers        | `traceId=4a1ceb… spanId=7b2fae…`                         |
+    | Custom `[key=value]`   | Exceptional needs         | Must follow parser rules | `[shard=eu-west-1a]`                                     |
+    <!-- markdownlint-enable line-length -->
 
 3. Free text message
 

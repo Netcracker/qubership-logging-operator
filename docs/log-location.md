@@ -1,8 +1,10 @@
+
 ## Table of Contents
+
 - [Logging on different OS](#logging-on-different-os)
-  * [System logs](#system-logs)
-  * [Audit logs](#audit-logs)
-  * [Kubernetes and container logs](#kubernetes-and-container-logs)
+  - [System logs](#system-logs)
+  - [Audit logs](#audit-logs)
+  - [Kubernetes and container logs](#kubernetes-and-container-logs)
 
 ### Logging on different OS
 

@@ -1,8 +1,11 @@
+# Storage capacity planning guide
+
 ## Table of Contents
+
 - [Storage capacity planning](#storage-capacity-planning)
-  * [Log `storm`](#log--storm-)
-  * [Indices with rotation by size](#indices-with-rotation-by-size)
-  * [Indices with rotation by time or messages count](#indices-with-rotation-by-time-or-messages-count)
+  - [Log `storm`](#log-storm)
+  - [Indices with rotation by size](#indices-with-rotation-by-size)
+  - [Indices with rotation by time or messages count](#indices-with-rotation-by-time-or-messages-count)
 
 ## Storage capacity planning
 
@@ -11,11 +14,11 @@ how many logs planning store in **each** Stream/Index.
 
 Default Indices:
 
-* Default index set (`All messages` Stream)
-* Audit index set (`Audit logs` Stream)
-* Graylog Events (`All events` Stream)
-* Graylog System Events (`All system events` Stream)
-* Kubernetes events index set (`Kubernetes events` Stream)
+- Default index set (`All messages` Stream)
+- Audit index set (`Audit logs` Stream)
+- Graylog Events (`All events` Stream)
+- Graylog System Events (`All system events` Stream)
+- Kubernetes events index set (`Kubernetes events` Stream)
 
 Except default Streams/Indices products/projects can create it's own Streams/Indices. They also should
 be include in the calculation.
@@ -47,11 +50,11 @@ In some cases, problems with one service can lead to increased log generation in
 
 THe simple example:
 
-* there are 20 Java services that are using PostgreSQL
-* all these services generating about 0-100 log lines per minute
-* but in moment PostgreSQL become unavailable (due the internal or network problems)
-* all 20 Java services may start generate in their logs giant stacktraces with errors about PostgreSQL unavailability
-* log generation for these 20 Java services can increase in **10-100 times** for PostgreSQL unavailability period
+- there are 20 Java services that are using PostgreSQL
+- all these services generating about 0-100 log lines per minute
+- but in moment PostgreSQL become unavailable (due the internal or network problems)
+- all 20 Java services may start generate in their logs giant stacktraces with errors about PostgreSQL unavailability
+- log generation for these 20 Java services can increase in **10-100 times** for PostgreSQL unavailability period
 
 In this example, in the case of problems with PostgreSQL in Graylog may be send 200000 logs per minute
 instead of 2000 per minute which we expect during the normal work.
@@ -65,8 +68,8 @@ navigate to `Graylog UI -> System -> Overview` and check values in histogram.
 
 For example, if on this page you see:
 
-* 50 GB for 1 day ago
-* 100 GB for 2 days ago
+- 50 GB for 1 day ago
+- 100 GB for 2 days ago
 
 you can calculate the average value or select the most pessimistic value.
 Next, need to multiply the selected value by the count of days.
@@ -117,13 +120,13 @@ and in all other Streams.
 There is no a simple and unambiguous formula to calculate the required storage size for Indices
 with rotation by time or messages count. But you can try to start from the formula:
 
-* Rotation by time
+- Rotation by time
 
   ```bash
   X Gb (Logs size per day) * Y days + Z Gb (log storm reserve) = Total size of Index
   ```
 
-* Rotation by message count:
+- Rotation by message count:
 
   ```bash
   X Kb (average 1 message size) * Y messages count + Z Gb (log storm reserve) = Total size of Index

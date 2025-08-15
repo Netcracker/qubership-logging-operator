@@ -70,4 +70,4 @@ The location of Kubernetes and containers logs is independent of the OS the node
 The location of Kubernetes logs depends on the Kubernetes version and the type of k8s cluster (pure Kubernetes,
 OpenShift).
 
-The location of containers logs depends on the container engine (docker, containerd, cri-o).
+The location of containers logs depends on the container engine (`docker`, `containerd`, `cri-o`).

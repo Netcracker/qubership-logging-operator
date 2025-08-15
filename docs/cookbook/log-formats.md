@@ -6,8 +6,8 @@ This section provides information on how the logs are collected in the Cloud.
 
 The high-level flow of logs collection is as follows:
 
-1. The application in the docker container writes logs to stdout.
-2. The docker log driver, by default a JSON file, writes it to OpenShift node file system.
+1. The application in the Docker container writes logs to stdout.
+2. The Docker log driver, by default a JSON file, writes it to OpenShift node file system.
 3. The Log collector, Fluentd, reads this file.
 4. The Fluentd processes the log file content and sends the parsed logs to Graylog.
 
@@ -132,7 +132,7 @@ _JSON alternative in ndjson format_
     | `version`              | Blue/Green deployments    | `x-version` header       | `version=v2`                                             |
     | `error_code`           | Error catalogue           | Comma-separated list     | `error_code=PAY-401,DB-34`                               |
     | `originating_bi_id`    | Root business interaction | UUID                     | `originating_bi_id=c771005e-1a46-44ab-b004-6c2f6b9c13d7` |
-    | `business_identifiers` | Up to 3 key/value pairs   | Runtime only             | `business_identifiers={object_id=12345,layer_id=98765}`  |
+    | `business_identifiers` | Up to 3 key-value pairs   | Runtime only             | `business_identifiers={object_id=12345,layer_id=98765}`  |
     | `traceId`, `spanId`    | Distributed tracing       | B3 or W3C headers        | `traceId=4a1ceb… spanId=7b2fae…`                         |
     | Custom `[key=value]`   | Exceptional needs         | Must follow parser rules | `[shard=eu-west-1a]`                                     |
     <!-- markdownlint-enable line-length -->
@@ -169,7 +169,7 @@ Request created successfully
 In order to track operations across services, it is _mandatory_ to have the `X-Request-ID` HTTP header in the logs.
 
 You can easily add it to the log pattern in the `%X{requestId:-no_request_id}` format.
-The pattern example is applicable for "logback" java library.
+The pattern example is applicable for "logback" Java library.
 
 This field is parsed separately on Graylog side to `request_id` in each log entry.
 
@@ -209,7 +209,7 @@ The following criteria for audit logs are provided with Graylog OOB:
 
 ##### JSON Audit logs
 
-Logs in JSON format marked as Audit log if json body contains key-value `"logType":"audit"`.
+Logs in JSON format marked as Audit log if JSON body contains key-value `"logType":"audit"`.
 
 #### System Logs
 
@@ -227,7 +227,7 @@ The logs from any other source, not supported by OOB, can be routed to Graylog. 
 Following are some examples:
 
 * Graylog OOB supports syslog format. Any application, microservice or system can send logs to Graylog via `rsyslog`.
-* You can use the log4j GELF output plugin to directly send logs to Graylog from a java application.
+* You can use the log4j GELF output plugin to directly send logs to Graylog from a Java application.
   For example, it can be used for TOMS logs collection. This can be used for applications which are not hosted
   as OpenShift pods, but as standalone or bare-metal deployments. Note that no OpenShift related metadata
   information logs enrichment is performed.

@@ -23,7 +23,7 @@ Default Indices:
 Except default Streams/Indices products/projects can create it's own Streams/Indices. They also should
 be include in the calculation.
 
-All received logs Graylog saved in OpenSearch/ElasticSearch. The OpenSearch/ElasticSearch has protection
+All received logs Graylog saved in OpenSearch/Elasticsearch. The OpenSearch/Elasticsearch has protection
 to prevent OpenSearch nodes from running out of disk space.
 
 By default, OpenSearch marks all indices as read-only if data usage reaches a set threshold.

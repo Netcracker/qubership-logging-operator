@@ -54,4 +54,4 @@ Each example includes:
 - Common customization options
 - Use case descriptions
 
-Refer to the [Configuration Guide](configuration.md) for detailed parameter explanations.
+Refer to the [Configuration Guide](graylog-configuration.md) for detailed parameter explanations.

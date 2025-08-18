@@ -371,10 +371,7 @@ jobs:
         max_attempts=${{ env.max_attempts }}
         while [[ $attempt -le $max_attempts ]]; do
           echo "Attempt $attempt/$max_attempts: Checking tests results..."
-          logs=$(kubectl logs -l name=logging-integration-tests-runner -n ${{ env.namespace }} --tail=10000 2>&1)
-          echo "::group:: Current Logs"
-          echo "$logs"
-          echo "::endgroup::"
+          logs=$(kubectl logs -l name=logging-integration-tests-runner -n ${{ env.namespace }} --tail=-1)
           if [[ -n $(echo "$logs" | grep -E "Test Indexer Cluster Status.*FAIL") && -n $(echo "$logs" | grep "yellow != green" ) ]]; then
             if [[ -n $(echo "$logs" | grep -E "Tests.*FAIL") ]]; then
               stats_line=$(echo "$logs" | grep -E '[0-9]+\ tests,\ [0-9]+\ passed,\ [0-9]+\ failed,\ [0-9]+\ skipped' | tail -n 1)

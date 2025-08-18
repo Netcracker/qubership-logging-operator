@@ -47,7 +47,6 @@ if __name__ == '__main__':
         try:
             daemon_sets = k8s_lib.get_daemon_sets(namespace)
             for daemon_set in daemon_sets:
-                print(dir(daemon_set.status))
                 name = daemon_set.metadata.name
                 numberAvailable = daemon_set.status.number_available
                 desiredNumberScheduled = daemon_set.status.desired_number_scheduled

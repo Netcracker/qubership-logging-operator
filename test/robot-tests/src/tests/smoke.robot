@@ -165,13 +165,13 @@ Test Check Fluentbit Status
     [Tags]  smoke
     Skip If  ${fluentbit_exists} != True
     ${daemon}=  Get Daemon Set  logging-fluentbit  ${NAMESPASE}
-    Check Pods Are Ready  ${daemon}  numberReady  currentNumberScheduled
+    Check Pods Are Ready  ${daemon}  number_ready  current_number_scheduled
 
 Test Check Fluentd Status
     [Tags]  smoke
     Skip If  ${fluentd_exists} != True
     ${daemon}=  Get Daemon Set  logging-fluentd  ${NAMESPASE}
-    Check Pods Are Ready  ${daemon}  numberReady  currentNumberScheduled
+    Check Pods Are Ready  ${daemon}  number_ready  current_number_scheduled
 
 Test Check Events Reader Status
     [Tags]  smoke

@@ -36,7 +36,7 @@ Get Graylog Version
     ${key}=  Get From List  ${keys}  0
     ${dict}=  Get From Dictionary  ${resp.json()}  ${key}
     ${version}=  Get From Dictionary  ${dict}  version
-    [Return]  ${version}
+    [RETURN]  ${version}
 
 Search messages
     ${resp}=  GET On Session  graylog  url=/api/search/universal/relative?query=*&range=3600&limit=50&sort=timestamp:desc&pretty=true  headers=${headers}
@@ -165,13 +165,13 @@ Test Check Fluentbit Status
     [Tags]  smoke
     Skip If  ${fluentbit_exists} != True
     ${daemon}=  Get Daemon Set  logging-fluentbit  ${NAMESPASE}
-    Check Pods Are Ready  ${daemon}  numberReady  currentNumberScheduled
+    Check Pods Are Ready  ${daemon}  number_ready  current_number_scheduled
 
 Test Check Fluentd Status
     [Tags]  smoke
     Skip If  ${fluentd_exists} != True
     ${daemon}=  Get Daemon Set  logging-fluentd  ${NAMESPASE}
-    Check Pods Are Ready  ${daemon}  numberReady  currentNumberScheduled
+    Check Pods Are Ready  ${daemon}  number_ready  current_number_scheduled
 
 Test Check Events Reader Status
     [Tags]  smoke

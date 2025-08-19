@@ -27,5 +27,8 @@ jobs:
             --accept 100..=103,200..=299,429
             --cookie-jar cookies.json
             --exclude-all-private
+            --exclude https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#objectmeta-v1-meta ./docs
+            --exclude https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#volume-v1-core ./docs
+            --exclude https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#volumemount-v1-core ./docs
           format: markdown
           fail: true

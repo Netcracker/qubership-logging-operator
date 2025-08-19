@@ -12,7 +12,7 @@ endif
 #############
 
 # Set build version
-VERSION=14.20.0
+VERSION=14.22.0
 ARTIFACT_NAME=qubership-logging-operator
 
 # Helm charts directory
@@ -163,7 +163,7 @@ vet:
 image:
 	echo "=> Build image ..."
 	docker build --pull -t $(CONTAINER_NAME) -f $(DOCKERFILE) .
-	
+
 	# Set image tag if build inside the Jenkins
 	for id in $(DOCKER_NAMES) ; do \
 		docker tag $(CONTAINER_NAME) "$$id"; \

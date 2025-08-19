@@ -203,7 +203,7 @@ docs/api.md: docs/api/gen $(TYPES_V1ALPHA1_TARGET)
 # Find or download gen-crd-api-reference-docs, download gen-crd-api-reference-docs if necessary
 docs/api/gen:
 ifeq (, $(shell which ./gen-crd-api-reference-docs))
-   @{ \
+	@{ \
 		set -e ;\
 		GOBIN=$(API_DOC_GEN_BINARY_DIR) go install $(GEN_CRD_API_PACKAGE) ;\
 	}

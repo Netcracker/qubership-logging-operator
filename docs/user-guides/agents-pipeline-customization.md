@@ -361,7 +361,7 @@ You can define these type of logs by including `access-control` marker in log (o
    The filter in the example checks if the logs from `your-app*` pods fits regular expression. If true, the log is
    copied with a new tag `my-tag.var.log.access-pods.log` and sent to the beginning of Fluent Bit pipeline to be
    processed (about Fluent Bit pipeline you can read in article
-   [router](https://docs.fluentbit.io/manual/concepts/data-pipeline/router). In brief, each log message has a tag that is
+   [router](https://docs.fluentbit.io/manual/data-pipeline/router). In brief, each log message has a tag that is
    needed to decide should any filter be applied to log and to route log to output according to tag). If the log should
    be sent both in Graylog and your custom output, the flag `true` set in `Rule` parameter.
 

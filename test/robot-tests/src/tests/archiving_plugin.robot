@@ -67,7 +67,7 @@ Create Unique Name
     [Arguments]  ${prefix}
     ${date}=  Get Current Date  UTC  result_format=%Y%m%d%H%M%S
     ${archive_name}=  Set Variable  ${prefix}_${date}
-    [RETURN]  ${archive_name}
+    RETURN  ${archive_name}
 
 Check Process Status
     [Arguments]  ${process}
@@ -126,7 +126,7 @@ Get Indices Count For Stream
             ${indices_count}=   Evaluate    ${indices_count} + 1
         END
     END
-    [RETURN]  ${indices_count}
+    RETURN  ${indices_count}
 
 Create Schedule Job
     [Arguments]  ${job_name}

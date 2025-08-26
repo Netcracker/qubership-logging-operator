@@ -36,7 +36,7 @@ Get Graylog Version
     ${key}=  Get From List  ${keys}  0
     ${dict}=  Get From Dictionary  ${resp.json()}  ${key}
     ${version}=  Get From Dictionary  ${dict}  version
-    [RETURN]  ${version}
+    RETURN  ${version}
 
 Search messages
     ${resp}=  GET On Session  graylog  url=/api/search/universal/relative?query=*&range=3600&limit=50&sort=timestamp:desc&pretty=true  headers=${headers}

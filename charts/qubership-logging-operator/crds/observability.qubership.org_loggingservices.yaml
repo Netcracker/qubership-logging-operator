@@ -5,16 +5,8 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.16.5
     logging-operator.logging.qubership.org/version: 14.20.0
-    logging-operator.logging.qubership.org/version: 14.20.0
-    logging-operator.logging.qubership.org/version: 14.20.0
   labels:
     app.kubernetes.io/component: logging-operator
-    app.kubernetes.io/part-of: logging
-  labels:
-    app.kubernetes.io/component: qubership-logging-operator
-    app.kubernetes.io/part-of: logging
-  labels:
-    app.kubernetes.io/component: qubership-logging-operator
     app.kubernetes.io/part-of: logging
   name: loggingservices.logging.qubership.org
 spec:
@@ -1964,7 +1956,7 @@ spec:
                                 volumeNamespace specifies the scope of the volume within StorageOS.  If no
                                 namespace is specified then the Pod's namespace will be used.  This allows the
                                 Kubernetes name scoping to be mirrored within StorageOS for tighter integration.
-                                Set VolumeName to any name to override the default behaviour.
+                                Set VolumeName to any name to override the default behavior.
                                 Set to "default" if you are not using namespaces within StorageOS.
                                 Namespaces that do not pre-exist within StorageOS will be created.
                               type: string
@@ -4633,7 +4625,7 @@ spec:
                                 volumeNamespace specifies the scope of the volume within StorageOS.  If no
                                 namespace is specified then the Pod's namespace will be used.  This allows the
                                 Kubernetes name scoping to be mirrored within StorageOS for tighter integration.
-                                Set VolumeName to any name to override the default behaviour.
+                                Set VolumeName to any name to override the default behavior.
                                 Set to "default" if you are not using namespaces within StorageOS.
                                 Namespaces that do not pre-exist within StorageOS will be created.
                               type: string

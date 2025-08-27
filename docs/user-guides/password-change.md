@@ -41,7 +41,7 @@ Request:
     X-Requested-By: Graylog API Browser
     ```
 
-* Json body:
+* JSON body:
 
     ```json
     {

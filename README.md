@@ -12,16 +12,24 @@ and K8S Events Reader.
 
 ## Table of Contents
 
-1. [Features](#features)
-2. [Requirements](#requirements)
-3. [Installation](#installation)
-4. [Usage](#usage)
-5. [Configuration](#configuration)
-6. [API Reference](#api-reference)
-7. [Architecture](#architecture)
-8. [Testing](#testing)
-9. [Contributing](#contributing)
-10. [License](#license)
+* [Qubership Logging Operator](#qubership-logging-operator)
+  * [Table of Contents](#table-of-contents)
+  * [Features](#features)
+  * [Requirements](#requirements)
+    * [Common Prerequisites](#common-prerequisites)
+    * [Storage Requirements](#storage-requirements)
+  * [Installation](#installation)
+    * [Quick Start with Helm](#quick-start-with-helm)
+  * [Usage](#usage)
+  * [Configuration](#configuration)
+  * [API Reference](#api-reference)
+  * [Architecture](#architecture)
+    * [System Overview](#system-overview)
+  * [Testing](#testing)
+    * [Integration Tests](#integration-tests)
+    * [Robot Framework Tests](#robot-framework-tests)
+  * [Contributing](#contributing)
+  * [License](#license)
 
 ## Features
 
@@ -50,7 +58,7 @@ The main features are as follows:
 
 * **Persistent Volumes**: Required for Graylog (MongoDB and journald)
 * **Storage Types**: Block storage recommended (NFS-like storage not supported)
-* **OpenSearch/ElasticSearch**: Compatible versions depend on Graylog version
+* **OpenSearch/Elasticsearch**: Compatible versions depend on Graylog version
 
 For detailed storage requirements, see the [Installation Guide](https://netcracker.github.io/qubership-logging-operator/installation/).
 
@@ -94,8 +102,8 @@ The operator supports extensive configuration options for all logging components
 
 For detailed configuration options, see:
 
-* [Configuration Guide](https://netcracker.github.io/qubership-logging-operator/configuration/)
 * [Configuration Examples](https://netcracker.github.io/qubership-logging-operator/examples/)
+* [Graylog Configuration Guide](https://netcracker.github.io/qubership-logging-operator/graylog-configuration/)
 
 ## API Reference
 
@@ -125,7 +133,7 @@ flowchart TB
         subgraph "Log Processing & Storage"
             GL[Graylog<br/>StatefulSet]
             MG[(MongoDB)]
-            ES[(OpenSearch/<br/>ElasticSearch)]
+            ES[(OpenSearch/<br/>Elasticsearch)]
         end
         
         subgraph "Applications"

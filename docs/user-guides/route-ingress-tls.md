@@ -29,7 +29,7 @@ spec:
 
 ### Route With TLS
 
-`Edge` Termination Type route will be auto generated alongwith Ingress, try to access route URL.
+`Edge` Termination Type route will be auto generated along with Ingress, try to access route URL.
 
 If you face `502 Bad Response.` then you have to create `reencrypt` Route manually.
 Please deploy graylog without Ingress e.g. `graylog.createIngress: false`

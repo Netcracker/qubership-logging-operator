@@ -26,11 +26,11 @@ FluentBit agent configuration examples for various scenarios:
 FluentD agent configuration examples covering different runtime environments:
 
 - CentOS with Docker - FluentD setup for CentOS-based Docker environments
-- Containerd runtime - Configuration for containerd container runtime
+- containerd runtime - Configuration for containerd container runtime
 - Custom input/filter - Advanced input sources and filtering rules
 - Ubuntu with Docker - FluentD setup for Ubuntu-based Docker environments
 - Docker runtime - Standard Docker environment configuration
-- OpenShift Containerd - OpenShift-specific containerd setup
+- OpenShift containerd - OpenShift-specific containerd setup
 - Simple deployment - Basic FluentD agent setup
 - Node selector - Targeted deployment configuration
 - Without Graylog output - Alternative output configurations

@@ -4,23 +4,24 @@ The configurable parameters for installation are described below.
 
 ## Table of Contents
 
-- [Installation parameters](#installation-parameters)
-  - [Root](#root)
-  - [Graylog](#graylog)
-    - [Graylog TLS](#graylog-tls)
-    - [OpenSearch](#opensearch)
-    - [ContentPacks](#contentpacks)
-    - [Graylog Streams](#graylog-streams)
-    - [Graylog Auth Proxy](#graylog-auth-proxy)
-      - [Graylog Auth Proxy LDAP](#graylog-auth-proxy-ldap)
-      - [Graylog Auth Proxy OAuth](#graylog-auth-proxy-oauth)
-  - [FluentBit](#fluentbit)
-    - [FluentBit Aggregator](#fluentbit-aggregator)
-    - [FluentBit TLS](#fluentbit-tls)
-  - [FluentD](#fluentd)
-    - [FluentD TLS](#fluentd-tls)
-  - [Cloud Events Reader](#cloud-events-reader)
-  - [Integration tests](#integration-tests)
+* [Installation parameters](#installation-parameters)
+  * [Table of Contents](#table-of-contents)
+  * [Root](#root)
+  * [Graylog](#graylog)
+    * [Graylog TLS](#graylog-tls)
+    * [OpenSearch](#opensearch)
+    * [ContentPacks](#contentpacks)
+    * [Graylog Streams](#graylog-streams)
+    * [Graylog Auth Proxy](#graylog-auth-proxy)
+      * [Graylog Auth Proxy LDAP](#graylog-auth-proxy-ldap)
+      * [Graylog Auth Proxy OAuth](#graylog-auth-proxy-oauth)
+  * [FluentBit](#fluentbit)
+    * [FluentBit Aggregator](#fluentbit-aggregator)
+    * [FluentBit TLS](#fluentbit-tls)
+  * [FluentD](#fluentd)
+    * [FluentD TLS](#fluentd-tls)
+  * [Cloud Events Reader](#cloud-events-reader)
+  * [Integration tests](#integration-tests)
 
 ## Root
 
@@ -292,10 +293,10 @@ graylog:
 The `graylog.tls` section defines parameters enabling TLS for both the Graylog WebUI and the default Inputs.
 It includes two subsections:
 
-- `http` for securing the WebUI
-- `input` for securing Graylog Inputs.
+* `http` for securing the WebUI
+* `input` for securing Graylog Inputs.
 
-All parameters for the Graylog WebUI must be specified under the `graylog.tls.http`section, as shown in the example below:
+All parameters for the Graylog WebUI must be specified under the `graylog.tls.http` section, as shown in the example below:
 
 ```yaml
 graylog:
@@ -347,7 +348,8 @@ graylog:
         renewBefore: 15
 ```
 
-All parameters for the Graylog's Inputs must be specified under the `graylog.tls.input`section, as shown in the example below:
+All parameters for the Graylog's Inputs must be specified under the `graylog.tls.input` section,
+as shown in the example below:
 
 ```yaml
 graylog:

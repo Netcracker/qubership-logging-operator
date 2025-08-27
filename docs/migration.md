@@ -18,37 +18,37 @@ The same fields/labels:
 
 There are several differences in fields-naming:
 
-| Fluentd            | FluentBit                                                       |
-| ------------------ | --------------------------------------------------------------- |
-| container_id       | kubernetes_docker_id                                            |
-| container_image    | kubernetes_container_image                                      |
-| container_image_id | kubernetes_container_hash                                       |
-| container_name     | kubernetes_container_name                                       |
-| docker             | `-`                                                             |
-| facility           | transmitter                                                     |
-| host               | kubernetes_host                                                 |
-| kubernetes         | `-`                                                             |
-| labels-component   | `-`                                                             |
-| labels-tier        | `-`                                                             |
-| master_url         | `-`                                                             |
-| namespace_id       | `-`                                                             |
-| pod_id             | kubernetes_pod_id                                               |
-| pod_ip             | source                                                          |
-| protocol           | `-`                                                             |
-| source             | hostname                                                        |
-| time               | `-`                                                             |
-| `-`                | application_id                                                  |
-| `-`                | kubernetes_annotations_cni_projectcalico_org_containerID        |
-| `-`                | kubernetes_annotations_cni_projectcalico_org_podIP              |
-| `-`                | kubernetes_annotations_cni_projectcalico_org_podIPs             |
-| `-`                | kubernetes_annotations_kubernetes_io_psp                        |
-| `-`                | kubernetes_annotations_seccomp_security_alpha_kubernetes_io_pod |
-| `-`                | kubernetes_docker_id                                            |
-| `-`                | kubernetes_labels_app_kubernetes_io_component                   |
-| `-`                | kubernetes_labels_app_kubernetes_io_instance                    |
-| `-`                | kubernetes_labels_app_kubernetes_io_name                        |
-| `-`                | kubernetes_labels_controller-revision-hash                      |
-| `-`                | kubernetes_labels_pod-template-generation                       |
+| Fluentd              | FluentBit                                                         |
+| -------------------- | ----------------------------------------------------------------- |
+| `container_id`       | `kubernetes_docker_id`                                            |
+| `container_image`    | `kubernetes_container_image`                                      |
+| `container_image_id` | `kubernetes_container_hash`                                       |
+| `container_name`     | `kubernetes_container_name`                                       |
+| `docker`             | `-`                                                               |
+| `facility`           | `transmitter`                                                     |
+| `host`               | `kubernetes_host`                                                 |
+| `kubernetes`         | `-`                                                               |
+| `labels-component`   | `-`                                                               |
+| `labels-tier`        | `-`                                                               |
+| `master_url`         | `-`                                                               |
+| `namespace_id`       | `-`                                                               |
+| `pod_id`             | `kubernetes_pod_id`                                               |
+| `pod_ip`             | `source`                                                          |
+| `protocol`           | `-`                                                               |
+| `source`             | `hostname`                                                        |
+| `time`               | `-`                                                               |
+| `-`                  | `application_id`                                                  |
+| `-`                  | `kubernetes_annotations_cni_projectcalico_org_containerID`        |
+| `-`                  | `kubernetes_annotations_cni_projectcalico_org_podIP`              |
+| `-`                  | `kubernetes_annotations_cni_projectcalico_org_podIPs`             |
+| `-`                  | `kubernetes_annotations_kubernetes_io_psp`                        |
+| `-`                  | `kubernetes_annotations_seccomp_security_alpha_kubernetes_io_pod` |
+| `-`                  | `kubernetes_docker_id`                                            |
+| `-`                  | `kubernetes_labels_app_kubernetes_io_component`                   |
+| `-`                  | `kubernetes_labels_app_kubernetes_io_instance`                    |
+| `-`                  | `kubernetes_labels_app_kubernetes_io_name`                        |
+| `-`                  | `kubernetes_labels_controller-revision-hash`                      |
+| `-`                  | `kubernetes_labels_pod-template-generation`                       |
 
 ## Upgrade case
 
@@ -91,9 +91,9 @@ You need to set the following parameters:
 
 ```yaml
 fluentd:
-  intall: false
+  install: false
 fluentbit:
-  intall: true
+  install: true
   aggregator:
     install: true
 ```

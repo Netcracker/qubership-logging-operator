@@ -18,7 +18,7 @@ Graylog GELF UDP has the following limits:
 | Max GELF UDP total size   | `181760 bytes` (~ `177 KiB`) |
 <!-- markdownlint-enable line-length -->
 
-## Limits for OpenSearch/ElasticSearch instance
+## Limits for OpenSearch/Elasticsearch instance
 
 <!-- markdownlint-disable line-length -->
 | Type                          | Limits        |
@@ -26,7 +26,7 @@ Graylog GELF UDP has the following limits:
 | Max shards count per IndexSet | `1000 shards` |
 <!-- markdownlint-enable line-length -->
 
-## Limits for OpenSearch/ElasticSearch index
+## Limits for OpenSearch/Elasticsearch index
 
 <!-- markdownlint-disable line-length -->
 | Type                                   | Limits                                  |
@@ -38,7 +38,7 @@ Graylog GELF UDP has the following limits:
 | Max word/term size                     | `32 KiB` (8192 symbols for UTF-8)       |
 <!-- markdownlint-enable line-length -->
 
-## Limits for OpenSearch/ElasticSearch fields
+## Limits for OpenSearch/Elasticsearch fields
 
 <!-- markdownlint-disable line-length -->
 | Field type   | Limits                                                                                                                     |

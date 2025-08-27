@@ -289,7 +289,7 @@ graylog:
   storageSize: 2Gi
 
   # Will be deprecated in the future releases. Use configuration for OpenSearch below-mentioned instead.
-  # ElasticSearch host.
+  # Elasticsearch host.
   # Type: string
   # Example: http://user:password@elasticsearch.elasticsearch-cluster:9200
   #
@@ -517,8 +517,8 @@ graylog:
   #   maxSize: 1073741824
   #   maxNumberOfIndices: 5
 
-  # Logs contains special key-value markers: ["nrm.qubership.org/application=nrm"]
-  # OR ["app.kubernetes.io/part-of=nrm"] OR ["nrm.qubership.org/application=cm"] OR ["app.kubernetes.io/part-of=cm"]
+  # Logs contains special key-value markers: ["billing.qubership.org/application=billing"]
+  # OR ["app.kubernetes.io/part-of=billing"]
   # - name: "Bill Cycle logs"
   #   install: false
   #   rotationStrategy: "timeBased"

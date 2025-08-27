@@ -82,7 +82,7 @@ It means that symbols like `\n` (new line) or `\t` tabulation also don't allow a
 as it.
 
 By default, all `syslog` output plugins will send each new line from the multiline log as a separate message.
-For example, the java stacktrace:
+For example, the Java stacktrace:
 
 ```bash
 Exception in thread "main" java.lang.NullPointerException: Fictitious NullPointerException
@@ -107,7 +107,7 @@ one multiline message. Please refer to the documentation of your Logging system.
 
 ## Send logs using syslog in FluentD
 
-Now the docker image provided by Platform includes two syslog plugins for FluentD:
+Now the Docker image provided by Platform includes two syslog plugins for FluentD:
 
 * [fluent-plugin-remote_syslog](https://github.com/fluent-plugins-nursery/fluent-plugin-remote_syslog)
 * [fluent-plugin-syslog_rfc5424](https://github.com/cloudfoundry/fluent-plugin-syslog_rfc5424)

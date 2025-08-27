@@ -30,11 +30,11 @@ const (
 
 type RestClient struct {
 	Client *http.Client
-	Auth   *Сreds
+	Auth   *Creds
 	Host   string
 }
 
-type Сreds struct {
+type Creds struct {
 	Name     string
 	Password string
 	Token    string
@@ -142,7 +142,7 @@ func DownloadFileTLS(ctx context.Context, contentPackPath *v11.ContentPackPathHT
 		return err
 	}
 
-	var user *Сreds
+	var user *Creds
 	var tlsConfig *tls.Config
 
 	if contentPackPath != nil {
@@ -153,7 +153,7 @@ func DownloadFileTLS(ctx context.Context, contentPackPath *v11.ContentPackPathHT
 				return err
 			}
 			if (name != "" && pwd != "") || token != "" {
-				user = &Сreds{
+				user = &Creds{
 					Name:     name,
 					Password: pwd,
 					Token:    token,

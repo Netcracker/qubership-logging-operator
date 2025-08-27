@@ -135,8 +135,11 @@ nav:
   - Architecture & Components:
       - architecture.md
       - api.md
+      - fluentbit-log-pipeline.md
   - Configuration:
-      - configuration.md
+      - graylog-configuration.md
+      - installation-parameters.md
+      - log-location.md
       - Configuration Examples:
           - Overview: examples.md
           - examples/cloud-events-reader.md

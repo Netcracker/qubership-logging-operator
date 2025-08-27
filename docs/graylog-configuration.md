@@ -147,7 +147,7 @@ The payload for creating view example:
 
 Endpoint: POST `https://GRAYLOG_HOST/api/views`
 
-Curl example:
+CURL example:
 
 ```json
 curl --location --request POST 'https://GRAYLOG_HOST/api/api/views/search' \
@@ -182,8 +182,8 @@ This section provides detailed descriptions of logs collected in Graylog OOB.
 The list of log fields is as follows:
 
 * `application_id` specifies the unique application ID in OpenShift. It is usually `project_name + POD_name`.
-* `container_name` specifies the docker container name.
-* `docker` specifies the docker container UUID.
+* `container_name` specifies the Docker container name.
+* `docker` specifies the Docker container UUID.
 * `facility` specifies the logs' collector type. It is usually `fluentd`.
 * `host/hostname` specifies the hostname of the logs source. For example, OpenShift node name.
 * `kubernetes` specifies the technical meta-information from Kubernetes.
@@ -208,12 +208,12 @@ All other fields are technical and can be ignored.
 
 The list of OOB streams is as follows:
 
-* `Application logs` include `stdout` from docker containers running in Kubernetes (PODs)
+* `Application logs` include `stdout` from Docker containers running in Kubernetes (PODs)
 * `System logs` include `/var/log/messages`, `/var/log/syslog` and `systemd` from Kubernetes nodes
   and other infrastructure VMs such as Logging VM, Monitoring VM, and so on.
 * `Audit logs` include `/var/log/audit/audit.log` from Kubernetes nodes and other infrastructure VMs
   such as Logging VM, Monitoring VM, and so on; `/var/log/ocp-audit.log` from Kubernetes nodes;
-  logs of Graylog docker containers; and application's audit logs.
+  logs of Graylog Docker containers; and application's audit logs.
 * `Integration logs` include logs with marker `[logType=int]` or `[log_type=int]`.
 * `Kubernetes events` include logs with key-value `kind=KubernetesEvent`. The stream includes Kubernetes events sent as
   logs to Graylog form cloud-events-reader.

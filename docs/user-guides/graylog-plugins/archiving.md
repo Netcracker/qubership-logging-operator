@@ -1,10 +1,10 @@
 This document provide information about Graylog Archiving plugin.
 
 * [Overview](#overview)
-* [Custom Archiving Plugin](#custom-archiving-plugin)
-  * [Archiving process](#archiving-process)
-  * [Restoring archived data](#restoring-archived-data)
-  * [Configuration](#configuration)
+  * [Custom Archiving Plugin](#custom-archiving-plugin)
+    * [Archiving process](#archiving-process)
+    * [Restoring archived data](#restoring-archived-data)
+    * [Configuration](#configuration)
 
 # Overview
 
@@ -20,7 +20,7 @@ We know two ways how you can configure archiving in Graylog:
 
 ## Custom Archiving Plugin
 
-Graylog uses OpenSearch (ElasticSearch in old versions) to store data after processing.
+Graylog uses OpenSearch (Elasticsearch in old versions) to store data after processing.
 This plugin is installed in Graylog and uses the OpenSearch API to archive or restore data.
 
 ### Archiving process
@@ -70,7 +70,7 @@ But there are some restrictions:
 * Restore is a manual process, there is no button in the Graylog Web interface to run restore
 * Restore can be run only using API
 * Because Graylog has a rotation strategy for Indices and can be cases when Graylog can use the same Index name
-  (for example, if you are using snapshots to transfer data between Graylogs) all snapshots restore in Indices
+  (for example, if you are using snapshots to transfer data between Graylog servers) all snapshots restore in Indices
   with the prefix `restored_`. For example, was `graylog_10` after restoring this Index will have
   the name `restored_graylog_10`.
 

@@ -392,7 +392,7 @@
       "datasource": {
         "uid": "${datasource}"
       },
-      "description": "Show Graylog throughput. How much Graylog process messages from Fluentd to ElasticSearch.",
+      "description": "Show Graylog throughput. How much Graylog process messages from Fluentd to Elasticsearch.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -534,7 +534,7 @@
       "datasource": {
         "uid": "${datasource}"
       },
-      "description": "Show Graylog journal utilization. Graylog use journal as temporally storage of received messages which have not yet been processed by ElastiSearch.\nHigh journal utilization shows that ElasticSearch cannot process the input stream fast enough.",
+      "description": "Show Graylog journal utilization. Graylog use journal as temporally storage of received messages which have not yet been processed by Elasticsearch.\nHigh journal utilization shows that Elasticsearch cannot process the input stream fast enough.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1777,7 +1777,7 @@
           "refId": "A"
         }
       ],
-      "title": "ElasticSearch Indexes",
+      "title": "Elasticsearch Indexes",
       "type": "row"
     },
     {
@@ -1798,7 +1798,7 @@
           "datasource": {
             "uid": "${datasource}"
           },
-          "description": "Show Graylog throughput. How much Graylog process messages from Fluentd to ElasticSearch.\n`Messages append to disk` means how many messages append to journal.",
+          "description": "Show Graylog throughput. How much Graylog process messages from Fluentd to Elasticsearch.\n`Messages append to disk` means how many messages append to journal.",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -2835,7 +2835,7 @@
               "exemplar": true,
               "expr": "rate(org_graylog2_outputs_ElasticSearchOutput_processTime_count{cluster=\"$cluster\", namespace=\"$graylog_namespace\"}[5m])",
               "interval": "",
-              "legendFormat": "ElasticSearch Output",
+              "legendFormat": "Elasticsearch Output",
               "refId": "A"
             },
             {
@@ -2846,7 +2846,7 @@
               "expr": "rate(org_graylog2_outputs_BlockingBatchedESOutput_processTime_count{cluster=\"$cluster\", namespace=\"$graylog_namespace\"}[5m])",
               "hide": false,
               "interval": "",
-              "legendFormat": "Blocking Batched ElasticSearch Output",
+              "legendFormat": "Blocking Batched Elasticsearch Output",
               "refId": "B"
             }
           ],
@@ -3078,7 +3078,7 @@
           "datasource": {
             "uid": "${datasource}"
           },
-          "description": "Show Graylog journal utilization. Graylog use journal as temporally storage of received messages which have not yet been processed by ElastiSearch.\nHigh journal utilization shows that ElasticSearch cannot process the input stream fast enough.",
+          "description": "Show Graylog journal utilization. Graylog use journal as temporally storage of received messages which have not yet been processed by Elasticsearch.\nHigh journal utilization shows that Elasticsearch cannot process the input stream fast enough.",
           "fieldConfig": {
             "defaults": {
               "color": {

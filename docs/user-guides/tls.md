@@ -109,7 +109,7 @@ This deployment schema now positioned as default.
 
 In this schema:
 
-* Graylog and ElasticSearch deployed on separated VM as single docker containers
+* Graylog and Elasticsearch deployed on separated VM as single Docker containers
 * Fluentd (or FluentBit) deployed in Kubernetes / OpenShift / another cloud as DaemonSet, collect logs and send them
   to Graylog outside the cloud.
 * Other pods like cloud-events-reader also deployed in  Kubernetes / OpenShift / another cloud.
@@ -119,7 +119,7 @@ In this schema Logging support TLS for next channels:
 | Connection                  | Status        |
 | --------------------------- | ------------- |
 | User - Graylog UI           | ✅ Support     |
-| Graylog - ElasticSearch     | ✗ Not Support |
+| Graylog - Elasticsearch     | ✗ Not Support |
 | Fluentd/FluentBit - Graylog | ✅ Support     |
 | Fluentd/FluentBit - Logs    | N/A           |
 
@@ -141,7 +141,7 @@ Details how to configure TLS for this deployment schema see at sections:
 In this schema:
 
 * Graylog deployed in Kubernetes / OpenShift / another cloud as Deployment
-* ElasticSearch **does not deploy** with Logging and should be use already deployed.
+* Elasticsearch **does not deploy** with Logging and should be use already deployed.
 * Fluentd (or FluentBit) deployed in Kubernetes / OpenShift / another cloud as DaemonSet, collect logs and send them
   to Graylog outside the cloud.
 * Other pods like cloud-events-reader also deployed in  Kubernetes / OpenShift / another cloud.
@@ -151,7 +151,7 @@ In this schema Logging support TLS for next channels:
 | Connection                  | Status                |
 | --------------------------- | --------------------- |
 | User - Graylog UI           | ✅ Support             |
-| Graylog - ElasticSearch     | ✅ Support             |
+| Graylog - Elasticsearch     | ✅ Support             |
 | Fluentd/FluentBit - Graylog | ✅/✗ Partially Support |
 | Fluentd/FluentBit - Logs    | N/A                   |
 
@@ -167,14 +167,14 @@ Ingress which provide access outside the Cloud to applications UI into Cloud.
 Ingress works as reverse proxy and can wrap traffic into TLS without actions from applications side. So for Graylog
 in Cloud there is no make sense to configure TLS for UI. TLS will work through Ingress.
 
-But we have to enable TLS for HTTPS interface in the Graylog configuration for ElasticSearch to secure the output
+But we have to enable TLS for HTTPS interface in the Graylog configuration for Elasticsearch to secure the output
 connection.
 
 Details how to configure TLS for this deployment schema see at sections:
 
 * [Configure TLS for Graylog Inputs into Cloud](#configure-tls-for-graylog-inputs-into-cloud)
 * [Configure TLS for Graylog HTTP interface into Cloud](#configure-tls-for-graylog-http-interface-into-cloud)
-  (e.g. for ElasticSearch connection)
+  (e.g. for Elasticsearch connection)
 * [Configure TLS for Fluentd output](#configure-tls-for-fluentd-output) or
   [Configure TLS for FluentBit output](#configure-tls-for-fluentbit-output)
 
@@ -325,7 +325,7 @@ Parameters that configure TLS for Graylog Inputs stored in the `.graylog.tls.inp
 
 #### Configure TLS for Graylog HTTP interface into Cloud
 
-To configure TLS for HTTP interface (it's used for ElasticSearch) need to execute the following actions:
+To configure TLS for HTTP interface (it's used for Elasticsearch) need to execute the following actions:
 
 1. Create certificates for Graylog. Note that Graylog works only with **PEM** encoded certificates and **PEM** encoded
    private keys in **PKCS#8** format. Look at the [official Graylog documentation](https://docs.graylog.org/docs/https)
@@ -352,7 +352,7 @@ To configure TLS for HTTP interface (it's used for ElasticSearch) need to execut
       graylog.key: ...base64 encoded PEM key in PKCS#8 format...
     ```
 
-3. (**optional**) If external services that connect to your Graylog (e.g. ElasticSearch) use certificates, you can add
+3. (**optional**) If external services that connect to your Graylog (e.g. Elasticsearch) use certificates, you can add
    CA certificates for it to the Graylog's keystore. You need to create Secret and put all CA certificates to separate
    keys in it. For example:
 
@@ -556,7 +556,7 @@ In order for cert-manager to generate a secret containing certificates and priva
 
 2. Then you can create [Certificate](https://cert-manager.io/docs/concepts/certificate/) resource. Configuration of this
    resource allows to change parameters of generated certificates and private key. You can find an example of
-   certificate resource [here](https://cert-manager.io/docs/usage/certificate/#creating-certificate-resources).
+   certificate resource [in cert-manager documentation](https://cert-manager.io/docs/usage/certificate/#creating-certificate-resources).
 3. Cert-manager will create [Certificate Request](https://cert-manager.io/docs/concepts/certificaterequest/)
    resource based on created Certificate resource.
 4. Also, cert-manager will create Secret resource with name specified in the Certificate resource previously.
@@ -570,7 +570,7 @@ The generated secret can be used in pods later as a volume.
 If you use logging-operator, you don't need to create cert-manager resources for its components manually.
 
 Each component of logging-operator that has TLS configuration can use cert-manager and has the same configuration for
-it. You enable and customise work with cert-manager separately for Fluentd, Fluent-bit, Graylog HTTP server or inputs
+it. You enable and customize work with cert-manager separately for Fluentd, Fluent-bit, Graylog HTTP server or inputs
 by the same in a similar way via the `tls.generateCerts` section.
 
 Integration with cert-manager can be configured with `fluentd.tls.generateCerts`, `fluentbit.tls.generateCerts`,

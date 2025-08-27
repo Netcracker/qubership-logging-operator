@@ -197,7 +197,7 @@ All information about available logs in CloudWatch you can read in official docu
 
 To enable log publishing to CloudWatch using the AWS console:
 
-1. Open the `Amazon ElasticSearch` console at [https://console.aws.amazon.com/aos/home](https://console.aws.amazon.com/aos/home).
+1. Open the `Amazon Elasticsearch` console at [https://console.aws.amazon.com/aos/home](https://console.aws.amazon.com/aos/home).
 2. Select the domain you want to update.
 3. On the `Logs` tab, select a log type and choose `Setup`.
 4. Create a CloudWatch log group, or choose an existing one.
@@ -227,13 +227,13 @@ To enable log publishing to CloudWatch using the AWS console:
 
 **Note:** Please keep in mind that AWS can change UI and some fields can change names or positions.
 
-![ElasticSearch logs settings](../images/cloudwatch/elasticsearch-logs.png)
+![Elasticsearch logs settings](../images/cloudwatch/elasticsearch-logs.png)
 
-_Logs configuration section for ElasticSeach / OpenSearch_
+_Logs configuration section for Elasticsearch / OpenSearch_
 
-![ElasticSearch logs configuration diaglog](../images/cloudwatch/elasticsearch-logs-creation-dialog.png)
+![Elasticsearch logs configuration diaglog](../images/cloudwatch/elasticsearch-logs-creation-dialog.png)
 
-_Logs configuration dialog for ElasticSeach / OpenSearch_
+_Logs configuration dialog for Elasticsearch / OpenSearch_
 
 ### Configure AWS MSK (Kafka)
 
@@ -309,7 +309,7 @@ aws iam create-role --role-name CWLtoKinesisRole --assume-role-policy-document f
 
 Copy the ARN of the role you just created. You'll need it in the next step.
 
-Create a new file called `permissions.jso`n and set both ARNs to the ARNs your copied above:
+Create a new file called `permissions.json` and set both ARNs to the ARNs your copied above:
 
 ```bash
 {

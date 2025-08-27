@@ -177,7 +177,7 @@ Run the redeploy of the Logging service procedure with the corrected `graylog_he
 
    By analogy with Graylog (step 5).
 
-7. Start the docker and restart the containers:
+7. Start the Docker and restart the containers:
 
    ```bash
    service docker start
@@ -356,7 +356,7 @@ While retrieving data for this widget, the following error(s) occurred:
 
 Unable to perform search query: Elasticsearch exception [
   type=illegal_argument_exception,
-  reason=Text fields are not optimised for operations that require per-document field data like aggregations and sorting, so these operations are disabled by default. Please use a keyword field instead. Alternatively, set fielddata=true on [timestamp] in order to load field data by uninverting the inverted index. Note that this can use significant memory.
+  reason=Text fields are not optimized for operations that require per-document field data like aggregations and sorting, so these operations are disabled by default. Please use a keyword field instead. Alternatively, set fielddata=true on [timestamp] in order to load field data by uninverting the inverted index. Note that this can use significant memory.
 ].
 ```
 <!-- markdownlint-enable line-length -->
@@ -366,7 +366,7 @@ Also, in the Graylog logs you can see a similar error:
 <!-- markdownlint-disable line-length -->
 ```bash
 type=illegal_argument_exception,
-reason=Text fields are not optimised for operations that require per-document field data like aggregations and sorting, so these operations are disabled by default. Please use a keyword field instead. Alternatively, set fielddata=true on [timestamp] in order to load field data by uninverting the inverted index. Note that this can use significant memory.
+reason=Text fields are not optimized for operations that require per-document field data like aggregations and sorting, so these operations are disabled by default. Please use a keyword field instead. Alternatively, set fielddata=true on [timestamp] in order to load field data by uninverting the inverted index. Note that this can use significant memory.
 ```
 <!-- markdownlint-enable line-length -->
 
@@ -551,7 +551,7 @@ OpenSearch has a mechanism to prevent mapping explosions (too many dynamical fie
 * [https://www.elastic.co/guide/en/elasticsearch/reference/master/mapping-settings-limit.html](https://www.elastic.co/guide/en/elasticsearch/reference/master/mapping-settings-limit.html)
 * [https://opensearch.org/docs/latest/field-types/#mapping-limit-settings](https://opensearch.org/docs/latest/field-types/#mapping-limit-settings)
 
-By default OpenSearch/ElasticSearch doesn't allow to save new fields in the index after reach the limit in **1000** fields.
+By default OpenSearch/Elasticsearch doesn't allow to save new fields in the index after reach the limit in **1000** fields.
 
 **How to fix:**
 
@@ -699,7 +699,7 @@ Ordinary Object Pointers (OOP) instead of 32-bit pointers. As a result, it decre
 The official OpenSearch documentation tells us that in fact, it takes until around **40–50 GB** of allocated heap
 before you have the same effective memory of a heap just under **32 GB** using compressed oops.
 
-OpenSearch/ElasticSearch documentation
+OpenSearch/Elasticsearch documentation
 [Don’t Cross 32 GB!](https://www.elastic.co/guide/en/elasticsearch/guide/current/heap-sizing.html#compressed_oops).
 
 **How to fix:**
@@ -710,7 +710,7 @@ to do a deeper analysis of the problems. And you want just adding resources in h
 To fix this issue you first of all need to decrease the memory limit for OpenSearch to ~32 GB.
 
 Second, you need to remember that on the Logging VM, there are other applications and processes like Graylog,
-MongoDB and Nginx. All these applications run as docker containers and require some memory to run. Also, Java
+MongoDB and Nginx. All these applications run as Docker containers and require some memory to run. Also, Java
 applications can use more than set in `-Xmx`. This happens because of the way Java handles memory.
 
 Deployment scripts of the Logging VM allow to specify limits for Graylog and OpenSearch.
@@ -914,9 +914,9 @@ There was FluentD [issue](https://github.com/fluent/fluentd/issues/3651) on GitH
 
 To send logs to Graylog we use output plugin [`fluent-plugin-gelf-hs`](https://github.com/hotschedules/fluent-plugin-gelf-hs)
 that uses Ruby module [`gelf-rb`](https://github.com/graylog-labs/gelf-rb).
-The gelf-hs library creates the Notifier from the `gelf` using the "WAN" network type [here](
+The gelf-hs library creates the Notifier from the `gelf` using the "WAN" network type [see source code](
 https://github.com/hotschedules/fluent-plugin-gelf-hs/blob/master/lib/fluent/plugin/out_gelf.rb#L52).
-It means that the `max chunk size` should be set as `1420 (bytes)` [here](
+It means that the `max chunk size` should be set as `1420 (bytes)` [see source code](
 https://github.com/graylog-labs/gelf-rb/blob/master/lib/gelf/notifier.rb#L57-L67).
 
 According to GELF specification and validation, we should not separate data into more than 128 chunks.

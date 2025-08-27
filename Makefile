@@ -109,7 +109,7 @@ clean:
 generate: controller-gen
 	echo "=> Generate CRDs and deepcopy ..."
 	$(CONTROLLER_GEN) crd:crdVersions={v1} \
-					object:headerFile="hack/boilerplate.go.txt" \
+					object:headerFile="tools/boilerplate.go.txt" \
 					paths="./api/v1alpha1" \
 					output:artifacts:config=charts/qubership-logging-operator/crds/
 	chmod +x ./scripts/build/append-operator-version.sh

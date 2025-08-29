@@ -2082,14 +2082,14 @@ fluentbit:
   # The regexp for the first line of multiline filter
   # Type: string
   # Mandatory: no
-  # Default: "/^(\\[\\d{4}\\-\\d{2}\\-\\d{2}|\\{\\\"|\\u001b\\[.{1,5}m\\d{2}\\:\\d{2}\\:\\d{2}).*/"
+  # Default: "/^(\\[\\d{4}\\-\\d{2}\\-\\d{2}).*/"
   #
   multilineFirstLineRegexp: ~
 
   # The regexp for the other lines of multiline filter
   # Type: string
   # Mandatory: no
-  # Default: "/^(\\[\\d{4}\\-\\d{2}\\-\\d{2}|\\{\\\"|\\u001b\\[.{1,5}m\\d{2}\\:\\d{2}\\:\\d{2}).*/"
+  # Default: "/^(?!\\[\\d{4}\\-\\d{2}\\-\\d{2}).*/"
   #
   multilineOtherLinesRegexp: ~
 
@@ -2590,14 +2590,14 @@ fluentbit:
     # The regexp for the first line of multiline filter
     # Type: string
     # Mandatory: no
-    # Default: "/^(\\[\\d{4}\\-\\d{2}\\-\\d{2}|\\{\\\"|\\u001b\\[.{1,5}m\\d{2}\\:\\d{2}\\:\\d{2}).*/"
+    # Default: "/^(\\[\\d{4}\\-\\d{2}\\-\\d{2}).*/"
     #
     multilineFirstLineRegexp: ~
 
     # The regexp for the other lines of multiline filter
     # Type: string
     # Mandatory: no
-    # Default: "/^(\\[\\d{4}\\-\\d{2}\\-\\d{2}|\\{\\\"|\\u001b\\[.{1,5}m\\d{2}\\:\\d{2}\\:\\d{2}).*/"
+    # Default: "/^(?!\\[\\d{4}\\-\\d{2}\\-\\d{2}).*/"
     #
     multilineOtherLinesRegexp: ~
 

@@ -50,7 +50,7 @@ The main features are as follows:
 
 * **Persistent Volumes**: Required for Graylog (MongoDB and journald)
 * **Storage Types**: Block storage recommended (NFS-like storage not supported)
-* **OpenSearch/ElasticSearch**: Compatible versions depend on Graylog version
+* **OpenSearch/Elasticsearch**: Compatible versions depend on Graylog version
 
 For detailed storage requirements, see the [Installation Guide](https://netcracker.github.io/qubership-logging-operator/installation/).
 
@@ -94,7 +94,7 @@ The operator supports extensive configuration options for all logging components
 
 For detailed configuration options, see:
 
-* [Configuration Guide](https://netcracker.github.io/qubership-logging-operator/configuration/)
+* [Configuration Guide](https://netcracker.github.io/qubership-logging-operator/graylog-configuration/)
 * [Configuration Examples](https://netcracker.github.io/qubership-logging-operator/examples/)
 
 ## API Reference

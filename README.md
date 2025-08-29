@@ -94,7 +94,7 @@ The operator supports extensive configuration options for all logging components
 
 For detailed configuration options, see:
 
-* [Configuration Guide](https://netcracker.github.io/qubership-logging-operator/configuration/)
+* [Configuration Guide](https://netcracker.github.io/qubership-logging-operator/graylog-configuration/)
 * [Configuration Examples](https://netcracker.github.io/qubership-logging-operator/examples/)
 
 ## API Reference

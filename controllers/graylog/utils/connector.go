@@ -56,7 +56,7 @@ type Stream struct {
 }
 
 func CreateConnector(ctx context.Context, cr *loggingService.LoggingService, assets embed.FS, clientSet kubernetes.Interface) (*GraylogConnector, error) {
-	var user *util.Сreds
+	var user *util.Creds
 	var tlsConfig *tls.Config
 	var err error
 
@@ -79,7 +79,7 @@ func CreateConnector(ctx context.Context, cr *loggingService.LoggingService, ass
 	}
 
 	if len(cr.Spec.Graylog.User) != 0 && len(cr.Spec.Graylog.Password) != 0 {
-		user = &util.Сreds{
+		user = &util.Creds{
 			Name:     cr.Spec.Graylog.User,
 			Password: cr.Spec.Graylog.Password,
 		}
@@ -87,7 +87,7 @@ func CreateConnector(ctx context.Context, cr *loggingService.LoggingService, ass
 		name := os.Getenv("GRAYLOG_USERNAME")
 		pwd := os.Getenv("GRAYLOG_PASSWORD")
 		if len(name) != 0 && len(pwd) != 0 {
-			user = &util.Сreds{
+			user = &util.Creds{
 				Name:     name,
 				Password: pwd,
 			}
@@ -112,7 +112,7 @@ func CreateConnector(ctx context.Context, cr *loggingService.LoggingService, ass
 			}
 
 			if (name != "" && pwd != "") || token != "" {
-				user = &util.Сreds{
+				user = &util.Creds{
 					Name:     name,
 					Password: pwd,
 					Token:    token,
@@ -144,7 +144,7 @@ func CreateConnector(ctx context.Context, cr *loggingService.LoggingService, ass
 		}
 		host = hostUrl.String()
 		password, _ := u.User.Password()
-		user = &util.Сreds{
+		user = &util.Creds{
 			Name:     u.User.Username(),
 			Password: password,
 		}

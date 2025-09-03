@@ -56,7 +56,7 @@ Navigate to the jobs and specify the values for the following parameters:
 * `BACKUP_STORAGE_PV` - The folder on Logging VM for backups storing
 * `USER` - The remote user for the SSH connection
 * `DOCKER_IMAGE` - The Docker image of logging-backuper. It can be found in the Docker registry on Deploy VM.
-  For example, `local.deployVM:17001/product/prod.platform.logging_logging-backuper:v.0.3.2_20190702-114745`.
+  For example, `local.deployVM:17001/qubership_logging-backuper:main`.
 * `SSH_KEY` - The private SSH key for access to GRAYLOG_HOST
 * `SCHEDULE_CRON_PATTERN` - The CRON pattern for backup schedule configuration
 * `BACKUP_EVICTION_POLICY` - The backup eviction policy configuration. This parameter configures the next procedure
@@ -108,6 +108,6 @@ To restore logging from backup:
 ## Update Fluents' Configmap
 
 Since R2024.4 you can manually update Fluents' configuration without restarting pods.
-It realised by configmap-reload sidecar in each Fluents' container.
+It released by configmap-reload sidecar in each Fluents' container.
 It watches mounted configmap and notifies the target process that the configmap has been changed.
 After that configmap-reload sidecar calls REST-api for hot reload Fluents'.

@@ -31,7 +31,7 @@ Qubership extensions include:
 * Basic configuration OOB such as logs segregation, users, logs rotation policies, and so on.
 * Operations such as backup/restore, troubleshooting, maintenance, and so on.
 
-All Graylog parts are deployed on a dedicated VM or Cloud in docker containers.
+All Graylog parts are deployed on a dedicated VM or Cloud in Docker containers.
 Graylog supports many input protocols, and can interact with almost all log agents such as the following:
 
 * Cloud Logs Collection - By default, `fluentbit` is used in the solution as Kubernetes DaemonSet for application
@@ -50,21 +50,21 @@ Official documentation:
 
 * Graylog [https://go2docs.graylog.org/5-2/home.htm](https://go2docs.graylog.org/5-2/home.htm)
 
-## OpenSearch/ElasticSearch
+## OpenSearch/Elasticsearch
 
 Used by Graylog as a log storage.
 
 `OpenSearch` is the flexible, scalable, open-source way to build solutions for data-intensive applications.
-Was forked from `ElasticSearch`, improved and now supported by Amazon.
+Was forked from `Elasticsearch`, improved and now supported by Amazon.
 
-`ElasticSearch` is a distributed, RESTful search and analytics engine capable of addressing a growing number of use cases.
+`Elasticsearch` is a distributed, RESTful search and analytics engine capable of addressing a growing number of use cases.
 As the heart of the Elastic Stack, it centrally stores your data for lightning-fast search, fine‑tuned relevancy,
 and powerful analytics that scale with ease.
 
 Official documentation:
 
 * OpenSearch [https://opensearch.org/docs/latest/](https://opensearch.org/docs/latest/)
-* ElasticSearch [https://www.elastic.co/guide/index.html](https://www.elastic.co/guide/index.html)
+* Elasticsearch [https://www.elastic.co/guide/index.html](https://www.elastic.co/guide/index.html)
 
 ## MongoDB
 
@@ -167,7 +167,7 @@ This section describes the abilities of Logging stack deploy using Public Cloud 
 
 In the case of deploy Graylog in the Cloud and AWS, you can use `AWS OpenSearch` as a log storage.
 
-Graylog in the Cloud requires separated OpenSearch/ElasticSearch to store logs. Because AWS provides
+Graylog in the Cloud requires separated OpenSearch/Elasticsearch to store logs. Because AWS provides
 a lot of managed services (including AWS OpenSearch) you can replace self-managed OpenSearch clusters
 with AWS Managed Service.
 

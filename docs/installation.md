@@ -9,33 +9,38 @@ see [Configuration](./graylog-configuration.md).
 
 ## Table of Contents
 
-- [Installation Guide](#installation-guide)
-  - [Table of Contents](#table-of-contents)
-  - [Supported Platforms and Compatibility](#supported-platforms-and-compatibility)
-    - [Kubernetes compatibility](#kubernetes-compatibility)
-    - [Openshift compatibility](#openshift-compatibility)
-    - [Public Cloud Provider Support](#public-cloud-provider-support)
-      - [Amazon Web Services (AWS)](#amazon-web-services-aws)
-      - [Azure](#azure)
-      - [Google Cloud](#google-cloud)
-  - [Prerequisites](#prerequisites)
-    - [System requirements](#system-requirements)
-      - [Tools](#tools)
-    - [Storage requirements](#storage-requirements)
-      - [Supported backends](#supported-backends)
-      - [Graylog Persistent Volumes](#graylog-persistent-volumes)
-    - [Hardware requirements](#hardware-requirements)
-  - [Environment preparation](#environment-preparation)
-    - [Kubernetes](#kubernetes)
-    - [OpenShift](#openshift)
-    - [HostPath Persistent Volumes](#hostpath-persistent-volumes)
-  - [Installation](#installation)
-  - [Configuration parameters](#configuration-parameters)
-  - [Post Installation Steps](#post-installation-steps)
-    - [Configuring URL whitelist](#configuring-url-whitelist)
-  - [Upgrade](#upgrade)
-  - [Frequently asked questions](#frequently-asked-questions)
-  - [Footnotes](#footnotes)
+* [Installation Guide](#installation-guide)
+  * [Table of Contents](#table-of-contents)
+  * [Supported Platforms and Compatibility](#supported-platforms-and-compatibility)
+    * [Kubernetes compatibility](#kubernetes-compatibility)
+    * [Openshift compatibility](#openshift-compatibility)
+    * [Public Cloud Provider Support](#public-cloud-provider-support)
+      * [Amazon Web Services (AWS)](#amazon-web-services-aws)
+      * [Azure](#azure)
+      * [Google Cloud](#google-cloud)
+  * [Prerequisites](#prerequisites)
+    * [System requirements](#system-requirements)
+      * [Platform compatibility](#platform-compatibility)
+      * [Tools](#tools)
+    * [Storage requirements](#storage-requirements)
+      * [Supported backends](#supported-backends)
+      * [Graylog Persistent Volumes](#graylog-persistent-volumes)
+    * [Hardware requirements](#hardware-requirements)
+      * [Small](#small)
+      * [Medium](#medium)
+      * [Large](#large)
+      * [Storage capacity planning](#storage-capacity-planning)
+    * [Environment preparation](#environment-preparation)
+      * [Kubernetes](#kubernetes)
+      * [OpenShift](#openshift)
+      * [HostPath Persistent Volumes](#hostpath-persistent-volumes)
+  * [Installation](#installation)
+  * [Configuration parameters](#configuration-parameters)
+  * [Post Installation Steps](#post-installation-steps)
+    * [Configuring URL whitelist](#configuring-url-whitelist)
+  * [Upgrade](#upgrade)
+  * [Frequently asked questions](#frequently-asked-questions)
+  * [Footnotes](#footnotes)
 
 ## Supported Platforms and Compatibility
 
@@ -80,9 +85,9 @@ Supported OpenSearch versions can be found in the [Supported backends](#supporte
 When using Graylog with `AWS Managed OpenSearch`, you should select an OpenSearch instance flavor
 with hardware resources no less than the following:
 
-- CPU - 2 core
-- Memory - 4 Gb
-- Storage type - SSD
+* CPU - 2 core
+* Memory - 4 Gb
+* Storage type - SSD
 
 #### Azure
 
@@ -109,9 +114,9 @@ in the Google marketplace from other vendors.
 
 #### Tools
 
-- kubectl/oc CLI (1.21+)
-- Helm (3.0+)
-- Container Runtime (Docker, cri-o, containerd)
+* kubectl/oc CLI (1.21+)
+* Helm (3.0+)
+* Container Runtime (Docker, cri-o, containerd)
 
 ### Storage requirements
 
@@ -126,22 +131,22 @@ When deploying Graylog in the cloud, you should use only the OpenSearch or Elast
 <!-- markdownlint-enable line-length -->
 where:
 
-- `*` - for Graylog 4.x OpenSearch 1.x must be deployed and run **with** compatibility mode
-- `**` - for Graylog 5.x OpenSearch 2.x must be deployed and run **without** compatibility mode
+* `*` - for Graylog 4.x OpenSearch 1.x must be deployed and run **with** compatibility mode
+* `**` - for Graylog 5.x OpenSearch 2.x must be deployed and run **without** compatibility mode
 
 **Note:** Graylog may not work properly with OpenSearch/Elasticsearch versions other than specified in the table above.
 
 Information about compatibility mode:
 
-- [Moving from open-source Elasticsearch to OpenSearch](https://opensearch.org/blog/moving-from-opensource-elasticsearch-to-opensearch/)
+* [Moving from open-source Elasticsearch to OpenSearch](https://opensearch.org/blog/moving-from-opensource-elasticsearch-to-opensearch/)
 
 #### Graylog Persistent Volumes
 
 Graylog requires two Persistent Volumes (PVs):
 
-- for the built-in MongoDB, used to store Graylog configuration data.
+* for the built-in MongoDB, used to store Graylog configuration data.
 
-- for the journald, used as a cache between Graylog input and message processing.
+* for the journald, used as a cache between Graylog input and message processing.
 
 NFS-like storage **is not supported!** This means you shouldn’t use PV and dynamic storage provisioners
 with NFS, AWS EFS, Azure File, or any other NFS-based storage.
@@ -291,8 +296,8 @@ metadata:
 
 To deploy in OpenShift you need to:
 
-- Run FluentBit/FluentD in `privileged` mode
-- Create Security Context Constraints (SCC)
+* Run FluentBit/FluentD in `privileged` mode
+* Create Security Context Constraints (SCC)
 
 Run FluentBit/FluentD in `privileged` mode is mandatory.
 Otherwise, the logging agents cannot access log files on the nodes.
@@ -422,11 +427,11 @@ Installation consists of the following steps:
 
    where:
 
-   - `container_runtime`: the container runtime used by your platform: `docker`, `cri-o` or `containerd`
-   - `storage_class`: the storage class for the PVC which will be requested during installation.
-   - `opensearch_user` and `opensearch_password`: credentials for OpenSearch user
-   - `opensearch_host`: the address of OpenSearch (usually `opensearch.opensearch`)
-   - `opensearch_port`: opensearch port (default `9200`)
+   * `container_runtime`: the container runtime used by your platform: `docker`, `cri-o` or `containerd`
+   * `storage_class`: the storage class for the PVC which will be requested during installation.
+   * `opensearch_user` and `opensearch_password`: credentials for OpenSearch user
+   * `opensearch_host`: the address of OpenSearch (usually `opensearch.opensearch`)
+   * `opensearch_port`: opensearch port (default `9200`)
   
 3. Install the Helm chart from the local repository.
 
@@ -439,8 +444,8 @@ Installation consists of the following steps:
 
    where:
 
-   - `your_namespace`: the target namespace where Logging will be deployed
-   - `your_values_yaml`: the path to the values file prepared in step 2.
+   * `your_namespace`: the target namespace where Logging will be deployed
+   * `your_values_yaml`: the path to the values file prepared in step 2.
 
    You can override values by passing to helm install command parameter after --set directive, e.g.:
 
@@ -482,7 +487,7 @@ Installation consists of the following steps:
 | `graylog.tls`             | TLS configuration for Graylog WebUI and default Inputs                                                      | [Graylog TLS](./installation-parameters.md#graylog-tls)              |
 | `graylog.opensearch`      | Contains the parameters required for connection to `Opensearch`                                             | [OpenSearch](./installation-parameters.md#opensearch)               |
 | `graylog.contentPacks`    | Contains Graylog content packs parameters                                                                   | [ContentPacks](./installation-parameters.md#contentpacks)             |
- |`graylog.streams`         | Contains parameters to enable, disable or modify the retention strategy for the default Graylog's Streams   | [Graylog Streams](./installation-parameters.md#graylog-streams)          |
+ | `graylog.streams`         | Contains parameters to enable, disable or modify the retention strategy for the default Graylog's Streams   | [Graylog Streams](./installation-parameters.md#graylog-streams)          |
 | `graylog.authProxy`       | Includes parameters to enable and configure the Graylog authentication proxy                                | [Graylog Auth Proxy](./installation-parameters.md#graylog-auth-proxy)       |
 | `graylog.authProxy.ldap`  | Contains parameters to configure LDAP provider for `graylog-auth-proxy`                                     | [Graylog Auth Proxy LDAP](./installation-parameters.md#graylog-auth-proxy-ldap)  |
 | `graylog.authProxy.oauth` | Contains parameters to configure OAuth provider for `graylog-auth-proxy`                                    | [Graylog Auth Proxy OAuth](./installation-parameters.md#graylog-auth-proxy-oauth) |

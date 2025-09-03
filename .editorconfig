@@ -36,3 +36,7 @@ indent_size = 4
 
 [Makefile]
 indent_style = tab
+
+# NodeID file for Graylog
+[node-id]
+insert_final_newline = false

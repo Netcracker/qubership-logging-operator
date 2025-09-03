@@ -1,4 +1,4 @@
-# Configuration
+# Graylog Configuration
 
 This document describe how to configure Graylog in different cases.
 

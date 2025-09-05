@@ -95,14 +95,14 @@ The last set of roles will be used if the user doesn't match any of specified gr
 For example, the following configuration:
 
 ```bash
-"CN=otrk_admins,OU=OTRK_Groups,OU=IRQA_LDAP,DC=testad,DC=local":["Admin"] | "CN=otrk_users,OU=OTRK_Groups,OU=IRQA_LDAP,DC=testad,DC=local":["Reader","Operator"] | ["Reader"]
+"CN=my_admins,OU=MY_Groups,OU=QA_LDAP,DC=testad,DC=local":["Admin"] | "CN=my_users,OU=MY_Groups,OU=QA_LDAP,DC=testad,DC=local":["Reader","Operator"] | ["Reader"]
 ```
 
 will match this cases:
 
-* LDAP users who are members of group with CN `CN=otrk_admins,OU=OTRK_Groups,OU=IRQA_LDAP,DC=testad,DC=local`
+* LDAP users who are members of group with CN `CN=my_admins,OU=MY_Groups,OU=QA_LDAP,DC=testad,DC=local`
   will have role `Admin` in the Graylog
-* LDAP users who are members of group with CN `CN=otrk_users,OU=OTRK_Groups,OU=IRQA_LDAP,DC=testad,DC=local`
+* LDAP users who are members of group with CN `CN=my_users,OU=MY_Groups,OU=QA_LDAP,DC=testad,DC=local`
   will have roles `Reader` and `Operator` in the Graylog
 * Users who are not members of groups above will have role `Reader`
 
@@ -125,16 +125,16 @@ will set by default.
 For example, the following configuration:
 
 ```bash
-"CN=otrk_admins,OU=OTRK_Groups,OU=IRQA_LDAP,DC=testad,DC=local":["All messages/manage","all events/view"] | "CN=otrk_users,OU=OTRK_Groups,OU=IRQA_LDAP,DC=testad,DC=local":["All events"] | ["System logs/view"]
+"CN=my_admins,OU=MY_Groups,OU=QA_LDAP,DC=testad,DC=local":["All messages/manage","all events/view"] | "CN=my_users,OU=MY_Groups,OU=QA_LDAP,DC=testad,DC=local":["All events"] | ["System logs/view"]
 ```
 
 will match this cases:
 
 * Stream with name `All messages` with capability `Manager` and stream `All events` with capability `Viewer` will be
   shared for each LDAP user who is members of group
-  with CN `CN=otrk_admins,OU=OTRK_Groups,OU=IRQA_LDAP,DC=testad,DC=local`
+  with CN `CN=my_admins,OU=MY_Groups,OU=QA_LDAP,DC=testad,DC=local`
 * Stream with name `All events` with default capability `Viewer` will be shared for each LDAP user who is members of
-  group with CN `CN=otrk_users,OU=OTRK_Groups,OU=IRQA_LDAP,DC=testad,DC=local`
+  group with CN `CN=my_users,OU=MY_Groups,OU=QA_LDAP,DC=testad,DC=local`
 * Users who are not members of groups above will have access to stream `System logs` with capability `Viewer`
 
 The order in which groups are specified matters just as for the role mapping. Names of streams are case-insensitive.
@@ -233,9 +233,9 @@ graylog:
     authType: ldap
     ldap:
       url: ldap://adfs.test.org
-      baseDN: "OU=IRQA_LDAP,DC=testad,DC=local"
-      bindDN: "otrk_admin"
-      bindPassword: <otrk_admin_password>
+      baseDN: "OU=QA_LDAP,DC=testad,DC=local"
+      bindDN: "my_admin"
+      bindPassword: <my_admin_password>
       searchFilter: "(SAMAccountName=%(username)s)"
 ```
 
@@ -261,17 +261,17 @@ graylog:
       overSsl: false
       skipVerify: false
       disableReferrals: false
-      baseDN: "OU=IRQA_LDAP,DC=testad,DC=local"
-      bindDN: "otrk_super"
-      bindPassword: <otrk_admin_password>
+      baseDN: "OU=QA_LDAP,DC=testad,DC=local"
+      bindDN: "my_super"
+      bindPassword: <my_admin_password>
       bindPasswordSecret:
         name: graylog-auth-proxy-secret
         key: bindPassword
       searchFilter: "(SAMAccountName=%(username)s)"
     preCreatedUsers: admin,auditViewer,operator,telegraf_operator,graylog-sidecar,graylog_api_th_user
     rotationPassInterval: 3
-    roleMapping: '"CN=otrk_admins,OU=OTRK_Groups,OU=IRQA_LDAP,DC=testad,DC=local":["Admin"] | ["Reader"]'
-    streamMapping: '"CN=otrk_admins,OU=OTRK_Groups,OU=IRQA_LDAP,DC=testad,DC=local":["All messages/manage","all events/view"] | "CN=otrk_users,OU=OTRK_Groups,OU=IRQA_LDAP,DC=testad,DC=local":["All events"] | ["System logs/view"]'
+    roleMapping: '"CN=my_admins,OU=MY_Groups,OU=QA_LDAP,DC=testad,DC=local":["Admin"] | ["Reader"]'
+    streamMapping: '"CN=my_admins,OU=MY_Groups,OU=QA_LDAP,DC=testad,DC=local":["All messages/manage","all events/view"] | "CN=my_users,OU=MY_Groups,OU=QA_LDAP,DC=testad,DC=local":["All events"] | ["System logs/view"]'
 ```
 
 ### Connecting to OAuth authorization server

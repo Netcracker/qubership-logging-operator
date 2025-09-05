@@ -58,7 +58,7 @@ flowchart LR
         ID["input-docker.conf<br/>Tag pods.*<br/>multiline.parser: docker"] --> FC
         FC["filter-concat.conf<br/>Match pods*<br/>Match klog*<br/>Parsers multiline_qubership, multiline_klog"] --> FK
         FC["filter-concat.conf<br/>Match pods*<br/>Match klog*<br/>Parsers multiline_qubership, multiline_klog"] --> FRTP
-        FK["filter-enrich-fields.conf<br/>Match pods*<br/>Parsing by suggested parser in annotations<br/>Nesting, filtering fields, precounting"] --> FRT
+        FK["filter-enrich-fields.conf<br/>Match pods*<br/>Parsing by suggested parser in annotations<br/>Nesting, filtering fields, preliminary count"] --> FRT
         FRT["filter-rewrite-tag.conf<br/>Match pods*<br/>Rule: $pod ^kube-.* klog.$TAG false"] --> FC
         FRT["filter-rewrite-tag.conf<br/>Match pods*<br/>Rule: $pod ^kube-.* klog.$TAG false"] --> FVALID
         FRTP["filter-rewrite-tag.conf<br/>Match klog.*<br/>klog parsers"] --> FVALID
@@ -81,7 +81,7 @@ flowchart LR
 | 1   | inputs/input-containerd.conf              | INPUT Tail (multiline.parser docker)                                 | Tag pods.*                        | Reads containerd logs and decodes them with docker parser                                                   |
 | 2   | inputs/input-containerd.conf              | INPUT Tail (multiline.parser cri)                                    | Tag pods.*                        | Reads containerd logs and decodes them with cri prefix                                                     |
 | 3   | inputs/input-docker.conf                  | INPUT Tail (multiline.parser docker)                                 | Tag pods.*                        | Reads docker logs and parses them with docker parser                                                       |
-| 4   | filters/filter-concat.conf                | FILTER multiline (multiline.parser qubership_multiline)              | Match pods*                       | Concatenates messages based on regex for stacktrace multilines                                             |
+| 4   | filters/filter-concat.conf                | FILTER multiline (multiline.parser qubership_multiline)              | Match pods*                       | Concatenates messages based on regex for stacktrace multiline                                             |
 | 5   | filters/filter-concat.conf                | FILTER multiline (multiline.parser klog_multiline)                   | Match klog*                       | Concatenates messages based on klog trace messages format                                                  |
 | 6   | filters/filter-enrich-fields.conf        | FILTER kubernetes (Regex_Parser kube-meta; Merge_Log_Key log_parsed) | Match pods*                       | Enriches messages with metadata. Parses log field with suggested parser in pod's annotations if provided, otherwise tries to parse with json parser. If message parsing succeeded saves parsed data in log_parsed field |
 | 7   | filters/filter-enrich-fields.conf        | FILTER nest (Operation lift; Remove_prefix kubernetes.)              | Match pods*                       | Lifts fields nested under kubernetes to the root level                                                     |

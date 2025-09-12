@@ -8,11 +8,12 @@ ${GRAYLOG_PASS}                 %{GRAYLOG_PASS}
 ${OPERATION_RETRY_COUNT}        60x
 ${RETRY_COUNT_FOR_FIRST_TEST}   250x
 ${OPERATION_RETRY_INTERVAL}     5s
-${FILES_PATH}                   ./source_files/log_generator
+${FILES_PATH}                   ./source_files/fake_generator
 ${DEPLOYMENT_FILE}              ${FILES_PATH}/deployment.yaml
+${KLOG_DEPLOYMENT_FILE}         ${FILES_PATH}/klog_deployment.yaml
 ${CONFIG_FILE}                  ${FILES_PATH}/config.yaml
 ${DATE_TIME_REGEXP}             [0-9]{4}\-[0-9]{2}\-[0-9]{2}T[0-9]{2}\:[0-9]{2}:[0-9]{2}
-${TAG_PREFIX}                   parsed.kubernetes.var.log.pods.${NAMESPASE}_
+${TAG_PREFIX}                   parsed.kubernetes.var.log.pods.${NAMESPACE}_
 ${FATAL_LEVEL}                  1
 ${ERROR_LEVEL}                  3
 ${WARN_LEVEL}                   4
@@ -23,8 +24,8 @@ ${DEBUG_LEVEL}                  7
 Library  OperatingSystem
 Suite Setup  Run Keywords  Setup
 ...  AND  Create Config
-...  AND  Create Log Generator
-Suite Teardown  Run Keywords  Delete Log Generator
+...  AND  Create Log Generators
+Suite Teardown  Run Keywords  Delete Log Generators
 ...  AND  Delete Config Map
 Resource        keywords.robot
 
@@ -36,36 +37,55 @@ Setup
     Create Session  graylog  ${GRAYLOG_PROTOCOL}://${GRAYLOG_HOST}:${GRAYLOG_PORT}  auth=${auth}  disable_warnings=1  verify=False  timeout=10
     Check Fluentbit And Fluentd
     IF  ${fluentd_exists} == True
-        ${TAG_PREFIX}=  Set Variable  parsed.kubernetes.var.log.pods.${NAMESPASE}_
+        ${TAG_PREFIX}=  Set Variable  parsed.kubernetes.var.log.pods.${NAMESPACE}_
     ELSE
-        ${TAG_PREFIX}=  Set Variable  var.log.pods.${NAMESPASE}_
+        ${TAG_PREFIX}=  Set Variable  var.log.pods.${NAMESPACE}_
     END
     Set Suite Variable  ${TAG_PREFIX}
 
 Get Log Generator Name
-    ${generator_names}=  Get Pod Names For Deployment Entity  qubership-log-generator  ${NAMESPASE}
+    ${generator_names}=  Get Pod Names For Deployment Entity  qubership-log-generator  ${NAMESPACE}
     ${generator_pod_name}=  Set Variable  ${generator_names}[0]
     Set Suite Variable  ${generator_pod_name}
     Log to console  log generator pod name: ${generator_pod_name}
 
-Create Log Generator
+Get Log Generator Names
+    ${gen1_names}=  Get Pod Names For Deployment Entity  qubership-log-generator  ${NAMESPACE}
+    ${gen1_pod_name}=  Set Variable  ${gen1_names}[0]
+    Set Suite Variable  ${generator_pod_name}  ${gen1_pod_name}
+    Log To Console    qubership generator pod name: ${gen1_pod_name}
+
+    ${gen2_names}=  Get Pod Names For Deployment Entity  kube-log-generator  ${NAMESPACE}
+    ${gen2_pod_name}=      Set Variable    ${gen2_names}[0]
+    Set Suite Variable    ${kube_generator_pod_name}    ${gen2_pod_name}
+    Log To Console    klog generator pod name: ${gen2_pod_name}
+
+Create Log Generators
+    [Documentation]    Creating 2 pods: qubership-log-generator and kube-log-generator
     IF  "${OPENSHIFT_DEPLOY}" == "true"
-        Create Deployment Entity From File  ${DEPLOYMENT_FILE}  ${NAMESPASE}
+        Create Deployment Entity From File  ${DEPLOYMENT_FILE}  ${NAMESPACE}
+        Create Deployment Entity From File    ${KLOG_DEPLOYMENT_FILE}    ${NAMESPACE}
     ELSE
-        ${new_deployment}=  Add Security Context To Deployment  ${DEPLOYMENT_FILE}  ${NAMESPASE}
-        Create Deployment Entity  ${new_deployment}  ${NAMESPASE}
+        ${new_deployment}=  Add Security Context To Deployment  ${DEPLOYMENT_FILE}  ${NAMESPACE}
+        Create Deployment Entity  ${new_deployment}  ${NAMESPACE}
+        ${new_kube_deployment}=  Add Security Context To Deployment    ${KLOG_DEPLOYMENT_FILE}    ${NAMESPACE}
+        Create Deployment Entity    ${new_kube_deployment}    ${NAMESPACE}
     END
     Wait Until Keyword Succeeds  ${OPERATION_RETRY_COUNT}  ${OPERATION_RETRY_INTERVAL}
-    ...  Get Log Generator Name
+    ...  Get Log Generator Names
 
 Create Config
-    Create Config Map From File  ${NAMESPASE}  ${CONFIG_FILE}
+    Create Config Map From File  ${NAMESPACE}  ${CONFIG_FILE}
+
+Delete Log Generators
+    Delete Deployment Entity    qubership-log-generator    ${NAMESPACE}
+    Delete Deployment Entity    kube-log-generator         ${NAMESPACE}
 
 Delete Log Generator
-    Delete Deployment Entity  qubership-log-generator  ${NAMESPASE}
+    Delete Deployment Entity  qubership-log-generator  ${NAMESPACE}
 
 Delete Config Map
-    Delete Config Map By Name  qubership-log-generator-config  ${NAMESPASE}
+    Delete Config Map By Name  qubership-log-generator-config  ${NAMESPACE}
 
 Search messages by query
     [Arguments]  ${query}
@@ -84,12 +104,39 @@ Check Message Parsing
     ${message_field}=  Get From Dictionary  ${message}  message
     Set Suite Variable  ${message_field}
     Should Contain  ${message_field}  ${log_type}
-    ${tag}=  Get From Dictionary  ${message}  tag
-    Should Contain  ${tag}  ${TAG_PREFIX}${generator_pod_name}
+    ${pod}=  Get From Dictionary  ${message}  pod
+    ${namespace}=  Get From Dictionary  ${message}  namespace
+    Should Be Equal As Strings  ${namespace}  ${NAMESPACE}
+    Should Contain    ${pod}    ${generator_pod_name}
     IF  ${fluentd_exists} == True
         ${time}=  Get From Dictionary  ${message}  time
     ELSE
         ${time}=  Get From Dictionary  ${message}  timestamp
+        ${parsed}=  Get From Dictionary  ${message}  parsed
+        Should Be Equal As Strings  ${parsed}  true
+    END
+    Should Match Regexp  ${time}  ${DATE_TIME_REGEXP}
+
+Check Klog Message Parsing
+    [Arguments]  ${query}  ${log_type}  ${expected_level}
+    Wait Until Keyword Succeeds  ${OPERATION_RETRY_COUNT}  ${OPERATION_RETRY_INTERVAL}
+    ...  Search messages by query  ${query}
+    ${message}=  Get From Dictionary  ${messages}[0]  message
+    ${level}=   Get From Dictionary  ${message}  level
+    Should Be Equal As Strings  ${level}  ${expected_level}
+    ${message_field}=  Get From Dictionary  ${message}  message
+    Set Suite Variable  ${message_field}
+    Should Contain  ${message_field}  ${log_type}
+    ${pod}=  Get From Dictionary  ${message}  pod
+    ${namespace}=  Get From Dictionary  ${message}  namespace
+    Should Be Equal As Strings  ${namespace}  ${NAMESPACE}
+    Should Contain    ${pod}    ${kube_generator_pod_name}
+    IF  ${fluentd_exists} == True
+        ${time}=  Get From Dictionary  ${message}  time
+    ELSE
+        ${time}=  Get From Dictionary  ${message}  timestamp
+        ${parsed}=  Get From Dictionary  ${message}  parsed
+        Should Be Equal As Strings  ${parsed}  true
     END
     Should Match Regexp  ${time}  ${DATE_TIME_REGEXP}
 
@@ -167,3 +214,15 @@ Check Parsing Json Info Logs
     ${log_type}=  Set Variable  json_log
     ${query}=  Set Variable  "${generator_pod_name}"+AND+message%3A+"${log_type}"+NOT+message%3A+"templates"
     Check Message Parsing  ${query}  ${log_type}  6
+
+Check Parsing Klog Error Logs
+    [Tags]  log-generator
+    ${log_type}=  Set Variable  klog_error_log
+    ${query}=  Set Variable  "${kube_generator_pod_name}"+AND+message%3A+"${log_type}"+NOT+message%3A+"templates"
+    Check Klog Message Parsing  ${query}  ${log_type}  ${ERROR_LEVEL}
+
+Check Parsing Klog Multiline Logs
+    [Tags]  log-generator
+    ${log_type}=  Set Variable  klog_multiline_log
+    ${query}=  Set Variable  "${kube_generator_pod_name}"+AND+message%3A+"${log_type}_parent"+AND+message%3A+"${log_type}_child"+NOT+message%3A+"templates"
+    Check Klog Message Parsing  ${query}  ${log_type}  ${INFO_LEVEL}

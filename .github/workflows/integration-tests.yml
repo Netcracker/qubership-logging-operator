@@ -167,12 +167,12 @@ jobs:
       id: check_opensearch_health
       run: |
         cluster_status=$(kubectl exec -n ${{ env.opensearch_namespace }} opensearch-0 -- curl -s http://localhost:9200/_cluster/health?pretty -u admin:admin)
-        if [[ "echo $cluster_status | jq -r .status"  = "yellow" ]]; then
+        if [[ $(jq -r .status <<<"$cluster_status") = "yellow" ]]; then
           echo "::error::❌ Opensearch cluster status is YELLOW. Check opensearch logs."
           echo "status=❌failure" >> $GITHUB_OUTPUT
           echo "cluster_status=$(echo $cluster_status | jq -c )" >> $GITHUB_OUTPUT && echo -e "Cluster status:\n$cluster_status"
           exit 1
-        elif [[ "echo $cluster_status | jq -r .status"  = "red" ]]; then
+        elif [[ $(jq -r .status <<<"$cluster_status")  = "red" ]]; then
           echo "::error::❌ Opensearch cluster status is RED. Check opensearch logs."
           echo "status=❌failure" >> $GITHUB_OUTPUT
           echo "cluster_status=$(echo $cluster_status | jq -c )" >> $GITHUB_OUTPUT && echo -e "Cluster status:\n$cluster_status"
@@ -211,7 +211,7 @@ jobs:
           install: false
         integrationTests:
           install: true
-          tags: smoke
+          tags: smokeORlog-generator
           image: ghcr.io/${{ env.REPOSITORY_OWNER }}/qubership-logging-integration-tests:${{ env.TAG }}
           externalGraylogServer: "false"
           graylogHost: graylog-service
@@ -328,7 +328,7 @@ jobs:
         while [[ $attempt -le $max_attempts ]]; do
           problem_pods=$(kubectl get pods -n ${{ env.namespace }} 2>/dev/null| grep -E "ImagePullBackOff|ErrImagePull|InvalidImageName" || true)
           if [[ -n "$problem_pods" ]]; then
-            echo -e"::error::❌ Some images cannot be pulled:\n$problem_pods"
+            echo -e "::error::❌ Some images cannot be pulled:\n$problem_pods"
             exit 1
           fi
           echo "Attempt $attempt/$max_attempts: Checking integration-tests pod status..."
@@ -369,100 +369,148 @@ jobs:
         echo "Checking integration tests results..."
         attempt=1
         max_attempts=${{ env.max_attempts }}
+
+        # =======================
+        # Smoke test
+        # =======================
+        smoke_result=""
         while [[ $attempt -le $max_attempts ]]; do
-          echo "Attempt $attempt/$max_attempts: Checking tests results..."
+          echo "Attempt $attempt/$max_attempts: Running smoke tests..."
           logs=$(kubectl logs -l name=logging-integration-tests-runner -n ${{ env.namespace }} --tail=-1)
-          if [[ -n $(echo "$logs" | grep -E "Test Indexer Cluster Status.*FAIL") && -n $(echo "$logs" | grep "yellow != green" ) ]]; then
-            if [[ -n $(echo "$logs" | grep -E "Tests.*FAIL") ]]; then
-              stats_line=$(echo "$logs" | grep -E '[0-9]+\ tests,\ [0-9]+\ passed,\ [0-9]+\ failed,\ [0-9]+\ skipped' | tail -n 1)
-              read total passed failed skipped <<< $(echo "$stats_line" | awk '{ gsub(",", "", $0); print $1, $3, $5, $7}')
-              if [[ "$failed" == "1" ]]; then
-                warning=$(echo "$logs" | grep "yellow != green")
-                echo "::group::⚠️Smoke test completed with 1 warning:"
-                echo -e "$warning\n==========================="
-                echo -e "Total: $total\nFailed: $failed\nSkipped: $skipped\nPassed: $passed"
-                echo "::endgroup::"
-                echo "status=⚠️warning" >> $GITHUB_OUTPUT
-                if [[ -n "$warning" ]]; then
-                  echo "warning=$warning" >> $GITHUB_OUTPUT
-                fi
-                echo "total=$total" >> $GITHUB_OUTPUT
-                echo "failed=$failed" >> $GITHUB_OUTPUT
-                echo "skipped=$skipped" >> $GITHUB_OUTPUT
-                echo "passed=$passed" >> $GITHUB_OUTPUT
-                TEST_RESULTS=$(echo "$logs" | awk -v RS='\r?\n' '/^==============================================================================$/ && !found {found=1; print; next} found && /^Output:/ {exit} found')
-        cat <<EOF >> $GITHUB_OUTPUT
-        test_results<<END
-        $TEST_RESULTS
-        END
-        EOF
-                exit 0
-              else
-                "::error::❌ Smoke test has more than 1 failed steps"
-                echo "status=❌failed" >> $GITHUB_OUTPUT
-                echo "details=Check logs in uploaded artifacts" >> $GITHUB_OUTPUT
-                TEST_RESULTS=$(echo "$logs" | awk -v RS='\r?\n' '/^==============================================================================$/ && !found {found=1; print; next} found && /^Output:/ {exit} found')
-        cat <<EOF >> $GITHUB_OUTPUT
-        test_results<<END
-        $TEST_RESULTS
-        END
-        EOF
-                exit 1
-              fi
+
+          smoke_stats=$(awk '/^Tests\.Smoke\s+\|\s+(PASS|FAIL|SKIP)\s+\|$/{flag=1} /^([=]{78,})$/{if(flag){flag=0}} flag && /[0-9]+ tests, [0-9]+ passed, [0-9]+ failed(, [0-9]+ skipped)?/' <<< "$logs")
+
+          if [[ -n $(echo "$logs" | grep -E "Tests\.Smoke\s+\|\s+PASS\s+\|") ]]; then
+            echo "✅ Smoke test passed."
+            read total passed failed skipped <<< $(echo "$smoke_stats" | awk '{gsub(",", "", $0); print $1, $3, $5, $7}')
+            echo "smoke_total=$total"   >> $GITHUB_OUTPUT
+            echo "smoke_passed=$passed" >> $GITHUB_OUTPUT
+            echo "smoke_failed=$failed" >> $GITHUB_OUTPUT
+            echo "smoke_skipped=${skipped:-0}" >> $GITHUB_OUTPUT
+            echo "smoke_status=✅passed" >> $GITHUB_OUTPUT
+            smoke_result="passed"
+            break
+
+          elif [[ -n $(echo "$logs" | grep -E "Tests\.Smoke\s+\|\s+FAIL\s+\|") ]]; then
+            read total passed failed skipped <<< $(echo "$smoke_stats" | awk '{gsub(",", "", $0); print $1, $3, $5, $7}')
+            echo "smoke_total=$total"   >> $GITHUB_OUTPUT
+            echo "smoke_passed=$passed" >> $GITHUB_OUTPUT
+            echo "smoke_failed=$failed" >> $GITHUB_OUTPUT
+            echo "smoke_skipped=${skipped:-0}" >> $GITHUB_OUTPUT
+
+            if [[ -n $(echo "$logs" | grep -E "Keyword 'Check Indexer Cluster Status' failed[\w :\.]+yellow != green") && "$failed" == "1" ]]; then
+              warning=$(echo "$logs" | grep "yellow != green")
+              echo "::group::⚠️Smoke test completed with 1 warning:"
+              echo -e "$warning\n==========================="
+              echo -e "Total: $total\nFailed: $failed\nSkipped: ${skipped:-0}\nPassed: $passed"
+              echo "::endgroup::"
+              echo "smoke_status=⚠️warning" >> $GITHUB_OUTPUT
+              echo "warning=$warning" >> $GITHUB_OUTPUT
+              smoke_result="warning"
             else
-              echo "Smoke test is not completed yet. Checking in ${{ env.delay }} seconds..."
-              sleep ${{ env.delay }}
-              ((attempt++))
-            fi
-          elif [[ -n $(echo "$logs" | grep -E "Test Indexer Cluster Status.*PASS") ]]; then
-            if [[ -n $(echo "$logs" | grep -E "Tests.*FAIL") ]]; then
-              echo "::error::❌ Some smoke test steps have failed. Check logs."
-              echo "status=❌failed" >> $GITHUB_OUTPUT
+              echo "Smoke test completed with $failed failures. Check integration tests logs."
+              echo "smoke_status=❌failure" >> $GITHUB_OUTPUT
               echo "details=Check logs in uploaded artifacts" >> $GITHUB_OUTPUT
-              TEST_RESULTS=$(echo "$logs" | awk -v RS='\r?\n' '/^==============================================================================$/ && !found {found=1; print; next} found && /^Output:/ {exit} found')
-        cat <<EOF >> $GITHUB_OUTPUT
-        test_results<<END
-        $TEST_RESULTS
-        END
-        EOF
-              exit 1
-            elif [[ -n $(echo "$logs" | grep -E "Tests.*PASS") ]]; then
-              stats_line=$(echo "$logs" | grep -E '[0-9]+\ tests,\ [0-9]+\ passed,\ [0-9]+\ failed,\ [0-9]+\ skipped' | tail -n 1)
-              read total passed failed skipped <<< $(echo "$stats_line" | awk '{ gsub(",", "", $0); print $1, $3, $5, $7}')
-              echo "✅ Smoke test passed."
-              echo "status=✅success" >> $GITHUB_OUTPUT
-              echo "total=$total" >> $GITHUB_OUTPUT
-              echo "failed=$failed" >> $GITHUB_OUTPUT
-              echo "skipped=$skipped" >> $GITHUB_OUTPUT
-              echo "passed=$passed" >> $GITHUB_OUTPUT
-              TEST_RESULTS=$(echo "$logs" | awk -v RS='\r?\n' '/^==============================================================================$/ && !found {found=1; print; next} found && /^Output:/ {exit} found')
-        cat <<EOF >> $GITHUB_OUTPUT
-        test_results<<END
-        $TEST_RESULTS
-        END
-        EOF
-              exit 0
-            else
-              echo "Smoke test is not completed yet. Checking in ${{ env.delay }} seconds..."
-              sleep ${{ env.delay }}
-              ((attempt++))
+              smoke_result="failure"
             fi
+            break
+
           else
-            echo "Smoke test is not completed yet. Checking in ${{ env.delay }} seconds..."
+            echo "Smoke test is not completed yet. Retrying in ${{ env.delay }} seconds..."
             sleep ${{ env.delay }}
             ((attempt++))
           fi
         done
-        echo "::error::❌ Maximum attempts reached waiting for Integration test completion"
-        echo "status=❌failed" >> $GITHUB_OUTPUT
+        TEST_RESULTS_SMOKE=$(echo "$logs" | awk '/^([=]{78,})$/ {flag=1} /^Output:/ {if(flag){flag=0}} flag')
         cat <<EOF >> $GITHUB_OUTPUT
-        test_results<<END
-        $logs
+        smoke_test_results<<END
+        $TEST_RESULTS_SMOKE
         END
         EOF
-        echo "details=Check logs in uploaded artifacts" >> $GITHUB_OUTPUT
-        exit 1
+        if [[ "$smoke_result" == "failure" ]]; then
+          exit 1
+        fi
+        if [[ -z "$smoke_result" && $attempt -gt $max_attempts ]]; then
+          echo "::error::❌ Smoke test failed with max attempts reached. Check integration tests logs."
+          echo "smoke_status=❌failure" >> $GITHUB_OUTPUT
+          echo "details=Check logs in uploaded artifacts" >> $GITHUB_OUTPUT
+          exit 1
+        fi
+
+        # =======================
+        # Log Generator
+        # =======================
+        attempt=1
+        log_gen_result=""
+        while [[ $attempt -le $max_attempts ]]; do
+          echo "Attempt $attempt/$max_attempts: Checking logs parsing..."
+          logs=$(kubectl logs -l name=logging-integration-tests-runner -n ${{ env.namespace }} --tail=-1)
+
+          log_gen_stats=$(awk '/^Tests\.Log Generator\s+\|\s+(PASS|FAIL|SKIP)\s+\|$/{flag=1} /^([=]{78,})$/{if(flag){flag=0}} flag && /[0-9]+ tests, [0-9]+ passed, [0-9]+ failed(, [0-9]+ skipped)?/' <<< "$logs")
+
+          if [[ -n $(echo "$logs" | grep -E "Tests\.Log Generator\s+\|\s+PASS\s+\|") ]]; then
+            echo "✅ Logs are successfully parsed and queried from Graylog."
+            echo "log_gen_status=✅passed" >> $GITHUB_OUTPUT
+            log_gen_result="pass"
+            break
+          elif [[ -n $(echo "$logs" | grep -E "Tests\.Log Generator\s+\|\s+FAIL\s+\|") ]]; then
+            echo "::error::❌ Log Generator test failed. Check integration tests logs."
+            echo "log_gen_status=❌failure" >> $GITHUB_OUTPUT
+            echo "details=Check logs in uploaded artifacts" >> $GITHUB_OUTPUT
+            log_gen_result="failure"
+            break
+          else
+            echo "Log Generator test is not completed yet. Retrying in ${{ env.delay }} seconds..."
+            sleep ${{ env.delay }}
+            ((attempt++))
+          fi
+        done
+        if [[ -n "$log_gen_stats" ]]; then
+          read total passed failed skipped <<< $(echo "$log_gen_stats" | awk '{ gsub(",", "", $0); print $1, $3, $5, $7}')
+          echo "log_gen_total=$total"   >> $GITHUB_OUTPUT
+          echo "log_gen_passed=$passed" >> $GITHUB_OUTPUT
+          echo "log_gen_failed=$failed" >> $GITHUB_OUTPUT
+          echo "log_gen_skipped=${skipped:-0}" >> $GITHUB_OUTPUT
+        fi
+        LOG_GEN_TEST_RESULTS=$(echo "$logs" | awk '/^([=]{78,})$/ {flag=1} /^Output:/ {if(flag){flag=0}} flag')
+        cat <<EOF >> $GITHUB_OUTPUT
+        log_gen_test_results<<END
+        $LOG_GEN_TEST_RESULTS
+        END
+        EOF
+
+        # =======================
+        # Total stats
+        # =======================
+        total_stats=$(awk '/^Tests\s+\|\s+(PASS|FAIL|SKIP)\s+\|$/{flag=1} /^([=]{78,})$/{if(flag){flag=0}} flag && /[0-9]+ tests, [0-9]+ passed, [0-9]+ failed(, [0-9]+ skipped)?/' <<< "$logs")
+        if [[ -n "$total_stats" ]]; then
+          read total passed failed skipped <<< $(echo "$total_stats" | awk '{ gsub(",", "", $0); print $1, $3, $5, $7}')
+          echo "total=$total"   >> $GITHUB_OUTPUT
+          echo "passed=$passed" >> $GITHUB_OUTPUT
+          echo "failed=$failed" >> $GITHUB_OUTPUT
+          echo "skipped=${skipped:-0}" >> $GITHUB_OUTPUT
+        fi
+
+        # =======================
+        # Extract test results block
+        # =======================
+        TEST_RESULTS=$(echo "$logs" | awk -v RS='\r?\n' '/^([=]{78,})$/ && !found {found=1; print; next} found && /^Output:/ {exit} found')
+        cat <<EOF >> $GITHUB_OUTPUT
+        test_results<<END
+        $TEST_RESULTS
+        END
+        EOF
+
+        if [[ -z "$log_gen_result" && $attempt -gt $max_attempts ]]; then
+          echo "::error::❌ Log Generator test failed with max attempts reached. Check integration tests logs."
+          echo "log_gen_status=❌failure" >> $GITHUB_OUTPUT
+          echo "details=Check logs in uploaded artifacts" >> $GITHUB_OUTPUT
+          echo "status=❌failure" >> $GITHUB_OUTPUT
+          exit 1
+        fi
+        echo "status=✅passed" >> $GITHUB_OUTPUT
       shell: bash
+    
 
     - name: Save opensearch artifacts
       if: always()
@@ -573,15 +621,38 @@ jobs:
 
         echo "## Check integration tests results" >> $GITHUB_STEP_SUMMARY
         echo "Check integration tests status: ${{ steps.check_integration_tests.outputs.status || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
-        echo "${{ steps.check_integration_tests.outputs.details || '' }}" >> $GITHUB_STEP_SUMMARY
-        echo '```' >> $GITHUB_STEP_SUMMARY
-        echo "Total tests: ${{ steps.check_integration_tests.outputs.total || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
-        echo "Failed tests: ${{ steps.check_integration_tests.outputs.failed || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
-        echo "Skipped tests: ${{ steps.check_integration_tests.outputs.skipped || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
-        echo "Passed tests: ${{ steps.check_integration_tests.outputs.passed || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
         echo "${{ steps.check_integration_tests.outputs.warning || '' }}" >> $GITHUB_STEP_SUMMARY
         echo "${{ steps.check_integration_tests.outputs.details || '' }}" >> $GITHUB_STEP_SUMMARY
+
+        echo "**Smoke test result**: ${{ steps.check_integration_tests.outputs.smoke_status || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY        
         echo '```' >> $GITHUB_STEP_SUMMARY
+        echo "Total tests: ${{ steps.check_integration_tests.outputs.smoke_total || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
+        echo "Failed tests: ${{ steps.check_integration_tests.outputs.smoke_failed || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
+        echo "Skipped tests: ${{ steps.check_integration_tests.outputs.smoke_skipped || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
+        echo "Passed tests: ${{ steps.check_integration_tests.outputs.smoke_passed || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+        echo "<details>" >> $GITHUB_STEP_SUMMARY
+        echo "<summary><b>🔍 See smoke test logs</b></summary>" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo '```sh' >> $GITHUB_STEP_SUMMARY
+        echo "${{ steps.check_integration_tests.outputs.smoke_test_results || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+        echo "</details>" >> $GITHUB_STEP_SUMMARY
+
+        echo "**Logs parsing test result**: ${{ steps.check_integration_tests.outputs.log_gen_status || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+        echo "Total tests: ${{ steps.check_integration_tests.outputs.log_gen_total || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
+        echo "Failed tests: ${{ steps.check_integration_tests.outputs.log_gen_failed || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
+        echo "Skipped tests: ${{ steps.check_integration_tests.outputs.log_gen_skipped || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
+        echo "Passed tests: ${{ steps.check_integration_tests.outputs.log_gen_passed || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+        echo "<details>" >> $GITHUB_STEP_SUMMARY
+        echo "<summary><b>🔍 See logs parsing test logs</b></summary>" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo '```sh' >> $GITHUB_STEP_SUMMARY
+        echo "${{ steps.check_integration_tests.outputs.log_gen_test_results || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+        echo "</details>" >> $GITHUB_STEP_SUMMARY
 
         echo "<details>" >> $GITHUB_STEP_SUMMARY
         echo "<summary><b>🔍 See full test logs</b></summary>" >> $GITHUB_STEP_SUMMARY

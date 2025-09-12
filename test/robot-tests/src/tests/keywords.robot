@@ -1,5 +1,5 @@
 *** Variables ***
-${NAMESPASE}                    %{LOGGING_PROJECT}
+${NAMESPACE}                    %{LOGGING_PROJECT}
 
 *** Settings ***
 Library  lib/LoggingLibrary.py
@@ -16,7 +16,7 @@ Check Fluentbit And Fluentd
 
 Check Daemon Set Exists
     [Arguments]  ${name}
-    @{daemon_sets}=  Get Daemon Sets  ${NAMESPASE}
+    @{daemon_sets}=  Get Daemon Sets  ${NAMESPACE}
     FOR    ${daemon_set}    IN    @{daemon_sets}
         ${metadata}=  Set Variable  ${daemon_set.metadata}
         ${daemon_set_name}=  Set Variable  ${metadata.name}

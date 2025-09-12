@@ -2,19 +2,19 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    name: qubership-log-generator
-    metrics: qubership-log-generator
-  name: qubership-log-generator
+    name: kube-log-generator
+    metrics: kube-log-generator
+  name: kube-log-generator
 spec:
   replicas: 1
   selector:
     matchLabels:
-      name: qubership-log-generator
+      name: kube-log-generator
   template:
     metadata:
       labels:
-        metrics: qubership-log-generator
-        name: qubership-log-generator
+        metrics: kube-log-generator
+        name: kube-log-generator
     spec:
       volumes:
         - name: config
@@ -22,9 +22,9 @@ spec:
             name: qubership-log-generator-config
             defaultMode: 420
       containers:
-        - name: qubership-log-generator
+        - name: kube-log-generator
           image: >-
-            ghcr.io/netcracker/qubership-log-generator:main
+            ghcr.io/netcracker/qubership-log-generator:test_fix
           ports:
             - name: metrics
               containerPort: 8080
@@ -35,11 +35,11 @@ spec:
             - name: LOG_GENERATION_TIME
               value: '10'
             - name: LOG_TEMPLATES
-              value: intlog,access,bc,go,java,json,nginx
+              value: klog
             - name: LOG_MESSAGES_MULTILINE
               value: 'true'
             - name: LOG_MULTILINE_PROBABILITY
-              value: '0.99'
+              value: '0.9'
           resources:
             limits:
               cpu: 400m

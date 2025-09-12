@@ -14,6 +14,7 @@ def parse_yaml_file(file_path):
 def add_security_context_to_deployment(path_to_file, namespace):
     deployment = parse_yaml_file(path_to_file)
     pods = k8s_lib.get_pods(namespace)
+    security_context = None
     for pod in pods:
         if 'logging-service-operator' in pod.metadata.name:
             security_context = pod.spec.security_context

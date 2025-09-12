@@ -24,7 +24,7 @@ spec:
       containers:
         - name: kube-log-generator
           image: >-
-            ghcr.io/netcracker/qubership-log-generator:test_fix
+            ghcr.io/netcracker/qubership-log-generator:main
           ports:
             - name: metrics
               containerPort: 8080

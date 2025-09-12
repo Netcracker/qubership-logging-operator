@@ -320,7 +320,7 @@ jobs:
         fi
       shell: bash
 
-    - name: Check integration tests status
+    - name: Check integration tests pod status
       run: |
         echo "Checking status of integration tests pod..."
         attempt=1
@@ -398,7 +398,7 @@ jobs:
             echo "smoke_failed=$failed" >> $GITHUB_OUTPUT
             echo "smoke_skipped=${skipped:-0}" >> $GITHUB_OUTPUT
 
-            if [[ -n $(echo "$logs" | grep -E "Keyword 'Check Indexer Cluster Status' failed[\w :\.]+yellow != green") && "$failed" == "1" ]]; then
+            if [[ -n $(echo "$logs" | grep -E "Keyword 'Check Indexer Cluster Status' failed[[:alnum:][:space:]:\.]+yellow != green") && "$failed" == "1" ]]; then
               warning=$(echo "$logs" | grep "yellow != green")
               echo "::group::⚠️Smoke test completed with 1 warning:"
               echo -e "$warning\n==========================="

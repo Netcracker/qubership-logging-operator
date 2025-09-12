@@ -510,7 +510,6 @@ jobs:
         fi
         echo "status=✅passed" >> $GITHUB_OUTPUT
       shell: bash
-    
 
     - name: Save opensearch artifacts
       if: always()
@@ -624,7 +623,7 @@ jobs:
         echo "${{ steps.check_integration_tests.outputs.warning || '' }}" >> $GITHUB_STEP_SUMMARY
         echo "${{ steps.check_integration_tests.outputs.details || '' }}" >> $GITHUB_STEP_SUMMARY
 
-        echo "**Smoke test result**: ${{ steps.check_integration_tests.outputs.smoke_status || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY        
+        echo "**Smoke test result**: ${{ steps.check_integration_tests.outputs.smoke_status || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
         echo '```' >> $GITHUB_STEP_SUMMARY
         echo "Total tests: ${{ steps.check_integration_tests.outputs.smoke_total || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
         echo "Failed tests: ${{ steps.check_integration_tests.outputs.smoke_failed || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY

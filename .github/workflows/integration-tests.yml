@@ -431,7 +431,7 @@ jobs:
           exit 1
         fi
         if [[ -z "$smoke_result" && $attempt -gt $max_attempts ]]; then
-          echo "::error::❌ Smoke test failed with max attempts reached. Check integration tests logs."
+          echo "::error::❌ Smoke test timed out. Check integration tests logs."
           echo "smoke_status=❌failure" >> $GITHUB_OUTPUT
           echo "details=Check logs in uploaded artifacts" >> $GITHUB_OUTPUT
           exit 1
@@ -465,47 +465,24 @@ jobs:
             ((attempt++))
           fi
         done
+        LOG_GEN_TEST_RESULTS=$(echo "$logs" | awk '/^Tests\.Log Generator/ {flag=1; next} /^={78,}/ {if(flag){flag=0}} flag')
+        cat <<EOF >> $GITHUB_OUTPUT
+        log_gen_test_results<<END
+        $LOG_GEN_TEST_RESULTS
+        END
+        EOF
         if [[ -n "$log_gen_stats" ]]; then
           read total passed failed skipped <<< $(echo "$log_gen_stats" | awk '{ gsub(",", "", $0); print $1, $3, $5, $7}')
           echo "log_gen_total=$total"   >> $GITHUB_OUTPUT
           echo "log_gen_passed=$passed" >> $GITHUB_OUTPUT
           echo "log_gen_failed=$failed" >> $GITHUB_OUTPUT
           echo "log_gen_skipped=${skipped:-0}" >> $GITHUB_OUTPUT
-        fi
-        LOG_GEN_TEST_RESULTS=$(echo "$logs" | awk '/^([=]{78,})$/ {flag=1} /^Output:/ {if(flag){flag=0}} flag')
-        cat <<EOF >> $GITHUB_OUTPUT
-        log_gen_test_results<<END
-        $LOG_GEN_TEST_RESULTS
-        END
-        EOF
-
-        # =======================
-        # Total stats
-        # =======================
-        total_stats=$(awk '/^Tests\s+\|\s+(PASS|FAIL|SKIP)\s+\|$/{flag=1} /^([=]{78,})$/{if(flag){flag=0}} flag && /[0-9]+ tests, [0-9]+ passed, [0-9]+ failed(, [0-9]+ skipped)?/' <<< "$logs")
-        if [[ -n "$total_stats" ]]; then
-          read total passed failed skipped <<< $(echo "$total_stats" | awk '{ gsub(",", "", $0); print $1, $3, $5, $7}')
-          echo "total=$total"   >> $GITHUB_OUTPUT
-          echo "passed=$passed" >> $GITHUB_OUTPUT
-          echo "failed=$failed" >> $GITHUB_OUTPUT
-          echo "skipped=${skipped:-0}" >> $GITHUB_OUTPUT
-        fi
-
-        # =======================
-        # Extract test results block
-        # =======================
-        TEST_RESULTS=$(echo "$logs" | awk -v RS='\r?\n' '/^([=]{78,})$/ && !found {found=1; print; next} found && /^Output:/ {exit} found')
-        cat <<EOF >> $GITHUB_OUTPUT
-        test_results<<END
-        $TEST_RESULTS
-        END
-        EOF
-
-        if [[ -z "$log_gen_result" && $attempt -gt $max_attempts ]]; then
-          echo "::error::❌ Log Generator test failed with max attempts reached. Check integration tests logs."
+          if [[ "$log_gen_result" == "failure"]]
+            exit 1
+          fi
+        else
+          echo "Logs parsing test timed out. Check integration tests logs."
           echo "log_gen_status=❌failure" >> $GITHUB_OUTPUT
-          echo "details=Check logs in uploaded artifacts" >> $GITHUB_OUTPUT
-          echo "status=❌failure" >> $GITHUB_OUTPUT
           exit 1
         fi
         echo "status=✅passed" >> $GITHUB_OUTPUT
@@ -598,70 +575,62 @@ jobs:
     - name: Generate Status Summary
       if: always()
       run: |
-        {
-          cat <<'EOF'
-        ## Install opensearch
-        Check opensearch cluster health: ${{ steps.check_opensearch_health.outputs.status || '❓unknown' }}
-        Opensearch version: ${{ env.opensearch_version }}
-        Cluster status:
-        \`\`\`json
-        EOF
-          echo '${{ steps.check_opensearch_health.outputs.cluster_status }}' | jq . || echo '❓unknown'
-          cat <<'EOF'
-        \`\`\`
-        Pods running in opensearch namespace:
-        \`\`\`sh
-        ${{ steps.opensearch_artifacts.outputs.opensearch_pods || '❓unknown' }}
-        \`\`\`
-        ## Install logging operator
-        Check graylog status: ${{ steps.check_graylog.outputs.status || '❓unknown' }}
-        ${{ steps.check_graylog.outputs.details || '❓unknown' }}
-        Pods running in logging namespace:
-        \`\`\`sh
-        ${{ steps.logging_artifacts.outputs.logging_pods || '❓unknown' }}
-        \`\`\`
-        ## Integration tests status
-        Overall status: ${{ steps.check_integration_tests.outputs.status || '❓unknown' }}
-        ### Smoke test
-        status:  ${{ steps.check_integration_tests.outputs.smoke_status || '❓unknown' }}
-        EOF
-          if [ -n "${{ steps.check_integration_tests.outputs.warning }}" ]; then
-          echo "warning: ${{ steps.check_integration_tests.outputs.warning }}"
-          fi
-          cat <<'EOF'
-        \`\`\`
-        Total tests: ${{ steps.check_integration_tests.outputs.smoke_total || '❓unknown' }}
-        Failed tests: ${{ steps.check_integration_tests.outputs.smoke_failed || '❓unknown' }}
-        Skipped tests: ${{ steps.check_integration_tests.outputs.smoke_skipped || '❓unknown' }}
-        Passed tests: ${{ steps.check_integration_tests.outputs.smoke_passed || '❓unknown' }}
-        \`\`\`
-        <details>
-        <summary><b>🔍 See smoke test logs</b></summary>
-        \`\`\`sh
-        ${{ steps.check_integration_tests.outputs.smoke_test_results || '❓unknown' }}
-        \`\`\`
-        </details>
-        ### Logs parsing test
-        status: ${{ steps.check_integration_tests.outputs.log_gen_status || '❓unknown' }}
-        \`\`\`
-        Total tests: ${{ steps.check_integration_tests.outputs.log_gen_total || '❓unknown' }}
-        Failed tests: ${{ steps.check_integration_tests.outputs.log_gen_failed || '❓unknown' }}
-        Skipped tests: ${{ steps.check_integration_tests.outputs.log_gen_skipped || '❓unknown' }}
-        Passed tests: ${{ steps.check_integration_tests.outputs.log_gen_passed || '❓unknown' }}
-        \`\`\`
-        <details>
-        <summary><b>🔍 See logs parsing test logs</b></summary>
-        \`\`\`sh
-        ${{ steps.check_integration_tests.outputs.log_gen_test_results || '❓unknown' }}
-        \`\`\`
-        </details>
-        <details>
-        <summary><b>🔍 See full test logs</b></summary>
-        
-        ### Test Summary
-        \`\`\`sh
-        ${{ steps.check_integration_tests.outputs.test_results || '❓unknown' }}
-        \`\`\`
-        </details>
-        EOF
-        } >> $GITHUB_STEP_SUMMARY
+        echo "## Install opensearch" >> $GITHUB_STEP_SUMMARY
+        echo "Check opensearch cluster health: ${{ steps.check_opensearch_health.outputs.status || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
+        echo -e "Opensearch version: ${{ env.opensearch_version }}" >> $GITHUB_STEP_SUMMARY
+        echo "Cluster status:" >> $GITHUB_STEP_SUMMARY
+        echo '```json' >> $GITHUB_STEP_SUMMARY
+        echo '${{ steps.check_opensearch_health.outputs.cluster_status }}' | jq . >> $GITHUB_STEP_SUMMARY || echo '❓unknown' >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+        echo 'Pods running in opensearch namespace:' >> $GITHUB_STEP_SUMMARY
+        echo '```sh' >> $GITHUB_STEP_SUMMARY
+        echo "${{ steps.opensearch_artifacts.outputs.opensearch_pods || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+
+        echo "## Install logging operator" >> $GITHUB_STEP_SUMMARY
+        echo "Check graylog status: ${{ steps.check_graylog.outputs.status || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
+        echo "${{ steps.check_graylog.outputs.details || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
+        echo 'Pods running in logging namespace:' >> $GITHUB_STEP_SUMMARY
+        echo '```sh' >> $GITHUB_STEP_SUMMARY
+        echo "${{ steps.logging_artifacts.outputs.logging_pods || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+
+        echo "## Integration tests status" >> $GITHUB_STEP_SUMMARY
+        echo "Overall status: ${{ steps.check_integration_tests.outputs.status || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
+
+        echo "### Smoke test"
+        echo "status:  ${{ steps.check_integration_tests.outputs.smoke_status || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
+        if [ -n "${{ steps.check_integration_tests.outputs.warning }}" ]; then
+          echo "warning: ${{ steps.check_integration_tests.outputs.warning }}" >> $GITHUB_STEP_SUMMARY
+        fi
+        echo '```' >> $GITHUB_STEP_SUMMARY
+        echo "Total tests: ${{ steps.check_integration_tests.outputs.smoke_total || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
+        echo "Failed tests: ${{ steps.check_integration_tests.outputs.smoke_failed || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
+        echo "Skipped tests: ${{ steps.check_integration_tests.outputs.smoke_skipped || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
+        echo "Passed tests: ${{ steps.check_integration_tests.outputs.smoke_passed || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+
+        echo "### Logs parsing test"
+        echo "status: ${{ steps.check_integration_tests.outputs.log_gen_status || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+        echo "Total tests: ${{ steps.check_integration_tests.outputs.log_gen_total || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
+        echo "Failed tests: ${{ steps.check_integration_tests.outputs.log_gen_failed || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
+        echo "Skipped tests: ${{ steps.check_integration_tests.outputs.log_gen_skipped || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
+        echo "Passed tests: ${{ steps.check_integration_tests.outputs.log_gen_passed || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+
+        echo "<details>" >> $GITHUB_STEP_SUMMARY
+        echo "<summary><b>🔍 See smoke test logs</b></summary>" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo '```sh' >> $GITHUB_STEP_SUMMARY
+        echo "${{ steps.check_integration_tests.outputs.smoke_test_results || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+        echo "</details>" >> $GITHUB_STEP_SUMMARY
+
+        echo "<details>" >> $GITHUB_STEP_SUMMARY
+        echo "<summary><b>🔍 See logs parsing test logs</b></summary>" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo '```sh' >> $GITHUB_STEP_SUMMARY
+        echo "${{ steps.check_integration_tests.outputs.log_gen_test_results || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+        echo "</details>" >> $GITHUB_STEP_SUMMARY

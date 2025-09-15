@@ -382,22 +382,12 @@ jobs:
 
           if [[ -n $(echo "$logs" | grep -E "Tests\.Smoke\s+\|\s+PASS\s+\|") ]]; then
             echo "✅ Smoke test passed."
-            read total passed failed skipped <<< $(echo "$smoke_stats" | awk '{gsub(",", "", $0); print $1, $3, $5, $7}')
-            echo "smoke_total=$total"   >> $GITHUB_OUTPUT
-            echo "smoke_passed=$passed" >> $GITHUB_OUTPUT
-            echo "smoke_failed=$failed" >> $GITHUB_OUTPUT
-            echo "smoke_skipped=${skipped:-0}" >> $GITHUB_OUTPUT
             echo "smoke_status=✅passed" >> $GITHUB_OUTPUT
             smoke_result="passed"
             break
 
           elif [[ -n $(echo "$logs" | grep -E "Tests\.Smoke\s+\|\s+FAIL\s+\|") ]]; then
-            read total passed failed skipped <<< $(echo "$smoke_stats" | awk '{gsub(",", "", $0); print $1, $3, $5, $7}')
-            echo "smoke_total=$total"   >> $GITHUB_OUTPUT
-            echo "smoke_passed=$passed" >> $GITHUB_OUTPUT
-            echo "smoke_failed=$failed" >> $GITHUB_OUTPUT
             echo "smoke_skipped=${skipped:-0}" >> $GITHUB_OUTPUT
-
             if [[ -n $(echo "$logs" | grep -E "Keyword 'Check Indexer Cluster Status' failed[[:alnum:][:space:]:\.]+yellow != green") && "$failed" == "1" ]]; then
               warning=$(echo "$logs" | grep "yellow != green")
               echo "::group::⚠️Smoke test completed with 1 warning:"
@@ -414,19 +404,25 @@ jobs:
               smoke_result="failure"
             fi
             break
-
           else
             echo "Smoke test is not completed yet. Retrying in ${{ env.delay }} seconds..."
             sleep ${{ env.delay }}
             ((attempt++))
           fi
         done
-        TEST_RESULTS_SMOKE=$(echo "$logs" | awk '/^([=]{78,})$/ {flag=1} /^Output:/ {if(flag){flag=0}} flag')
+        TEST_RESULTS_SMOKE=$(echo "$logs" | awk '/^={78,}$/ && prev ~ /^Tests\.Smoke\s+$/ {flag=1} flag; /^={78,}$/ && prev ~ /^[0-9]+ tests,/ {flag=0} {prev=$0}')
         cat <<EOF >> $GITHUB_OUTPUT
         smoke_test_results<<END
         $TEST_RESULTS_SMOKE
         END
         EOF
+        if [[ -n "$smoke_stats" ]]; then
+            read total passed failed skipped <<< $(echo "$smoke_stats" | awk '{gsub(",", "", $0); print $1, $3, $5, $7}')
+            echo "smoke_total=$total"   >> $GITHUB_OUTPUT
+            echo "smoke_passed=$passed" >> $GITHUB_OUTPUT
+            echo "smoke_failed=$failed" >> $GITHUB_OUTPUT
+            echo "smoke_skipped=${skipped:-0}" >> $GITHUB_OUTPUT
+        fi
         if [[ "$smoke_result" == "failure" ]]; then
           exit 1
         fi
@@ -465,7 +461,7 @@ jobs:
             ((attempt++))
           fi
         done
-        LOG_GEN_TEST_RESULTS=$(echo "$logs" | awk '/^Tests\.Log Generator\s+$/ {flag=1} /^={78,}/ {if(flag){flag=0}} flag')
+        LOG_GEN_TEST_RESULTS=$(echo "$logs" | awk '/^={78,}$/ && prev ~ /^Tests\.Log Generator\s+$/ {flag=1} flag; /^={78,}$/ && prev ~ /^[0-9]+ tests,/ {flag=0} {prev=$0}')
         cat <<EOF >> $GITHUB_OUTPUT
         log_gen_test_results<<END
         $LOG_GEN_TEST_RESULTS
@@ -477,7 +473,7 @@ jobs:
           echo "log_gen_passed=$passed" >> $GITHUB_OUTPUT
           echo "log_gen_failed=$failed" >> $GITHUB_OUTPUT
           echo "log_gen_skipped=${skipped:-0}" >> $GITHUB_OUTPUT
-          if [[ "$log_gen_result" == "failure" ]]
+          if [[ "$log_gen_result" == "failure" ]]; then
             exit 1
           fi
         else

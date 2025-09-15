@@ -465,7 +465,7 @@ jobs:
             ((attempt++))
           fi
         done
-        LOG_GEN_TEST_RESULTS=$(echo "$logs" | awk '/^Tests\.Log Generator/ {flag=1; next} /^={78,}/ {if(flag){flag=0}} flag')
+        LOG_GEN_TEST_RESULTS=$(echo "$logs" | awk '/^Tests\.Log Generator\s+$/ {flag=1} /^={78,}/ {if(flag){flag=0}} flag')
         cat <<EOF >> $GITHUB_OUTPUT
         log_gen_test_results<<END
         $LOG_GEN_TEST_RESULTS
@@ -477,7 +477,7 @@ jobs:
           echo "log_gen_passed=$passed" >> $GITHUB_OUTPUT
           echo "log_gen_failed=$failed" >> $GITHUB_OUTPUT
           echo "log_gen_skipped=${skipped:-0}" >> $GITHUB_OUTPUT
-          if [[ "$log_gen_result" == "failure"]]
+          if [[ "$log_gen_result" == "failure" ]]
             exit 1
           fi
         else

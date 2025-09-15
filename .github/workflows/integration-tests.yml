@@ -377,15 +377,19 @@ jobs:
         while [[ $attempt -le $max_attempts ]]; do
           echo "Attempt $attempt/$max_attempts: Running smoke tests..."
           logs=$(kubectl logs -l name=logging-integration-tests-runner -n ${{ env.namespace }} --tail=-1)
-
           smoke_stats=$(awk '/^Tests\.Smoke\s+\|\s+(PASS|FAIL|SKIP)\s+\|$/{flag=1} /^([=]{78,})$/{if(flag){flag=0}} flag && /[0-9]+ tests, [0-9]+ passed, [0-9]+ failed(, [0-9]+ skipped)?/' <<< "$logs")
-
+          if [[ -n "$smoke_stats" ]]; then
+            read total passed failed skipped <<< $(echo "$smoke_stats" | awk '{gsub(",", "", $0); print $1, $3, $5, $7}')
+            echo "smoke_total=$total"   >> $GITHUB_OUTPUT
+            echo "smoke_passed=$passed" >> $GITHUB_OUTPUT
+            echo "smoke_failed=$failed" >> $GITHUB_OUTPUT
+            echo "smoke_skipped=${skipped:-0}" >> $GITHUB_OUTPUT
+          fi
           if [[ -n $(echo "$logs" | grep -E "Tests\.Smoke\s+\|\s+PASS\s+\|") ]]; then
             echo "✅ Smoke test passed."
             echo "smoke_status=✅passed" >> $GITHUB_OUTPUT
             smoke_result="passed"
             break
-
           elif [[ -n $(echo "$logs" | grep -E "Tests\.Smoke\s+\|\s+FAIL\s+\|") ]]; then
             echo "smoke_skipped=${skipped:-0}" >> $GITHUB_OUTPUT
             if [[ -n $(echo "$logs" | grep -E "Keyword 'Check Indexer Cluster Status' failed[[:alnum:][:space:]:\.]+yellow != green") && "$failed" == "1" ]]; then
@@ -416,13 +420,6 @@ jobs:
         $TEST_RESULTS_SMOKE
         END
         EOF
-        if [[ -n "$smoke_stats" ]]; then
-            read total passed failed skipped <<< $(echo "$smoke_stats" | awk '{gsub(",", "", $0); print $1, $3, $5, $7}')
-            echo "smoke_total=$total"   >> $GITHUB_OUTPUT
-            echo "smoke_passed=$passed" >> $GITHUB_OUTPUT
-            echo "smoke_failed=$failed" >> $GITHUB_OUTPUT
-            echo "smoke_skipped=${skipped:-0}" >> $GITHUB_OUTPUT
-        fi
         if [[ "$smoke_result" == "failure" ]]; then
           exit 1
         fi

@@ -441,12 +441,12 @@ jobs:
 
           log_gen_stats=$(awk '/^Tests\.Log Generator\s+\|\s+(PASS|FAIL|SKIP)\s+\|$/{flag=1} /^([=]{78,})$/{if(flag){flag=0}} flag && /[0-9]+ tests, [0-9]+ passed, [0-9]+ failed(, [0-9]+ skipped)?/' <<< "$logs")
 
-          if [[ -n $(echo "$logs" | grep -E "Tests\.Log Generator\s+\|\s+PASS\s+\|") ]]; then
+          if [[ -n $(echo "$logs" | grep -E "^Tests\.Log Generator\s+\|\s+PASS\s+\|$") ]]; then
             echo "✅ Logs are successfully parsed and queried from Graylog."
             echo "log_gen_status=✅passed" >> $GITHUB_OUTPUT
             log_gen_result="pass"
             break
-          elif [[ -n $(echo "$logs" | grep -E "Tests\.Log Generator\s+\|\s+FAIL\s+\|") ]]; then
+          elif [[ -n $(echo "$logs" | grep -E "^Tests\.Log Generator\s+\|\s+FAIL\s+\|$") ]]; then
             echo "::error::❌ Log Generator test failed. Check integration tests logs."
             echo "log_gen_status=❌failure" >> $GITHUB_OUTPUT
             echo "details=Check logs in uploaded artifacts" >> $GITHUB_OUTPUT

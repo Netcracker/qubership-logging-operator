@@ -152,7 +152,7 @@ data:
     - name: "json"
       messagesPerSec: 10
       generationTime: 1
-      dateFormat: "{\"'lvl'\":\"'ERROR'\",\"'ts'\":\"yyyy-MM-dd'T'HH:mm:ss.SSS\""
+      dateFormat: "{\"'severity'\":\"'ERROR'\",\"'ts'\":\"yyyy-MM-dd'T'HH:mm:ss.SSS\""
       template: ",\"logger\":\"${logger}\",\"msg\":\"${message} json_log\",\"from\":\"qubership-log-generator\"}"
       fields:
         logger:

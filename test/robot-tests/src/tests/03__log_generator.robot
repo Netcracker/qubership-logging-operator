@@ -100,7 +100,6 @@ Check Message Parsing
     Wait Until Keyword Succeeds  ${OPERATION_RETRY_COUNT}  ${OPERATION_RETRY_INTERVAL}
     ...  Search messages by query  ${query}
     ${message}=  Get From Dictionary  ${messages}[1]  message
-    Log To Console    ${message}
     ${level}=   Get From Dictionary  ${message}  level
     Should Be Equal As Strings  ${level}  ${expected_level}
     ${message_field}=  Get From Dictionary  ${message}  message

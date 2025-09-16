@@ -592,7 +592,7 @@ jobs:
         echo "## Integration tests status" >> $GITHUB_STEP_SUMMARY
         echo "Overall status: ${{ steps.check_integration_tests.outputs.status || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
 
-        echo "### Smoke test"
+        echo "### Smoke test" >> $GITHUB_STEP_SUMMARY
         echo "status:  ${{ steps.check_integration_tests.outputs.smoke_status || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
         if [ -n "${{ steps.check_integration_tests.outputs.warning }}" ]; then
           echo "warning: ${{ steps.check_integration_tests.outputs.warning }}" >> $GITHUB_STEP_SUMMARY
@@ -604,7 +604,7 @@ jobs:
         echo "Passed tests: ${{ steps.check_integration_tests.outputs.smoke_passed || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
         echo '```' >> $GITHUB_STEP_SUMMARY
 
-        echo "### Logs parsing test"
+        echo "### Logs parsing test" >> $GITHUB_STEP_SUMMARY
         echo "status: ${{ steps.check_integration_tests.outputs.log_gen_status || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
         echo '```' >> $GITHUB_STEP_SUMMARY
         echo "Total tests: ${{ steps.check_integration_tests.outputs.log_gen_total || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY

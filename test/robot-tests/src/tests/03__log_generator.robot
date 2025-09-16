@@ -8,7 +8,7 @@ ${GRAYLOG_PASS}                 %{GRAYLOG_PASS}
 ${OPERATION_RETRY_COUNT}        60x
 ${RETRY_COUNT_FOR_FIRST_TEST}   250x
 ${OPERATION_RETRY_INTERVAL}     5s
-${FILES_PATH}                   ./source_files/fake_generator
+${FILES_PATH}                   ./source_files/log_generator
 ${DEPLOYMENT_FILE}              ${FILES_PATH}/deployment.yaml
 ${KLOG_DEPLOYMENT_FILE}         ${FILES_PATH}/klog_deployment.yaml
 ${JSON_DEPLOYMENT_FILE}         ${FILES_PATH}/json_deployment.yaml
@@ -106,8 +106,8 @@ Check Message Parsing
     Set Suite Variable  ${message_field}
     Should Contain  ${message_field}  ${log_type}
     ${pod}=  Get From Dictionary  ${message}  pod
-    ${namespace}=  Get From Dictionary  ${message}  namespace
-    Should Be Equal As Strings  ${namespace}  ${NAMESPACE}
+    ${log_namespace}=  Get From Dictionary  ${message}  namespace
+    Should Be Equal As Strings  ${log_namespace}  ${NAMESPACE}
     Should Contain    ${pod}    ${pod_name}
     IF  ${fluentd_exists} == True
         ${time}=  Get From Dictionary  ${message}  time

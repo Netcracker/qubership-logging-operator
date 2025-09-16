@@ -99,6 +99,7 @@ Check Message Parsing
     Wait Until Keyword Succeeds  ${OPERATION_RETRY_COUNT}  ${OPERATION_RETRY_INTERVAL}
     ...  Search messages by query  ${query}
     ${message}=  Get From Dictionary  ${messages}[0]  message
+    Log To Console    ${message}
     ${level}=   Get From Dictionary  ${message}  level
     Should Be Equal As Strings  ${level}  ${expected_level}
     ${message_field}=  Get From Dictionary  ${message}  message
@@ -211,7 +212,7 @@ Check Parsing Java Multiline Logs
 Check Parsing Json Info Logs
     [Tags]  log-generator
     Log To Console  ${\n}Config for json log does not match format from documentation. Level is not parsed. Default level = 6
-    ${log_type}=  Set Variable  json_log
+    ${log_type}=  Set Variable  json_error_log
     ${query}=  Set Variable  "${generator_pod_name}"+AND+message%3A+"${log_type}"+NOT+message%3A+"templates"
     Check Message Parsing  ${query}  ${log_type}  6
 

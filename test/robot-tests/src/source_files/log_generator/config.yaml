@@ -91,7 +91,7 @@ data:
       template: "[${level}] ${package}.${class}: ${explanation} java_info_log;"
       fields:
         level:
-          - info
+          - INFO
         package:
           - com.nc.application.generator
         class:
@@ -105,7 +105,7 @@ data:
       template: "[${level}] ${package}.${class}: ${explanation} java_warn_log;"
       fields:
         level:
-          - warn
+          - WARN
         package:
           - com.nc.application.executor
         class:
@@ -119,7 +119,7 @@ data:
       template: "[${level}] ${package}.${class}: ${explanation} java_error_log;"
       fields:
         level:
-          - error
+          - ERROR
         package:
           - com.nc.application.provider
         class:
@@ -133,7 +133,7 @@ data:
       template: "[${level}] ${package}.${class}: ${explanation}; java_multiline_log_parent"
       fields:
         level:
-          - error
+          - ERROR
         package:
           - com.nc.application.provider
         class:
@@ -153,9 +153,50 @@ data:
       messagesPerSec: 10
       generationTime: 1
       dateFormat: "{\"'lvl'\":\"'ERROR'\",\"'ts'\":\"yyyy-MM-dd'T'HH:mm:ss.SSS\""
-      template: ",\"logger\":\"${logger}\",\"msg\":\"${message} json_log\",\"from\":\"qubership-log-generator\"}"
+      template: ",\"logger\":\"${logger}\",\"msg\":\"${message} json_error_log\",\"from\":\"qubership-log-generator\"}"
       fields:
         logger:
           - test_operator_reconciler
         message:
           - Reconciling component
+    - name: "klog"
+      messagesPerSec: 10
+      generationTime: 1
+      dateFormat: "MMdd HH:mm:ss.SSSSSS"
+      template: "${level}${date} ${pid} ${package} ${message} klog_error_log"
+      fields:
+        pid:
+          - '7'
+        package:
+          - 'reflector.go:424] pkg/mod/k8s.io/client-go@v0.26.11/tools/cache/reflector.go:169:'
+        level:
+          - E
+        message:
+          - 'failed to list *unstructured.Unstructured: failed to list applications: applications.argoproj.io is forbidden: User "system:serviceaccount:argocd:argocd-notifications-controller" cannot list resource "applications" in API group "argoproj.io" at the cluster scope'
+    - name: "klog"
+      messagesPerSec: 10
+      generationTime: 1
+      dateFormat: "MMdd HH:mm:ss.SSSSSS"
+      template: "${level}${date} ${pid} ${package} Trace[${trace_id}]: ${message} klog_multiline_log_parent"
+      fields:
+        pid:
+          - '1'
+        package:
+          - 'trace.go:236]'
+        level:
+          - I
+        trace_id:
+          - '1257355987'
+        message:
+          - '"Update" accept:application/vnd.kubernetes.protobuf, */*,audit-id:a17a9fb2-25d0-4d08-a5dd-e9d616dc6c12,client:1.2.3.4,api-group:networking.k8s.io,api-version:v1,name:monitoring-grafana,subresource:,namespace:monitoring,protocol:HTTP/2.0,resource:ingresses,scope:resource,url:/apis/networking.k8s.io/v1/namespaces/monitoring/ingresses/monitoring-grafana,user-agent:manager/v0.0.0 (linux/amd64) kubernetes/\$Format,verb:PUT (17-Apr-2025 14:11:04.458) (total time: 2824ms):'
+      multiline:
+        - template: "Trace[${trace_id_child}]: ${trace_message} klog_multiline_log_child"
+          fields:
+            trace_id_child:
+              - '1257355987'
+            trace_message:
+              - '["GuaranteedUpdate etcd3" audit-id:a17a9fb2-25d0-4d08-a5dd-e9d616dc6c12,key:/ingress/monitoring/monitoring-grafana,type:*networking.Ingress,resource:ingresses.networking.k8s.io 2824ms (14:11:04.459)'
+              - '---"About to Encode" 2821ms (14:11:07.280)]'
+              - '["Call validating webhook" configuration:ingress-nginx-admission,webhook:validate.nginx.ingress.kubernetes.io,resource:networking.k8s.io/v1, Resource=ingresses,subresource:,operation:UPDATE,UID:2765a1c9-5634-410c-8ce5-077d81d7c5b3 2820ms (14:11:04.462)'
+              - '---"Request completed" 2817ms (14:11:07.280)]'
+              - '[2.824451962s] [2.824451962s] END'

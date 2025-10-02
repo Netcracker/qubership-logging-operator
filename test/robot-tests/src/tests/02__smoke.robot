@@ -77,7 +77,7 @@ Get Source List From Messages
 Get Pod Names For Service
     [Arguments]  ${service_name}
     &{dict}=  Create Dictionary  component=${service_name}
-    ${pods}=  Get Pod Names By Selector  ${NAMESPASE}  ${dict}
+    ${pods}=  Get Pod Names By Selector  ${NAMESPACE}  ${dict}
     RETURN  ${pods}
 
 Check Message From Any Pod
@@ -164,16 +164,16 @@ Check Messages From All Fluentd Pods
 Test Check Fluentbit Status
     [Tags]  smoke
     Skip If  ${fluentbit_exists} != True
-    ${daemon}=  Get Daemon Set  logging-fluentbit  ${NAMESPASE}
+    ${daemon}=  Get Daemon Set  logging-fluentbit  ${NAMESPACE}
     Check Pods Are Ready  ${daemon}  number_ready  current_number_scheduled
 
 Test Check Fluentd Status
     [Tags]  smoke
     Skip If  ${fluentd_exists} != True
-    ${daemon}=  Get Daemon Set  logging-fluentd  ${NAMESPASE}
+    ${daemon}=  Get Daemon Set  logging-fluentd  ${NAMESPACE}
     Check Pods Are Ready  ${daemon}  number_ready  current_number_scheduled
 
 Test Check Events Reader Status
     [Tags]  smoke
-    ${deployment}=  Get Deployment Entity  events-reader  ${NAMESPASE}
+    ${deployment}=  Get Deployment Entity  events-reader  ${NAMESPACE}
     Check Pods Are Ready  ${deployment}  ready_replicas  replicas

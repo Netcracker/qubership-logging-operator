@@ -331,7 +331,6 @@ func DataFromDirectory(assets embed.FS, directoryPath string, parameters interfa
 			}
 		} else {
 			filePath := path.Join(directoryPath, file.Name())
-
 			data[file.Name()], err = ParseTemplate(MustAssetReader(assets, filePath), filePath, parameters)
 			if err != nil {
 				logger.Error(err, fmt.Sprintf("Failed to read from file %s", filePath))

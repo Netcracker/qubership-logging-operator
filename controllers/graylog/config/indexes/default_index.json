@@ -2,8 +2,8 @@
   "title": "Default index set",
   "description": "The Graylog default index set",
   "index_prefix": "graylog",
-  "shards": {{ if .Values.Graylog.IndexShards -}}{{ .Values.Graylog.IndexShards }}{{ else }}4{{ end }},
-  "replicas": {{ if .Values.Graylog.IndexReplicas -}}{{ .Values.Graylog.IndexReplicas }}{{ else }}1{{ end }},
+  "shards": {{ if isSetOrGE0 .Values.Graylog.IndexShards }}{{ .Values.Graylog.IndexShards }}{{ else }}4{{ end }},
+  "replicas": {{ if isSetOrGE0 .Values.Graylog.IndexReplicas }}{{ .Values.Graylog.IndexReplicas }}{{ else }}1{{ end }},
   "rotation_strategy_class": "org.graylog2.indexer.rotation.strategies.SizeBasedRotationStrategy",
   "rotation_strategy": {
     "type": "org.graylog2.indexer.rotation.strategies.SizeBasedRotationStrategyConfig",

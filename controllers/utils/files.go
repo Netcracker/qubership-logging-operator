@@ -63,6 +63,20 @@ func ParseTemplate(fileContent, filePath string, parameters interface{}) (string
 	funcMap["timeNow"] = GetTimeNow
 	funcMap["getAggregators"] = GetAggregatorIds
 
+	funcMap["isSetOrGE0"] = func(v interface{}) bool {
+		switch val := v.(type) {
+		case int:
+			return val >= 0
+		case int64:
+			return val >= 0
+		case string:
+			i, err := strconv.Atoi(val)
+			return err == nil && i >= 0
+		default:
+			return false
+		}
+	}
+
 	goTemplate, err := template.New(filePath).Funcs(funcMap).Parse(fileContent)
 	if err != nil {
 		logger.Error(err, fmt.Sprintf("The template for file %s cannot be parsed", filePath))

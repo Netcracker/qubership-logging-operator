@@ -90,9 +90,9 @@ Graylog GELF UDP has the following limits:
 | Max GELF UDP total size   | `181760 bytes` (~ `177 KiB`) |
 <!-- markdownlint-enable line-length -->
 
-## Limits for OpenSearch/ElasticSearch
+## Limits for OpenSearch/Elasticsearch
 
-### Limits for OpenSearch/ElasticSearch instance
+### Limits for OpenSearch/Elasticsearch instance
 
 Each OpenSearch Index generates N shards. In the case of a one-node OpenSearch, Graylog is configured
 to create Indices with 1 shard per Index.
@@ -105,7 +105,7 @@ to create Indices with 1 shard per Index.
 
 This limit means that a maximum of `1000` Indices can be saved on one node.
 
-### Limits for OpenSearch/ElasticSearch index
+### Limits for OpenSearch/Elasticsearch index
 
 All limits described in this section apply **during saving** logs in OpenSearch.
 
@@ -140,7 +140,7 @@ Limits for **dynamic fields** (all other fields, not defined in the index mappin
 | Max length of the dynamic field name/key | `256 symbols`                     |
 | Max length of the dynamic field value    | `32 KiB` (8192 symbols for UTF-8) |
 
-### Limits for OpenSearch/ElasticSearch fields
+### Limits for OpenSearch/Elasticsearch fields
 
 <!-- markdownlint-disable line-length -->
 | Field type   | Limits                                                                                                                     |
@@ -154,7 +154,7 @@ Limits for **dynamic fields** (all other fields, not defined in the index mappin
 | `KEYWORD`    | A field of this type can be up to `32766 bytes` in length                                                                  |
 <!-- markdownlint-enable line-length -->
 
-### Limits for OpenSearch/ElasticSearch during query data
+### Limits for OpenSearch/Elasticsearch during query data
 
 All limits described in this section apply when users want to select logs from Graylog (from OpenSearch as storage).
 

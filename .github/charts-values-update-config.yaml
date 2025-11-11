@@ -1,0 +1,9 @@
+---
+
+charts:
+  - name: qubership-logging-operator
+    chart_file: charts/qubership-logging-operator/Chart.yaml
+    values_file: charts/qubership-logging-operator/values.yaml
+    image:
+      - ghcr.io/netcracker/qubership-logging-operator:${release}
+      - ghcr.io/netcracker/qubership-logging-integration-tests:${release}

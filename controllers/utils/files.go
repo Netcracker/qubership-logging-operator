@@ -63,10 +63,24 @@ func ParseTemplate(fileContent, filePath string, parameters interface{}) (string
 	funcMap["timeNow"] = GetTimeNow
 	funcMap["getAggregators"] = GetAggregatorIds
 
-	funcMap["isSetOrGE0"] = func(v interface{}) bool {
+	funcMap["isValidShards"] = func(v interface{}) bool {
 		switch val := v.(type) {
 		case int:
-			return val >= 0
+			return val >= 1 // минимальное допустимое значение 1
+		case int64:
+			return val >= 1
+		case string:
+			i, err := strconv.Atoi(val)
+			return err == nil && i >= 1
+		default:
+			return false
+		}
+	}
+
+	funcMap["isValidReplicas"] = func(v interface{}) bool {
+		switch val := v.(type) {
+		case int:
+			return val >= 0 // минимальное допустимое значение 0
 		case int64:
 			return val >= 0
 		case string:

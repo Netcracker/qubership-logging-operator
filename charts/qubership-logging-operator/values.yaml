@@ -298,12 +298,12 @@ graylog:
   # The number of Elasticsearch shards used per index.
   # Default: 4
   #
-  indexShards: 4
+  # indexShards: 4
 
   # The number of Elasticsearch replicas used per index.
   # Default: 1
   #
-  indexReplicas: 1
+  # indexReplicas: 1
 
   # Set max size for the default index in case
   # Type: int

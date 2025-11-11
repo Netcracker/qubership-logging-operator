@@ -16,7 +16,7 @@ jobs:
         uses: netcracker/qubership-workflow-hub/actions/wait-for-workflow@main
         id: wait
         with:
-          workflow: docker-dev.yml
+          workflow: build.yaml
           token: ${{ secrets.GITHUB_TOKEN }}
           poll-interval: 20
   Logging-Pipeline:

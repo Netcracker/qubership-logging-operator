@@ -17,7 +17,7 @@ on:
     branches:
     - '**'
     paths-ignore:
-    - '.github/**'
+    #- '.github/**'
     - 'docs/**'
     - 'CODE-OF-CONDUCT.md'
     - 'CONTRIBUTING.md'

@@ -37,10 +37,10 @@ spec:
     {{- if .Values.graylog.logLevel }}
     logLevel: {{ .Values.graylog.logLevel }}
     {{- end }}
-    {{- if  .Values.graylog.indexShards }}
+    {{- if  hasKey .Values.graylog "indexShards" }}
     indexShards: {{ .Values.graylog.indexShards }}
     {{- end }}
-    {{- if .Values.graylog.indexReplicas }}
+    {{- if hasKey .Values.graylog "indexReplicas" }}
     indexReplicas: {{ .Values.graylog.indexReplicas }}
     {{- end }}
     {{- if .Values.graylog.priorityClassName }}

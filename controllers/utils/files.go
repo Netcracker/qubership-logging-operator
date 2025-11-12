@@ -65,6 +65,11 @@ func ParseTemplate(fileContent, filePath string, parameters interface{}) (string
 
 	funcMap["isValidShards"] = func(v interface{}) bool {
 		switch val := v.(type) {
+		case *int:
+			if val == nil {
+				return false
+			}
+			return *val >= 1
 		case int:
 			return val >= 1 // Minimum valid number of shards
 		case int64:
@@ -79,6 +84,11 @@ func ParseTemplate(fileContent, filePath string, parameters interface{}) (string
 
 	funcMap["isValidReplicas"] = func(v interface{}) bool {
 		switch val := v.(type) {
+		case *int:
+			if val == nil {
+				return false
+			}
+			return *val >= 0
 		case int:
 			return val >= 0 // Minimum valid number of replicas
 		case int64:

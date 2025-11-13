@@ -123,8 +123,8 @@ type Graylog struct {
 	MaxSize                                  int                          `json:"maxSize,omitempty"`
 	InputbufferProcessors                    int                          `json:"inputbufferProcessors,omitempty"`
 	StartupTimeout                           int                          `json:"startupTimeout,omitempty"`
-	IndexShards                              int                          `json:"indexShards,omitempty"`
-	IndexReplicas                            int                          `json:"indexReplicas,omitempty"`
+	IndexShards                              *int                         `json:"indexShards,omitempty"`
+	IndexReplicas                            *int                         `json:"indexReplicas,omitempty"`
 	MaxNumberOfIndices                       int                          `json:"maxNumberOfIndices,omitempty"`
 	LogsRotationSizeGb                       int                          `json:"logsRotationSizeGb,omitempty"`
 	InputPort                                int                          `json:"inputPort"`

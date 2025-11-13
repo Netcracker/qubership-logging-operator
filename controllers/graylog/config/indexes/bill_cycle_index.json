@@ -2,8 +2,8 @@
   "title": "Bill Cycle index set",
   "description": "The Graylog bill cycle logs index set",
   "index_prefix": "gray_bill_cycle",
-  "shards": {{ if isSetOrGE0 .Values.Graylog.IndexShards }}{{ .Values.Graylog.IndexShards }}{{ else }}4{{ end }},
-  "replicas": {{ if isSetOrGE0 .Values.Graylog.IndexReplicas }}{{ .Values.Graylog.IndexReplicas }}{{ else }}1{{ end }},
+  "shards": {{ if isValidShards .Values.Graylog.IndexShards }}{{ .Values.Graylog.IndexShards }}{{ else }}4{{ end }},
+  "replicas": {{ if isValidReplicas .Values.Graylog.IndexReplicas }}{{ .Values.Graylog.IndexReplicas }}{{ else }}1{{ end }},
 {{- range $s := .Values.Graylog.Streams }}
 {{- if (eq $s.Name "Bill Cycle logs")}}
 {{- if (eq $s.RotationStrategy "timeBased")}}

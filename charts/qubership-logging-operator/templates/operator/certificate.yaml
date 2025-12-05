@@ -10,7 +10,7 @@ metadata:
     app.kubernetes.io/component: logging-operator
     app.kubernetes.io/part-of: logging
     {{- $image := include "logging-operator.image" . }}
-    app.kubernetes.io/version: {{ splitList ":" $image | last }}
+    app.kubernetes.io/version: {{ splitList ":" $image | last | quote }}
   {{- if .Values.labels }}
     {{- toYaml .Values.labels | nindent 4 }}
   {{- end }}

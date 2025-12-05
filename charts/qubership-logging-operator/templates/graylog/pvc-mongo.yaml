@@ -11,7 +11,7 @@ metadata:
     app.kubernetes.io/component: graylog
     app.kubernetes.io/part-of: logging
     {{- $image := include "graylog.image" . }}
-    app.kubernetes.io/version: {{ splitList ":" $image | last }}
+    app.kubernetes.io/version: {{ splitList ":" $image | last | quote }}
   {{- if .Values.graylog.labels }}
     {{- toYaml .Values.graylog.labels | nindent 4 }}
   {{- end }}

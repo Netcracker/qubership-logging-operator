@@ -11,9 +11,9 @@ require (
 	github.com/google/go-cmp v0.7.0
 	go.uber.org/zap v1.27.0
 	golang.org/x/crypto v0.42.0 // indirect
-	k8s.io/api v0.34.1
-	k8s.io/apimachinery v0.34.1
-	k8s.io/client-go v0.34.1
+	k8s.io/api v0.34.2
+	k8s.io/apimachinery v0.34.2
+	k8s.io/client-go v0.34.2
 	sigs.k8s.io/controller-runtime v0.22.3
 )
 

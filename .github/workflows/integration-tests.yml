@@ -13,7 +13,7 @@ env:
   opensearch_version: release-2025.2-1.14.4
   opensearch_image_version: '1.14.5'
   namespace: logging
-  max_attempts: 50
+  max_attempts: 100
   delay: 10
 
 jobs:

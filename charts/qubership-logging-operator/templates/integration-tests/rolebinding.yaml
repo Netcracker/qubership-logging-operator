@@ -10,7 +10,7 @@ metadata:
     app.kubernetes.io/component: integration-tests
     app.kubernetes.io/part-of: logging
     {{- $image := include "logging-integration-tests.image" . }}
-    app.kubernetes.io/version: {{ splitList ":" $image | last }}
+    app.kubernetes.io/version: {{ splitList ":" $image | last | quote }}
   {{- if .Values.integrationTests.labels }}
     {{- toYaml .Values.integrationTests.labels | nindent 4 }}
   {{- end }}

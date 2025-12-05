@@ -11,8 +11,9 @@ env:
   kind_version: v0.27.0
   opensearch_namespace: opensearch
   opensearch_version: release-2025.2-1.14.4
+  opensearch_image_version: '1.14.5'
   namespace: logging
-  max_attempts: 50
+  max_attempts: 100
   delay: 10
 
 jobs:
@@ -22,7 +23,7 @@ jobs:
     timeout-minutes: 20
     steps:
     - name: Checkout code
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6.0.1
       with:
         path: qubership-logging-operator
 
@@ -85,7 +86,7 @@ jobs:
         kubectl apply -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/heads/main/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_podmonitors.yaml
 
     - name: Checkout opensearch repo
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6.0.1
       with:
         repository: Netcracker/qubership-opensearch
         ref: ${{ env.opensearch_version }}
@@ -114,6 +115,8 @@ jobs:
             enabled: false
           config:
             cluster.routing.allocation.disk.threshold_enabled: false
+          dockerImage: ghcr.io/netcracker/qubership-docker-opensearch:${{ env.opensearch_image_version }}
+          dockerTlsInitImage: ghcr.io/netcracker/qubership-opensearch-tls-init:${{ env.opensearch_image_version }}
         monitoring:
           enabled: false
         dbaasAdapter:

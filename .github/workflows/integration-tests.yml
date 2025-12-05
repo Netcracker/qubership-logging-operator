@@ -112,6 +112,8 @@ jobs:
                 password: "admin"
           tls:
             enabled: false
+          config:
+            cluster.routing.allocation.disk.threshold_enabled: false
         monitoring:
           enabled: false
         dbaasAdapter:
@@ -166,15 +168,6 @@ jobs:
     - name: Check opensearch cluster health
       id: check_opensearch_health
       run: |
-        kubectl exec -n opensearch opensearch-0 -- \
-        curl -X PUT "http://localhost:9200/_cluster/settings" -u admin:admin \
-          -H "Content-Type: application/json" \
-          -d '{
-            "transient": {
-              "cluster.blocks.read_only": false,
-              "cluster.blocks.read_only_allow_delete": false
-            }
-          }'
         cluster_status=$(kubectl exec -n ${{ env.opensearch_namespace }} opensearch-0 -- curl -s http://localhost:9200/_cluster/health?pretty -u admin:admin)
         if [[ $(jq -r .status <<<"$cluster_status") = "yellow" ]]; then
           echo "::error::❌ Opensearch cluster status is YELLOW. Check opensearch logs."

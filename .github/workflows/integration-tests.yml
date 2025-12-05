@@ -112,6 +112,8 @@ jobs:
                 password: "admin"
           tls:
             enabled: false
+          config:
+            cluster.routing.allocation.disk.threshold_enabled: false
         monitoring:
           enabled: false
         dbaasAdapter:

@@ -114,8 +114,8 @@ github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 h1:Jamvg5psRI
 github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.87.0 h1:QK37j5ZUtBwbyZkF4BBAs3bQQ1gYKG8e+g1BdNZBr/M=
 github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.87.0/go.mod h1:WHiLZmOWVop/MoYvRD58LfnPeyE+dcITby/jQjg83Hw=
-github.com/prometheus-operator/prometheus-operator/pkg/client v0.86.1 h1:IqbpBVUahr2978vI6GkoCeaaugklgtq0M0FRJ5Ytdkk=
-github.com/prometheus-operator/prometheus-operator/pkg/client v0.86.1/go.mod h1:dquFiWkRGsMzjxckZAOFSsqqhUYQ9UZtwBeqaOsrWCk=
+github.com/prometheus-operator/prometheus-operator/pkg/client v0.87.0 h1:rrZriucuC8ZUOPr8Asvavb9pbzqXSsAeY79aH8xnXlc=
+github.com/prometheus-operator/prometheus-operator/pkg/client v0.87.0/go.mod h1:OMvC2XJGxPeEAKf5qB1u7DudV46HA8ePxYslRjxQcbk=
 github.com/prometheus/client_golang v1.22.0 h1:rb93p9lokFEsctTys46VnV1kLCDpVZ0a/Y92Vm0Zc6Q=
 github.com/prometheus/client_golang v1.22.0/go.mod h1:R7ljNsLXhuQXYZYtw6GAE9AZg8Y7vEW5scdCXrWRXC0=
 github.com/prometheus/client_model v0.6.1 h1:ZKSh/rekM+n3CeS952MLRAdFwIKqeY8b62p8ais2e9E=

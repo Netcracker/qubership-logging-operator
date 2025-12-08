@@ -20,7 +20,7 @@ import (
 	"time"
 
 	"github.com/Masterminds/sprig"
-	v11 "github.com/Netcracker/qubership-logging-operator/api/v1alpha1"
+	"github.com/Netcracker/qubership-logging-operator/api/v1"
 	"k8s.io/client-go/kubernetes"
 )
 
@@ -173,7 +173,7 @@ func DownloadFile(fullURLFile string, fileName string) error {
 	return nil
 }
 
-func DownloadFileTLS(ctx context.Context, contentPackPath *v11.ContentPackPathHTTPConfig, fileName string, clientSet kubernetes.Interface, namespace string) error {
+func DownloadFileTLS(ctx context.Context, contentPackPath *v1.ContentPackPathHTTPConfig, fileName string, clientSet kubernetes.Interface, namespace string) error {
 	logger.V(Debug).Info("Try download " + contentPackPath.URL + " into file " + fileName)
 	file, err := os.Create(fileName)
 	if err != nil {

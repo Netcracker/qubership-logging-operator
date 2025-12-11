@@ -27,10 +27,6 @@ spec:
       port: 9000
       protocol: TCP
       targetPort: 9000
-    - name: metrics
-      port: 9833
-      protocol: TCP
-      targetPort: 9833
     {{ end }}
     - name: graylog-udp
       port: 514
@@ -40,3 +36,7 @@ spec:
       port: {{ .Values.Graylog.InputPort }}
       protocol: TCP
       targetPort: {{ .Values.Graylog.InputPort }}
+    - name: graylog-metrics
+      port: 9833
+      protocol: TCP
+      targetPort: 9833

@@ -32,7 +32,7 @@ spec:
           sourceLabels:
             - __name__
       path: /api/metrics/prometheus
-      port: metrics
+      port: graylog-metrics
       {{- if .Values.graylog.tls }}
       {{- if .Values.graylog.tls.http }}
       {{- if .Values.graylog.tls.http.enabled }}

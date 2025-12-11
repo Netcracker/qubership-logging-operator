@@ -31,8 +31,8 @@ spec:
           regex: org_graylog2_rest_.*
           sourceLabels:
             - __name__
-      path: /api/plugins/org.graylog.plugins.metrics.prometheus/metrics
-      port: graylog
+      path: /api/metrics/prometheus
+      port: graylog-metrics
       {{- if .Values.graylog.tls }}
       {{- if .Values.graylog.tls.http }}
       {{- if .Values.graylog.tls.http.enabled }}

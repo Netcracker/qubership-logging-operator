@@ -446,6 +446,9 @@ spec:
             - name: graylog-{{ .Values.Graylog.InputPort }}
               containerPort: {{ .Values.Graylog.InputPort }}
               protocol: TCP
+            - name: metrics
+              containerPort: 9833
+              protocol: TCP
 {{- if .Values.Graylog.GraylogResources }}
           resources:
             limits:

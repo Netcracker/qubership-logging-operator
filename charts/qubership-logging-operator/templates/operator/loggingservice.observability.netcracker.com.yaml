@@ -1,4 +1,4 @@
-apiVersion: logging.qubership.org/v1alpha1
+apiVersion: logging.netcracker.com/v1
 kind: LoggingService
 metadata:
   name: {{ .Values.name }}

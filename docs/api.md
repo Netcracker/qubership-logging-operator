@@ -4,16 +4,16 @@
 <p>Packages:</p>
 <ul>
 <li>
-<a href="#logging.qubership.org%2fv1alpha1">logging.qubership.org/v1alpha1</a>
+<a href="#logging.netcracker.com%2fv1">logging.netcracker.com/v1</a>
 </li>
 </ul>
-<h2 id="logging.qubership.org/v1alpha1">logging.qubership.org/v1alpha1</h2>
+<h2 id="logging.netcracker.com/v1">logging.netcracker.com/v1</h2>
 Resource Types:
 <ul></ul>
-<h3 id="logging.qubership.org/v1alpha1.Auth">Auth
+<h3 id="logging.netcracker.com/v1.Auth">Auth
 </h3>
 <p>
-(<em>Appears on:</em><a href="#logging.qubership.org/v1alpha1.LokiFluentbit">LokiFluentbit</a>, <a href="#logging.qubership.org/v1alpha1.LokiFluentd">LokiFluentd</a>)
+(<em>Appears on:</em><a href="#logging.netcracker.com/v1.LokiFluentbit">LokiFluentbit</a>, <a href="#logging.netcracker.com/v1.LokiFluentd">LokiFluentd</a>)
 </p>
 <div>
 </div>
@@ -39,10 +39,10 @@ Kubernetes core/v1.SecretKeySelector
 </tr>
 </tbody>
 </table>
-<h3 id="logging.qubership.org/v1alpha1.AuthProxy">AuthProxy
+<h3 id="logging.netcracker.com/v1.AuthProxy">AuthProxy
 </h3>
 <p>
-(<em>Appears on:</em><a href="#logging.qubership.org/v1alpha1.Graylog">Graylog</a>)
+(<em>Appears on:</em><a href="#logging.netcracker.com/v1.Graylog">Graylog</a>)
 </p>
 <div>
 </div>
@@ -82,7 +82,7 @@ Kubernetes core/v1.SecretKeySelector
 <td>
 <code>ca</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.CA">
+<a href="#logging.netcracker.com/v1.CA">
 CA
 </a>
 </em>
@@ -95,7 +95,7 @@ CA
 <td>
 <code>cert</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.Cert">
+<a href="#logging.netcracker.com/v1.Cert">
 Cert
 </a>
 </em>
@@ -109,7 +109,7 @@ to LDAP database or OAuth authentication server</p>
 <td>
 <code>key</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.Key">
+<a href="#logging.netcracker.com/v1.Key">
 Key
 </a>
 </em>
@@ -141,10 +141,10 @@ bool
 </tr>
 </tbody>
 </table>
-<h3 id="logging.qubership.org/v1alpha1.CA">CA
+<h3 id="logging.netcracker.com/v1.CA">CA
 </h3>
 <p>
-(<em>Appears on:</em><a href="#logging.qubership.org/v1alpha1.AuthProxy">AuthProxy</a>, <a href="#logging.qubership.org/v1alpha1.Certificates">Certificates</a>)
+(<em>Appears on:</em><a href="#logging.netcracker.com/v1.AuthProxy">AuthProxy</a>, <a href="#logging.netcracker.com/v1.Certificates">Certificates</a>)
 </p>
 <div>
 </div>
@@ -178,10 +178,10 @@ string
 </tr>
 </tbody>
 </table>
-<h3 id="logging.qubership.org/v1alpha1.Cert">Cert
+<h3 id="logging.netcracker.com/v1.Cert">Cert
 </h3>
 <p>
-(<em>Appears on:</em><a href="#logging.qubership.org/v1alpha1.AuthProxy">AuthProxy</a>, <a href="#logging.qubership.org/v1alpha1.Certificates">Certificates</a>, <a href="#logging.qubership.org/v1alpha1.HTTPGraylogTLS">HTTPGraylogTLS</a>)
+(<em>Appears on:</em><a href="#logging.netcracker.com/v1.AuthProxy">AuthProxy</a>, <a href="#logging.netcracker.com/v1.Certificates">Certificates</a>, <a href="#logging.netcracker.com/v1.HTTPGraylogTLS">HTTPGraylogTLS</a>)
 </p>
 <div>
 </div>
@@ -215,10 +215,10 @@ string
 </tr>
 </tbody>
 </table>
-<h3 id="logging.qubership.org/v1alpha1.Certificates">Certificates
+<h3 id="logging.netcracker.com/v1.Certificates">Certificates
 </h3>
 <p>
-(<em>Appears on:</em><a href="#logging.qubership.org/v1alpha1.FluentbitLokiTLS">FluentbitLokiTLS</a>, <a href="#logging.qubership.org/v1alpha1.FluentdLokiTLS">FluentdLokiTLS</a>, <a href="#logging.qubership.org/v1alpha1.TLS">TLS</a>)
+(<em>Appears on:</em><a href="#logging.netcracker.com/v1.FluentbitLokiTLS">FluentbitLokiTLS</a>, <a href="#logging.netcracker.com/v1.FluentdLokiTLS">FluentdLokiTLS</a>, <a href="#logging.netcracker.com/v1.TLS">TLS</a>)
 </p>
 <div>
 </div>
@@ -234,7 +234,7 @@ string
 <td>
 <code>ca</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.CA">
+<a href="#logging.netcracker.com/v1.CA">
 CA
 </a>
 </em>
@@ -246,7 +246,7 @@ CA
 <td>
 <code>cert</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.Cert">
+<a href="#logging.netcracker.com/v1.Cert">
 Cert
 </a>
 </em>
@@ -258,7 +258,7 @@ Cert
 <td>
 <code>key</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.Key">
+<a href="#logging.netcracker.com/v1.Key">
 Key
 </a>
 </em>
@@ -268,10 +268,10 @@ Key
 </tr>
 </tbody>
 </table>
-<h3 id="logging.qubership.org/v1alpha1.CloudEventsReader">CloudEventsReader
+<h3 id="logging.netcracker.com/v1.CloudEventsReader">CloudEventsReader
 </h3>
 <p>
-(<em>Appears on:</em><a href="#logging.qubership.org/v1alpha1.LoggingServiceSpec">LoggingServiceSpec</a>)
+(<em>Appears on:</em><a href="#logging.netcracker.com/v1.LoggingServiceSpec">LoggingServiceSpec</a>)
 </p>
 <div>
 <p>CloudEventsReader contains EventsReader-specific configuration</p>
@@ -338,6 +338,18 @@ string
 </tr>
 <tr>
 <td>
+<code>affinity</code><br/>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core">
+Kubernetes core/v1.Affinity
+</a>
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
 <code>labels</code><br/>
 <em>
 map[string]string
@@ -378,10 +390,10 @@ bool
 </tr>
 </tbody>
 </table>
-<h3 id="logging.qubership.org/v1alpha1.ConfigmapReload">ConfigmapReload
+<h3 id="logging.netcracker.com/v1.ConfigmapReload">ConfigmapReload
 </h3>
 <p>
-(<em>Appears on:</em><a href="#logging.qubership.org/v1alpha1.Fluentbit">Fluentbit</a>, <a href="#logging.qubership.org/v1alpha1.FluentbitAggregator">FluentbitAggregator</a>, <a href="#logging.qubership.org/v1alpha1.Fluentd">Fluentd</a>)
+(<em>Appears on:</em><a href="#logging.netcracker.com/v1.Fluentbit">Fluentbit</a>, <a href="#logging.netcracker.com/v1.FluentbitAggregator">FluentbitAggregator</a>, <a href="#logging.netcracker.com/v1.Fluentd">Fluentd</a>)
 </p>
 <div>
 </div>
@@ -417,7 +429,7 @@ Kubernetes core/v1.ResourceRequirements
 </tr>
 </tbody>
 </table>
-<h3 id="logging.qubership.org/v1alpha1.ContentPackPathHTTPConfig">ContentPackPathHTTPConfig
+<h3 id="logging.netcracker.com/v1.ContentPackPathHTTPConfig">ContentPackPathHTTPConfig
 </h3>
 <div>
 </div>
@@ -433,7 +445,7 @@ Kubernetes core/v1.ResourceRequirements
 <td>
 <code>tls</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.HTTPConfig">
+<a href="#logging.netcracker.com/v1.HTTPConfig">
 HTTPConfig
 </a>
 </em>
@@ -453,10 +465,10 @@ string
 </tr>
 </tbody>
 </table>
-<h3 id="logging.qubership.org/v1alpha1.Credentials">Credentials
+<h3 id="logging.netcracker.com/v1.Credentials">Credentials
 </h3>
 <p>
-(<em>Appears on:</em><a href="#logging.qubership.org/v1alpha1.HTTPConfig">HTTPConfig</a>)
+(<em>Appears on:</em><a href="#logging.netcracker.com/v1.HTTPConfig">HTTPConfig</a>)
 </p>
 <div>
 </div>
@@ -482,10 +494,10 @@ Kubernetes core/v1.SecretKeySelector
 </tr>
 </tbody>
 </table>
-<h3 id="logging.qubership.org/v1alpha1.Fluentbit">Fluentbit
+<h3 id="logging.netcracker.com/v1.Fluentbit">Fluentbit
 </h3>
 <p>
-(<em>Appears on:</em><a href="#logging.qubership.org/v1alpha1.LoggingServiceSpec">LoggingServiceSpec</a>)
+(<em>Appears on:</em><a href="#logging.netcracker.com/v1.LoggingServiceSpec">LoggingServiceSpec</a>)
 </p>
 <div>
 <p>Fluentbit contains Fluentbit-specific configuration</p>
@@ -544,7 +556,7 @@ map[string]string
 <td>
 <code>aggregator</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.FluentbitAggregator">
+<a href="#logging.netcracker.com/v1.FluentbitAggregator">
 FluentbitAggregator
 </a>
 </em>
@@ -616,7 +628,7 @@ string
 <td>
 <code>configmapReload</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.ConfigmapReload">
+<a href="#logging.netcracker.com/v1.ConfigmapReload">
 ConfigmapReload
 </a>
 </em>
@@ -728,7 +740,7 @@ string
 <td>
 <code>tls</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.FluentbitTLS">
+<a href="#logging.netcracker.com/v1.FluentbitTLS">
 FluentbitTLS
 </a>
 </em>
@@ -766,6 +778,18 @@ FluentbitTLS
 <em>
 <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#toleration-v1-core">
 []Kubernetes core/v1.Toleration
+</a>
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>affinity</code><br/>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core">
+Kubernetes core/v1.Affinity
 </a>
 </em>
 </td>
@@ -896,7 +920,7 @@ string
 <td>
 <code>output</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.OutputFluentbit">
+<a href="#logging.netcracker.com/v1.OutputFluentbit">
 OutputFluentbit
 </a>
 </em>
@@ -906,10 +930,10 @@ OutputFluentbit
 </tr>
 </tbody>
 </table>
-<h3 id="logging.qubership.org/v1alpha1.FluentbitAggregator">FluentbitAggregator
+<h3 id="logging.netcracker.com/v1.FluentbitAggregator">FluentbitAggregator
 </h3>
 <p>
-(<em>Appears on:</em><a href="#logging.qubership.org/v1alpha1.Fluentbit">Fluentbit</a>)
+(<em>Appears on:</em><a href="#logging.netcracker.com/v1.Fluentbit">Fluentbit</a>)
 </p>
 <div>
 <p>FluentbitAggregator contains Fluentbit-aggregator-specific configuration</p>
@@ -936,7 +960,7 @@ map[string]string
 <td>
 <code>volume</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.Volume">
+<a href="#logging.netcracker.com/v1.Volume">
 Volume
 </a>
 </em>
@@ -1000,7 +1024,7 @@ string
 <td>
 <code>configmapReload</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.ConfigmapReload">
+<a href="#logging.netcracker.com/v1.ConfigmapReload">
 ConfigmapReload
 </a>
 </em>
@@ -1122,7 +1146,7 @@ map[string]string
 <td>
 <code>tls</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.FluentbitTLS">
+<a href="#logging.netcracker.com/v1.FluentbitTLS">
 FluentbitTLS
 </a>
 </em>
@@ -1136,6 +1160,18 @@ FluentbitTLS
 <em>
 <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#toleration-v1-core">
 []Kubernetes core/v1.Toleration
+</a>
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>affinity</code><br/>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core">
+Kubernetes core/v1.Affinity
 </a>
 </em>
 </td>
@@ -1206,7 +1242,7 @@ bool
 <td>
 <code>output</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.OutputFluentbit">
+<a href="#logging.netcracker.com/v1.OutputFluentbit">
 OutputFluentbit
 </a>
 </em>
@@ -1216,10 +1252,10 @@ OutputFluentbit
 </tr>
 </tbody>
 </table>
-<h3 id="logging.qubership.org/v1alpha1.FluentbitLokiTLS">FluentbitLokiTLS
+<h3 id="logging.netcracker.com/v1.FluentbitLokiTLS">FluentbitLokiTLS
 </h3>
 <p>
-(<em>Appears on:</em><a href="#logging.qubership.org/v1alpha1.LokiFluentbit">LokiFluentbit</a>)
+(<em>Appears on:</em><a href="#logging.netcracker.com/v1.LokiFluentbit">LokiFluentbit</a>)
 </p>
 <div>
 </div>
@@ -1235,7 +1271,7 @@ OutputFluentbit
 <td>
 <code>ca</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.CA">
+<a href="#logging.netcracker.com/v1.CA">
 CA
 </a>
 </em>
@@ -1247,7 +1283,7 @@ CA
 <td>
 <code>cert</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.Cert">
+<a href="#logging.netcracker.com/v1.Cert">
 Cert
 </a>
 </em>
@@ -1259,7 +1295,7 @@ Cert
 <td>
 <code>key</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.Key">
+<a href="#logging.netcracker.com/v1.Key">
 Key
 </a>
 </em>
@@ -1299,10 +1335,10 @@ bool
 </tr>
 </tbody>
 </table>
-<h3 id="logging.qubership.org/v1alpha1.FluentbitTLS">FluentbitTLS
+<h3 id="logging.netcracker.com/v1.FluentbitTLS">FluentbitTLS
 </h3>
 <p>
-(<em>Appears on:</em><a href="#logging.qubership.org/v1alpha1.Fluentbit">Fluentbit</a>, <a href="#logging.qubership.org/v1alpha1.FluentbitAggregator">FluentbitAggregator</a>)
+(<em>Appears on:</em><a href="#logging.netcracker.com/v1.Fluentbit">Fluentbit</a>, <a href="#logging.netcracker.com/v1.FluentbitAggregator">FluentbitAggregator</a>)
 </p>
 <div>
 </div>
@@ -1318,7 +1354,7 @@ bool
 <td>
 <code>generateCerts</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.GenerateCerts">
+<a href="#logging.netcracker.com/v1.GenerateCerts">
 GenerateCerts
 </a>
 </em>
@@ -1330,7 +1366,7 @@ GenerateCerts
 <td>
 <code>ca</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.CA">
+<a href="#logging.netcracker.com/v1.CA">
 CA
 </a>
 </em>
@@ -1342,7 +1378,7 @@ CA
 <td>
 <code>cert</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.Cert">
+<a href="#logging.netcracker.com/v1.Cert">
 Cert
 </a>
 </em>
@@ -1354,7 +1390,7 @@ Cert
 <td>
 <code>key</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.Key">
+<a href="#logging.netcracker.com/v1.Key">
 Key
 </a>
 </em>
@@ -1394,10 +1430,10 @@ bool
 </tr>
 </tbody>
 </table>
-<h3 id="logging.qubership.org/v1alpha1.FluentbitTLSParams">FluentbitTLSParams
+<h3 id="logging.netcracker.com/v1.FluentbitTLSParams">FluentbitTLSParams
 </h3>
 <p>
-(<em>Appears on:</em><a href="#logging.qubership.org/v1alpha1.FluentbitLokiTLS">FluentbitLokiTLS</a>, <a href="#logging.qubership.org/v1alpha1.FluentbitTLS">FluentbitTLS</a>)
+(<em>Appears on:</em><a href="#logging.netcracker.com/v1.FluentbitLokiTLS">FluentbitLokiTLS</a>, <a href="#logging.netcracker.com/v1.FluentbitTLS">FluentbitTLS</a>)
 </p>
 <div>
 </div>
@@ -1441,10 +1477,10 @@ bool
 </tr>
 </tbody>
 </table>
-<h3 id="logging.qubership.org/v1alpha1.Fluentd">Fluentd
+<h3 id="logging.netcracker.com/v1.Fluentd">Fluentd
 </h3>
 <p>
-(<em>Appears on:</em><a href="#logging.qubership.org/v1alpha1.LoggingServiceSpec">LoggingServiceSpec</a>)
+(<em>Appears on:</em><a href="#logging.netcracker.com/v1.LoggingServiceSpec">LoggingServiceSpec</a>)
 </p>
 <div>
 <p>Fluentd contains Fluentd-specific configuration</p>
@@ -1553,7 +1589,7 @@ string
 <td>
 <code>configmapReload</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.ConfigmapReload">
+<a href="#logging.netcracker.com/v1.ConfigmapReload">
 ConfigmapReload
 </a>
 </em>
@@ -1655,7 +1691,7 @@ string
 <td>
 <code>tls</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.FluentdTLS">
+<a href="#logging.netcracker.com/v1.FluentdTLS">
 FluentdTLS
 </a>
 </em>
@@ -1703,6 +1739,18 @@ FluentdTLS
 <em>
 <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#toleration-v1-core">
 []Kubernetes core/v1.Toleration
+</a>
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>affinity</code><br/>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core">
+Kubernetes core/v1.Affinity
 </a>
 </em>
 </td>
@@ -1863,7 +1911,7 @@ bool
 <td>
 <code>output</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.OutputFluentd">
+<a href="#logging.netcracker.com/v1.OutputFluentd">
 OutputFluentd
 </a>
 </em>
@@ -1873,10 +1921,10 @@ OutputFluentd
 </tr>
 </tbody>
 </table>
-<h3 id="logging.qubership.org/v1alpha1.FluentdLokiTLS">FluentdLokiTLS
+<h3 id="logging.netcracker.com/v1.FluentdLokiTLS">FluentdLokiTLS
 </h3>
 <p>
-(<em>Appears on:</em><a href="#logging.qubership.org/v1alpha1.LokiFluentd">LokiFluentd</a>)
+(<em>Appears on:</em><a href="#logging.netcracker.com/v1.LokiFluentd">LokiFluentd</a>)
 </p>
 <div>
 </div>
@@ -1892,7 +1940,7 @@ OutputFluentd
 <td>
 <code>ca</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.CA">
+<a href="#logging.netcracker.com/v1.CA">
 CA
 </a>
 </em>
@@ -1904,7 +1952,7 @@ CA
 <td>
 <code>cert</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.Cert">
+<a href="#logging.netcracker.com/v1.Cert">
 Cert
 </a>
 </em>
@@ -1916,7 +1964,7 @@ Cert
 <td>
 <code>key</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.Key">
+<a href="#logging.netcracker.com/v1.Key">
 Key
 </a>
 </em>
@@ -1986,10 +2034,10 @@ bool
 </tr>
 </tbody>
 </table>
-<h3 id="logging.qubership.org/v1alpha1.FluentdTLS">FluentdTLS
+<h3 id="logging.netcracker.com/v1.FluentdTLS">FluentdTLS
 </h3>
 <p>
-(<em>Appears on:</em><a href="#logging.qubership.org/v1alpha1.Fluentd">Fluentd</a>)
+(<em>Appears on:</em><a href="#logging.netcracker.com/v1.Fluentd">Fluentd</a>)
 </p>
 <div>
 </div>
@@ -2005,7 +2053,7 @@ bool
 <td>
 <code>generateCerts</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.GenerateCerts">
+<a href="#logging.netcracker.com/v1.GenerateCerts">
 GenerateCerts
 </a>
 </em>
@@ -2017,7 +2065,7 @@ GenerateCerts
 <td>
 <code>ca</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.CA">
+<a href="#logging.netcracker.com/v1.CA">
 CA
 </a>
 </em>
@@ -2029,7 +2077,7 @@ CA
 <td>
 <code>cert</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.Cert">
+<a href="#logging.netcracker.com/v1.Cert">
 Cert
 </a>
 </em>
@@ -2041,7 +2089,7 @@ Cert
 <td>
 <code>key</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.Key">
+<a href="#logging.netcracker.com/v1.Key">
 Key
 </a>
 </em>
@@ -2111,10 +2159,10 @@ bool
 </tr>
 </tbody>
 </table>
-<h3 id="logging.qubership.org/v1alpha1.FluentdTLSParams">FluentdTLSParams
+<h3 id="logging.netcracker.com/v1.FluentdTLSParams">FluentdTLSParams
 </h3>
 <p>
-(<em>Appears on:</em><a href="#logging.qubership.org/v1alpha1.FluentdLokiTLS">FluentdLokiTLS</a>, <a href="#logging.qubership.org/v1alpha1.FluentdTLS">FluentdTLS</a>)
+(<em>Appears on:</em><a href="#logging.netcracker.com/v1.FluentdLokiTLS">FluentdLokiTLS</a>, <a href="#logging.netcracker.com/v1.FluentdTLS">FluentdTLS</a>)
 </p>
 <div>
 </div>
@@ -2188,10 +2236,10 @@ bool
 </tr>
 </tbody>
 </table>
-<h3 id="logging.qubership.org/v1alpha1.GenerateCerts">GenerateCerts
+<h3 id="logging.netcracker.com/v1.GenerateCerts">GenerateCerts
 </h3>
 <p>
-(<em>Appears on:</em><a href="#logging.qubership.org/v1alpha1.HTTPGraylogTLS">HTTPGraylogTLS</a>, <a href="#logging.qubership.org/v1alpha1.TLS">TLS</a>)
+(<em>Appears on:</em><a href="#logging.netcracker.com/v1.HTTPGraylogTLS">HTTPGraylogTLS</a>, <a href="#logging.netcracker.com/v1.TLS">TLS</a>)
 </p>
 <div>
 <p>GenerateCerts define settings for cert-manager.</p>
@@ -2226,10 +2274,10 @@ bool
 </tr>
 </tbody>
 </table>
-<h3 id="logging.qubership.org/v1alpha1.Graylog">Graylog
+<h3 id="logging.netcracker.com/v1.Graylog">Graylog
 </h3>
 <p>
-(<em>Appears on:</em><a href="#logging.qubership.org/v1alpha1.LoggingServiceSpec">LoggingServiceSpec</a>)
+(<em>Appears on:</em><a href="#logging.netcracker.com/v1.LoggingServiceSpec">LoggingServiceSpec</a>)
 </p>
 <div>
 <p>Graylog contains Graylog-specific configuration</p>
@@ -2282,7 +2330,7 @@ Kubernetes core/v1.ResourceRequirements
 <td>
 <code>mongoDBUpgrade</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.MongoDBUpgrade">
+<a href="#logging.netcracker.com/v1.MongoDBUpgrade">
 MongoDBUpgrade
 </a>
 </em>
@@ -2294,7 +2342,7 @@ MongoDBUpgrade
 <td>
 <code>authProxy</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.AuthProxy">
+<a href="#logging.netcracker.com/v1.AuthProxy">
 AuthProxy
 </a>
 </em>
@@ -2306,7 +2354,7 @@ AuthProxy
 <td>
 <code>tls</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.GraylogTLS">
+<a href="#logging.netcracker.com/v1.GraylogTLS">
 GraylogTLS
 </a>
 </em>
@@ -2318,8 +2366,20 @@ GraylogTLS
 <td>
 <code>openSearch</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.OpenSearch">
+<a href="#logging.netcracker.com/v1.OpenSearch">
 OpenSearch
+</a>
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>affinity</code><br/>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.30/#affinity-v1-core">
+Kubernetes core/v1.Affinity
 </a>
 </em>
 </td>
@@ -2510,8 +2570,8 @@ string
 <td>
 <code>contentPacks</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.*./v1alpha1/.ContentPackPathHTTPConfig">
-[]*./v1alpha1/.ContentPackPathHTTPConfig
+<a href="#logging.netcracker.com/v1.*./v1/.ContentPackPathHTTPConfig">
+[]*./v1/.ContentPackPathHTTPConfig
 </a>
 </em>
 </td>
@@ -2522,7 +2582,7 @@ string
 <td>
 <code>streams</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.Stream">
+<a href="#logging.netcracker.com/v1.Stream">
 []Stream
 </a>
 </em>
@@ -2692,6 +2752,16 @@ int
 </tr>
 <tr>
 <td>
+<code>replicas</code><br/>
+<em>
+int
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
 <code>s3Archive</code><br/>
 <em>
 bool
@@ -2702,10 +2772,10 @@ bool
 </tr>
 </tbody>
 </table>
-<h3 id="logging.qubership.org/v1alpha1.GraylogTLS">GraylogTLS
+<h3 id="logging.netcracker.com/v1.GraylogTLS">GraylogTLS
 </h3>
 <p>
-(<em>Appears on:</em><a href="#logging.qubership.org/v1alpha1.Graylog">Graylog</a>)
+(<em>Appears on:</em><a href="#logging.netcracker.com/v1.Graylog">Graylog</a>)
 </p>
 <div>
 </div>
@@ -2721,7 +2791,7 @@ bool
 <td>
 <code>http</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.HTTPGraylogTLS">
+<a href="#logging.netcracker.com/v1.HTTPGraylogTLS">
 HTTPGraylogTLS
 </a>
 </em>
@@ -2733,7 +2803,7 @@ HTTPGraylogTLS
 <td>
 <code>input</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.InputGraylogTLS">
+<a href="#logging.netcracker.com/v1.InputGraylogTLS">
 InputGraylogTLS
 </a>
 </em>
@@ -2743,10 +2813,10 @@ InputGraylogTLS
 </tr>
 </tbody>
 </table>
-<h3 id="logging.qubership.org/v1alpha1.HTTPConfig">HTTPConfig
+<h3 id="logging.netcracker.com/v1.HTTPConfig">HTTPConfig
 </h3>
 <p>
-(<em>Appears on:</em><a href="#logging.qubership.org/v1alpha1.ContentPackPathHTTPConfig">ContentPackPathHTTPConfig</a>, <a href="#logging.qubership.org/v1alpha1.OpenSearch">OpenSearch</a>)
+(<em>Appears on:</em><a href="#logging.netcracker.com/v1.ContentPackPathHTTPConfig">ContentPackPathHTTPConfig</a>, <a href="#logging.netcracker.com/v1.OpenSearch">OpenSearch</a>)
 </p>
 <div>
 </div>
@@ -2762,7 +2832,7 @@ InputGraylogTLS
 <td>
 <code>credentials</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.Credentials">
+<a href="#logging.netcracker.com/v1.Credentials">
 Credentials
 </a>
 </em>
@@ -2774,7 +2844,7 @@ Credentials
 <td>
 <code>tlsConfig</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.TLSConfig">
+<a href="#logging.netcracker.com/v1.TLSConfig">
 TLSConfig
 </a>
 </em>
@@ -2784,10 +2854,10 @@ TLSConfig
 </tr>
 </tbody>
 </table>
-<h3 id="logging.qubership.org/v1alpha1.HTTPGraylogTLS">HTTPGraylogTLS
+<h3 id="logging.netcracker.com/v1.HTTPGraylogTLS">HTTPGraylogTLS
 </h3>
 <p>
-(<em>Appears on:</em><a href="#logging.qubership.org/v1alpha1.GraylogTLS">GraylogTLS</a>)
+(<em>Appears on:</em><a href="#logging.netcracker.com/v1.GraylogTLS">GraylogTLS</a>)
 </p>
 <div>
 </div>
@@ -2803,7 +2873,7 @@ TLSConfig
 <td>
 <code>generateCerts</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.GenerateCerts">
+<a href="#logging.netcracker.com/v1.GenerateCerts">
 GenerateCerts
 </a>
 </em>
@@ -2815,7 +2885,7 @@ GenerateCerts
 <td>
 <code>cert</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.Cert">
+<a href="#logging.netcracker.com/v1.Cert">
 Cert
 </a>
 </em>
@@ -2827,7 +2897,7 @@ Cert
 <td>
 <code>key</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.Key">
+<a href="#logging.netcracker.com/v1.Key">
 Key
 </a>
 </em>
@@ -2877,10 +2947,10 @@ bool
 </tr>
 </tbody>
 </table>
-<h3 id="logging.qubership.org/v1alpha1.InputGraylogTLS">InputGraylogTLS
+<h3 id="logging.netcracker.com/v1.InputGraylogTLS">InputGraylogTLS
 </h3>
 <p>
-(<em>Appears on:</em><a href="#logging.qubership.org/v1alpha1.GraylogTLS">GraylogTLS</a>)
+(<em>Appears on:</em><a href="#logging.netcracker.com/v1.GraylogTLS">GraylogTLS</a>)
 </p>
 <div>
 </div>
@@ -2896,7 +2966,7 @@ bool
 <td>
 <code>generateCerts</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.GenerateCerts">
+<a href="#logging.netcracker.com/v1.GenerateCerts">
 GenerateCerts
 </a>
 </em>
@@ -2908,7 +2978,7 @@ GenerateCerts
 <td>
 <code>ca</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.CA">
+<a href="#logging.netcracker.com/v1.CA">
 CA
 </a>
 </em>
@@ -2920,7 +2990,7 @@ CA
 <td>
 <code>cert</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.Cert">
+<a href="#logging.netcracker.com/v1.Cert">
 Cert
 </a>
 </em>
@@ -2932,7 +3002,7 @@ Cert
 <td>
 <code>key</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.Key">
+<a href="#logging.netcracker.com/v1.Key">
 Key
 </a>
 </em>
@@ -2972,10 +3042,10 @@ bool
 </tr>
 </tbody>
 </table>
-<h3 id="logging.qubership.org/v1alpha1.Key">Key
+<h3 id="logging.netcracker.com/v1.Key">Key
 </h3>
 <p>
-(<em>Appears on:</em><a href="#logging.qubership.org/v1alpha1.AuthProxy">AuthProxy</a>, <a href="#logging.qubership.org/v1alpha1.Certificates">Certificates</a>, <a href="#logging.qubership.org/v1alpha1.HTTPGraylogTLS">HTTPGraylogTLS</a>)
+(<em>Appears on:</em><a href="#logging.netcracker.com/v1.AuthProxy">AuthProxy</a>, <a href="#logging.netcracker.com/v1.Certificates">Certificates</a>, <a href="#logging.netcracker.com/v1.HTTPGraylogTLS">HTTPGraylogTLS</a>)
 </p>
 <div>
 </div>
@@ -3009,7 +3079,7 @@ string
 </tr>
 </tbody>
 </table>
-<h3 id="logging.qubership.org/v1alpha1.LoggingService">LoggingService
+<h3 id="logging.netcracker.com/v1.LoggingService">LoggingService
 </h3>
 <div>
 <p>LoggingService is the Schema for the loggingservices API</p>
@@ -3040,7 +3110,7 @@ Refer to the Kubernetes API documentation for the fields of the
 <td>
 <code>spec</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.LoggingServiceSpec">
+<a href="#logging.netcracker.com/v1.LoggingServiceSpec">
 LoggingServiceSpec
 </a>
 </em>
@@ -3053,7 +3123,7 @@ LoggingServiceSpec
 <td>
 <code>graylog</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.Graylog">
+<a href="#logging.netcracker.com/v1.Graylog">
 Graylog
 </a>
 </em>
@@ -3065,7 +3135,7 @@ Graylog
 <td>
 <code>fluentd</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.Fluentd">
+<a href="#logging.netcracker.com/v1.Fluentd">
 Fluentd
 </a>
 </em>
@@ -3077,7 +3147,7 @@ Fluentd
 <td>
 <code>fluentbit</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.Fluentbit">
+<a href="#logging.netcracker.com/v1.Fluentbit">
 Fluentbit
 </a>
 </em>
@@ -3089,7 +3159,7 @@ Fluentbit
 <td>
 <code>cloudEventsReader</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.CloudEventsReader">
+<a href="#logging.netcracker.com/v1.CloudEventsReader">
 CloudEventsReader
 </a>
 </em>
@@ -3101,7 +3171,7 @@ CloudEventsReader
 <td>
 <code>monitoringAgentLoggingPlugin</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.MonitoringAgentLoggingPlugin">
+<a href="#logging.netcracker.com/v1.MonitoringAgentLoggingPlugin">
 MonitoringAgentLoggingPlugin
 </a>
 </em>
@@ -3166,7 +3236,7 @@ bool
 <td>
 <code>status</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.LoggingServiceStatus">
+<a href="#logging.netcracker.com/v1.LoggingServiceStatus">
 LoggingServiceStatus
 </a>
 </em>
@@ -3176,10 +3246,10 @@ LoggingServiceStatus
 </tr>
 </tbody>
 </table>
-<h3 id="logging.qubership.org/v1alpha1.LoggingServiceCondition">LoggingServiceCondition
+<h3 id="logging.netcracker.com/v1.LoggingServiceCondition">LoggingServiceCondition
 </h3>
 <p>
-(<em>Appears on:</em><a href="#logging.qubership.org/v1alpha1.LoggingServiceStatus">LoggingServiceStatus</a>)
+(<em>Appears on:</em><a href="#logging.netcracker.com/v1.LoggingServiceStatus">LoggingServiceStatus</a>)
 </p>
 <div>
 <p>LoggingServiceCondition contains description of status of LoggingService</p>
@@ -3244,7 +3314,7 @@ bool
 </tr>
 </tbody>
 </table>
-<h3 id="logging.qubership.org/v1alpha1.LoggingServiceParameters">LoggingServiceParameters
+<h3 id="logging.netcracker.com/v1.LoggingServiceParameters">LoggingServiceParameters
 </h3>
 <div>
 </div>
@@ -3260,7 +3330,7 @@ bool
 <td>
 <code>Release</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.Release">
+<a href="#logging.netcracker.com/v1.Release">
 Release
 </a>
 </em>
@@ -3272,7 +3342,7 @@ Release
 <td>
 <code>Values</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.LoggingServiceSpec">
+<a href="#logging.netcracker.com/v1.LoggingServiceSpec">
 LoggingServiceSpec
 </a>
 </em>
@@ -3282,10 +3352,10 @@ LoggingServiceSpec
 </tr>
 </tbody>
 </table>
-<h3 id="logging.qubership.org/v1alpha1.LoggingServiceSpec">LoggingServiceSpec
+<h3 id="logging.netcracker.com/v1.LoggingServiceSpec">LoggingServiceSpec
 </h3>
 <p>
-(<em>Appears on:</em><a href="#logging.qubership.org/v1alpha1.LoggingService">LoggingService</a>, <a href="#logging.qubership.org/v1alpha1.LoggingServiceParameters">LoggingServiceParameters</a>)
+(<em>Appears on:</em><a href="#logging.netcracker.com/v1.LoggingService">LoggingService</a>, <a href="#logging.netcracker.com/v1.LoggingServiceParameters">LoggingServiceParameters</a>)
 </p>
 <div>
 <p>LoggingServiceSpec defines the desired state of LoggingService</p>
@@ -3302,7 +3372,7 @@ LoggingServiceSpec
 <td>
 <code>graylog</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.Graylog">
+<a href="#logging.netcracker.com/v1.Graylog">
 Graylog
 </a>
 </em>
@@ -3314,7 +3384,7 @@ Graylog
 <td>
 <code>fluentd</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.Fluentd">
+<a href="#logging.netcracker.com/v1.Fluentd">
 Fluentd
 </a>
 </em>
@@ -3326,7 +3396,7 @@ Fluentd
 <td>
 <code>fluentbit</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.Fluentbit">
+<a href="#logging.netcracker.com/v1.Fluentbit">
 Fluentbit
 </a>
 </em>
@@ -3338,7 +3408,7 @@ Fluentbit
 <td>
 <code>cloudEventsReader</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.CloudEventsReader">
+<a href="#logging.netcracker.com/v1.CloudEventsReader">
 CloudEventsReader
 </a>
 </em>
@@ -3350,7 +3420,7 @@ CloudEventsReader
 <td>
 <code>monitoringAgentLoggingPlugin</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.MonitoringAgentLoggingPlugin">
+<a href="#logging.netcracker.com/v1.MonitoringAgentLoggingPlugin">
 MonitoringAgentLoggingPlugin
 </a>
 </em>
@@ -3410,10 +3480,10 @@ bool
 </tr>
 </tbody>
 </table>
-<h3 id="logging.qubership.org/v1alpha1.LoggingServiceStatus">LoggingServiceStatus
+<h3 id="logging.netcracker.com/v1.LoggingServiceStatus">LoggingServiceStatus
 </h3>
 <p>
-(<em>Appears on:</em><a href="#logging.qubership.org/v1alpha1.LoggingService">LoggingService</a>)
+(<em>Appears on:</em><a href="#logging.netcracker.com/v1.LoggingService">LoggingService</a>)
 </p>
 <div>
 <p>LoggingServiceStatus defines the observed state of LoggingService</p>
@@ -3430,7 +3500,7 @@ bool
 <td>
 <code>conditions</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.LoggingServiceCondition">
+<a href="#logging.netcracker.com/v1.LoggingServiceCondition">
 []LoggingServiceCondition
 </a>
 </em>
@@ -3440,10 +3510,10 @@ bool
 </tr>
 </tbody>
 </table>
-<h3 id="logging.qubership.org/v1alpha1.LokiFluentbit">LokiFluentbit
+<h3 id="logging.netcracker.com/v1.LokiFluentbit">LokiFluentbit
 </h3>
 <p>
-(<em>Appears on:</em><a href="#logging.qubership.org/v1alpha1.OutputFluentbit">OutputFluentbit</a>)
+(<em>Appears on:</em><a href="#logging.netcracker.com/v1.OutputFluentbit">OutputFluentbit</a>)
 </p>
 <div>
 </div>
@@ -3489,7 +3559,7 @@ string
 <td>
 <code>auth</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.Auth">
+<a href="#logging.netcracker.com/v1.Auth">
 Auth
 </a>
 </em>
@@ -3521,7 +3591,7 @@ string
 <td>
 <code>tls</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.FluentbitLokiTLS">
+<a href="#logging.netcracker.com/v1.FluentbitLokiTLS">
 FluentbitLokiTLS
 </a>
 </em>
@@ -3541,10 +3611,10 @@ string
 </tr>
 </tbody>
 </table>
-<h3 id="logging.qubership.org/v1alpha1.LokiFluentd">LokiFluentd
+<h3 id="logging.netcracker.com/v1.LokiFluentd">LokiFluentd
 </h3>
 <p>
-(<em>Appears on:</em><a href="#logging.qubership.org/v1alpha1.OutputFluentd">OutputFluentd</a>)
+(<em>Appears on:</em><a href="#logging.netcracker.com/v1.OutputFluentd">OutputFluentd</a>)
 </p>
 <div>
 </div>
@@ -3590,7 +3660,7 @@ string
 <td>
 <code>auth</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.Auth">
+<a href="#logging.netcracker.com/v1.Auth">
 Auth
 </a>
 </em>
@@ -3622,7 +3692,7 @@ string
 <td>
 <code>tls</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.FluentdLokiTLS">
+<a href="#logging.netcracker.com/v1.FluentdLokiTLS">
 FluentdLokiTLS
 </a>
 </em>
@@ -3642,10 +3712,10 @@ string
 </tr>
 </tbody>
 </table>
-<h3 id="logging.qubership.org/v1alpha1.MongoDBUpgrade">MongoDBUpgrade
+<h3 id="logging.netcracker.com/v1.MongoDBUpgrade">MongoDBUpgrade
 </h3>
 <p>
-(<em>Appears on:</em><a href="#logging.qubership.org/v1alpha1.Graylog">Graylog</a>)
+(<em>Appears on:</em><a href="#logging.netcracker.com/v1.Graylog">Graylog</a>)
 </p>
 <div>
 <p>MongoDBUpgrade is used for the sequential MongoDB upgrading from 3.6 to 5.0</p>
@@ -3690,10 +3760,10 @@ string
 </tr>
 </tbody>
 </table>
-<h3 id="logging.qubership.org/v1alpha1.MonitoringAgentLoggingPlugin">MonitoringAgentLoggingPlugin
+<h3 id="logging.netcracker.com/v1.MonitoringAgentLoggingPlugin">MonitoringAgentLoggingPlugin
 </h3>
 <p>
-(<em>Appears on:</em><a href="#logging.qubership.org/v1alpha1.LoggingServiceSpec">LoggingServiceSpec</a>)
+(<em>Appears on:</em><a href="#logging.netcracker.com/v1.LoggingServiceSpec">LoggingServiceSpec</a>)
 </p>
 <div>
 <p>MonitoringAgentLoggingPlugin contains MonitoringAgentLoggingPlugin-specific configuration</p>
@@ -3850,10 +3920,10 @@ bool
 </tr>
 </tbody>
 </table>
-<h3 id="logging.qubership.org/v1alpha1.OpenSearch">OpenSearch
+<h3 id="logging.netcracker.com/v1.OpenSearch">OpenSearch
 </h3>
 <p>
-(<em>Appears on:</em><a href="#logging.qubership.org/v1alpha1.Graylog">Graylog</a>)
+(<em>Appears on:</em><a href="#logging.netcracker.com/v1.Graylog">Graylog</a>)
 </p>
 <div>
 </div>
@@ -3869,7 +3939,7 @@ bool
 <td>
 <code>tls</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.HTTPConfig">
+<a href="#logging.netcracker.com/v1.HTTPConfig">
 HTTPConfig
 </a>
 </em>
@@ -3889,10 +3959,10 @@ string
 </tr>
 </tbody>
 </table>
-<h3 id="logging.qubership.org/v1alpha1.OutputFluentbit">OutputFluentbit
+<h3 id="logging.netcracker.com/v1.OutputFluentbit">OutputFluentbit
 </h3>
 <p>
-(<em>Appears on:</em><a href="#logging.qubership.org/v1alpha1.Fluentbit">Fluentbit</a>, <a href="#logging.qubership.org/v1alpha1.FluentbitAggregator">FluentbitAggregator</a>)
+(<em>Appears on:</em><a href="#logging.netcracker.com/v1.Fluentbit">Fluentbit</a>, <a href="#logging.netcracker.com/v1.FluentbitAggregator">FluentbitAggregator</a>)
 </p>
 <div>
 </div>
@@ -3908,7 +3978,7 @@ string
 <td>
 <code>loki</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.LokiFluentbit">
+<a href="#logging.netcracker.com/v1.LokiFluentbit">
 LokiFluentbit
 </a>
 </em>
@@ -3918,10 +3988,10 @@ LokiFluentbit
 </tr>
 </tbody>
 </table>
-<h3 id="logging.qubership.org/v1alpha1.OutputFluentd">OutputFluentd
+<h3 id="logging.netcracker.com/v1.OutputFluentd">OutputFluentd
 </h3>
 <p>
-(<em>Appears on:</em><a href="#logging.qubership.org/v1alpha1.Fluentd">Fluentd</a>)
+(<em>Appears on:</em><a href="#logging.netcracker.com/v1.Fluentd">Fluentd</a>)
 </p>
 <div>
 </div>
@@ -3937,7 +4007,7 @@ LokiFluentbit
 <td>
 <code>loki</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.LokiFluentd">
+<a href="#logging.netcracker.com/v1.LokiFluentd">
 LokiFluentd
 </a>
 </em>
@@ -3947,10 +4017,10 @@ LokiFluentd
 </tr>
 </tbody>
 </table>
-<h3 id="logging.qubership.org/v1alpha1.Release">Release
+<h3 id="logging.netcracker.com/v1.Release">Release
 </h3>
 <p>
-(<em>Appears on:</em><a href="#logging.qubership.org/v1alpha1.LoggingServiceParameters">LoggingServiceParameters</a>)
+(<em>Appears on:</em><a href="#logging.netcracker.com/v1.LoggingServiceParameters">LoggingServiceParameters</a>)
 </p>
 <div>
 </div>
@@ -3974,10 +4044,10 @@ string
 </tr>
 </tbody>
 </table>
-<h3 id="logging.qubership.org/v1alpha1.Stream">Stream
+<h3 id="logging.netcracker.com/v1.Stream">Stream
 </h3>
 <p>
-(<em>Appears on:</em><a href="#logging.qubership.org/v1alpha1.Graylog">Graylog</a>)
+(<em>Appears on:</em><a href="#logging.netcracker.com/v1.Graylog">Graylog</a>)
 </p>
 <div>
 </div>
@@ -4051,10 +4121,10 @@ bool
 </tr>
 </tbody>
 </table>
-<h3 id="logging.qubership.org/v1alpha1.TLS">TLS
+<h3 id="logging.netcracker.com/v1.TLS">TLS
 </h3>
 <p>
-(<em>Appears on:</em><a href="#logging.qubership.org/v1alpha1.FluentbitTLS">FluentbitTLS</a>, <a href="#logging.qubership.org/v1alpha1.FluentdTLS">FluentdTLS</a>, <a href="#logging.qubership.org/v1alpha1.InputGraylogTLS">InputGraylogTLS</a>)
+(<em>Appears on:</em><a href="#logging.netcracker.com/v1.FluentbitTLS">FluentbitTLS</a>, <a href="#logging.netcracker.com/v1.FluentdTLS">FluentdTLS</a>, <a href="#logging.netcracker.com/v1.InputGraylogTLS">InputGraylogTLS</a>)
 </p>
 <div>
 </div>
@@ -4070,7 +4140,7 @@ bool
 <td>
 <code>generateCerts</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.GenerateCerts">
+<a href="#logging.netcracker.com/v1.GenerateCerts">
 GenerateCerts
 </a>
 </em>
@@ -4082,7 +4152,7 @@ GenerateCerts
 <td>
 <code>ca</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.CA">
+<a href="#logging.netcracker.com/v1.CA">
 CA
 </a>
 </em>
@@ -4094,7 +4164,7 @@ CA
 <td>
 <code>cert</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.Cert">
+<a href="#logging.netcracker.com/v1.Cert">
 Cert
 </a>
 </em>
@@ -4106,7 +4176,7 @@ Cert
 <td>
 <code>key</code><br/>
 <em>
-<a href="#logging.qubership.org/v1alpha1.Key">
+<a href="#logging.netcracker.com/v1.Key">
 Key
 </a>
 </em>
@@ -4116,10 +4186,10 @@ Key
 </tr>
 </tbody>
 </table>
-<h3 id="logging.qubership.org/v1alpha1.TLSConfig">TLSConfig
+<h3 id="logging.netcracker.com/v1.TLSConfig">TLSConfig
 </h3>
 <p>
-(<em>Appears on:</em><a href="#logging.qubership.org/v1alpha1.HTTPConfig">HTTPConfig</a>)
+(<em>Appears on:</em><a href="#logging.netcracker.com/v1.HTTPConfig">HTTPConfig</a>)
 </p>
 <div>
 </div>
@@ -4179,10 +4249,10 @@ bool
 </tr>
 </tbody>
 </table>
-<h3 id="logging.qubership.org/v1alpha1.Volume">Volume
+<h3 id="logging.netcracker.com/v1.Volume">Volume
 </h3>
 <p>
-(<em>Appears on:</em><a href="#logging.qubership.org/v1alpha1.FluentbitAggregator">FluentbitAggregator</a>)
+(<em>Appears on:</em><a href="#logging.netcracker.com/v1.FluentbitAggregator">FluentbitAggregator</a>)
 </p>
 <div>
 </div>

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 OPERATOR_CRD_DIR="charts/qubership-logging-operator/crds"
-GROUP_NAME="logging.qubership.org"
+GROUP_NAME="logging.netcracker.com"
 CRD_GROUP="loggingservices.${GROUP_NAME}"
 OPERATOR_ANNOTATION="logging-operator.${GROUP_NAME}/version"
 

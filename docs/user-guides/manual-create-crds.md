@@ -4,7 +4,7 @@ This document describes how to manually create, update or delete Logging Custom 
 
 Almost all Qubership applications and microservices are integrated with Logging. This integration means
 that almost all microservices during deploy can create `LoggingService` objects from the API
-`logging.qubership.org`.
+`logging.netcracker.com`.
 
 Such objects allow for Logging to understand from which microservices and how to collect metrics.
 Similar objects allow providing alerts, recording rules and Grafana dashboards.
@@ -85,5 +85,5 @@ you need to execute the command:
 
 ```bash
 ## ams-operator CRD
-kubectl delete crd loggingservices.logging.qubership.org
+kubectl delete crd loggingservices.logging.netcracker.com
 ```

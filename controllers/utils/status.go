@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"reflect"
 
-	loggingService "github.com/Netcracker/qubership-logging-operator/api/v1alpha1"
+	loggingService "github.com/Netcracker/qubership-logging-operator/api/v1"
 	"github.com/go-logr/logr"
 	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"

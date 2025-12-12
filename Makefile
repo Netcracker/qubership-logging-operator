@@ -30,7 +30,7 @@ CRD_FOLDER=$(HELM_FOLDER)/crds
 CRD_PUBLIC_DOC_FOLDER=$(PUBLIC_DOC_FOLDER)/crds
 
 # Directories to generate API documentation
-TYPES_V1ALPHA1_TARGET=api/v1alpha1/loggingservice_types.go
+TYPES_V1_TARGET=api/v1/loggingservice_types.go
 API_DOC_GEN_BINARY_DIR?=$(shell pwd)/api
 
 # Tools
@@ -110,7 +110,7 @@ generate: controller-gen
 	echo "=> Generate CRDs and deepcopy ..."
 	$(CONTROLLER_GEN) crd:crdVersions={v1} \
 					object:headerFile="tools/boilerplate.go.txt" \
-					paths="./api/v1alpha1" \
+					paths="./api/v1" \
 					output:artifacts:config=charts/qubership-logging-operator/crds/
 	chmod +x ./scripts/build/append-operator-version.sh
 	VERSION=$(VERSION) ./scripts/build/append-operator-version.sh
@@ -190,9 +190,9 @@ unit-test:
 docs: docs/api.md docs/crds
 
 # Run gen-crd-api-reference-docs to generate API documents by operator API
-docs/api.md: docs/api/gen $(TYPES_V1ALPHA1_TARGET)
+docs/api.md: docs/api/gen $(TYPES_V1_TARGET)
 	cd $(API_DOC_GEN_BINARY_DIR) \
-	&& $(API_DOC_GEN_BINARY) -api-dir "./v1alpha1/" \
+	&& $(API_DOC_GEN_BINARY) -api-dir "./v1/" \
 							-config "../scripts/docs/config.json" \
 							-template-dir "../scripts/docs/templates" \
 							-out-file "../docs/api.md" \

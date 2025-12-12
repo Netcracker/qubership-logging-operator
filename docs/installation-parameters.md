@@ -1664,7 +1664,7 @@ integrationTests:
 | `statusWriting.enabled`              | boolean            | no        | false                                                                             | Enable Store tests status to `LoggingService` custom resource                                                                                                                                                       |
 | `statusWriting.isShortStatusMessage` | boolean            | no        | true                                                                              | The size of integration test status message                                                                                                                                                                         |
 | `statusWriting.onlyIntegrationTests` | boolean            | no        | true                                                                              | Deploy only integration tests without any component (component was installed before).                                                                                                                               |
-| `statusWriting.customResourcePath`   | string             | no        | `logging.qubership.org/v1alpha1/logging-operator/loggingservices/logging-service` | Path to the Custom Resource for writing integration test status, taken from the k8s entity selfLink without the `apis` prefix and namespace. Format: `<group>/<apiversion>/<namespace>/<plural>/<customResourceName>` |
+| `statusWriting.customResourcePath`   | string             | no        | `logging.netcracker.com/v1/logging-operator/loggingservices/logging-service` | Path to the Custom Resource for writing integration test status, taken from the k8s entity selfLink without the `apis` prefix and namespace. Format: `<group>/<apiversion>/<namespace>/<plural>/<customResourceName>` |
 | `annotations`                        | map                | no        | `{}`                                                                         | Allows to specify list of additional annotations                                                                                                                                                                    |
 | `labels`                             | map                | no        | `{}`                                                                         | Allows to specify list of additional labels                                                                                                                                                                         |
 | `priorityClassName`                  | string             | no        | `-`                                                                          | Pod priority. Indicates the importance of a Pod relative to other Pods and prevents it from being evicted.                                                                                                          |
@@ -1697,7 +1697,7 @@ integrationTests:
     enabled: true
     isShortStatusMessage: false
     onlyIntegrationTests: false
-    customResourcePath: logging.qubership.org/v11/logging-operator/loggingservices/logging-service
+    customResourcePath: logging.netcracker.com/v1/logging-operator/loggingservices/logging-service
 ```
 
 [Back to TOC](#table-of-contents)

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	loggingService "github.com/Netcracker/qubership-logging-operator/api/v1alpha1"
+	loggingService "github.com/Netcracker/qubership-logging-operator/api/v1"
 	util "github.com/Netcracker/qubership-logging-operator/controllers/utils"
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"

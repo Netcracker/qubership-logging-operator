@@ -1,7 +1,7 @@
 package events_reader
 
 import (
-	loggingService "github.com/Netcracker/qubership-logging-operator/api/v1alpha1"
+	loggingService "github.com/Netcracker/qubership-logging-operator/api/v1"
 	util "github.com/Netcracker/qubership-logging-operator/controllers/utils"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"

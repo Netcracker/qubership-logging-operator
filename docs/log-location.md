@@ -58,10 +58,10 @@ The following table describes which OS have auditd by default:
 | CentOS          | ✓ Yes                                                                                                                                                                  |
 | RHEL            | ✓ Yes                                                                                                                                                                  |
 | Oracle Linux    | ✓ Yes                                                                                                                                                                  |
-| Azure Linux     | ✗ No (auditd is not installed by default)                                                                                                                              |
+| Azure Linux     | ✘ No (auditd is not installed by default)                                                                                                                              |
 | Amazon Linux    | ✓ Yes                                                                                                                                                                  |
-| BottleRocket OS | ✗ No (auditd is not presented due the lack of the shell)                                                                                                               |
-| COS             | ✗ No (disabled by default, [can be installed by using the special DaemonSet with auditd](https://cloud.google.com/kubernetes-engine/docs/how-to/linux-auditd-logging)) |
+| BottleRocket OS | ✘ No (auditd is not presented due the lack of the shell)                                                                                                               |
+| COS             | ✘ No (disabled by default, [can be installed by using the special DaemonSet with auditd](https://cloud.google.com/kubernetes-engine/docs/how-to/linux-auditd-logging)) |
 <!-- markdownlint-enable line-length -->
 
 #### Kubernetes and container logs

@@ -15,3 +15,7 @@ MD024:
 MD036: false
 # MD041/first-line-heading - First line in a file should be a top-level heading
 MD041: false
+# MD060/Table column style - Allow any style and aligned delimiters
+MD060:
+  style: any
+  aligned_delimiter: true

@@ -53,7 +53,7 @@ This advanced configuration provides:
 ## Key Configuration Parameters
 
 | Parameter | Description | Use Case |
-|-----------|-------------|----------|
+| --------- | ----------- | -------- |
 | `fluentbit.install` | Enable FluentBit deployment | All scenarios |
 | `fluentbit.systemLogType` | System log source type | `varlogsyslog`, `journald` |
 | `fluentbit.containerLogging` | Enable container log collection | Container environments |

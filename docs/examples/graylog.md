@@ -72,7 +72,7 @@ This migration configuration includes:
 ## Key Configuration Parameters
 
 | Parameter | Description | Example |
-|-----------|-------------|---------|
+| --------- | ----------- | ------- |
 | `graylog.install` | Enable Graylog deployment | `true` |
 | `graylog.host` | Graylog server hostname | `graylog.example.com` |
 | `graylog.elasticsearchHost` | Elasticsearch connection URL | `http://user:pass@es:9200` |

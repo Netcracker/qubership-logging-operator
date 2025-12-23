@@ -4,10 +4,10 @@ This section describes the Logging Service dashboards.
 
 | Observability part        | Integration status                |
 | ------------------------- | --------------------------------- |
-| [Monitoring](#monitoring) | ✅ Support                         |
-| [Logging](#logging)       | ✅ Support                         |
-| [Tracing](#tracing)       | ⛔️ No, Graylog has no this feature |
-| [Profiler](#profiler)     | ⛔️ No, due the license             |
+| [Monitoring](#monitoring) | ✔ Support                         |
+| [Logging](#logging)       | ✔ Support                         |
+| [Tracing](#tracing)       | ✘ No, Graylog has no this feature |
+| [Profiler](#profiler)     | ✘ No, due the license             |
 
 ## Monitoring
 

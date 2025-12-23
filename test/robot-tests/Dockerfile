@@ -17,8 +17,8 @@ RUN \
     # Install python requirements
     python3 -m pip install --no-cache-dir -r ${ROBOT_HOME}/requirements.txt \
     # Create and grant permissions for tests output
-    && mkdir -p ${ROBOT_OUTPUT} \
-    && chmod a+w ${ROBOT_OUTPUT}
+    && mkdir -p "${ROBOT_OUTPUT}" \
+    && chmod a+w "${ROBOT_OUTPUT}"
 
 USER ${ROBOT_UID}:${ROBOT_GID}
 

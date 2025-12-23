@@ -74,9 +74,9 @@ see the [Release notes](https://docs.openshift.com/container-platform/4.12/relea
 
 | Cloud Provider | Managed OpenSearch  | Graylog Support | Notes                             |
 | -------------- | ------------------- | --------------- | --------------------------------- |
-| AWS            | ✅ Yes             | ✅ Supported    | Requires minimum hardware specs   |
-| Azure          | ❌ No              | N/A             | Only custom marketplace solutions |
-| GCP            | ❌ No              | N/A             | Only custom marketplace solutions |
+| AWS            | ✔ Yes               | ✔ Supported     | Requires minimum hardware specs   |
+| Azure          | ✘ No                | N/A             | Only custom marketplace solutions |
+| GCP            | ✘ No                | N/A             | Only custom marketplace solutions |
 
 #### Amazon Web Services (AWS)
 
@@ -480,24 +480,24 @@ Installation consists of the following steps:
 ## Configuration parameters
 
 <!-- markdownlint-disable line-length -->
-| Level                    | Description                                                                                                 | Detailed parameters link |
-|--------------------------|-------------------------------------------------------------------------------------------------------------|--------------------------|
-| `root`                    | Common section containing some generic parameters                                                           | [Root](./installation-parameters.md#root)                     |
-| `graylog`                 | Contains parameters to enable and configure the Graylog deployment in the cloud                             | [Graylog](./installation-parameters.md#graylog)                  |
-| `graylog.tls`             | TLS configuration for Graylog WebUI and default Inputs                                                      | [Graylog TLS](./installation-parameters.md#graylog-tls)              |
-| `graylog.opensearch`      | Contains the parameters required for connection to `Opensearch`                                             | [OpenSearch](./installation-parameters.md#opensearch)               |
-| `graylog.contentPacks`    | Contains Graylog content packs parameters                                                                   | [ContentPacks](./installation-parameters.md#contentpacks)             |
- | `graylog.streams`         | Contains parameters to enable, disable or modify the retention strategy for the default Graylog's Streams   | [Graylog Streams](./installation-parameters.md#graylog-streams)          |
-| `graylog.authProxy`       | Includes parameters to enable and configure the Graylog authentication proxy                                | [Graylog Auth Proxy](./installation-parameters.md#graylog-auth-proxy)       |
-| `graylog.authProxy.ldap`  | Contains parameters to configure LDAP provider for `graylog-auth-proxy`                                     | [Graylog Auth Proxy LDAP](./installation-parameters.md#graylog-auth-proxy-ldap)  |
+| Level                     | Description                                                                                                 | Detailed parameters link                                                          |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `root`                    | Common section containing some generic parameters                                                           | [Root](./installation-parameters.md#root)                                         |
+| `graylog`                 | Contains parameters to enable and configure the Graylog deployment in the cloud                             | [Graylog](./installation-parameters.md#graylog)                                   |
+| `graylog.tls`             | TLS configuration for Graylog WebUI and default Inputs                                                      | [Graylog TLS](./installation-parameters.md#graylog-tls)                           |
+| `graylog.opensearch`      | Contains the parameters required for connection to `Opensearch`                                             | [OpenSearch](./installation-parameters.md#opensearch)                             |
+| `graylog.contentPacks`    | Contains Graylog content packs parameters                                                                   | [ContentPacks](./installation-parameters.md#contentpacks)                         |
+| `graylog.streams`         | Contains parameters to enable, disable or modify the retention strategy for the default Graylog's Streams   | [Graylog Streams](./installation-parameters.md#graylog-streams)                   |
+| `graylog.authProxy`       | Includes parameters to enable and configure the Graylog authentication proxy                                | [Graylog Auth Proxy](./installation-parameters.md#graylog-auth-proxy)             |
+| `graylog.authProxy.ldap`  | Contains parameters to configure LDAP provider for `graylog-auth-proxy`                                     | [Graylog Auth Proxy LDAP](./installation-parameters.md#graylog-auth-proxy-ldap)   |
 | `graylog.authProxy.oauth` | Contains parameters to configure OAuth provider for `graylog-auth-proxy`                                    | [Graylog Auth Proxy OAuth](./installation-parameters.md#graylog-auth-proxy-oauth) |
-| `fluentbit`               | Contains parameters to enable and configure FluentBit logging agent                                         | [FluentBit](./installation-parameters.md#fluentbit)                |
-| `fluentbit.aggregator`    | Contains parameters to enable and configure the FluentBit aggregator                                        | [FluentBit Aggregator](./installation-parameters.md#fluentbit-aggregator)     |
-| `fluentbit.tls`           | TLS Configuration for FluentBit Graylog Output                                                              | [FluentBit TLS](./installation-parameters.md#fluentbit-tls)            |
-| `fluentd`                 | Contains parameters to configure FluentD logging agent                                                      | [FluentD](./installation-parameters.md#fluentd)                  |
-| `fluentd.tls`             | Contains parameters to configure TLS for FluentD Graylog Output                                             | [FluentD TLS](./installation-parameters.md#fluentd-tls)              |
-| `cloudEventsReader`       | Contains parameters to configure cloud-events-reader                                                        | [Cloud Events Reader](./installation-parameters.md#cloud-events-reader)      |
-| `integrationTests`         | Contains parameters to enable integration tests that can verify deployment of Graylog, FluentBit or FluentD | [Integration tests](./installation-parameters.md#integration-tests)        |
+| `fluentbit`               | Contains parameters to enable and configure FluentBit logging agent                                         | [FluentBit](./installation-parameters.md#fluentbit)                               |
+| `fluentbit.aggregator`    | Contains parameters to enable and configure the FluentBit aggregator                                        | [FluentBit Aggregator](./installation-parameters.md#fluentbit-aggregator)         |
+| `fluentbit.tls`           | TLS Configuration for FluentBit Graylog Output                                                              | [FluentBit TLS](./installation-parameters.md#fluentbit-tls)                       |
+| `fluentd`                 | Contains parameters to configure FluentD logging agent                                                      | [FluentD](./installation-parameters.md#fluentd)                                   |
+| `fluentd.tls`             | Contains parameters to configure TLS for FluentD Graylog Output                                             | [FluentD TLS](./installation-parameters.md#fluentd-tls)                           |
+| `cloudEventsReader`       | Contains parameters to configure cloud-events-reader                                                        | [Cloud Events Reader](./installation-parameters.md#cloud-events-reader)           |
+| `integrationTests`        | Contains parameters to enable integration tests that can verify deployment of Graylog, FluentBit or FluentD | [Integration tests](./installation-parameters.md#integration-tests)               |
 <!-- markdownlint-enable line-length -->
 ## Post Installation Steps
 

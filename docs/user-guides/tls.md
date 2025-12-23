@@ -9,11 +9,11 @@ Unfortunately, in some cases, the renewal of certificates at destinations doesn'
 steps are required. The table below reflects actions required after updating the certificates:
 
 | Service             | No extra steps | Restart pod |
-|---------------------|----------------|-------------|
-| Graylog HTTP server |                | ✅           |
-| Graylog inputs      |                | ✅           |
-| Fluentd             |                | ✅           |
-| Fluent-bit          |                | ✅           |
+| ------------------- | -------------- | ----------- |
+| Graylog HTTP server |                | ✅          |
+| Graylog inputs      |                | ✅          |
+| Fluentd             |                | ✅          |
+| Fluent-bit          |                | ✅          |
 
 After restart, components may be unavailable for a short time.
 
@@ -118,9 +118,9 @@ In this schema Logging support TLS for next channels:
 
 | Connection                  | Status        |
 | --------------------------- | ------------- |
-| User - Graylog UI           | ✅ Support     |
+| User - Graylog UI           | ✅ Support    |
 | Graylog - Elasticsearch     | ✗ Not Support |
-| Fluentd/FluentBit - Graylog | ✅ Support     |
+| Fluentd/FluentBit - Graylog | ✅ Support    |
 | Fluentd/FluentBit - Logs    | N/A           |
 
 where:
@@ -148,12 +148,12 @@ In this schema:
 
 In this schema Logging support TLS for next channels:
 
-| Connection                  | Status                |
-| --------------------------- | --------------------- |
+| Connection                  | Status                 |
+| --------------------------- | ---------------------- |
 | User - Graylog UI           | ✅ Support             |
 | Graylog - Elasticsearch     | ✅ Support             |
 | Fluentd/FluentBit - Graylog | ✅/✗ Partially Support |
-| Fluentd/FluentBit - Logs    | N/A                   |
+| Fluentd/FluentBit - Logs    | N/A                    |
 
 where:
 

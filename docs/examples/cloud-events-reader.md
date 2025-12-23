@@ -34,7 +34,7 @@ This configuration adds:
 ## Key Configuration Parameters
 
 | Parameter | Description | Default |
-|-----------|-------------|---------|
+| --------- | ----------- | ------- |
 | `cloudEventsReader.install` | Enable/disable Cloud Events Reader deployment | `false` |
 | `cloudEventsReader.resources` | Resource requests and limits | - |
 | `cloudEventsReader.nodeSelector` | Node selection criteria | - |

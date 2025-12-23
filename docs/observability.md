@@ -2,8 +2,8 @@ This section describes the Logging Service dashboards.
 
 # Overview
 
-| Observability part        | Integration status                |
-| ------------------------- | --------------------------------- |
+| Observability part        | Integration status                 |
+| ------------------------- | ---------------------------------- |
 | [Monitoring](#monitoring) | ✅ Support                         |
 | [Logging](#logging)       | ✅ Support                         |
 | [Tracing](#tracing)       | ⛔️ No, Graylog has no this feature |

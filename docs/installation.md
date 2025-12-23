@@ -74,9 +74,9 @@ see the [Release notes](https://docs.openshift.com/container-platform/4.12/relea
 
 | Cloud Provider | Managed OpenSearch  | Graylog Support | Notes                             |
 | -------------- | ------------------- | --------------- | --------------------------------- |
-| AWS            | ✅ Yes              | ✅ Supported    | Requires minimum hardware specs   |
-| Azure          | ⛔️ No               | N/A             | Only custom marketplace solutions |
-| GCP            | ⛔️ No               | N/A             | Only custom marketplace solutions |
+| AWS            | ✔ Yes               | ✔ Supported     | Requires minimum hardware specs   |
+| Azure          | ✘ No                | N/A             | Only custom marketplace solutions |
+| GCP            | ✘ No                | N/A             | Only custom marketplace solutions |
 
 #### Amazon Web Services (AWS)
 

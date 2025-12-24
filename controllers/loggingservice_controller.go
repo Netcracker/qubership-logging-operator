@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	loggingService "github.com/Netcracker/qubership-logging-operator/api/v1alpha1"
+	loggingService "github.com/Netcracker/qubership-logging-operator/api/v1"
 	events_reader "github.com/Netcracker/qubership-logging-operator/controllers/events-reader"
 	"github.com/Netcracker/qubership-logging-operator/controllers/fluentbit"
 	fluentbit_forwarder_aggregator "github.com/Netcracker/qubership-logging-operator/controllers/fluentbit-forwarder-aggregator"
@@ -41,9 +41,9 @@ type LoggingServiceReconciler struct {
 	DynamicParameters        util.DynamicParameters
 }
 
-// +kubebuilder:rbac:groups=logging.qubership.org,resources=loggingservices,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=logging.qubership.org,resources=loggingservices/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=logging.qubership.org,resources=loggingservices/finalizers,verbs=update
+// +kubebuilder:rbac:groups=logging.netcracker.com,resources=loggingservices,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=logging.netcracker.com,resources=loggingservices/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=logging.netcracker.com,resources=loggingservices/finalizers,verbs=update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.

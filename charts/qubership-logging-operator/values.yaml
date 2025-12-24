@@ -517,7 +517,7 @@ graylog:
   #   maxSize: 1073741824
   #   maxNumberOfIndices: 5
 
-  # Logs contains special key-value markers: ["billing.qubership.org/application=billing"]
+  # Logs contains special key-value markers: ["billing.netcracker.com/application=billing"]
   # OR ["app.kubernetes.io/part-of=billing"]
   # - name: "Bill Cycle logs"
   #   install: false
@@ -2740,7 +2740,7 @@ integrationTests:
     enabled: false
     isShortStatusMessage: true
     onlyIntegrationTests: true
-    customResourcePath: "logging.qubership.org/v1alpha1/logging-operator/loggingservices/logging-service"
+    customResourcePath: "logging.netcracker.com/v1/logging-operator/loggingservices/logging-service"
 
   # PriorityClassName assigned to the Pods to prevent them from evicting.
   # Type: string

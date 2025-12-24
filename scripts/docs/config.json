@@ -20,15 +20,15 @@
       "docsURLTemplate": "https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#monitoring.coreos.com/v1.{{ .TypeIdentifier}}"
     },
     {
-      "typeMatchPrefix": "^github\\.com/Netcracker/logging-operator/v1alpha1",
-      "docsURLTemplate": "../v1beta1/api.md#logging.qubership.org/v1alpha1.{{ .TypeIdentifier}}"
+      "typeMatchPrefix": "^github\\.com/Netcracker/logging-operator/v1",
+      "docsURLTemplate": "../v1beta1/api.md#logging.netcracker.com/v1.{{ .TypeIdentifier}}"
     }
   ],
   "typeDisplayNamePrefixOverrides": {
     "k8s.io/api/": "Kubernetes ",
     "k8s.io/apimachinery/pkg/apis/": "Kubernetes ",
     "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1": "Prometheus operator v1 ",
-    "github.com/Netcracker/logging-operator/v1alpha1": "Logging v1alpha1 "
+    "github.com/Netcracker/logging-operator/v1": "Logging v1 "
   },
   "markdownDisabled": false
 }

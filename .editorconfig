@@ -21,7 +21,7 @@ end_of_line = lf
 eclint_indent_style = unset
 trim_trailing_whitespace = false
 
-[{go.mod,go.sum,go.work*,*.go,.gitmodules}]
+[{go.mod,go.sum,go.work*,*.go,.gitmodules,boilerplate.go.txt}]
 indent_size = 4
 indent_style = tab
 

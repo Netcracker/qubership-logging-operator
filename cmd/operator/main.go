@@ -8,7 +8,7 @@ import (
 	_ "net/http/pprof"
 	"os"
 
-	loggingService "github.com/Netcracker/qubership-logging-operator/api/v1alpha1"
+	loggingService "github.com/Netcracker/qubership-logging-operator/api/v1"
 	"github.com/Netcracker/qubership-logging-operator/controllers"
 	"github.com/Netcracker/qubership-logging-operator/controllers/utils"
 	v1 "k8s.io/api/core/v1"

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
-	logging "github.com/Netcracker/qubership-logging-operator/api/v1alpha1"
+	logging "github.com/Netcracker/qubership-logging-operator/api/v1"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/event"

@@ -117,6 +117,28 @@ spec:
 {{- end }}
 {{- end }}
 {{- end }}
+{{- if and .Values.Fluentbit.Aggregator.Output .Values.Fluentbit.Aggregator.Output.Http .Values.Fluentbit.Aggregator.Output.Http.Enabled }}
+{{- if and .Values.Fluentbit.Aggregator.Output.Http.TLS .Values.Fluentbit.Aggregator.Output.Http.TLS.Enabled }}
+{{- if and .Values.Fluentbit.Aggregator.Output.Http.TLS.CA .Values.Fluentbit.Aggregator.Output.Http.TLS.CA.SecretName .Values.Fluentbit.Aggregator.Output.Http.TLS.CA.SecretKey }}
+        - name: http-tls-ca
+          secret:
+            secretName: {{ .Values.Fluentbit.Aggregator.Output.Http.TLS.CA.SecretName }}
+            defaultMode: 420 # RW grants for config map files
+{{- end }}
+{{- if and .Values.Fluentbit.Aggregator.Output.Http.TLS.Cert .Values.Fluentbit.Aggregator.Output.Http.TLS.Cert.SecretName .Values.Fluentbit.Aggregator.Output.Http.TLS.Cert.SecretKey }}
+        - name: http-tls-cert
+          secret:
+            secretName: {{ .Values.Fluentbit.Aggregator.Output.Http.TLS.Cert.SecretName }}
+            defaultMode: 420 # RW grants for config map files
+{{- end }}
+{{- if and .Values.Fluentbit.Aggregator.Output.Http.TLS.Key .Values.Fluentbit.Aggregator.Output.Http.TLS.Key.SecretName .Values.Fluentbit.Aggregator.Output.Http.TLS.Key.SecretKey }}
+        - name: http-tls-key
+          secret:
+            secretName: {{ .Values.Fluentbit.Aggregator.Output.Http.TLS.Key.SecretName }}
+            defaultMode: 420 # RW grants for config map files
+{{- end }}
+{{- end }}
+{{- end }}
       containers:
         - name: configmap-reload
           image: {{ .Values.Fluentbit.Aggregator.ConfigmapReload.DockerImage }}
@@ -248,6 +270,28 @@ spec:
               name: loki-tls-key
               readOnly: true
               subPath: {{ .Values.Fluentbit.Aggregator.Output.Loki.TLS.Key.SecretKey }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- if and .Values.Fluentbit.Aggregator.Output .Values.Fluentbit.Aggregator.Output.Http .Values.Fluentbit.Aggregator.Output.Http.Enabled }}
+{{- if and .Values.Fluentbit.Aggregator.Output.Http.TLS .Values.Fluentbit.Aggregator.Output.Http.TLS.Enabled }}
+{{- if and .Values.Fluentbit.Aggregator.Output.Http.TLS.CA .Values.Fluentbit.Aggregator.Output.Http.TLS.CA.SecretName .Values.Fluentbit.Aggregator.Output.Http.TLS.CA.SecretKey }}
+            - mountPath: /fluent-bit/output/http/tls/ca.crt
+              name: http-tls-ca
+              readOnly: true
+              subPath: {{ .Values.Fluentbit.Aggregator.Output.Http.TLS.CA.SecretKey }}
+{{- end }}
+{{- if and .Values.Fluentbit.Aggregator.Output.Http.TLS.Cert .Values.Fluentbit.Aggregator.Output.Http.TLS.Cert.SecretName .Values.Fluentbit.Aggregator.Output.Http.TLS.Cert.SecretKey }}
+            - mountPath: /fluent-bit/output/http/tls/tls.crt
+              name: http-tls-cert
+              readOnly: true
+              subPath: {{ .Values.Fluentbit.Aggregator.Output.Http.TLS.Cert.SecretKey }}
+{{- end }}
+{{- if and .Values.Fluentbit.Aggregator.Output.Http.TLS.Key .Values.Fluentbit.Aggregator.Output.Http.TLS.Key.SecretName .Values.Fluentbit.Aggregator.Output.Http.TLS.Key.SecretKey }}
+            - mountPath: /fluent-bit/output/http/tls/tls.key
+              name: http-tls-key
+              readOnly: true
+              subPath: {{ .Values.Fluentbit.Aggregator.Output.Http.TLS.Key.SecretKey }}
 {{- end }}
 {{- end }}
 {{- end }}

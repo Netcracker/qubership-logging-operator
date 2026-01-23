@@ -451,8 +451,9 @@ spec:
     extraFields:
       {{- toYaml .Values.fluentd.extraFields | nindent 6 }}
     {{- end }}
-    {{- if and .Values.fluentd.output  .Values.fluentd.output.loki }}
+    {{- if and .Values.fluentd.output }}
     output:
+    {{- if  .Values.fluentd.output.loki }}
       loki:
       {{- if .Values.fluentd.output.loki.enabled }}
         enabled: true
@@ -520,6 +521,63 @@ spec:
         enabled: false
       {{- end }}
     {{- end }}
+    {{- if  .Values.fluentd.output.http }}
+      http:
+      {{- if .Values.fluentd.output.http.enabled }}
+        enabled: true
+        host: {{ .Values.fluentd.output.http.host }}
+        path: {{ .Values.fluentd.output.http.path | default "/insert/jsonline" }}
+        headers: {{ default "{\"VL-Msg-Field\": \"log\", \"VL-Time-Field\": \"time\", \"VL-Stream-Fields\": \"stream\"}" .Values.fluentd.output.http.headers | squote }}
+        {{- if .Values.fluentd.output.http.auth }}
+        {{- if and .Values.fluentd.output.http.auth.user  .Values.fluentd.output.http.auth.password }}
+        {{- if and .Values.fluentd.output.http.auth.user.name .Values.fluentd.output.http.auth.user.key .Values.fluentd.output.http.auth.password.name .Values.fluentd.output.http.auth.password.key }}
+        auth:
+          user:
+            name: {{ .Values.fluentd.output.http.auth.user.name }}
+            key: {{ .Values.fluentd.output.http.auth.user.key }}
+          password:
+            name: {{ .Values.fluentd.output.http.auth.password.name }}
+            key: {{ .Values.fluentd.output.http.auth.password.key }}
+        {{- end }}
+        {{- end }}
+        {{- end }}
+        {{- if .Values.fluentd.output.http.tls }}
+        tls:
+          enabled: {{ default false .Values.fluentd.output.http.tls.enabled }}
+          {{- if .Values.fluentd.output.http.tls.version }}
+          version: {{ .Values.fluentd.output.http.tls.version }}
+          {{- end }}
+          {{- if .Values.fluentd.output.http.tls.verifyMode }}
+          verifyMode: {{ .Values.fluentd.output.http.tls.verifyMode }}
+          {{- end }}
+          {{- if .Values.fluentd.output.http.tls.ca }}
+          ca:
+            secretKey: {{ .Values.fluentd.output.http.tls.ca.secretKey }}
+            secretName: {{ .Values.fluentd.output.http.tls.ca.secretName }}
+          {{- end }}
+          {{- if .Values.fluentd.output.http.tls.cert }}
+          cert:
+            secretKey: {{ .Values.fluentd.output.http.tls.cert.secretKey }}
+            secretName: {{ .Values.fluentd.output.http.tls.cert.secretName }}
+          {{- end }}
+          {{- if .Values.fluentd.output.http.tls.key }}
+          key:
+            secretKey: {{ .Values.fluentd.output.http.tls.key.secretKey }}
+            secretName: {{ .Values.fluentd.output.http.tls.key.secretName }}
+          {{- end }}
+          {{- if .Values.fluentd.output.http.tls.ciphers }}
+          ciphers: {{ .Values.fluentd.output.http.tls.ciphers }}
+          {{- end }}
+        {{- end }}
+        {{- if .Values.fluentd.output.http.extraParams }}
+        extraParams: |-
+          {{ default "" .Values.fluentd.output.http.extraParams | nindent 10 }}
+        {{- end }}
+      {{- else }}
+        enabled: false
+      {{- end }}
+    {{- end }}
+  {{- end }}
   {{- end }}
   {{- if .Values.fluentbit.install }}
   fluentbit:
@@ -664,8 +722,9 @@ spec:
     extraFields:
       {{- toYaml .Values.fluentbit.extraFields | nindent 6 }}
     {{- end }}
-    {{- if and .Values.fluentbit.output  .Values.fluentbit.output.loki }}
+    {{- if .Values.fluentbit.output }}
     output:
+    {{- if .Values.fluentbit.output.loki }}
       loki:
       {{- if .Values.fluentbit.output.loki.enabled }}
         enabled: true
@@ -730,6 +789,77 @@ spec:
       {{- else }}
         enabled: false
       {{- end }}
+    {{- end }}
+    {{- if  .Values.fluentbit.output.http }}
+      http:
+      {{- if .Values.fluentbit.output.http.enabled }}
+        enabled: true
+        host: {{ .Values.fluentbit.output.http.host }}
+        port: {{ .Values.fluentbit.output.http.port }}
+        uri: {{ .Values.fluentbit.output.http.uri | default "/insert/jsonline?_stream_fields=stream&_msg_field=short_message&_time_field=time" | squote }}
+        {{- if .Values.fluentbit.output.http.compress }}
+        compress: {{ .Values.fluentbit.output.http.compress }}
+        {{- end }}
+        {{- if .Values.fluentbit.output.http.format }}
+        format: {{ .Values.fluentbit.output.http.format }}
+        {{- end }}
+        {{- if .Values.fluentbit.output.http.jsonDateFormat }}
+        jsonDateFormat: {{ .Values.fluentbit.output.http.jsonDateFormat }}
+        {{- end }}
+        {{- if .Values.fluentbit.output.http.auth }}
+        {{- if .Values.fluentbit.output.http.auth.token }}
+        {{- if and .Values.fluentbit.output.http.auth.token.name .Values.fluentbit.output.http.auth.token.key }}
+        auth:
+          token:
+            name: {{ .Values.fluentbit.output.http.auth.token.name }}
+            key: {{ .Values.fluentbit.output.http.auth.token.key }}
+        {{- end }}
+        {{- else if and .Values.fluentbit.output.http.auth.user .Values.fluentbit.output.http.auth.password }}
+        {{- if and .Values.fluentbit.output.http.auth.user.name .Values.fluentbit.output.http.auth.user.key .Values.fluentbit.output.http.auth.password.name .Values.fluentbit.output.http.auth.password.key }}
+        auth:
+          user:
+            name: {{ .Values.fluentbit.output.http.auth.user.name }}
+            key: {{ .Values.fluentbit.output.http.auth.user.key }}
+          password:
+            name: {{ .Values.fluentbit.output.http.auth.password.name }}
+            key: {{ .Values.fluentbit.output.http.auth.password.key }}
+        {{- end }}
+        {{- end }}
+        {{- end }}
+        {{- if .Values.fluentbit.output.http.compress }}
+        compress: {{ .Values.fluentbit.output.http.compress }}
+        {{- end }}
+        {{- if .Values.fluentbit.output.http.tls }}
+        tls:
+          enabled: {{ default false .Values.fluentbit.output.http.tls.enabled }}
+          {{- if .Values.fluentbit.output.http.tls.ca }}
+          ca:
+            secretKey: {{ .Values.fluentbit.output.http.tls.ca.secretKey }}
+            secretName: {{ .Values.fluentbit.output.http.tls.ca.secretName }}
+          {{- end }}
+          {{- if .Values.fluentbit.output.http.tls.cert }}
+          cert:
+            secretKey: {{ .Values.fluentbit.output.http.tls.cert.secretKey }}
+            secretName: {{ .Values.fluentbit.output.http.tls.cert.secretName }}
+          {{- end }}
+          {{- if .Values.fluentbit.output.http.tls.key }}
+          key:
+            secretKey: {{ .Values.fluentbit.output.http.tls.key.secretKey }}
+            secretName: {{ .Values.fluentbit.output.http.tls.key.secretName }}
+          {{- end }}
+          verify: {{ default false .Values.fluentbit.output.http.tls.verify }}
+          {{- if .Values.fluentbit.output.http.tls.keyPasswd }}
+          keyPasswd: {{ .Values.fluentbit.output.http.tls.keyPasswd }}
+          {{- end }}
+        {{- end }}
+        {{- if .Values.fluentbit.output.http.extraParams }}
+        extraParams: |-
+          {{ default "" .Values.fluentbit.output.http.extraParams | nindent 10 }}
+        {{- end }}
+      {{- else }}
+        enabled: false
+      {{- end }}
+    {{- end }}
     {{- end }}
     {{- if .Values.fluentbit.aggregator }}
     aggregator:
@@ -852,8 +982,9 @@ spec:
       extraFields:
         {{- toYaml .Values.fluentbit.aggregator.extraFields | nindent 8 }}
       {{- end }}
-      {{- if and .Values.fluentbit.aggregator.output  .Values.fluentbit.aggregator.output.loki }}
+      {{- if .Values.fluentbit.aggregator.output }}
       output:
+      {{- if .Values.fluentbit.aggregator.output.loki }}
         loki:
         {{- if .Values.fluentbit.aggregator.output.loki.enabled }}
           enabled: true
@@ -919,7 +1050,68 @@ spec:
           enabled: false
         {{- end }}
       {{- end }}
+      {{- if .Values.fluentbit.aggregator.output.http }}
+        http:
+        {{- if .Values.fluentbit.aggregator.output.http.enabled }}
+          enabled: true
+          host: {{ .Values.fluentbit.aggregator.output.http.host }}
+          port: {{ .Values.fluentbit.aggregator.output.http.port }}
+          uri: {{ .Values.fluentbit.aggregator.output.http.uri | default "/insert/jsonline?_stream_fields=stream&_msg_field=short_message&_time_field=time" | squote }}
+          {{- if .Values.fluentbit.aggregator.output.http.compress }}
+          compress: {{ .Values.fluentbit.aggregator.output.http.compress }}
+          {{- end }}
+          {{- if .Values.fluentbit.aggregator.output.http.format }}
+          format: {{ .Values.fluentbit.aggregator.output.http.format }}
+          {{- end }}
+          {{- if .Values.fluentbit.aggregator.output.http.jsonDateFormat }}
+          jsonDateFormat: {{ .Values.fluentbit.aggregator.output.http.jsonDateFormat }}
+          {{- end }}
+          {{- if .Values.fluentbit.aggregator.output.http.auth }}
+          {{- if and .Values.fluentbit.aggregator.output.http.auth.user .Values.fluentbit.aggregator.output.http.auth.password }}
+          {{- if and .Values.fluentbit.aggregator.output.http.auth.user.name .Values.fluentbit.aggregator.output.http.auth.user.key .Values.fluentbit.aggregator.output.http.auth.password.name .Values.fluentbit.aggregator.output.http.auth.password.key }}
+          auth:
+            user:
+              name: {{ .Values.fluentbit.aggregator.output.http.auth.user.name }}
+              key: {{ .Values.fluentbit.aggregator.output.http.auth.user.key }}
+            password:
+              name: {{ .Values.fluentbit.aggregator.output.http.auth.password.name }}
+              key: {{ .Values.fluentbit.aggregator.output.http.auth.password.key }}
+          {{- end }}
+          {{- end }}
+          {{- end }}
+          {{- if .Values.fluentbit.aggregator.output.http.tls }}
+          tls:
+            enabled: {{ default false .Values.fluentbit.aggregator.output.http.tls.enabled }}
+            {{- if .Values.fluentbit.aggregator.output.http.tls.ca }}
+            ca:
+              secretKey: {{ .Values.fluentbit.aggregator.output.http.tls.ca.secretKey }}
+              secretName: {{ .Values.fluentbit.aggregator.output.http.tls.ca.secretName }}
+            {{- end }}
+            {{- if .Values.fluentbit.aggregator.output.http.tls.cert }}
+            cert:
+              secretKey: {{ .Values.fluentbit.aggregator.output.http.tls.cert.secretKey }}
+              secretName: {{ .Values.fluentbit.aggregator.output.http.tls.cert.secretName }}
+            {{- end }}
+            {{- if .Values.fluentbit.aggregator.output.http.tls.key }}
+            key:
+              secretKey: {{ .Values.fluentbit.aggregator.output.http.tls.key.secretKey }}
+              secretName: {{ .Values.fluentbit.aggregator.output.http.tls.key.secretName }}
+            {{- end }}
+            verify: {{ default false .Values.fluentbit.aggregator.output.http.tls.verify }}
+            {{- if .Values.fluentbit.aggregator.output.http.tls.keyPasswd }}
+            keyPasswd: {{ .Values.fluentbit.aggregator.output.http.tls.keyPasswd }}
+            {{- end }}
+          {{- end }}
+          {{- if .Values.fluentbit.aggregator.output.http.extraParams }}
+          extraParams: |-
+            {{ default "" .Values.fluentbit.aggregator.output.http.extraParams | nindent 12 }}
+          {{- end }}
+        {{- else }}
+          enabled: false
+        {{- end }}
+      {{- end }}
     {{- end }}
+  {{- end }}
   {{- end }}
   {{- if .Values.cloudEventsReader.install }}
   cloudEventsReader:

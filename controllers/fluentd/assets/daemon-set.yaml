@@ -158,6 +158,20 @@ spec:
                   key: {{ .Values.Fluentd.Output.Loki.Auth.Password.Key }}
 {{- end }}
 {{- end }}
+{{- if and .Values.Fluentd.Output .Values.Fluentd.Output.Http .Values.Fluentd.Output.Http.Enabled }}
+{{- if and .Values.Fluentd.Output.Http.Auth .Values.Fluentd.Output.Http.Auth.User .Values.Fluentd.Output.Http.Auth.User.Name .Values.Fluentd.Output.Http.Auth.User.Key .Values.Fluentd.Output.Http.Auth.Password .Values.Fluentd.Output.Http.Auth.Password.Name .Values.Fluentd.Output.Http.Auth.Password.Key }}
+            - name: HTTP_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.Fluentd.Output.Http.Auth.User.Name }}
+                  key: {{ .Values.Fluentd.Output.Http.Auth.User.Key }}
+            - name: HTTP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.Fluentd.Output.Http.Auth.Password.Name }}
+                  key: {{ .Values.Fluentd.Output.Http.Auth.Password.Key }}
+{{- end }}
+{{- end }}
           volumeMounts:
 {{ if eq .Values.ContainerRuntimeType "docker" }}
 {{ if ne .Values.OSKind "ubuntu" }}
@@ -240,6 +254,28 @@ spec:
               name: loki-tls-key
               readOnly: true
               subPath: {{ .Values.Fluentd.Output.Loki.TLS.Key.SecretKey }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- if and .Values.Fluentd.Output .Values.Fluentd.Output.Http .Values.Fluentd.Output.Http.Enabled }}
+{{- if and .Values.Fluentd.Output.Http.TLS .Values.Fluentd.Output.Http.TLS.Enabled }}
+{{- if and .Values.Fluentd.Output.Http.TLS.CA .Values.Fluentd.Output.Http.TLS.CA.SecretName .Values.Fluentd.Output.Http.TLS.CA.SecretKey }}
+            - mountPath: /fluentd/output/http/tls/ca.crt
+              name: http-tls-ca
+              readOnly: true
+              subPath: {{ .Values.Fluentd.Output.Http.TLS.CA.SecretKey }}
+{{- end }}
+{{- if and .Values.Fluentd.Output.Http.TLS.Cert .Values.Fluentd.Output.Http.TLS.Cert.SecretName .Values.Fluentd.Output.Http.TLS.Cert.SecretKey }}
+            - mountPath: /fluentd/output/http/tls/tls.crt
+              name: http-tls-cert
+              readOnly: true
+              subPath: {{ .Values.Fluentd.Output.Http.TLS.Cert.SecretKey }}
+{{- end }}
+{{- if and .Values.Fluentd.Output.Http.TLS.Key .Values.Fluentd.Output.Http.TLS.Key.SecretName .Values.Fluentd.Output.Http.TLS.Key.SecretKey }}
+            - mountPath: /fluentd/output/http/tls/tls.key
+              name: http-tls-key
+              readOnly: true
+              subPath: {{ .Values.Fluentd.Output.Http.TLS.Key.SecretKey }}
 {{- end }}
 {{- end }}
 {{- end }}
@@ -331,6 +367,28 @@ spec:
         - name: loki-tls-key
           secret:
             secretName: {{ .Values.Fluentd.Output.Loki.TLS.Key.SecretName }}
+            defaultMode: 420 # RW grants for config map files
+{{- end }}
+{{- end }}
+{{- end }}
+{{- if and .Values.Fluentd.Output .Values.Fluentd.Output.Http .Values.Fluentd.Output.Http.Enabled }}
+{{- if and .Values.Fluentd.Output.Http.TLS .Values.Fluentd.Output.Http.TLS.Enabled }}
+{{- if and .Values.Fluentd.Output.Http.TLS.CA .Values.Fluentd.Output.Http.TLS.CA.SecretName .Values.Fluentd.Output.Http.TLS.CA.SecretKey }}
+        - name: http-tls-ca
+          secret:
+            secretName: {{ .Values.Fluentd.Output.Http.TLS.CA.SecretName }}
+            defaultMode: 420 # RW grants for config map files
+{{- end }}
+{{- if and .Values.Fluentd.Output.Http.TLS.Cert .Values.Fluentd.Output.Http.TLS.Cert.SecretName .Values.Fluentd.Output.Http.TLS.Cert.SecretKey }}
+        - name: http-tls-cert
+          secret:
+            secretName: {{ .Values.Fluentd.Output.Http.TLS.Cert.SecretName }}
+            defaultMode: 420 # RW grants for config map files
+{{- end }}
+{{- if and .Values.Fluentd.Output.Http.TLS.Key .Values.Fluentd.Output.Http.TLS.Key.SecretName .Values.Fluentd.Output.Http.TLS.Key.SecretKey }}
+        - name: http-tls-key
+          secret:
+            secretName: {{ .Values.Fluentd.Output.Http.TLS.Key.SecretName }}
             defaultMode: 420 # RW grants for config map files
 {{- end }}
 {{- end }}

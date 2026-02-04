@@ -170,6 +170,12 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.Fluentd.Output.Http.Auth.Password.Name }}
                   key: {{ .Values.Fluentd.Output.Http.Auth.Password.Key }}
+{{- else if and .Values.Fluentd.Output.Http.Auth .Values.Fluentd.Output.Http.Auth.Token .Values.Fluentd.Output.Http.Auth.Token.Name .Values.Fluentd.Output.Http.Auth.Token.Key }}
+            - name: HTTP_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.Fluentd.Output.Http.Auth.Token.Name }}
+                  key: {{ .Values.Fluentd.Output.Http.Auth.Token.Key }}
 {{- end }}
 {{- end }}
           volumeMounts:

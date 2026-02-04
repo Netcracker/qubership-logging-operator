@@ -1598,7 +1598,7 @@ fluentd:
       # Example: http://10.10.10.10:9428 or https://vlsingle-k8s.victorialogs:9428
       # Mandatory: yes
       #
-      host: ''
+      host: ""
 
       # Http path for url to ingest logs.
       # Type: string
@@ -1609,6 +1609,7 @@ fluentd:
       # path: /insert/jsonline
 
       # Authentication for Http output.
+      # Secret name and key in the secret storing the parameter should be provided. Username/password or token can be stored in different secrets.
       # Type: object
       # Mandatory: no
       #
@@ -1626,9 +1627,9 @@ fluentd:
       # Additional headers for HTTP request.
       # Type: string
       # Mandatory: no
-      # Default: '{"VL-Msg-Field": "log", "VL-Time-Field": "time", "VL-Stream-Fields": "stream"}'
+      # Default: {"VL-Msg-Field": "log", "VL-Time-Field": "time", "VL-Stream-Fields": "stream"}
       #
-      # headers: '{"VL-Msg-Field": "log", "VL-Time-Field": "time", "VL-Stream-Fields": "stream"}'
+      # headers: {"VL-Msg-Field": "log", "VL-Time-Field": "time", "VL-Stream-Fields": "stream"}
 
       # TLS configuration for Http output.
       # Type: object
@@ -2022,7 +2023,7 @@ fluentbit:
       # Example: 10.10.10.10 or vlsingle-k8s.victorialogs
       # Mandatory: yes
       #
-      host: ''
+      host: ""
 
       # Http port, for example: 9428
       # Type: int
@@ -2039,6 +2040,7 @@ fluentbit:
       # uri: '/insert/jsonline?_stream_fields=stream&_msg_field=short_message&_time_field=time'
 
       # Authentication for Http.
+      # Secret name and key in the secret storing the parameter should be provided. Username/password or token can be stored in different secrets.
       # Type: object
       # Mandatory: no
       #
@@ -2049,6 +2051,9 @@ fluentbit:
       #   password:
       #     name: http-secret
       #     key: password
+      #   token:
+      #     name: http-secret
+      #     key: token
 
       # TLS configuration for Http output.
       # Type: object
@@ -2826,6 +2831,7 @@ fluentbit:
         # uri: '/insert/jsonline?_stream_fields=stream&_msg_field=short_message&_time_field=time'
 
         # Authentication for Http.
+        # Secret name and key in the secret storing the parameter should be provided. Username/password or token can be stored in different secrets.
         # Type: object
         # Mandatory: no
         #
@@ -2836,6 +2842,9 @@ fluentbit:
         #   password:
         #     name: http-secret
         #     key: password
+        #   token:
+        #     name: http-secret
+        #     key: token
 
         # TLS configuration for Http output.
         # Type: object
@@ -3148,3 +3157,31 @@ integrationTests:
   # The parameter specifies the ssh key for login to VM.
   # Type: string
   sshKey: ""
+
+  # VictoriaLogs connection settings
+  victorialogs:
+    # The parameter specifies the url for VictoriaLogs.
+    # Type: string
+    #
+    # Example : https://vlsingle-example.victorialogs:9428
+    url: ""
+    # auth:
+    #   # The parameter specifies the secret name and key storing the user for VictoriaLogs.
+    #   # Type: string
+    #   #
+    #   user:
+    #     secretName: ""
+    #     key: ""
+
+    #   # The parameter specifies the secret name and key storing the password for VictoriaLogs.
+    #   # Type: string
+    #   #
+    #   password:
+    #     secretName: ""
+    #     key: ""
+    #   # The parameter specifies the secret name and key storing the token for VictoriaLogs.
+    #   # Type: string
+    #   #
+    #   token:
+    #     secretName: ""
+    #     key: ""

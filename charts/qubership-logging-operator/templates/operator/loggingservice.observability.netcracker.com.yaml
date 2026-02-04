@@ -527,7 +527,7 @@ spec:
         enabled: true
         host: {{ .Values.fluentd.output.http.host }}
         path: {{ .Values.fluentd.output.http.path | default "/insert/jsonline" }}
-        headers: {{ default "{\"VL-Msg-Field\": \"log\", \"VL-Time-Field\": \"time\", \"VL-Stream-Fields\": \"stream\"}" .Values.fluentd.output.http.headers | squote }}
+        headers: {{ include "fluentd.output.http.headers" . | nindent 10 }}
         {{- if .Values.fluentd.output.http.auth }}
         {{- if and .Values.fluentd.output.http.auth.user  .Values.fluentd.output.http.auth.password }}
         {{- if and .Values.fluentd.output.http.auth.user.name .Values.fluentd.output.http.auth.user.key .Values.fluentd.output.http.auth.password.name .Values.fluentd.output.http.auth.password.key }}
@@ -538,6 +538,13 @@ spec:
           password:
             name: {{ .Values.fluentd.output.http.auth.password.name }}
             key: {{ .Values.fluentd.output.http.auth.password.key }}
+        {{- end }}
+        {{- else if .Values.fluentd.output.http.auth.token }}
+        {{- if and .Values.fluentd.output.http.auth.token.name .Values.fluentd.output.http.auth.token.key }}
+        auth:
+          token:
+            name: {{ .Values.fluentd.output.http.auth.token.name }}
+            key: {{ .Values.fluentd.output.http.auth.token.key }}
         {{- end }}
         {{- end }}
         {{- end }}
@@ -1067,7 +1074,14 @@ spec:
           jsonDateFormat: {{ .Values.fluentbit.aggregator.output.http.jsonDateFormat }}
           {{- end }}
           {{- if .Values.fluentbit.aggregator.output.http.auth }}
-          {{- if and .Values.fluentbit.aggregator.output.http.auth.user .Values.fluentbit.aggregator.output.http.auth.password }}
+          {{- if .Values.fluentbit.aggregator.output.http.auth.token }}
+          {{- if and .Values.fluentbit.aggregator.output.http.auth.token.name .Values.fluentbit.aggregator.output.http.auth.token.key }}
+          auth:
+            token:
+              name: {{ .Values.fluentbit.aggregator.output.http.auth.token.name }}
+              key: {{ .Values.fluentbit.aggregator.output.http.auth.token.key }}
+          {{- end }}
+          {{- else if and .Values.fluentbit.aggregator.output.http.auth.user .Values.fluentbit.aggregator.output.http.auth.password }}
           {{- if and .Values.fluentbit.aggregator.output.http.auth.user.name .Values.fluentbit.aggregator.output.http.auth.user.key .Values.fluentbit.aggregator.output.http.auth.password.name .Values.fluentbit.aggregator.output.http.auth.password.key }}
           auth:
             user:

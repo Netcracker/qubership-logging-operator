@@ -521,13 +521,13 @@ type LokiFluentd struct {
 	ExtraParams   string          `json:"extraParams,omitempty"`
 }
 type HttpFluentd struct {
-	Enabled     bool            `json:"enabled,omitempty"`
-	Host        string          `json:"host,omitempty"`
-	Path        string          `json:"path,omitempty"`
-	Headers     string          `json:"headers,omitempty"`
-	Auth        *Auth           `json:"auth,omitempty"`
-	TLS         *FluentdHttpTLS `json:"tls,omitempty"`
-	ExtraParams string          `json:"extraParams,omitempty"`
+	Enabled     bool              `json:"enabled,omitempty"`
+	Host        string            `json:"host,omitempty"`
+	Path        string            `json:"path,omitempty"`
+	Headers     map[string]string `json:"headers,omitempty"`
+	Auth        *Auth             `json:"auth,omitempty"`
+	TLS         *FluentdHttpTLS   `json:"tls,omitempty"`
+	ExtraParams string            `json:"extraParams,omitempty"`
 }
 
 func (in *LoggingService) ToParams() LoggingServiceParameters {

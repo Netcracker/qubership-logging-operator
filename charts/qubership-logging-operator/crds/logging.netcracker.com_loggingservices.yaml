@@ -9044,7 +9044,9 @@ spec:
                           extraParams:
                             type: string
                           headers:
-                            type: string
+                            additionalProperties:
+                              type: string
+                            type: object
                           host:
                             type: string
                           path:

@@ -24,7 +24,7 @@ spec:
       containers:
         - name: json-log-generator
           image: >-
-            ghcr.io/netcracker/qubership-log-generator:v1.1.1
+            ghcr.io/netcracker/qubership-log-generator:1.1.2
           ports:
             - name: metrics
               containerPort: 8080
@@ -39,7 +39,7 @@ spec:
             - name: LOG_MESSAGES_MULTILINE
               value: 'true'
             - name: LOG_MULTILINE_PROBABILITY
-              value: '0.9'
+              value: '0.3'
           resources:
             limits:
               cpu: 400m

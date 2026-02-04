@@ -200,6 +200,26 @@ spec:
                   key: {{ .Values.Fluentbit.Aggregator.Output.Loki.Auth.Token.Key }}
 {{- end }}
 {{- end }}
+{{- if and .Values.Fluentbit.Aggregator.Output .Values.Fluentbit.Aggregator.Output.Http .Values.Fluentbit.Aggregator.Output.Http.Enabled }}
+{{- if and .Values.Fluentbit.Aggregator.Output.Http.Auth .Values.Fluentbit.Aggregator.Output.Http.Auth.User .Values.Fluentbit.Aggregator.Output.Http.Auth.User.Name .Values.Fluentbit.Aggregator.Output.Http.Auth.User.Key .Values.Fluentbit.Aggregator.Output.Http.Auth.Password .Values.Fluentbit.Aggregator.Output.Http.Auth.Password.Name .Values.Fluentbit.Aggregator.Output.Http.Auth.Password.Key }}
+            - name: HTTP_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.Fluentbit.Aggregator.Output.Http.Auth.User.Name }}
+                  key: {{ .Values.Fluentbit.Aggregator.Output.Http.Auth.User.Key }}
+            - name: HTTP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.Fluentbit.Aggregator.Output.Http.Auth.Password.Name }}
+                  key: {{ .Values.Fluentbit.Aggregator.Output.Http.Auth.Password.Key }}
+{{- else if and .Values.Fluentbit.Aggregator.Output.Http.Auth .Values.Fluentbit.Aggregator.Output.Http.Auth.Token .Values.Fluentbit.Aggregator.Output.Http.Auth.Token.Name .Values.Fluentbit.Aggregator.Output.Http.Auth.Token.Key }}
+            - name: HTTP_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.Fluentbit.Aggregator.Output.Http.Auth.Token.Name }}
+                  key: {{ .Values.Fluentbit.Aggregator.Output.Http.Auth.Token.Key }}
+{{- end }}
+{{- end }}
           resources:
             limits:
               cpu: {{ resIndex .Values.Fluentbit.Aggregator.Resources.Limits "cpu" }}

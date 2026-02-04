@@ -2039,6 +2039,13 @@ fluentbit:
       #
       # uri: '/insert/jsonline?_stream_fields=stream&_msg_field=short_message&_time_field=time'
 
+      # Additional configuration parameters for Http output.
+      # See docs: https://docs.fluentbit.io/manual/data-pipeline/outputs/http#configuration-parameters
+      # Type: string
+      # Mandatory: no
+      #
+      # extraParams: |
+
       # Authentication for Http.
       # Secret name and key in the secret storing the parameter should be provided. Username/password or token can be stored in different secrets.
       # Type: object
@@ -2133,13 +2140,6 @@ fluentbit:
         # Mandatory: no
         #
         # keyPasswd: secret
-
-      # Additional configuration parameters for Http output.
-      # See docs: https://docs.fluentbit.io/manual/data-pipeline/outputs/http#configuration-parameters
-      # Type: string
-      # Mandatory: no
-      #
-      # extraParams: |
 
   # additionalVolumes allows configuration of additional volumes on the output DaemonSet definition.
   # additionalVolumes specified will be appended to other volumes that are generated as a result of StorageSpec objects.
@@ -2817,7 +2817,7 @@ fluentbit:
         #
         # host: vlsingle-k8s.victorialogs
 
-        # Http port, for example: 9428 
+        # Http port, for example: 9428
         # Type: int
         # Mandatory: yes
         #
@@ -3165,23 +3165,26 @@ integrationTests:
     #
     # Example : https://vlsingle-example.victorialogs:9428
     url: ""
+
+    # Authentication for VictoriaLogs.
+    # Type: object
+    # Mandatory: no
     # auth:
-    #   # The parameter specifies the secret name and key storing the user for VictoriaLogs.
-    #   # Type: string
-    #   #
+    #   The parameter specifies the secret name and key storing the user for VictoriaLogs.
+    #   Type: string
     #   user:
     #     secretName: ""
     #     key: ""
 
-    #   # The parameter specifies the secret name and key storing the password for VictoriaLogs.
-    #   # Type: string
-    #   #
+    # The parameter specifies the secret name and key storing the password for VictoriaLogs.
+    #   Type: string
+    #
     #   password:
     #     secretName: ""
     #     key: ""
-    #   # The parameter specifies the secret name and key storing the token for VictoriaLogs.
-    #   # Type: string
-    #   #
+    #   The parameter specifies the secret name and key storing the token for VictoriaLogs.
+    #   Type: string
+    #
     #   token:
     #     secretName: ""
     #     key: ""

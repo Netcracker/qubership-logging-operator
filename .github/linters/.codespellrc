@@ -1,2 +1,2 @@
 [codespell]
-skip = */crds/*.yaml
+skip = */crds/*.yaml,*go.work.sum

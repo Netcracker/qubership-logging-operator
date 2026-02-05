@@ -1700,7 +1700,7 @@ fluentd:
         # Allows any ciphers to be used, may be insecure.
         # Type: string
         # Mandatory: no
-        # Default: "ALL:!aNULL:!eNULL:!SSLv2"
+        # Default: no value
         #
         # ciphers: ""
 

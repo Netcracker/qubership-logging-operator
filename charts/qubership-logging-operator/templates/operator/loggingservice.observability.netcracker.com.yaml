@@ -528,6 +528,9 @@ spec:
         host: {{ .Values.fluentd.output.http.host }}
         path: {{ .Values.fluentd.output.http.path | default "/insert/jsonline" }}
         headers: {{ include "fluentd.output.http.headers" . | nindent 10 }}
+        {{- if .Values.fluentd.output.http.compress }}
+        compress: {{ .Values.fluentd.output.http.compress }}
+        {{- end }}
         {{- if .Values.fluentd.output.http.auth }}
         {{- if and .Values.fluentd.output.http.auth.user  .Values.fluentd.output.http.auth.password }}
         {{- if and .Values.fluentd.output.http.auth.user.name .Values.fluentd.output.http.auth.user.key .Values.fluentd.output.http.auth.password.name .Values.fluentd.output.http.auth.password.key }}
@@ -832,9 +835,6 @@ spec:
             key: {{ .Values.fluentbit.output.http.auth.password.key }}
         {{- end }}
         {{- end }}
-        {{- end }}
-        {{- if .Values.fluentbit.output.http.compress }}
-        compress: {{ .Values.fluentbit.output.http.compress }}
         {{- end }}
         {{- if .Values.fluentbit.output.http.tls }}
         tls:

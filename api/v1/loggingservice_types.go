@@ -524,6 +524,7 @@ type HttpFluentd struct {
 	Enabled     bool              `json:"enabled,omitempty"`
 	Host        string            `json:"host,omitempty"`
 	Path        string            `json:"path,omitempty"`
+	Compress    string            `json:"compress,omitempty"`
 	Headers     map[string]string `json:"headers,omitempty"`
 	Auth        *Auth             `json:"auth,omitempty"`
 	TLS         *FluentdHttpTLS   `json:"tls,omitempty"`

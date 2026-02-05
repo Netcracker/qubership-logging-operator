@@ -1624,6 +1624,13 @@ fluentd:
       #     name: http-secret
       #     key: password
 
+      # Payload compression mechanism for Http output. Allowed values: text/gzip.
+      # Type: string
+      # Mandatory: no
+      # Default: text
+      #
+      # compress: gzip
+
       # Additional headers for HTTP request.
       # Type: string
       # Mandatory: no
@@ -2038,6 +2045,13 @@ fluentbit:
       # Default: '/insert/jsonline?_stream_fields=stream&_msg_field=short_message&_time_field=time'
       #
       # uri: '/insert/jsonline?_stream_fields=stream&_msg_field=short_message&_time_field=time'
+
+      # Payload compression mechanism for Http output. Allowed values: gzip, snappy, zstd.
+      # Type: string
+      # Mandatory: no
+      # Default: none
+      #
+      # compress: gzip
 
       # Additional configuration parameters for Http output.
       # See docs: https://docs.fluentbit.io/manual/data-pipeline/outputs/http#configuration-parameters
@@ -2829,6 +2843,13 @@ fluentbit:
         # Mandatory: no
         #
         # uri: '/insert/jsonline?_stream_fields=stream&_msg_field=short_message&_time_field=time'
+
+        # Payload compression mechanism for Http output. Allowed values: gzip, snappy, zstd.
+        # Type: string
+        # Mandatory: no
+        # Default: none
+        #
+        # compress: gzip
 
         # Authentication for Http.
         # Secret name and key in the secret storing the parameter should be provided. Username/password or token can be stored in different secrets.

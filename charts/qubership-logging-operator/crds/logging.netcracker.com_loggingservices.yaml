@@ -9039,6 +9039,8 @@ spec:
                                 type: object
                                 x-kubernetes-map-type: atomic
                             type: object
+                          compress:
+                            type: string
                           enabled:
                             type: boolean
                           extraParams:

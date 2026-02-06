@@ -9,8 +9,8 @@ metadata:
     app.kubernetes.io/instance: {{ cat "logging-self-signed-ca-certificate-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
     app.kubernetes.io/component: logging-operator
     app.kubernetes.io/part-of: logging
-    {{- $image := include "logging-operator.image" . }}
-    app.kubernetes.io/version: {{ splitList ":" $image | last | quote }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/version: {{ splitList ":" (include "logging-operator.image" .) | last | quote }}
   {{- if .Values.labels }}
     {{- toYaml .Values.labels | nindent 4 }}
   {{- end }}

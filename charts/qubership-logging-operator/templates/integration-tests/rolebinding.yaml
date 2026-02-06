@@ -11,6 +11,7 @@ metadata:
     app.kubernetes.io/part-of: logging
     {{- $image := include "logging-integration-tests.image" . }}
     app.kubernetes.io/version: {{ splitList ":" $image | last | quote }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
   {{- if .Values.integrationTests.labels }}
     {{- toYaml .Values.integrationTests.labels | nindent 4 }}
   {{- end }}

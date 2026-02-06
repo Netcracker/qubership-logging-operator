@@ -4,9 +4,11 @@ kind: ClusterRoleBinding
 metadata:
   name: logging-service-operator
   labels:
+    name: logging-service-operator
     app.kubernetes.io/name: logging-service-operator
     app.kubernetes.io/component: logging-operator
     app.kubernetes.io/part-of: logging
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
   {{- if .Values.labels }}
     {{- toYaml .Values.labels | nindent 4 }}
   {{- end }}

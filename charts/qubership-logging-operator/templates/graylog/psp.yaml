@@ -12,9 +12,11 @@ metadata:
     {{- toYaml .Values.graylog.annotations | nindent 4 }}
   {{- end }}
   labels:
+    name: {{ .Values.graylog.securityResources.name }}
     app.kubernetes.io/name: {{ .Values.graylog.securityResources.name }}
     app.kubernetes.io/component: graylog
     app.kubernetes.io/part-of: logging
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
   {{- if .Values.graylog.labels }}
     {{- toYaml .Values.graylog.labels | nindent 4 }}
   {{- end }}

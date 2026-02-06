@@ -7,9 +7,11 @@ kind: Certificate
 metadata:
   name: fluentbit-aggregator-tls-certificate
   labels:
+    name: fluentbit-aggregator-tls-certificate
     app.kubernetes.io/name: fluentbit-aggregator-tls-certificate
     app.kubernetes.io/component: fluentbit
     app.kubernetes.io/part-of: logging
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
   {{- if .Values.fluentbit.labels }}
     {{- toYaml .Values.fluentbit.labels | nindent 4 }}
   {{- end }}

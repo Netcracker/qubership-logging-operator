@@ -9,6 +9,7 @@ metadata:
     app.kubernetes.io/component: fluentbit
     app.kubernetes.io/part-of: logging
     app.kubernetes.io/managed-by: logging-operator
+    app.kubernetes.io/technology: cpp
     component: logging-fluentbit
 {{- if .Values.OpenshiftDeploy }}
     provider: openshift
@@ -35,6 +36,7 @@ spec:
         app.kubernetes.io/component: fluentbit
         app.kubernetes.io/part-of: logging
         app.kubernetes.io/managed-by: logging-operator
+        app.kubernetes.io/technology: cpp
         component: logging-fluentbit
 {{- if .Values.OpenshiftDeploy }}
         provider: openshift

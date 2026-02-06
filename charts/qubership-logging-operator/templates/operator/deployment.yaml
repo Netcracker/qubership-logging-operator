@@ -11,6 +11,8 @@ metadata:
     app.kubernetes.io/component: logging-operator
     app.kubernetes.io/part-of: logging
     app.kubernetes.io/version: {{ splitList ":" $image | last | quote }}
+    app.kubernetes.io/technology: go
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
   {{- if .Values.labels }}
     {{- toYaml .Values.labels | nindent 4 }}
   {{- end }}
@@ -31,8 +33,9 @@ spec:
         app.kubernetes.io/instance: {{ $instance }}
         app.kubernetes.io/component: logging-operator
         app.kubernetes.io/part-of: logging
-        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/managed-by: {{ .Release.Service }}
         app.kubernetes.io/version: {{ splitList ":" $image | last | quote }}
+        app.kubernetes.io/technology: go
       {{- if .Values.labels }}
         {{ toYaml .Values.labels | nindent 8 }}
       {{- end }}

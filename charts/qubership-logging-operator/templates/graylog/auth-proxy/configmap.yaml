@@ -5,9 +5,11 @@ kind: ConfigMap
 metadata:
   name: graylog-auth-proxy-config
   labels:
+    name: graylog-auth-proxy-config
     app.kubernetes.io/name: graylog-auth-proxy-config
     app.kubernetes.io/component: graylog
     app.kubernetes.io/part-of: logging
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
   {{- if .Values.graylog.labels }}
     {{- toYaml .Values.graylog.labels | nindent 4 }}
   {{- end }}

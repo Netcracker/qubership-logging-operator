@@ -4,9 +4,11 @@ kind: GrafanaDashboard
 metadata:
   name: fluentd-grafana-dashboard
   labels:
+    name: fluentd-grafana-dashboard
     app.kubernetes.io/name: fluentd-grafana-dashboard
     app.kubernetes.io/component: monitoring
     app.kubernetes.io/part-of: logging
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
   {{- if .Values.fluentd.labels }}
     {{- toYaml .Values.fluentd.labels | nindent 4 }}
   {{- end }}

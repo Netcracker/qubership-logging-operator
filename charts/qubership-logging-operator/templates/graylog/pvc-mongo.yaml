@@ -10,8 +10,8 @@ metadata:
     app.kubernetes.io/instance: {{ cat "mongo-claim-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
     app.kubernetes.io/component: graylog
     app.kubernetes.io/part-of: logging
-    {{- $image := include "graylog.image" . }}
-    app.kubernetes.io/version: {{ splitList ":" $image | last | quote }}
+    app.kubernetes.io/version: {{ splitList ":" (include "graylog.image" .) | last | quote }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
   {{- if .Values.graylog.labels }}
     {{- toYaml .Values.graylog.labels | nindent 4 }}
   {{- end }}

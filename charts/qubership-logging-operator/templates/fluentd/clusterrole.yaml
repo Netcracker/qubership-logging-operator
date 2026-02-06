@@ -5,9 +5,11 @@ kind: ClusterRole
 metadata:
   name: logging-cluster-role
   labels:
+    name: logging-cluster-role
     app.kubernetes.io/name: logging-cluster-role
     app.kubernetes.io/component: fluentd
     app.kubernetes.io/part-of: logging
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
   {{- if .Values.fluentd.labels }}
     {{- toYaml .Values.fluentd.labels | nindent 4 }}
   {{- end }}

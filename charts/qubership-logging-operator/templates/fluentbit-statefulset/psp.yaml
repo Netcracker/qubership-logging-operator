@@ -14,9 +14,11 @@ metadata:
     {{- toYaml .Values.fluentbit.annotations | nindent 4 }}
   {{- end }}
   labels:
+    name: {{ .Values.fluentbit.aggregator.securityResources.name }}
     app.kubernetes.io/name: {{ .Values.fluentbit.aggregator.securityResources.name }}
     app.kubernetes.io/component: fluentbit
     app.kubernetes.io/part-of: logging
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
   {{- if .Values.fluentbit.labels }}
     {{- toYaml .Values.fluentbit.labels | nindent 4 }}
   {{- end }}

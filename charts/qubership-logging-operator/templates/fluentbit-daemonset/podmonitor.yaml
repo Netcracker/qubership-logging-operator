@@ -4,9 +4,11 @@ kind: PodMonitor
 metadata:
   name: fluentbit-all-pods
   labels:
+    name: fluentbit-all-pods
     app.kubernetes.io/name: fluentbit-all-pods
     app.kubernetes.io/component: monitoring
     app.kubernetes.io/part-of: logging
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
   {{- if .Values.fluentbit.labels }}
     {{- toYaml .Values.fluentbit.labels | nindent 4 }}
   {{- end }}

@@ -4,9 +4,11 @@ kind: Certificate
 metadata:
   name: graylog-input-tls-certificate
   labels:
+    name: graylog-input-tls-certificate
     app.kubernetes.io/name: graylog-input-tls-certificate
     app.kubernetes.io/component: graylog
     app.kubernetes.io/part-of: logging
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
   {{- if .Values.graylog.labels }}
     {{- toYaml .Values.graylog.labels | nindent 4 }}
   {{- end }}

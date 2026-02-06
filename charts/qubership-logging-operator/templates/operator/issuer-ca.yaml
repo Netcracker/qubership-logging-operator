@@ -4,9 +4,11 @@ kind: Issuer
 metadata:
   name: logging-ca-issuer
   labels:
+    name: logging-ca-issuer
     app.kubernetes.io/name: logging-ca-issuer
     app.kubernetes.io/component: logging-operator
     app.kubernetes.io/part-of: logging
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
   {{- if .Values.labels }}
     {{- toYaml .Values.labels | nindent 4 }}
   {{- end }}

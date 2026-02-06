@@ -4,9 +4,11 @@ kind: GrafanaDashboard
 metadata:
   name: fluentbit-metrics-v1
   labels:
+    name: fluentbit-metrics-v1
     app.kubernetes.io/name: fluentbit-metrics-v1
     app.kubernetes.io/component: monitoring
     app.kubernetes.io/part-of: logging
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
   {{- if .Values.fluentbit.labels }}
     {{- toYaml .Values.fluentbit.labels | nindent 4 }}
   {{- end }}

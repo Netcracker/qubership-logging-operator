@@ -5,9 +5,11 @@ kind: ClusterRole
 metadata:
   name: psp:oob-privileged-psp
   labels:
+    name: oob-privileged-psp
     app.kubernetes.io/name: oob-privileged-psp
     app.kubernetes.io/component: graylog
     app.kubernetes.io/part-of: logging
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
   {{- if .Values.graylog.labels }}
     {{- toYaml .Values.graylog.labels | nindent 4 }}
   {{- end }}

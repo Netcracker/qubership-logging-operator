@@ -3,9 +3,11 @@ apiVersion: monitoring.coreos.com/v1
 kind: PodMonitor
 metadata:
   labels:
+    name: fluentd-pod-monitor
     app.kubernetes.io/name: fluentd-pod-monitor
     app.kubernetes.io/component: monitoring
     app.kubernetes.io/part-of: logging
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
   {{- if .Values.fluentd.labels }}
     {{- toYaml .Values.fluentd.labels | nindent 4 }}
   {{- end }}

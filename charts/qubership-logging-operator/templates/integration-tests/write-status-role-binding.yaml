@@ -5,9 +5,11 @@ kind: RoleBinding
 metadata:
   name: logging-operator-tests-write-status
   labels:
+    name: logging-operator-tests-write-status
     app.kubernetes.io/name: logging-operator-tests-write-status
     app.kubernetes.io/component: integration-tests
     app.kubernetes.io/part-of: logging
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
   {{- if .Values.integrationTests.labels }}
     {{- toYaml .Values.integrationTests.labels | nindent 4 }}
   {{- end }}

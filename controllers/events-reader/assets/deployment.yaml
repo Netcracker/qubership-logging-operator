@@ -9,6 +9,7 @@ metadata:
     app.kubernetes.io/component: events-reader
     app.kubernetes.io/part-of: logging
     app.kubernetes.io/managed-by: logging-operator
+    app.kubernetes.io/technology: go
 spec:
   selector:
     matchLabels:
@@ -26,6 +27,7 @@ spec:
         app.kubernetes.io/component: events-reader
         app.kubernetes.io/part-of: logging
         app.kubernetes.io/managed-by: logging-operator
+        app.kubernetes.io/technology: go
     spec:
       serviceAccountName: events-reader
 {{ if and .Values.CloudEventsReader.NodeSelectorKey .Values.CloudEventsReader.NodeSelectorValue }}

@@ -13,6 +13,16 @@ Check Fluentbit And Fluentd
     Set Suite Variable  ${fluentbit_exists}
     ${fluentd_exists}=  Check Daemon Set Exists  logging-fluentd
     Set Suite Variable  ${fluentd_exists}
+    ${fluentbit_forw_exists}=  Check Daemon Set Exists  logging-fluentbit-forwarder
+    Set Suite Variable  ${fluentbit_forw_exists}
+
+Check Graylog Install
+    ${graylog_install}=  Convert To Boolean  %{GRAYLOG_INSTALL}
+    Set Suite Variable  ${graylog_install}
+    ${external_graylog}=  Convert To Boolean  %{EXTERNAL_GRAYLOG_SERVER}
+    Set Suite Variable  ${external_graylog}
+    ${graylog_available}=  Evaluate    ${graylog_install} or ${external_graylog}
+    Set Suite Variable  ${graylog_available}
 
 Check Daemon Set Exists
     [Arguments]  ${name}

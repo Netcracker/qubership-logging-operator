@@ -95,6 +95,37 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.integrationTests.service.name }}-secret
                   key: ssh-key
+            - name: GRAYLOG_INSTALL
+              value: {{ .Values.graylog.install | quote }}
+          {{- if .Values.integrationTests.victorialogs.url }}
+            - name: VICTORIALOGS_URL
+              value: {{ .Values.integrationTests.victorialogs.url | quote }}
+          {{- end }}
+          {{- if .Values.integrationTests.victorialogs.auth }}
+          {{- if .Values.integrationTests.victorialogs.auth.token }}
+            - name: VL_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.integrationTests.victorialogs.auth.token.secretName | default "victorialogs-auth-secret" | quote }}
+                  key: {{ .Values.integrationTests.victorialogs.auth.token.key | default "token" | quote }}
+          {{- end }}
+          {{- if and .Values.integrationTests.victorialogs.auth.user .Values.integrationTests.victorialogs.auth.password | quote }}
+            - name: VL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.integrationTests.victorialogs.auth.user.secretName | default "victorialogs-http-secret" | quote }}
+                  key: {{ .Values.integrationTests.victorialogs.auth.user.key | default "username" | quote }}
+            - name: VL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.integrationTests.victorialogs.auth.password.secretName | default "victorialogs-http-secret" | quote }}
+                  key: {{ .Values.integrationTests.victorialogs.auth.password.key | default "password" | quote }}
+          {{- end }}
+          {{- end }}
+            - name: OPERATION_RETRY_INTERVAL
+              value: {{ .Values.integrationTests.operationRetryInterval | default "5s" | quote }}
+            - name: OPERATION_RETRY_COUNT
+              value: {{ .Values.integrationTests.operationRetryInterval | default "60x" | quote }}
             - name: OPENSHIFT_DEPLOY
               value: {{ (.Capabilities.APIVersions.Has "security.openshift.io/v1") | default "false" | quote }}
             - name: STATUS_WRITING_ENABLED

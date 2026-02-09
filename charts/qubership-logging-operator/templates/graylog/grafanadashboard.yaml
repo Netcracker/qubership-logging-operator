@@ -4,11 +4,7 @@ kind: GrafanaDashboard
 metadata:
   name: graylog-grafana-dashboard-k8s
   labels:
-    name: graylog-grafana-dashboard-k8s
-    app.kubernetes.io/name: graylog-grafana-dashboard-k8s
-    app.kubernetes.io/component: monitoring
-    app.kubernetes.io/part-of: logging
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" "graylog-grafana-dashboard-k8s" "component" "monitoring") | nindent 4 }}
   {{- if .Values.graylog.labels }}
     {{- toYaml .Values.graylog.labels | nindent 4 }}
   {{- end }}

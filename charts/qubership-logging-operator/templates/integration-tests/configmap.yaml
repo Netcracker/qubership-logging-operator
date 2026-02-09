@@ -4,11 +4,7 @@ kind: ConfigMap
 metadata:
   name: tests-config
   labels:
-    name: tests-config
-    app.kubernetes.io/name: {{ .Values.integrationTests.service.name }}-config
-    app.kubernetes.io/component: integration-tests
-    app.kubernetes.io/part-of: logging
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" "tests-config" "component" "integration-tests") | nindent 4 }}
 data:
   {{- if include "logging.monitoredImages" . }}
   dd_images: {{ include "logging.monitoredImages" . }}

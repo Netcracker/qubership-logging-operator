@@ -4,11 +4,7 @@ kind: Certificate
 metadata:
   name: graylog-http-tls-certificate
   labels:
-    name: graylog-http-tls-certificate
-    app.kubernetes.io/name: graylog-http-tls-certificate
-    app.kubernetes.io/component: graylog
-    app.kubernetes.io/part-of: logging
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" "graylog-http-tls-certificate" "component" "graylog") | nindent 4 }}
   {{- if .Values.graylog.labels }}
     {{- toYaml .Values.graylog.labels | nindent 4 }}
   {{- end }}

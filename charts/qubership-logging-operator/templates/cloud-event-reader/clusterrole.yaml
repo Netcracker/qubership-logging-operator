@@ -5,11 +5,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: cloud-events-reader-cluster-reader
   labels:
-    name: cloud-events-reader-cluster-reader
-    app.kubernetes.io/name: cloud-events-reader-cluster-reader
-    app.kubernetes.io/component: events-reader
-    app.kubernetes.io/part-of: logging
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" "cloud-events-reader-cluster-reader" "component" "events-reader") | nindent 4 }}
   {{- if .Values.cloudEventsReader.labels }}
     {{- toYaml .Values.cloudEventsReader.labels | nindent 4 }}
   {{- end }}

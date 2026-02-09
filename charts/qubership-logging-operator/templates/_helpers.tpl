@@ -49,6 +49,32 @@ Add Authorization header if Bearer Token authorization enabled for http output i
 {{- end -}}
 
 {{/*
+Common labels applied to all resources (part-of, managed-by).
+Call with: {{- include "logging-operator.commonLabels" . | nindent 4 }} for metadata.labels,
+or | nindent 8 for spec.template.metadata.labels.
+*/}}
+{{- define "logging-operator.commonLabels" -}}
+app.kubernetes.io/part-of: logging
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end -}}
+
+{{/*
+Resource labels: name, app.kubernetes.io/name, component, plus commonLabels.
+Usage: {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" $name "component" $component) | nindent 4 }}
+Example: (dict "ctx" . "name" "fluentd-grafana-dashboard" "component" "monitoring")
+         (dict "ctx" . "name" .Values.fluentd.securityResources.name "component" "fluentd") for dynamic name.
+*/}}
+{{- define "logging-operator.resourceLabels" -}}
+{{- $ctx := .ctx -}}
+{{- $name := .name -}}
+{{- $component := .component -}}
+name: {{ $name }}
+app.kubernetes.io/name: {{ $name }}
+app.kubernetes.io/component: {{ $component }}
+{{- include "logging-operator.commonLabels" $ctx | nindent 0 }}
+{{- end -}}
+
+{{/*
 Create the name of the service account to use
 */}}
 {{- define "helm-chart.serviceAccountName" -}}

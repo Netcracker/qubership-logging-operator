@@ -12,11 +12,7 @@ metadata:
     {{- toYaml .Values.fluentd.annotations | nindent 4 }}
   {{- end }}
   labels:
-    name: {{ .Values.fluentd.securityResources.name }}
-    app.kubernetes.io/name: {{ .Values.fluentd.securityResources.name }}
-    app.kubernetes.io/component: fluentd
-    app.kubernetes.io/part-of: logging
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" .Values.fluentd.securityResources.name "component" "fluentd") | nindent 4 }}
   {{- if .Values.fluentd.labels }}
     {{- toYaml .Values.fluentd.labels | nindent 4 }}
   {{- end }}

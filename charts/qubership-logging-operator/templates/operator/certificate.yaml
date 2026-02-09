@@ -4,12 +4,8 @@ kind: Certificate
 metadata:
   name: logging-self-signed-ca-certificate
   labels:
-    name: logging-self-signed-ca-certificate
-    app.kubernetes.io/name: logging-self-signed-ca-certificate
+    {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" "logging-self-signed-ca-certificate" "component" "logging-operator") | nindent 4 }}
     app.kubernetes.io/instance: {{ cat "logging-self-signed-ca-certificate-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
-    app.kubernetes.io/component: logging-operator
-    app.kubernetes.io/part-of: logging
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
     app.kubernetes.io/version: {{ splitList ":" (include "logging-operator.image" .) | last | quote }}
   {{- if .Values.labels }}
     {{- toYaml .Values.labels | nindent 4 }}

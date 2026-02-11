@@ -23,8 +23,9 @@ func eventsReaderDeployment(cr *loggingService.LoggingService) (*appsv1.Deployme
 	if err = yaml.NewYAMLOrJSONDecoder(strings.NewReader(fileContent), util.BufferSize).Decode(&deployment); err != nil {
 		return nil, err
 	}
-
-	// Set required labels
+	// Apply required labels (common from Go, then instance and version)
+	deployment.SetLabels(util.MergeLabels(deployment.GetLabels(), util.ResourceLabels(deployment.GetName(), "events-reader")))
+	deployment.Spec.Template.Labels = util.MergeLabels(deployment.Spec.Template.Labels, util.ResourceLabels(deployment.GetName(), "events-reader"))
 	deployment.Labels["app.kubernetes.io/instance"] = util.GetInstanceLabel(deployment.GetName(), deployment.GetNamespace())
 	deployment.Labels["app.kubernetes.io/version"] = util.GetTagFromImage(cr.Spec.CloudEventsReader.DockerImage)
 	deployment.Spec.Template.Labels["app.kubernetes.io/instance"] = util.GetInstanceLabel(deployment.GetName(), deployment.GetNamespace())
@@ -63,8 +64,8 @@ func eventsReaderService(cr *loggingService.LoggingService) (*corev1.Service, er
 	if err = yaml.NewYAMLOrJSONDecoder(strings.NewReader(fileContent), util.BufferSize).Decode(&service); err != nil {
 		return nil, err
 	}
-
-	// Set required labels
+	// Apply required labels (common from Go, then instance and version)
+	service.SetLabels(util.MergeLabels(service.GetLabels(), util.ResourceLabels(service.GetName(), "events-reader")))
 	service.Labels["app.kubernetes.io/instance"] = util.GetInstanceLabel(service.GetName(), service.GetNamespace())
 	service.Labels["app.kubernetes.io/version"] = util.GetTagFromImage(cr.Spec.CloudEventsReader.DockerImage)
 

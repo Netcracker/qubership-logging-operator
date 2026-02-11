@@ -4,11 +4,6 @@ metadata:
   name: events-reader
   namespace: {{ .Release.Namespace }}
   labels:
-    name: events-reader
-    app.kubernetes.io/name: events-reader
-    app.kubernetes.io/component: events-reader
-    app.kubernetes.io/part-of: logging
-    app.kubernetes.io/managed-by: logging-operator
     app.kubernetes.io/technology: go
 spec:
   selector:
@@ -22,11 +17,6 @@ spec:
   template:
     metadata:
       labels:
-        name: events-reader
-        app.kubernetes.io/name: events-reader
-        app.kubernetes.io/component: events-reader
-        app.kubernetes.io/part-of: logging
-        app.kubernetes.io/managed-by: logging-operator
         app.kubernetes.io/technology: go
     spec:
       serviceAccountName: events-reader

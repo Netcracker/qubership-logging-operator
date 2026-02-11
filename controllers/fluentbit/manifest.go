@@ -30,13 +30,15 @@ func fluentbitDaemonSet(cr *loggingService.LoggingService, dynamicParameters uti
 		if err = yaml.NewYAMLOrJSONDecoder(strings.NewReader(fileContent), util.BufferSize).Decode(&daemonSet); err != nil {
 			return nil, err
 		}
+		daemonSet.SetLabels(util.MergeLabels(daemonSet.GetLabels(), util.ResourceLabels(daemonSet.GetName(), "fluentbit")))
+		daemonSet.Spec.Template.Labels = util.MergeLabels(daemonSet.Spec.Template.Labels, util.ResourceLabels(daemonSet.GetName(), "fluentbit"))
 
 		if cr.Spec.Fluentbit != nil {
 			if cr.Spec.Fluentbit.Annotations != nil {
 				daemonSet.SetAnnotations(cr.Spec.Fluentbit.Annotations)
 				daemonSet.Spec.Template.SetAnnotations(cr.Spec.Fluentbit.Annotations)
 			}
-			//Add required labels
+			// Set instance and version labels (common labels already applied after Decode)
 			daemonSet.Labels["app.kubernetes.io/instance"] = util.GetInstanceLabel(daemonSet.GetName(), daemonSet.GetNamespace())
 			daemonSet.Labels["app.kubernetes.io/version"] = util.GetTagFromImage(cr.Spec.Fluentbit.DockerImage)
 			daemonSet.Spec.Template.Labels["app.kubernetes.io/instance"] = util.GetInstanceLabel(daemonSet.GetName(), daemonSet.GetNamespace())
@@ -90,7 +92,8 @@ func fluentbitService(cr *loggingService.LoggingService, dynamicParameters util.
 	if err = yaml.NewYAMLOrJSONDecoder(strings.NewReader(fileContent), util.BufferSize).Decode(&service); err != nil {
 		return nil, err
 	}
-	//Add required labels
+	// Apply required labels (common from Go, then instance and version)
+	service.SetLabels(util.MergeLabels(service.GetLabels(), util.ResourceLabels(service.GetName(), "fluentbit")))
 	service.Labels["app.kubernetes.io/instance"] = util.GetInstanceLabel(service.GetName(), service.GetNamespace())
 	service.Labels["app.kubernetes.io/version"] = util.GetTagFromImage(cr.Spec.Fluentbit.DockerImage)
 
@@ -135,16 +138,14 @@ func fluentbitConfigMap(cr *loggingService.LoggingService, dynamicParameters uti
 		configMapData["loki-labels.json"] = cr.Spec.Fluentbit.Output.Loki.LabelsMapping
 	}
 
-	defaultLabels := map[string]string{
-		"k8s-app":                      "fluent-bit",
-		"name":                         util.FluentbitComponentName,
-		"app.kubernetes.io/component":  "fluentbit",
-		"app.kubernetes.io/part-of":    "logging",
-		"app.kubernetes.io/managed-by": "logging-operator",
-		"app.kubernetes.io/name":       util.FluentbitComponentName,
-		"app.kubernetes.io/instance":   util.FluentbitComponentName + "-" + cr.GetNamespace(),
-		"app.kubernetes.io/version":    util.GetTagFromImage(cr.Spec.Fluentbit.DockerImage),
-	}
+	defaultLabels := util.MergeLabels(
+		util.ResourceLabels(util.FluentbitComponentName, "fluentbit"),
+		map[string]string{
+			"k8s-app":                    "fluent-bit",
+			"app.kubernetes.io/instance": util.FluentbitComponentName + "-" + cr.GetNamespace(),
+			"app.kubernetes.io/version":  util.GetTagFromImage(cr.Spec.Fluentbit.DockerImage),
+		},
+	)
 	// Set Configmap fields
 	configMap := corev1.ConfigMap{
 		TypeMeta: metav1.TypeMeta{

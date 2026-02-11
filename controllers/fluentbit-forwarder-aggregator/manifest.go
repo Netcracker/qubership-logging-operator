@@ -32,16 +32,14 @@ func forwarderConfigMap(cr *loggingService.LoggingService, dynamicParameters uti
 		return nil, err
 	}
 
-	defaultLabels := map[string]string{
-		"k8s-app":                      "fluent-bit",
-		"name":                         util.ForwarderFluentbitComponentName,
-		"app.kubernetes.io/component":  "fluentbit",
-		"app.kubernetes.io/part-of":    "logging",
-		"app.kubernetes.io/managed-by": "logging-operator",
-		"app.kubernetes.io/name":       util.ForwarderFluentbitComponentName,
-		"app.kubernetes.io/instance":   util.ForwarderFluentbitComponentName + "-" + cr.GetNamespace(),
-		"app.kubernetes.io/version":    util.GetTagFromImage(cr.Spec.Fluentbit.DockerImage),
-	}
+	defaultLabels := util.MergeLabels(
+		util.ResourceLabels(util.ForwarderFluentbitComponentName, "fluentbit"),
+		map[string]string{
+			"k8s-app":                    "fluent-bit",
+			"app.kubernetes.io/instance": util.ForwarderFluentbitComponentName + "-" + cr.GetNamespace(),
+			"app.kubernetes.io/version": util.GetTagFromImage(cr.Spec.Fluentbit.DockerImage),
+		},
+	)
 
 	// Set custom input from parameters
 	if cr.Spec.Fluentbit.CustomInputConf != "" {
@@ -88,13 +86,15 @@ func forwarderDaemonSet(cr *loggingService.LoggingService, dynamicParameters uti
 		if err = yaml.NewYAMLOrJSONDecoder(strings.NewReader(fileContent), util.BufferSize).Decode(&ds); err != nil {
 			return nil, err
 		}
+		ds.SetLabels(util.MergeLabels(ds.GetLabels(), util.ResourceLabels(ds.GetName(), "fluentbit")))
+		ds.Spec.Template.Labels = util.MergeLabels(ds.Spec.Template.Labels, util.ResourceLabels(ds.GetName(), "fluentbit"))
 
 		if cr.Spec.Fluentbit != nil {
 			if cr.Spec.Fluentbit.Annotations != nil {
 				ds.SetAnnotations(cr.Spec.Fluentbit.Annotations)
 				ds.Spec.Template.SetAnnotations(cr.Spec.Fluentbit.Annotations)
 			}
-			//Add required labels
+			// Set instance and version labels (common labels already applied after Decode)
 			ds.Labels["app.kubernetes.io/instance"] = util.GetInstanceLabel(ds.GetName(), ds.GetNamespace())
 			ds.Labels["app.kubernetes.io/version"] = util.GetTagFromImage(cr.Spec.Fluentbit.Aggregator.DockerImage)
 			ds.Spec.Template.Labels["app.kubernetes.io/instance"] = util.GetInstanceLabel(ds.GetName(), ds.GetNamespace())
@@ -137,7 +137,8 @@ func forwarderService(cr *loggingService.LoggingService, dynamicParameters util.
 	if err = yaml.NewYAMLOrJSONDecoder(strings.NewReader(fileContent), util.BufferSize).Decode(&service); err != nil {
 		return nil, err
 	}
-	//Add required labels
+	// Apply required labels (common from Go, then instance and version)
+	service.SetLabels(util.MergeLabels(service.GetLabels(), util.ResourceLabels(service.GetName(), "fluentbit")))
 	service.Labels["app.kubernetes.io/instance"] = util.GetInstanceLabel(service.GetName(), service.GetNamespace())
 	service.Labels["app.kubernetes.io/version"] = util.GetTagFromImage(cr.Spec.Fluentbit.Aggregator.DockerImage)
 	return &service, nil
@@ -156,16 +157,14 @@ func aggregatorConfigMap(cr *loggingService.LoggingService, dynamicParameters ut
 		configMapData["loki-labels.json"] = cr.Spec.Fluentbit.Aggregator.Output.Loki.LabelsMapping
 	}
 
-	defaultLabels := map[string]string{
-		"k8s-app":                      "fluent-bit",
-		"name":                         util.AggregatorFluentbitComponentName,
-		"app.kubernetes.io/component":  "fluentbit",
-		"app.kubernetes.io/part-of":    "logging",
-		"app.kubernetes.io/managed-by": "logging-operator",
-		"app.kubernetes.io/name":       util.AggregatorFluentbitComponentName,
-		"app.kubernetes.io/instance":   util.AggregatorFluentbitComponentName + "-" + cr.GetNamespace(),
-		"app.kubernetes.io/version":    util.GetTagFromImage(cr.Spec.Fluentbit.DockerImage),
-	}
+	defaultLabels := util.MergeLabels(
+		util.ResourceLabels(util.AggregatorFluentbitComponentName, "fluentbit"),
+		map[string]string{
+			"k8s-app":                    "fluent-bit",
+			"app.kubernetes.io/instance": util.AggregatorFluentbitComponentName + "-" + cr.GetNamespace(),
+			"app.kubernetes.io/version": util.GetTagFromImage(cr.Spec.Fluentbit.DockerImage),
+		},
+	)
 
 	// Set custom filters from parameters
 	if cr.Spec.Fluentbit.Aggregator.CustomFilterConf != "" {
@@ -210,13 +209,15 @@ func aggregatorStatefulSet(cr *loggingService.LoggingService) (*appsv1.StatefulS
 	if err = yaml.NewYAMLOrJSONDecoder(strings.NewReader(fileContent), util.BufferSize).Decode(&statefulSet); err != nil {
 		return nil, err
 	}
+	statefulSet.SetLabels(util.MergeLabels(statefulSet.GetLabels(), util.ResourceLabels(statefulSet.GetName(), "fluentbit")))
+	statefulSet.Spec.Template.Labels = util.MergeLabels(statefulSet.Spec.Template.Labels, util.ResourceLabels(statefulSet.GetName(), "fluentbit"))
 
 	if cr.Spec.Fluentbit.Aggregator != nil {
 		if cr.Spec.Fluentbit.Aggregator.Annotations != nil {
 			statefulSet.SetAnnotations(cr.Spec.Fluentbit.Aggregator.Annotations)
 			statefulSet.Spec.Template.SetAnnotations(cr.Spec.Fluentbit.Aggregator.Annotations)
 		}
-		//Add required labels
+		// Set instance and version labels (common labels already applied after Decode)
 		statefulSet.Labels["app.kubernetes.io/instance"] = util.GetInstanceLabel(statefulSet.GetName(), statefulSet.GetNamespace())
 		statefulSet.Labels["app.kubernetes.io/version"] = util.GetTagFromImage(cr.Spec.Fluentbit.Aggregator.DockerImage)
 		statefulSet.Spec.Template.Labels["app.kubernetes.io/instance"] = util.GetInstanceLabel(statefulSet.GetName(), statefulSet.GetNamespace())
@@ -252,7 +253,8 @@ func aggregatorService(cr *loggingService.LoggingService) (*corev1.Service, erro
 	if err = yaml.NewYAMLOrJSONDecoder(strings.NewReader(fileContent), util.BufferSize).Decode(&service); err != nil {
 		return nil, err
 	}
-	//Add required labels
+	// Apply required labels (common from Go, then instance and version)
+	service.SetLabels(util.MergeLabels(service.GetLabels(), util.ResourceLabels(service.GetName(), "fluentbit")))
 	service.Labels["app.kubernetes.io/instance"] = util.GetInstanceLabel(service.GetName(), service.GetNamespace())
 	service.Labels["app.kubernetes.io/version"] = util.GetTagFromImage(cr.Spec.Fluentbit.Aggregator.DockerImage)
 	return &service, nil

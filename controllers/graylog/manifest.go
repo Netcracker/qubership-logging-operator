@@ -28,7 +28,8 @@ func graylogServiceAccount(cr *loggingService.LoggingService) (*corev1.ServiceAc
 	if err = yaml.NewYAMLOrJSONDecoder(strings.NewReader(fileContent), util.BufferSize).Decode(&sa); err != nil {
 		return nil, err
 	}
-	//Add required labels
+	// Apply required labels (common from Go, then instance and version)
+	sa.SetLabels(util.MergeLabels(sa.GetLabels(), util.ResourceLabels(sa.GetName(), "graylog")))
 	sa.Labels["app.kubernetes.io/instance"] = util.GetInstanceLabel(sa.GetName(), sa.GetNamespace())
 	sa.Labels["app.kubernetes.io/version"] = util.GetTagFromImage(cr.Spec.Graylog.DockerImage)
 	return &sa, nil
@@ -47,15 +48,13 @@ func graylogConfigMap(cr *loggingService.LoggingService) (*corev1.ConfigMap, err
 	configMap.SetNamespace(cr.GetNamespace())
 	configMap.Data = data
 	//Add required labels
-	configMap.SetLabels(map[string]string{
-		"name":                         util.GraylogComponentName,
-		"app.kubernetes.io/name":       util.GraylogComponentName,
-		"app.kubernetes.io/instance":   util.GetInstanceLabel(configMap.GetName(), configMap.GetNamespace()),
-		"app.kubernetes.io/version":    util.GetTagFromImage(cr.Spec.Graylog.DockerImage),
-		"app.kubernetes.io/component":  "graylog",
-		"app.kubernetes.io/part-of":    "logging",
-		"app.kubernetes.io/managed-by": "logging-operator",
-	})
+	configMap.SetLabels(util.MergeLabels(
+		util.ResourceLabels(util.GraylogComponentName, "graylog"),
+		map[string]string{
+			"app.kubernetes.io/instance": util.GetInstanceLabel(configMap.GetName(), configMap.GetNamespace()),
+			"app.kubernetes.io/version":  util.GetTagFromImage(cr.Spec.Graylog.DockerImage),
+		},
+	))
 	return &configMap, nil
 }
 
@@ -68,7 +67,9 @@ func graylogMongoUpgradeJob(cr *loggingService.LoggingService, assetPath string)
 	if err = yaml.NewYAMLOrJSONDecoder(strings.NewReader(fileContent), util.BufferSize).Decode(&job); err != nil {
 		return nil, err
 	}
-	//Add required labels
+	// Apply required labels (common from Go, then instance and version)
+	job.SetLabels(util.MergeLabels(job.GetLabels(), util.ResourceLabels(job.GetName(), "graylog")))
+	job.Spec.Template.Labels = util.MergeLabels(job.Spec.Template.Labels, util.ResourceLabels(job.GetName(), "graylog"))
 	job.Labels["app.kubernetes.io/instance"] = util.GetInstanceLabel(job.GetName(), job.GetNamespace())
 	job.Labels["app.kubernetes.io/version"] = util.GetTagFromImage(job.Spec.Template.Spec.Containers[0].Image)
 	job.Spec.Template.Labels["app.kubernetes.io/instance"] = util.GetInstanceLabel(job.GetName(), job.GetNamespace())
@@ -85,13 +86,15 @@ func graylogStatefulset(cr *loggingService.LoggingService) (*appsv1.StatefulSet,
 	if err = yaml.NewYAMLOrJSONDecoder(strings.NewReader(fileContent), util.BufferSize).Decode(&statefulset); err != nil {
 		return nil, err
 	}
+	statefulset.SetLabels(util.MergeLabels(statefulset.GetLabels(), util.ResourceLabels(statefulset.GetName(), "graylog")))
+	statefulset.Spec.Template.Labels = util.MergeLabels(statefulset.Spec.Template.Labels, util.ResourceLabels(statefulset.GetName(), "graylog"))
 
 	if cr.Spec.Graylog != nil {
 		if cr.Spec.Graylog.Annotations != nil {
 			statefulset.SetAnnotations(cr.Spec.Graylog.Annotations)
 			statefulset.Spec.Template.SetAnnotations(cr.Spec.Graylog.Annotations)
 		}
-		//Add required labels
+		// Set instance and version labels (common labels already applied after Decode)
 		statefulset.Labels["app.kubernetes.io/instance"] = util.GetInstanceLabel(statefulset.GetName(), statefulset.GetNamespace())
 		statefulset.Labels["app.kubernetes.io/version"] = util.GetTagFromImage(cr.Spec.Graylog.DockerImage)
 		statefulset.Spec.Template.Labels["app.kubernetes.io/instance"] = util.GetInstanceLabel(statefulset.GetName(), statefulset.GetNamespace())
@@ -123,7 +126,8 @@ func graylogService(cr *loggingService.LoggingService) (*corev1.Service, error) 
 	if err = yaml.NewYAMLOrJSONDecoder(strings.NewReader(fileContent), util.BufferSize).Decode(&service); err != nil {
 		return nil, err
 	}
-	//Add required labels
+	// Apply required labels (common from Go, then instance and version)
+	service.SetLabels(util.MergeLabels(service.GetLabels(), util.ResourceLabels(service.GetName(), "graylog")))
 	service.Labels["app.kubernetes.io/instance"] = util.GetInstanceLabel(service.GetName(), service.GetNamespace())
 	service.Labels["app.kubernetes.io/version"] = util.GetTagFromImage(cr.Spec.Graylog.DockerImage)
 	return &service, nil

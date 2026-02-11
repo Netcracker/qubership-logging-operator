@@ -37,15 +37,13 @@ func fluentdConfigMap(cr *loggingService.LoggingService, dynamicParameters util.
 	configMap.Data = data
 
 	//Add required labels
-	configMap.SetLabels(map[string]string{
-		"name":                         util.FluentdComponentName,
-		"app.kubernetes.io/name":       util.FluentdComponentName,
-		"app.kubernetes.io/instance":   util.GetInstanceLabel(configMap.GetName(), configMap.GetNamespace()),
-		"app.kubernetes.io/version":    util.GetTagFromImage(cr.Spec.Fluentd.DockerImage),
-		"app.kubernetes.io/component":  "fluentd",
-		"app.kubernetes.io/part-of":    "logging",
-		"app.kubernetes.io/managed-by": "logging-operator",
-	})
+	configMap.SetLabels(util.MergeLabels(
+		util.ResourceLabels(util.FluentdComponentName, "fluentd"),
+		map[string]string{
+			"app.kubernetes.io/instance": util.GetInstanceLabel(configMap.GetName(), configMap.GetNamespace()),
+			"app.kubernetes.io/version": util.GetTagFromImage(cr.Spec.Fluentd.DockerImage),
+		},
+	))
 	return &configMap, nil
 }
 
@@ -59,13 +57,15 @@ func fluentdDaemonSet(cr *loggingService.LoggingService, dynamicParameters util.
 	if err = yaml.NewYAMLOrJSONDecoder(strings.NewReader(fileContent), util.BufferSize).Decode(&daemonSet); err != nil {
 		return nil, err
 	}
+	daemonSet.SetLabels(util.MergeLabels(daemonSet.GetLabels(), util.ResourceLabels(daemonSet.GetName(), "fluentd")))
+	daemonSet.Spec.Template.Labels = util.MergeLabels(daemonSet.Spec.Template.Labels, util.ResourceLabels(daemonSet.GetName(), "fluentd"))
 
 	if cr.Spec.Fluentd != nil {
 		if cr.Spec.Fluentd.Annotations != nil {
 			daemonSet.SetAnnotations(cr.Spec.Fluentd.Annotations)
 			daemonSet.Spec.Template.SetAnnotations(cr.Spec.Fluentd.Annotations)
 		}
-		//Add required labels
+		// Set instance and version labels (common labels already applied after Decode)
 		daemonSet.Labels["app.kubernetes.io/instance"] = util.GetInstanceLabel(daemonSet.GetName(), daemonSet.GetNamespace())
 		daemonSet.Labels["app.kubernetes.io/version"] = util.GetTagFromImage(cr.Spec.Fluentd.DockerImage)
 		daemonSet.Spec.Template.Labels["app.kubernetes.io/instance"] = util.GetInstanceLabel(daemonSet.GetName(), daemonSet.GetNamespace())
@@ -114,7 +114,8 @@ func fluentdService(cr *loggingService.LoggingService, dynamicParameters util.Dy
 	if err = yaml.NewYAMLOrJSONDecoder(strings.NewReader(fileContent), util.BufferSize).Decode(&service); err != nil {
 		return nil, err
 	}
-	//Add required labels
+	// Apply required labels (common from Go, then instance and version)
+	service.SetLabels(util.MergeLabels(service.GetLabels(), util.ResourceLabels(service.GetName(), "fluentd")))
 	service.Labels["app.kubernetes.io/instance"] = util.GetInstanceLabel(service.GetName(), service.GetNamespace())
 	service.Labels["app.kubernetes.io/version"] = util.GetTagFromImage(cr.Spec.Fluentd.DockerImage)
 	return &service, nil

@@ -473,6 +473,7 @@ type ConfigmapReload struct {
 type OutputFluentbit struct {
 	Loki *LokiFluentbit `json:"loki,omitempty"`
 	Http *HttpFluentbit `json:"http,omitempty"`
+	Otel *OtelFluentbit `json:"otel,omitempty"`
 }
 
 type LokiFluentbit struct {
@@ -497,6 +498,18 @@ type HttpFluentbit struct {
 	JsonDateFormat string            `json:"jsonDateFormat,omitempty"`
 	Format         string            `json:"format,omitempty"`
 	ExtraParams    string            `json:"extraParams,omitempty"`
+}
+
+type OtelFluentbit struct {
+	Enabled             bool              `json:"enabled,omitempty"`
+	Host                string            `json:"host,omitempty"`
+	Port                int               `json:"port,omitempty"`
+	LogsUri             string            `json:"logsUri,omitempty"`
+	LogSuppressInterval int               `json:"logSuppressInterval,omitempty"`
+	Auth                *Auth             `json:"auth,omitempty"`
+	Compress            string            `json:"compress,omitempty"`
+	TLS                 *FluentbitHttpTLS `json:"tls,omitempty"`
+	ExtraParams         string            `json:"extraParams,omitempty"`
 }
 
 type Auth struct {

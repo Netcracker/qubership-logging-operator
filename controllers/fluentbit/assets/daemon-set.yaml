@@ -38,7 +38,7 @@ spec:
         component: logging-fluentbit
 {{- if .Values.OpenshiftDeploy }}
         provider: openshift
- {{- else }}
+{{- else }}
         provider: kubernetes
 {{- end }}
         kubernetes.io/cluster-service: "true"
@@ -127,7 +127,8 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: spec.nodeName
-{{- if and .Values.Fluentbit.Output .Values.Fluentbit.Output.Loki .Values.Fluentbit.Output.Loki.Enabled }}
+{{- if .Values.Fluentbit.Output }}
+{{- if and .Values.Fluentbit.Output.Loki .Values.Fluentbit.Output.Loki.Enabled }}
 {{- if and .Values.Fluentbit.Output.Loki.Auth .Values.Fluentbit.Output.Loki.Auth.User .Values.Fluentbit.Output.Loki.Auth.User.Name .Values.Fluentbit.Output.Loki.Auth.User.Key .Values.Fluentbit.Output.Loki.Auth.Password .Values.Fluentbit.Output.Loki.Auth.Password.Name .Values.Fluentbit.Output.Loki.Auth.Password.Key }}
             - name: LOKI_USERNAME
               valueFrom:
@@ -147,7 +148,7 @@ spec:
                   key: {{ .Values.Fluentbit.Output.Loki.Auth.Token.Key }}
 {{- end }}
 {{- end }}
-{{- if and .Values.Fluentbit.Output .Values.Fluentbit.Output.Http .Values.Fluentbit.Output.Http.Enabled }}
+{{- if and .Values.Fluentbit.Output.Http .Values.Fluentbit.Output.Http.Enabled }}
 {{- if and .Values.Fluentbit.Output.Http.Auth .Values.Fluentbit.Output.Http.Auth.User .Values.Fluentbit.Output.Http.Auth.User.Name .Values.Fluentbit.Output.Http.Auth.User.Key .Values.Fluentbit.Output.Http.Auth.Password .Values.Fluentbit.Output.Http.Auth.Password.Name .Values.Fluentbit.Output.Http.Auth.Password.Key }}
             - name: HTTP_USERNAME
               valueFrom:
@@ -165,6 +166,27 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.Fluentbit.Output.Http.Auth.Token.Name }}
                   key: {{ .Values.Fluentbit.Output.Http.Auth.Token.Key }}
+{{- end }}
+{{- end }}
+{{- if and .Values.Fluentbit.Output.Otel .Values.Fluentbit.Output.Otel.Enabled }}
+{{- if and .Values.Fluentbit.Output.Otel.Auth .Values.Fluentbit.Output.Otel.Auth.User .Values.Fluentbit.Output.Otel.Auth.User.Name .Values.Fluentbit.Output.Otel.Auth.User.Key .Values.Fluentbit.Output.Otel.Auth.Password .Values.Fluentbit.Output.Otel.Auth.Password.Name .Values.Fluentbit.Output.Otel.Auth.Password.Key }}
+            - name: OTEL_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.Fluentbit.Output.Otel.Auth.User.Name }}
+                  key: {{ .Values.Fluentbit.Output.Otel.Auth.User.Key }}
+            - name: OTEL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.Fluentbit.Output.Otel.Auth.Password.Name }}
+                  key: {{ .Values.Fluentbit.Output.Otel.Auth.Password.Key }}
+{{- else if and .Values.Fluentbit.Output.Otel.Auth .Values.Fluentbit.Output.Otel.Auth.Token .Values.Fluentbit.Output.Otel.Auth.Token.Name .Values.Fluentbit.Output.Otel.Auth.Token.Key }}
+            - name: OTEL_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.Fluentbit.Output.Otel.Auth.Token.Name }}
+                  key: {{ .Values.Fluentbit.Output.Otel.Auth.Token.Key }}
+{{- end }}
 {{- end }}
 {{- end }}
           volumeMounts:
@@ -224,7 +246,8 @@ spec:
 {{ end }}
 {{ end }}
 {{ end }}
-{{- if and .Values.Fluentbit.Output .Values.Fluentbit.Output.Loki .Values.Fluentbit.Output.Loki.Enabled }}
+{{- if .Values.Fluentbit.Output }}
+{{- if and .Values.Fluentbit.Output.Loki .Values.Fluentbit.Output.Loki.Enabled }}
 {{- if and .Values.Fluentbit.Output.Loki.TLS .Values.Fluentbit.Output.Loki.TLS.Enabled }}
 {{- if and .Values.Fluentbit.Output.Loki.TLS.CA .Values.Fluentbit.Output.Loki.TLS.CA.SecretName .Values.Fluentbit.Output.Loki.TLS.CA.SecretKey }}
             - mountPath: /fluent-bit/output/loki/tls/ca.crt
@@ -246,7 +269,7 @@ spec:
 {{- end }}
 {{- end }}
 {{- end }}
-{{- if and .Values.Fluentbit.Output .Values.Fluentbit.Output.Http .Values.Fluentbit.Output.Http.Enabled }}
+{{- if and .Values.Fluentbit.Output.Http .Values.Fluentbit.Output.Http.Enabled }}
 {{- if and .Values.Fluentbit.Output.Http.TLS .Values.Fluentbit.Output.Http.TLS.Enabled }}
 {{- if and .Values.Fluentbit.Output.Http.TLS.CA .Values.Fluentbit.Output.Http.TLS.CA.SecretName .Values.Fluentbit.Output.Http.TLS.CA.SecretKey }}
             - mountPath: /fluent-bit/output/http/tls/ca.crt
@@ -265,6 +288,29 @@ spec:
               name: http-tls-key
               readOnly: true
               subPath: {{ .Values.Fluentbit.Output.Http.TLS.Key.SecretKey }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- if and .Values.Fluentbit.Output.Otel .Values.Fluentbit.Output.Otel.Enabled }}
+{{- if and .Values.Fluentbit.Output.Otel.TLS .Values.Fluentbit.Output.Otel.TLS.Enabled }}
+{{- if and .Values.Fluentbit.Output.Otel.TLS.CA .Values.Fluentbit.Output.Otel.TLS.CA.SecretName .Values.Fluentbit.Output.Otel.TLS.CA.SecretKey }}
+            - mountPath: /fluent-bit/output/otel/tls/ca.crt
+              name: otel-tls-ca
+              readOnly: true
+              subPath: {{ .Values.Fluentbit.Output.Otel.TLS.CA.SecretKey }}
+{{- end }}
+{{- if and .Values.Fluentbit.Output.Otel.TLS.Cert .Values.Fluentbit.Output.Otel.TLS.Cert.SecretName .Values.Fluentbit.Output.Otel.TLS.Cert.SecretKey }}
+            - mountPath: /fluent-bit/output/otel/tls/tls.crt
+              name: otel-tls-cert
+              readOnly: true
+              subPath: {{ .Values.Fluentbit.Output.Otel.TLS.Cert.SecretKey }}
+{{- end }}
+{{- if and .Values.Fluentbit.Output.Otel.TLS.Key .Values.Fluentbit.Output.Otel.TLS.Key.SecretName .Values.Fluentbit.Output.Otel.TLS.Key.SecretKey }}
+            - mountPath: /fluent-bit/output/otel/tls/tls.key
+              name: otel-tls-key
+              readOnly: true
+              subPath: {{ .Values.Fluentbit.Output.Otel.TLS.Key.SecretKey }}
+{{- end }}
 {{- end }}
 {{- end }}
 {{- end }}
@@ -378,6 +424,28 @@ spec:
         - name: http-tls-key
           secret:
             secretName: {{ .Values.Fluentbit.Output.Http.TLS.Key.SecretName }}
+            defaultMode: 420 # RW grants for config map files
+{{- end }}
+{{- end }}
+{{- end }}
+{{- if and .Values.Fluentbit.Output .Values.Fluentbit.Output.Otel .Values.Fluentbit.Output.Otel.Enabled }}
+{{- if and .Values.Fluentbit.Output.Otel.TLS .Values.Fluentbit.Output.Otel.TLS.Enabled }}
+{{- if and .Values.Fluentbit.Output.Otel.TLS.CA .Values.Fluentbit.Output.Otel.TLS.CA.SecretName .Values.Fluentbit.Output.Otel.TLS.CA.SecretKey }}
+        - name: otel-tls-ca
+          secret:
+            secretName: {{ .Values.Fluentbit.Output.Otel.TLS.CA.SecretName }}
+            defaultMode: 420 # RW grants for config map files
+{{- end }}
+{{- if and .Values.Fluentbit.Output.Otel.TLS.Cert .Values.Fluentbit.Output.Otel.TLS.Cert.SecretName .Values.Fluentbit.Output.Otel.TLS.Cert.SecretKey }}
+        - name: otel-tls-cert
+          secret:
+            secretName: {{ .Values.Fluentbit.Output.Otel.TLS.Cert.SecretName }}
+            defaultMode: 420 # RW grants for config map files
+{{- end }}
+{{- if and .Values.Fluentbit.Output.Otel.TLS.Key .Values.Fluentbit.Output.Otel.TLS.Key.SecretName .Values.Fluentbit.Output.Otel.TLS.Key.SecretKey }}
+        - name: otel-tls-key
+          secret:
+            secretName: {{ .Values.Fluentbit.Output.Otel.TLS.Key.SecretName }}
             defaultMode: 420 # RW grants for config map files
 {{- end }}
 {{- end }}

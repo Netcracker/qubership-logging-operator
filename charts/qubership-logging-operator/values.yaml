@@ -2155,6 +2155,150 @@ fluentbit:
         #
         # keyPasswd: secret
 
+    otel:
+      # Flag for enabling opentelemetry output.
+      # Type: boolean
+      # Default: false
+      # Mandatory: no
+      #
+      enabled: false
+
+      # Otel host.
+      # Type: string
+      # Example: 10.10.10.10 or vlsingle-k8s.victorialogs
+      # Mandatory: yes
+      #
+      host: ""
+
+      # Otel port, for example: 9428
+      # Type: int
+      # Mandatory: yes
+      #
+      # port: 9428
+
+      # Otel uri to ingest logs.
+      # Type: string
+      # Mandatory: no
+      # Default: '/insert/opentelemetry/v1/logs'
+      #
+      # logsUri: '/insert/opentelemetry/v1/logs'
+
+      # Payload compression mechanism for opentelemetry output. Allowed values: gzip, zstd.
+      # Type: string
+      # Mandatory: no
+      # Default: none
+      #
+      # compress: gzip
+
+      # Allows to set a time interval in seconds to suppress log messages from output plugin that appear similar within that interval.
+      # Type: int
+      # Mandatory: no
+      # Default: 0 (disabled)
+      #
+      # logSuppressInterval: 0
+
+      # Additional configuration parameters for opentelemetry output.
+      # See docs: https://docs.fluentbit.io/manual/data-pipeline/outputs/opentelemetry
+      # Type: string
+      # Mandatory: no
+      #
+      # extraParams: |
+
+      # Authentication for Otel.
+      # Secret name and key in the secret storing the parameter should be provided. Username/password or token can be stored in different secrets.
+      # Type: object
+      # Mandatory: no
+      #
+      # auth:
+      #   user:
+      #     name: otel-secret
+      #     key: user
+      #   password:
+      #     name: otel-secret
+      #     key: password
+      #   token:
+      #     name: otel-secret
+      #     key: token
+
+      # TLS configuration for otel output.
+      # Type: object
+      # Mandatory: no
+      #
+      tls:
+        # Allows enabling TLS for Otel output.
+        # Type: bool
+        # Mandatory: no
+        # Default: false
+        #
+        enabled: false
+
+        # Configuration for a custom CA store.
+        # If present, both secretKey and secretName fields are required.
+        # Type: object
+        # Mandatory: no
+        #
+        # ca:
+        #   Name of Secret with CA certificate.
+        #   Type: string
+        #   Mandatory: yes
+        #
+        #   secretName: secret-ca
+
+        #   Key (filename) in the Secret with CA certificate.
+        #   Type: string
+        #   Mandatory: yes
+        #
+        #   secretKey: ca.crt
+
+        # Configuration for a client certificate.
+        # If present, both secretKey and secretName fields are required.
+        # Type: object
+        # Mandatory: no
+        #
+        # cert:
+        #   Name of Secret with client certificate.
+        #   Type: string
+        #   Mandatory: yes
+        #
+        #   secretName: secret-cert
+
+        #   Key (filename) in the Secret with client certificate.
+        #   Type: string
+        #   Mandatory: yes
+        #
+        #   secretKey: certificate.crt
+
+        # Configuration for a key for the certificate file.
+        # If present, both secretKey and secretName fields are required.
+        # Type: object
+        # Mandatory: no
+        #
+        # key:
+        #   Name of Secret with key for the client certificate.
+        #   Type: string
+        #   Mandatory: yes
+        #
+        #   secretName: secret-key
+
+        #   Key (filename) in the Secret with key for the client certificate.
+        #   Type: string
+        #   Mandatory: yes
+        #
+        #   secretKey: privateKey.key
+
+        # Force certificate validation.
+        # Type: bool
+        # Mandatory: no
+        # Default: true
+        #
+        # verify: true
+
+        # Optional password for private key file.
+        # Type: string
+        # Mandatory: no
+        #
+        # keyPasswd: secret
+
   # additionalVolumes allows configuration of additional volumes on the output DaemonSet definition.
   # additionalVolumes specified will be appended to other volumes that are generated as a result of StorageSpec objects.
   # More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volume-v1-core
@@ -2952,6 +3096,150 @@ fluentbit:
           # Mandatory: no
           #
           # extraParams: |
+
+      otel:
+        # Flag for enabling opentelemetry output.
+        # Type: boolean
+        # Default: false
+        # Mandatory: no
+        #
+        enabled: false
+
+        # Otel host.
+        # Type: string
+        # Example: 10.10.10.10 or vlsingle-k8s.victorialogs
+        # Mandatory: yes
+        #
+        host: ""
+
+        # Otel port, for example: 9428
+        # Type: int
+        # Mandatory: yes
+        #
+        # port: 9428
+
+        # Otel uri to ingest logs.
+        # Type: string
+        # Mandatory: no
+        # Default: '/insert/opentelemetry/v1/logs'
+        #
+        # logsUri: '/insert/opentelemetry/v1/logs'
+
+        # Payload compression mechanism for opentelemetry output. Allowed values: gzip, zstd.
+        # Type: string
+        # Mandatory: no
+        # Default: none
+        #
+        # compress: gzip
+
+        # Allows to set a time interval in seconds to suppress log messages from output plugin that appear similar within that interval.
+        # Type: int
+        # Mandatory: no
+        # Default: 0 (disabled)
+        #
+        # logSuppressInterval: 0
+
+        # Additional configuration parameters for opentelemetry output.
+        # See docs: https://docs.fluentbit.io/manual/data-pipeline/outputs/opentelemetry
+        # Type: string
+        # Mandatory: no
+        #
+        # extraParams: |
+
+        # Authentication for Otel.
+        # Secret name and key in the secret storing the parameter should be provided. Username/password or token can be stored in different secrets.
+        # Type: object
+        # Mandatory: no
+        #
+        # auth:
+        #   user:
+        #     name: otel-secret
+        #     key: user
+        #   password:
+        #     name: otel-secret
+        #     key: password
+        #   token:
+        #     name: otel-secret
+        #     key: token
+
+        # TLS configuration for otel output.
+        # Type: object
+        # Mandatory: no
+        #
+        tls:
+          # Allows enabling TLS for Otel output.
+          # Type: bool
+          # Mandatory: no
+          # Default: false
+          #
+          enabled: false
+
+          # Configuration for a custom CA store.
+          # If present, both secretKey and secretName fields are required.
+          # Type: object
+          # Mandatory: no
+          #
+          # ca:
+          #   Name of Secret with CA certificate.
+          #   Type: string
+          #   Mandatory: yes
+          #
+          #   secretName: secret-ca
+
+          #   Key (filename) in the Secret with CA certificate.
+          #   Type: string
+          #   Mandatory: yes
+          #
+          #   secretKey: ca.crt
+
+          # Configuration for a client certificate.
+          # If present, both secretKey and secretName fields are required.
+          # Type: object
+          # Mandatory: no
+          #
+          # cert:
+          #   Name of Secret with client certificate.
+          #   Type: string
+          #   Mandatory: yes
+          #
+          #   secretName: secret-cert
+
+          #   Key (filename) in the Secret with client certificate.
+          #   Type: string
+          #   Mandatory: yes
+          #
+          #   secretKey: certificate.crt
+
+          # Configuration for a key for the certificate file.
+          # If present, both secretKey and secretName fields are required.
+          # Type: object
+          # Mandatory: no
+          #
+          # key:
+          #   Name of Secret with key for the client certificate.
+          #   Type: string
+          #   Mandatory: yes
+          #
+          #   secretName: secret-key
+
+          #   Key (filename) in the Secret with key for the client certificate.
+          #   Type: string
+          #   Mandatory: yes
+          #
+          #   secretKey: privateKey.key
+
+          # Force certificate validation.
+          # Type: bool
+          # Mandatory: no
+          # Default: true
+          #
+          # verify: true
+
+          # Optional password for private key file.
+          # Type: string
+          # Mandatory: no
+          #
+          # keyPasswd: secret
 
     # The size limitation of output buffer
     # Type: string

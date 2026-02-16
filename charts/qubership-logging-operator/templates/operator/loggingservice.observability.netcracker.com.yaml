@@ -4,6 +4,7 @@ metadata:
   name: {{ .Values.name }}
   labels:
     {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" .Values.name "component" "logging-operator") | nindent 4 }}
+    app.kubernetes.io/processed-by-operator: logging-service-operator
   {{- if .Values.labels }}
     {{- toYaml .Values.labels | nindent 4 }}
   {{- end }}

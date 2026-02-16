@@ -26,7 +26,7 @@ spec:
   template:
     metadata:
       labels:
-        {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" .Values.integrationTests.service.name "component" "integration-tests") | nindent 8 }}
+        {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" .Values.integrationTests.service.name "component" "integration-tests" "forPodTemplate" true) | nindent 8 }}
         app.kubernetes.io/instance: {{ cat .Values.integrationTests.service.name "-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
         {{- $image := include "logging-integration-tests.image" . }}
         app.kubernetes.io/version: {{ splitList ":" $image | last | quote }}

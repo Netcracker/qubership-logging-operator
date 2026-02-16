@@ -687,6 +687,16 @@ func (in *Graylog) DeepCopyInto(out *Graylog) {
 		*out = make([]Stream, len(*in))
 		copy(*out, *in)
 	}
+	if in.IndexShards != nil {
+		in, out := &in.IndexShards, &out.IndexShards
+		*out = new(int)
+		**out = **in
+	}
+	if in.IndexReplicas != nil {
+		in, out := &in.IndexReplicas, &out.IndexReplicas
+		*out = new(int)
+		**out = **in
+	}
 	if in.Replicas != nil {
 		in, out := &in.Replicas, &out.Replicas
 		*out = new(int)

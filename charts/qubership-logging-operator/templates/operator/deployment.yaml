@@ -24,7 +24,7 @@ spec:
   template:
     metadata:
       labels:
-        {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" "logging-service-operator" "component" "logging-operator") | nindent 8 }}
+        {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" "logging-service-operator" "component" "logging-operator" "forPodTemplate" true) | nindent 8 }}
         app.kubernetes.io/instance: {{ $instance }}
         app.kubernetes.io/version: {{ splitList ":" $image | last | quote }}
         app.kubernetes.io/technology: go

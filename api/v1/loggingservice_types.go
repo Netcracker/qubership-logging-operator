@@ -366,6 +366,17 @@ type FluentdLokiTLS struct {
 	FluentdTLSParams `json:",inline"`
 }
 
+type FluentdHttpTLS struct {
+	Certificates         `json:",inline"`
+	FluentdHttpTLSParams `json:",inline"`
+}
+
+type FluentdHttpTLSParams struct {
+	Enabled    bool   `json:"enabled,omitempty"`
+	VerifyMode string `json:"verifyMode,omitempty"`
+	Version    string `json:"version,omitempty"`
+	Ciphers    string `json:"ciphers,omitempty"`
+}
 type FluentbitTLS struct {
 	TLS                `json:",inline"`
 	FluentbitTLSParams `json:",inline"`
@@ -378,6 +389,11 @@ type FluentbitTLSParams struct {
 }
 
 type FluentbitLokiTLS struct {
+	Certificates       `json:",inline"`
+	FluentbitTLSParams `json:",inline"`
+}
+
+type FluentbitHttpTLS struct {
 	Certificates       `json:",inline"`
 	FluentbitTLSParams `json:",inline"`
 }
@@ -456,6 +472,7 @@ type ConfigmapReload struct {
 
 type OutputFluentbit struct {
 	Loki *LokiFluentbit `json:"loki,omitempty"`
+	Http *HttpFluentbit `json:"http,omitempty"`
 }
 
 type LokiFluentbit struct {
@@ -469,6 +486,19 @@ type LokiFluentbit struct {
 	ExtraParams   string            `json:"extraParams,omitempty"`
 }
 
+type HttpFluentbit struct {
+	Enabled        bool              `json:"enabled,omitempty"`
+	Host           string            `json:"host,omitempty"`
+	Port           int               `json:"port,omitempty"`
+	Uri            string            `json:"uri,omitempty"`
+	Auth           *Auth             `json:"auth,omitempty"`
+	Compress       string            `json:"compress,omitempty"`
+	TLS            *FluentbitHttpTLS `json:"tls,omitempty"`
+	JsonDateFormat string            `json:"jsonDateFormat,omitempty"`
+	Format         string            `json:"format,omitempty"`
+	ExtraParams    string            `json:"extraParams,omitempty"`
+}
+
 type Auth struct {
 	Token    *v1.SecretKeySelector `yaml:"token" json:"token,omitempty"`
 	User     *v1.SecretKeySelector `yaml:"username" json:"user,omitempty"`
@@ -477,6 +507,7 @@ type Auth struct {
 
 type OutputFluentd struct {
 	Loki *LokiFluentd `json:"loki,omitempty"`
+	Http *HttpFluentd `json:"http,omitempty"`
 }
 
 type LokiFluentd struct {
@@ -488,6 +519,16 @@ type LokiFluentd struct {
 	LabelsMapping string          `json:"labelsMapping,omitempty"`
 	TLS           *FluentdLokiTLS `json:"tls,omitempty"`
 	ExtraParams   string          `json:"extraParams,omitempty"`
+}
+type HttpFluentd struct {
+	Enabled     bool              `json:"enabled,omitempty"`
+	Host        string            `json:"host,omitempty"`
+	Path        string            `json:"path,omitempty"`
+	Compress    string            `json:"compress,omitempty"`
+	Headers     map[string]string `json:"headers,omitempty"`
+	Auth        *Auth             `json:"auth,omitempty"`
+	TLS         *FluentdHttpTLS   `json:"tls,omitempty"`
+	ExtraParams string            `json:"extraParams,omitempty"`
 }
 
 func (in *LoggingService) ToParams() LoggingServiceParameters {

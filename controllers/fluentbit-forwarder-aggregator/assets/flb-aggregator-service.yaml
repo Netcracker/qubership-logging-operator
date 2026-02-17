@@ -4,11 +4,6 @@ metadata:
   name: logging-fluentbit-aggregator
   namespace: {{ .Release.Namespace }}
   labels:
-    name: logging-fluentbit-aggregator
-    app.kubernetes.io/name: logging-fluentbit-aggregator
-    app.kubernetes.io/component: fluentbit
-    app.kubernetes.io/part-of: logging
-    app.kubernetes.io/managed-by: logging-operator
     component: logging-fluentbit-aggregator
 {{- if .Values.OpenshiftDeploy }}
     provider: openshift

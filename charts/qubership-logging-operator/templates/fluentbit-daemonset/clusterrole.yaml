@@ -5,9 +5,7 @@ kind: ClusterRole
 metadata:
   name: logging-fluentbit-cluster-role
   labels:
-    app.kubernetes.io/name: logging-fluentbit-cluster-role
-    app.kubernetes.io/component: fluentbit
-    app.kubernetes.io/part-of: logging
+    {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" "logging-fluentbit-cluster-role" "component" "fluentbit") | nindent 4 }}
   {{- if .Values.fluentbit.labels }}
     {{- toYaml .Values.fluentbit.labels | nindent 4 }}
   {{- end }}

@@ -5,9 +5,7 @@ kind: Ingress
 metadata:
   name: graylog
   labels:
-    app.kubernetes.io/name: graylog
-    app.kubernetes.io/component: graylog
-    app.kubernetes.io/part-of: logging
+    {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" "graylog" "component" "graylog") | nindent 4 }}
   {{- if .Values.graylog.labels }}
     {{- toYaml .Values.graylog.labels | nindent 4 }}
   {{- end }}

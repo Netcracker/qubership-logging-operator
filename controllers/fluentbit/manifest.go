@@ -30,49 +30,39 @@ func fluentbitDaemonSet(cr *loggingService.LoggingService, dynamicParameters uti
 		if err = yaml.NewYAMLOrJSONDecoder(strings.NewReader(fileContent), util.BufferSize).Decode(&daemonSet); err != nil {
 			return nil, err
 		}
-
-		if cr.Spec.Fluentbit != nil {
-			if cr.Spec.Fluentbit.Annotations != nil {
-				daemonSet.SetAnnotations(cr.Spec.Fluentbit.Annotations)
-				daemonSet.Spec.Template.SetAnnotations(cr.Spec.Fluentbit.Annotations)
-			}
-			//Add required labels
-			daemonSet.Labels["app.kubernetes.io/instance"] = util.GetInstanceLabel(daemonSet.GetName(), daemonSet.GetNamespace())
-			daemonSet.Labels["app.kubernetes.io/version"] = util.GetTagFromImage(cr.Spec.Fluentbit.DockerImage)
-			daemonSet.Spec.Template.Labels["app.kubernetes.io/instance"] = util.GetInstanceLabel(daemonSet.GetName(), daemonSet.GetNamespace())
-			daemonSet.Spec.Template.Labels["app.kubernetes.io/version"] = util.GetTagFromImage(cr.Spec.Fluentbit.DockerImage)
-			if cr.Spec.Fluentbit.Labels != nil {
-				for key, val := range cr.Spec.Fluentbit.Labels {
-					daemonSet.Spec.Template.Labels[key] = val
-					daemonSet.Labels[key] = val
-				}
-			}
-			if cr.Spec.Fluentbit.NodeSelectorKey != "" && cr.Spec.Fluentbit.NodeSelectorValue != "" {
-				daemonSet.Spec.Template.Spec.NodeSelector = map[string]string{cr.Spec.Fluentbit.NodeSelectorKey: cr.Spec.Fluentbit.NodeSelectorValue}
-			}
-			if len(strings.TrimSpace(cr.Spec.Fluentbit.PriorityClassName)) > 0 {
-				daemonSet.Spec.Template.Spec.PriorityClassName = cr.Spec.Fluentbit.PriorityClassName
-			}
-			if cr.Spec.Fluentbit.Tolerations != nil {
-				daemonSet.Spec.Template.Spec.Tolerations = cr.Spec.Fluentbit.Tolerations
-			}
-			if cr.Spec.Fluentbit.Affinity != nil {
-				daemonSet.Spec.Template.Spec.Affinity = cr.Spec.Fluentbit.Affinity
-			}
-			if cr.Spec.Fluentbit.AdditionalVolumes != nil {
-				daemonSet.Spec.Template.Spec.Volumes = append(daemonSet.Spec.Template.Spec.Volumes, cr.Spec.Fluentbit.AdditionalVolumes...)
-			}
-			if cr.Spec.Fluentbit.AdditionalVolumeMounts != nil {
-				for it := range daemonSet.Spec.Template.Spec.Containers {
-					c := &daemonSet.Spec.Template.Spec.Containers[it]
-					if c.Name == "logging-fluentbit" {
-						c.VolumeMounts = append(c.VolumeMounts, cr.Spec.Fluentbit.AdditionalVolumeMounts...)
-					}
-				}
-			}
+		util.SetLabelsForWorkload(&daemonSet, &daemonSet.Spec.Template.Labels, util.LabelInput{
+			Name:            daemonSet.GetName(),
+			Component:       "fluentbit",
+			Instance:        util.GetInstanceLabel(daemonSet.GetName(), daemonSet.GetNamespace()),
+			Version:         util.GetTagFromImage(cr.Spec.Fluentbit.DockerImage),
+			ComponentLabels: cr.Spec.Fluentbit.Labels,
+		})
+		if cr.Spec.Fluentbit.Annotations != nil {
+			daemonSet.SetAnnotations(cr.Spec.Fluentbit.Annotations)
+			daemonSet.Spec.Template.SetAnnotations(cr.Spec.Fluentbit.Annotations)
 		}
-		if err != nil {
-			return nil, err
+		if cr.Spec.Fluentbit.NodeSelectorKey != "" && cr.Spec.Fluentbit.NodeSelectorValue != "" {
+			daemonSet.Spec.Template.Spec.NodeSelector = map[string]string{cr.Spec.Fluentbit.NodeSelectorKey: cr.Spec.Fluentbit.NodeSelectorValue}
+		}
+		if len(strings.TrimSpace(cr.Spec.Fluentbit.PriorityClassName)) > 0 {
+			daemonSet.Spec.Template.Spec.PriorityClassName = cr.Spec.Fluentbit.PriorityClassName
+		}
+		if cr.Spec.Fluentbit.Tolerations != nil {
+			daemonSet.Spec.Template.Spec.Tolerations = cr.Spec.Fluentbit.Tolerations
+		}
+		if cr.Spec.Fluentbit.Affinity != nil {
+			daemonSet.Spec.Template.Spec.Affinity = cr.Spec.Fluentbit.Affinity
+		}
+		if cr.Spec.Fluentbit.AdditionalVolumes != nil {
+			daemonSet.Spec.Template.Spec.Volumes = append(daemonSet.Spec.Template.Spec.Volumes, cr.Spec.Fluentbit.AdditionalVolumes...)
+		}
+		if cr.Spec.Fluentbit.AdditionalVolumeMounts != nil {
+			for it := range daemonSet.Spec.Template.Spec.Containers {
+				c := &daemonSet.Spec.Template.Spec.Containers[it]
+				if c.Name == "logging-fluentbit" {
+					c.VolumeMounts = append(c.VolumeMounts, cr.Spec.Fluentbit.AdditionalVolumeMounts...)
+				}
+			}
 		}
 		return &daemonSet, nil
 	} else {
@@ -81,6 +71,9 @@ func fluentbitDaemonSet(cr *loggingService.LoggingService, dynamicParameters uti
 }
 
 func fluentbitService(cr *loggingService.LoggingService, dynamicParameters util.DynamicParameters) (*corev1.Service, error) {
+	if cr.Spec.Fluentbit == nil {
+		return nil, fmt.Errorf("fluentbit configuration in Logging Service %s is nil in the namespace %s", cr.GetName(), cr.GetNamespace())
+	}
 	service := corev1.Service{}
 	cr.Spec.ContainerRuntimeType = dynamicParameters.ContainerRuntimeType
 	fileContent, err := util.ParseTemplate(util.MustAssetReader(assets, util.FluentbitService), util.FluentbitService, cr.ToParams())
@@ -90,15 +83,20 @@ func fluentbitService(cr *loggingService.LoggingService, dynamicParameters util.
 	if err = yaml.NewYAMLOrJSONDecoder(strings.NewReader(fileContent), util.BufferSize).Decode(&service); err != nil {
 		return nil, err
 	}
-	//Add required labels
-	service.Labels["app.kubernetes.io/instance"] = util.GetInstanceLabel(service.GetName(), service.GetNamespace())
-	service.Labels["app.kubernetes.io/version"] = util.GetTagFromImage(cr.Spec.Fluentbit.DockerImage)
-
+	util.SetLabelsForResource(&service, util.LabelInput{
+		Name:            service.GetName(),
+		Component:       "fluentbit",
+		Instance:        util.GetInstanceLabel(service.GetName(), service.GetNamespace()),
+		Version:         util.GetTagFromImage(cr.Spec.Fluentbit.DockerImage),
+		ComponentLabels: cr.Spec.Fluentbit.Labels,
+	}, nil)
 	return &service, nil
 }
 
 func fluentbitConfigMap(cr *loggingService.LoggingService, dynamicParameters util.DynamicParameters) (*corev1.ConfigMap, error) {
-
+	if cr.Spec.Fluentbit == nil {
+		return nil, fmt.Errorf("fluentbit configuration in Logging Service %s is nil in the namespace %s", cr.GetName(), cr.GetNamespace())
+	}
 	cr.Spec.ContainerRuntimeType = dynamicParameters.ContainerRuntimeType
 
 	// Get Fluent-bit config from fluentbit.configmap/conf.d files
@@ -135,17 +133,6 @@ func fluentbitConfigMap(cr *loggingService.LoggingService, dynamicParameters uti
 		configMapData["loki-labels.json"] = cr.Spec.Fluentbit.Output.Loki.LabelsMapping
 	}
 
-	defaultLabels := map[string]string{
-		"k8s-app":                      "fluent-bit",
-		"name":                         util.FluentbitComponentName,
-		"app.kubernetes.io/component":  "fluentbit",
-		"app.kubernetes.io/part-of":    "logging",
-		"app.kubernetes.io/managed-by": "logging-operator",
-		"app.kubernetes.io/name":       util.FluentbitComponentName,
-		"app.kubernetes.io/instance":   util.FluentbitComponentName + "-" + cr.GetNamespace(),
-		"app.kubernetes.io/version":    util.GetTagFromImage(cr.Spec.Fluentbit.DockerImage),
-	}
-	// Set Configmap fields
 	configMap := corev1.ConfigMap{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "v1",
@@ -154,10 +141,15 @@ func fluentbitConfigMap(cr *loggingService.LoggingService, dynamicParameters uti
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      util.FluentbitComponentName,
 			Namespace: cr.GetNamespace(),
-			Labels:    defaultLabels,
 		},
 		Data: configMapData,
 	}
-
+	util.SetLabelsForResource(&configMap, util.LabelInput{
+		Name:            util.FluentbitComponentName,
+		Component:       "fluentbit",
+		Instance:        util.FluentbitComponentName + "-" + cr.GetNamespace(),
+		Version:         util.GetTagFromImage(cr.Spec.Fluentbit.DockerImage),
+		ComponentLabels: cr.Spec.Fluentbit.Labels,
+	}, map[string]string{"k8s-app": "fluent-bit"})
 	return &configMap, nil
 }

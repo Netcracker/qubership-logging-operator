@@ -23,6 +23,9 @@ var aggregatorConfigs embed.FS
 var forwarderConfigs embed.FS
 
 func forwarderConfigMap(cr *loggingService.LoggingService, dynamicParameters util.DynamicParameters) (*corev1.ConfigMap, error) {
+	if cr.Spec.Fluentbit == nil {
+		return nil, fmt.Errorf("fluentbit configuration in Logging Service %s is nil in the namespace %s", cr.GetName(), cr.GetNamespace())
+	}
 	cr.Spec.ContainerRuntimeType = dynamicParameters.ContainerRuntimeType
 
 	// Get Fluent-bit forwarder config from forwarder.configmap/conf.d files
@@ -30,17 +33,6 @@ func forwarderConfigMap(cr *loggingService.LoggingService, dynamicParameters uti
 
 	if err != nil {
 		return nil, err
-	}
-
-	defaultLabels := map[string]string{
-		"k8s-app":                      "fluent-bit",
-		"name":                         util.ForwarderFluentbitComponentName,
-		"app.kubernetes.io/component":  "fluentbit",
-		"app.kubernetes.io/part-of":    "logging",
-		"app.kubernetes.io/managed-by": "logging-operator",
-		"app.kubernetes.io/name":       util.ForwarderFluentbitComponentName,
-		"app.kubernetes.io/instance":   util.ForwarderFluentbitComponentName + "-" + cr.GetNamespace(),
-		"app.kubernetes.io/version":    util.GetTagFromImage(cr.Spec.Fluentbit.DockerImage),
 	}
 
 	// Set custom input from parameters
@@ -60,7 +52,6 @@ func forwarderConfigMap(cr *loggingService.LoggingService, dynamicParameters uti
 		}
 	}
 
-	// Set Configmap fields
 	configMap := corev1.ConfigMap{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "v1",
@@ -69,11 +60,16 @@ func forwarderConfigMap(cr *loggingService.LoggingService, dynamicParameters uti
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      util.ForwarderFluentbitComponentName,
 			Namespace: cr.GetNamespace(),
-			Labels:    defaultLabels,
 		},
 		Data: configMapData,
 	}
-
+	util.SetLabelsForResource(&configMap, util.LabelInput{
+		Name:            util.ForwarderFluentbitComponentName,
+		Component:       "fluentbit",
+		Instance:        util.ForwarderFluentbitComponentName + "-" + cr.GetNamespace(),
+		Version:         util.GetTagFromImage(cr.Spec.Fluentbit.DockerImage),
+		ComponentLabels: cr.Spec.Fluentbit.Labels,
+	}, map[string]string{"k8s-app": "fluent-bit"})
 	return &configMap, nil
 }
 
@@ -88,38 +84,29 @@ func forwarderDaemonSet(cr *loggingService.LoggingService, dynamicParameters uti
 		if err = yaml.NewYAMLOrJSONDecoder(strings.NewReader(fileContent), util.BufferSize).Decode(&ds); err != nil {
 			return nil, err
 		}
+		util.SetLabelsForWorkload(&ds, &ds.Spec.Template.Labels, util.LabelInput{
+			Name:            ds.GetName(),
+			Component:       "fluentbit",
+			Instance:        util.GetInstanceLabel(ds.GetName(), ds.GetNamespace()),
+			Version:         util.GetTagFromImage(cr.Spec.Fluentbit.DockerImage),
+			ComponentLabels: cr.Spec.Fluentbit.Labels,
+		})
 
-		if cr.Spec.Fluentbit != nil {
-			if cr.Spec.Fluentbit.Annotations != nil {
-				ds.SetAnnotations(cr.Spec.Fluentbit.Annotations)
-				ds.Spec.Template.SetAnnotations(cr.Spec.Fluentbit.Annotations)
-			}
-			//Add required labels
-			ds.Labels["app.kubernetes.io/instance"] = util.GetInstanceLabel(ds.GetName(), ds.GetNamespace())
-			ds.Labels["app.kubernetes.io/version"] = util.GetTagFromImage(cr.Spec.Fluentbit.Aggregator.DockerImage)
-			ds.Spec.Template.Labels["app.kubernetes.io/instance"] = util.GetInstanceLabel(ds.GetName(), ds.GetNamespace())
-			ds.Spec.Template.Labels["app.kubernetes.io/version"] = util.GetTagFromImage(cr.Spec.Fluentbit.Aggregator.DockerImage)
-			if cr.Spec.Fluentbit.Labels != nil {
-				for key, val := range cr.Spec.Fluentbit.Labels {
-					ds.Spec.Template.Labels[key] = val
-					ds.Labels[key] = val
-				}
-			}
-			if cr.Spec.Fluentbit.NodeSelectorKey != "" && cr.Spec.Fluentbit.NodeSelectorValue != "" {
-				ds.Spec.Template.Spec.NodeSelector = map[string]string{cr.Spec.Fluentbit.NodeSelectorKey: cr.Spec.Fluentbit.NodeSelectorValue}
-			}
-			if len(strings.TrimSpace(cr.Spec.Fluentbit.PriorityClassName)) > 0 {
-				ds.Spec.Template.Spec.PriorityClassName = cr.Spec.Fluentbit.PriorityClassName
-			}
-			if cr.Spec.Fluentbit.Tolerations != nil {
-				ds.Spec.Template.Spec.Tolerations = cr.Spec.Fluentbit.Tolerations
-			}
-			if cr.Spec.Fluentbit.Affinity != nil {
-				ds.Spec.Template.Spec.Affinity = cr.Spec.Fluentbit.Affinity
-			}
+		if cr.Spec.Fluentbit.Annotations != nil {
+			ds.SetAnnotations(cr.Spec.Fluentbit.Annotations)
+			ds.Spec.Template.SetAnnotations(cr.Spec.Fluentbit.Annotations)
 		}
-		if err != nil {
-			return nil, err
+		if cr.Spec.Fluentbit.NodeSelectorKey != "" && cr.Spec.Fluentbit.NodeSelectorValue != "" {
+			ds.Spec.Template.Spec.NodeSelector = map[string]string{cr.Spec.Fluentbit.NodeSelectorKey: cr.Spec.Fluentbit.NodeSelectorValue}
+		}
+		if len(strings.TrimSpace(cr.Spec.Fluentbit.PriorityClassName)) > 0 {
+			ds.Spec.Template.Spec.PriorityClassName = cr.Spec.Fluentbit.PriorityClassName
+		}
+		if cr.Spec.Fluentbit.Tolerations != nil {
+			ds.Spec.Template.Spec.Tolerations = cr.Spec.Fluentbit.Tolerations
+		}
+		if cr.Spec.Fluentbit.Affinity != nil {
+			ds.Spec.Template.Spec.Affinity = cr.Spec.Fluentbit.Affinity
 		}
 		return &ds, nil
 	} else {
@@ -128,6 +115,9 @@ func forwarderDaemonSet(cr *loggingService.LoggingService, dynamicParameters uti
 }
 
 func forwarderService(cr *loggingService.LoggingService, dynamicParameters util.DynamicParameters) (*corev1.Service, error) {
+	if cr.Spec.Fluentbit == nil || cr.Spec.Fluentbit.Aggregator == nil {
+		return nil, fmt.Errorf("fluentbit or aggregator configuration in Logging Service %s is nil in the namespace %s", cr.GetName(), cr.GetNamespace())
+	}
 	service := corev1.Service{}
 	cr.Spec.ContainerRuntimeType = dynamicParameters.ContainerRuntimeType
 	fileContent, err := util.ParseTemplate(util.MustAssetReader(assets, util.ForwarderFluentbitService), util.ForwarderFluentbitService, cr.ToParams())
@@ -137,13 +127,20 @@ func forwarderService(cr *loggingService.LoggingService, dynamicParameters util.
 	if err = yaml.NewYAMLOrJSONDecoder(strings.NewReader(fileContent), util.BufferSize).Decode(&service); err != nil {
 		return nil, err
 	}
-	//Add required labels
-	service.Labels["app.kubernetes.io/instance"] = util.GetInstanceLabel(service.GetName(), service.GetNamespace())
-	service.Labels["app.kubernetes.io/version"] = util.GetTagFromImage(cr.Spec.Fluentbit.Aggregator.DockerImage)
+	util.SetLabelsForResource(&service, util.LabelInput{
+		Name:            service.GetName(),
+		Component:       "fluentbit",
+		Instance:        util.GetInstanceLabel(service.GetName(), service.GetNamespace()),
+		Version:         util.GetTagFromImage(cr.Spec.Fluentbit.DockerImage),
+		ComponentLabels: cr.Spec.Fluentbit.Labels,
+	}, nil)
 	return &service, nil
 }
 
 func aggregatorConfigMap(cr *loggingService.LoggingService, dynamicParameters util.DynamicParameters) (*corev1.ConfigMap, error) {
+	if cr.Spec.Fluentbit == nil || cr.Spec.Fluentbit.Aggregator == nil {
+		return nil, fmt.Errorf("fluentbit or aggregator configuration in Logging Service %s is nil in the namespace %s", cr.GetName(), cr.GetNamespace())
+	}
 	// Get Fluent-bit forwarder config from forwarder.configmap/conf.d files
 	configMapData, err := util.DataFromDirectory(aggregatorConfigs, util.AggregatorFluentbitConfigMapDirectory, cr.ToParams())
 
@@ -154,17 +151,6 @@ func aggregatorConfigMap(cr *loggingService.LoggingService, dynamicParameters ut
 	if cr.Spec.Fluentbit.Aggregator.Output != nil && cr.Spec.Fluentbit.Aggregator.Output.Loki != nil &&
 		cr.Spec.Fluentbit.Aggregator.Output.Loki.Enabled && cr.Spec.Fluentbit.Aggregator.Output.Loki.LabelsMapping != "" {
 		configMapData["loki-labels.json"] = cr.Spec.Fluentbit.Aggregator.Output.Loki.LabelsMapping
-	}
-
-	defaultLabels := map[string]string{
-		"k8s-app":                      "fluent-bit",
-		"name":                         util.AggregatorFluentbitComponentName,
-		"app.kubernetes.io/component":  "fluentbit",
-		"app.kubernetes.io/part-of":    "logging",
-		"app.kubernetes.io/managed-by": "logging-operator",
-		"app.kubernetes.io/name":       util.AggregatorFluentbitComponentName,
-		"app.kubernetes.io/instance":   util.AggregatorFluentbitComponentName + "-" + cr.GetNamespace(),
-		"app.kubernetes.io/version":    util.GetTagFromImage(cr.Spec.Fluentbit.DockerImage),
 	}
 
 	// Set custom filters from parameters
@@ -184,7 +170,6 @@ func aggregatorConfigMap(cr *loggingService.LoggingService, dynamicParameters ut
 		}
 	}
 
-	// Set Configmap fields
 	configMap := corev1.ConfigMap{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "v1",
@@ -193,11 +178,16 @@ func aggregatorConfigMap(cr *loggingService.LoggingService, dynamicParameters ut
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      util.AggregatorFluentbitComponentName,
 			Namespace: cr.GetNamespace(),
-			Labels:    defaultLabels,
 		},
 		Data: configMapData,
 	}
-
+	util.SetLabelsForResource(&configMap, util.LabelInput{
+		Name:            util.AggregatorFluentbitComponentName,
+		Component:       "fluentbit",
+		Instance:        util.AggregatorFluentbitComponentName + "-" + cr.GetNamespace(),
+		Version:         util.GetTagFromImage(cr.Spec.Fluentbit.Aggregator.DockerImage),
+		ComponentLabels: cr.Spec.Fluentbit.Aggregator.Labels,
+	}, map[string]string{"k8s-app": "fluent-bit"})
 	return &configMap, nil
 }
 
@@ -210,22 +200,17 @@ func aggregatorStatefulSet(cr *loggingService.LoggingService) (*appsv1.StatefulS
 	if err = yaml.NewYAMLOrJSONDecoder(strings.NewReader(fileContent), util.BufferSize).Decode(&statefulSet); err != nil {
 		return nil, err
 	}
-
 	if cr.Spec.Fluentbit.Aggregator != nil {
+		util.SetLabelsForWorkload(&statefulSet, &statefulSet.Spec.Template.Labels, util.LabelInput{
+			Name:            statefulSet.GetName(),
+			Component:       "fluentbit",
+			Instance:        util.GetInstanceLabel(statefulSet.GetName(), statefulSet.GetNamespace()),
+			Version:         util.GetTagFromImage(cr.Spec.Fluentbit.Aggregator.DockerImage),
+			ComponentLabels: cr.Spec.Fluentbit.Aggregator.Labels,
+		})
 		if cr.Spec.Fluentbit.Aggregator.Annotations != nil {
 			statefulSet.SetAnnotations(cr.Spec.Fluentbit.Aggregator.Annotations)
 			statefulSet.Spec.Template.SetAnnotations(cr.Spec.Fluentbit.Aggregator.Annotations)
-		}
-		//Add required labels
-		statefulSet.Labels["app.kubernetes.io/instance"] = util.GetInstanceLabel(statefulSet.GetName(), statefulSet.GetNamespace())
-		statefulSet.Labels["app.kubernetes.io/version"] = util.GetTagFromImage(cr.Spec.Fluentbit.Aggregator.DockerImage)
-		statefulSet.Spec.Template.Labels["app.kubernetes.io/instance"] = util.GetInstanceLabel(statefulSet.GetName(), statefulSet.GetNamespace())
-		statefulSet.Spec.Template.Labels["app.kubernetes.io/version"] = util.GetTagFromImage(cr.Spec.Fluentbit.Aggregator.DockerImage)
-		if cr.Spec.Fluentbit.Aggregator.Labels != nil {
-			for key, val := range cr.Spec.Fluentbit.Aggregator.Labels {
-				statefulSet.Spec.Template.Labels[key] = val
-				statefulSet.Labels[key] = val
-			}
 		}
 		if cr.Spec.Fluentbit.Aggregator.NodeSelectorKey != "" && cr.Spec.Fluentbit.Aggregator.NodeSelectorValue != "" {
 			statefulSet.Spec.Template.Spec.NodeSelector = map[string]string{cr.Spec.Fluentbit.Aggregator.NodeSelectorKey: cr.Spec.Fluentbit.Aggregator.NodeSelectorValue}
@@ -244,6 +229,9 @@ func aggregatorStatefulSet(cr *loggingService.LoggingService) (*appsv1.StatefulS
 }
 
 func aggregatorService(cr *loggingService.LoggingService) (*corev1.Service, error) {
+	if cr.Spec.Fluentbit == nil || cr.Spec.Fluentbit.Aggregator == nil {
+		return nil, fmt.Errorf("fluentbit or aggregator configuration in Logging Service %s is nil in the namespace %s", cr.GetName(), cr.GetNamespace())
+	}
 	service := corev1.Service{}
 	fileContent, err := util.ParseTemplate(util.MustAssetReader(assets, util.AggregatorFluentbitService), util.AggregatorFluentbitService, cr.ToParams())
 	if err != nil {
@@ -252,8 +240,12 @@ func aggregatorService(cr *loggingService.LoggingService) (*corev1.Service, erro
 	if err = yaml.NewYAMLOrJSONDecoder(strings.NewReader(fileContent), util.BufferSize).Decode(&service); err != nil {
 		return nil, err
 	}
-	//Add required labels
-	service.Labels["app.kubernetes.io/instance"] = util.GetInstanceLabel(service.GetName(), service.GetNamespace())
-	service.Labels["app.kubernetes.io/version"] = util.GetTagFromImage(cr.Spec.Fluentbit.Aggregator.DockerImage)
+	util.SetLabelsForResource(&service, util.LabelInput{
+		Name:            service.GetName(),
+		Component:       "fluentbit",
+		Instance:        util.GetInstanceLabel(service.GetName(), service.GetNamespace()),
+		Version:         util.GetTagFromImage(cr.Spec.Fluentbit.Aggregator.DockerImage),
+		ComponentLabels: cr.Spec.Fluentbit.Aggregator.Labels,
+	}, nil)
 	return &service, nil
 }

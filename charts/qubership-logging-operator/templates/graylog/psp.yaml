@@ -12,9 +12,7 @@ metadata:
     {{- toYaml .Values.graylog.annotations | nindent 4 }}
   {{- end }}
   labels:
-    app.kubernetes.io/name: {{ .Values.graylog.securityResources.name }}
-    app.kubernetes.io/component: graylog
-    app.kubernetes.io/part-of: logging
+    {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" .Values.graylog.securityResources.name "component" "graylog") | nindent 4 }}
   {{- if .Values.graylog.labels }}
     {{- toYaml .Values.graylog.labels | nindent 4 }}
   {{- end }}

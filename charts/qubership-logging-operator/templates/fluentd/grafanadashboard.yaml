@@ -4,9 +4,7 @@ kind: GrafanaDashboard
 metadata:
   name: fluentd-grafana-dashboard
   labels:
-    app.kubernetes.io/name: fluentd-grafana-dashboard
-    app.kubernetes.io/component: monitoring
-    app.kubernetes.io/part-of: logging
+    {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" "fluentd-grafana-dashboard" "component" "monitoring") | nindent 4 }}
   {{- if .Values.fluentd.labels }}
     {{- toYaml .Values.fluentd.labels | nindent 4 }}
   {{- end }}

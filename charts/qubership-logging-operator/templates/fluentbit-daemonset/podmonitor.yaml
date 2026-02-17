@@ -4,9 +4,7 @@ kind: PodMonitor
 metadata:
   name: fluentbit-all-pods
   labels:
-    app.kubernetes.io/name: fluentbit-all-pods
-    app.kubernetes.io/component: monitoring
-    app.kubernetes.io/part-of: logging
+    {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" "fluentbit-all-pods" "component" "monitoring") | nindent 4 }}
   {{- if .Values.fluentbit.labels }}
     {{- toYaml .Values.fluentbit.labels | nindent 4 }}
   {{- end }}

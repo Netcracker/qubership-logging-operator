@@ -2,6 +2,7 @@ package events_reader
 
 import (
 	"embed"
+	"fmt"
 	"strings"
 
 	loggingService "github.com/Netcracker/qubership-logging-operator/api/v1"
@@ -23,23 +24,17 @@ func eventsReaderDeployment(cr *loggingService.LoggingService) (*appsv1.Deployme
 	if err = yaml.NewYAMLOrJSONDecoder(strings.NewReader(fileContent), util.BufferSize).Decode(&deployment); err != nil {
 		return nil, err
 	}
-
-	// Set required labels
-	deployment.Labels["app.kubernetes.io/instance"] = util.GetInstanceLabel(deployment.GetName(), deployment.GetNamespace())
-	deployment.Labels["app.kubernetes.io/version"] = util.GetTagFromImage(cr.Spec.CloudEventsReader.DockerImage)
-	deployment.Spec.Template.Labels["app.kubernetes.io/instance"] = util.GetInstanceLabel(deployment.GetName(), deployment.GetNamespace())
-	deployment.Spec.Template.Labels["app.kubernetes.io/version"] = util.GetTagFromImage(cr.Spec.CloudEventsReader.DockerImage)
-
 	if cr.Spec.CloudEventsReader != nil {
+		util.SetLabelsForWorkload(&deployment, &deployment.Spec.Template.Labels, util.LabelInput{
+			Name:            deployment.GetName(),
+			Component:       "events-reader",
+			Instance:        util.GetInstanceLabel(deployment.GetName(), deployment.GetNamespace()),
+			Version:         util.GetTagFromImage(cr.Spec.CloudEventsReader.DockerImage),
+			ComponentLabels: cr.Spec.CloudEventsReader.Labels,
+		})
 		if cr.Spec.CloudEventsReader.Annotations != nil {
 			deployment.SetAnnotations(cr.Spec.CloudEventsReader.Annotations)
 			deployment.Spec.Template.SetAnnotations(cr.Spec.CloudEventsReader.Annotations)
-		}
-		if cr.Spec.CloudEventsReader.Labels != nil {
-			for key, val := range cr.Spec.CloudEventsReader.Labels {
-				deployment.Spec.Template.Labels[key] = val
-				deployment.Labels[key] = val
-			}
 		}
 
 		if cr.Spec.CloudEventsReader.Affinity != nil {
@@ -55,6 +50,9 @@ func eventsReaderDeployment(cr *loggingService.LoggingService) (*appsv1.Deployme
 }
 
 func eventsReaderService(cr *loggingService.LoggingService) (*corev1.Service, error) {
+	if cr.Spec.CloudEventsReader == nil {
+		return nil, fmt.Errorf("cloud events reader configuration in Logging Service %s is nil in the namespace %s", cr.GetName(), cr.GetNamespace())
+	}
 	service := corev1.Service{}
 	fileContent, err := util.ParseTemplate(util.MustAssetReader(assets, util.EventsReaderService), util.EventsReaderService, cr.ToParams())
 	if err != nil {
@@ -63,10 +61,12 @@ func eventsReaderService(cr *loggingService.LoggingService) (*corev1.Service, er
 	if err = yaml.NewYAMLOrJSONDecoder(strings.NewReader(fileContent), util.BufferSize).Decode(&service); err != nil {
 		return nil, err
 	}
-
-	// Set required labels
-	service.Labels["app.kubernetes.io/instance"] = util.GetInstanceLabel(service.GetName(), service.GetNamespace())
-	service.Labels["app.kubernetes.io/version"] = util.GetTagFromImage(cr.Spec.CloudEventsReader.DockerImage)
-
+	util.SetLabelsForResource(&service, util.LabelInput{
+		Name:            service.GetName(),
+		Component:       "events-reader",
+		Instance:        util.GetInstanceLabel(service.GetName(), service.GetNamespace()),
+		Version:         util.GetTagFromImage(cr.Spec.CloudEventsReader.DockerImage),
+		ComponentLabels: cr.Spec.CloudEventsReader.Labels,
+	}, nil)
 	return &service, nil
 }

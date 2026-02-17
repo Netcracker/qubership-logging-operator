@@ -5,13 +5,9 @@ metadata:
   name: graylog-claim
   namespace: {{ .Release.Namespace }}
   labels:
-    name: graylog-claim
-    app.kubernetes.io/name: graylog-claim
+    {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" "graylog-claim" "component" "graylog") | nindent 4 }}
     app.kubernetes.io/instance: {{ cat "graylog-claim-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
-    app.kubernetes.io/component: graylog
-    app.kubernetes.io/part-of: logging
-    {{- $image := include "graylog.image" . }}
-    app.kubernetes.io/version: {{ splitList ":" $image | last | quote }}
+    app.kubernetes.io/version: {{ splitList ":" (include "graylog.image" .) | last | quote }}
   {{- if .Values.graylog.labels }}
     {{- toYaml .Values.graylog.labels | nindent 4 }}
   {{- end }}

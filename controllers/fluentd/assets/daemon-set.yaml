@@ -4,11 +4,7 @@ metadata:
   name: logging-fluentd
   namespace: {{ .Release.Namespace }}
   labels:
-    name: logging-fluentd
-    app.kubernetes.io/name: logging-fluentd
-    app.kubernetes.io/component: fluentd
-    app.kubernetes.io/part-of: logging
-    app.kubernetes.io/managed-by: logging-operator
+    app.kubernetes.io/technology: ruby
     component: logging-fluentd
 {{- if .Values.OpenshiftDeploy }}
     provider: openshift
@@ -29,11 +25,7 @@ spec:
     metadata:
       name: logging-fluentd
       labels:
-        name: logging-fluentd
-        app.kubernetes.io/name: logging-fluentd
-        app.kubernetes.io/component: fluentd
-        app.kubernetes.io/part-of: logging
-        app.kubernetes.io/managed-by: logging-operator
+        app.kubernetes.io/technology: ruby
         component: logging-fluentd
 {{- if .Values.OpenshiftDeploy }}
         provider: openshift

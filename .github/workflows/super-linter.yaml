@@ -97,7 +97,6 @@ jobs:
       shell: bash
       run: |
         go work sync
-        go build ./cmd/operator
 
     - name: Lint Code Base
       uses: super-linter/super-linter/slim@12562e48d7059cf666c43a4ecb0d3b5a2b31bd9e # v8.4.0

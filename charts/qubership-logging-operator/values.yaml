@@ -2176,6 +2176,13 @@ fluentbit:
       #
       # port: 9428
 
+      # Otel output target. Set to "" if the logs should be sent to Otel collector or another opentelemetry API compatible storage.
+      # Type: string
+      # Mandatory: no
+      # Default: "victorialogs"
+      #
+      target: "victorialogs"
+
       # Otel uri to ingest logs.
       # Type: string
       # Mandatory: no
@@ -3111,6 +3118,13 @@ fluentbit:
         # Mandatory: yes
         #
         host: ""
+        
+        # Otel output target. Set to "" if the logs should be sent to Otel collector or another opentelemetry API compatible storage.
+        # Type: string
+        # Mandatory: no
+        # Default: "victorialogs"
+        #
+        target: "victorialogs"
 
         # Otel port, for example: 9428
         # Type: int

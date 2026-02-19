@@ -505,6 +505,7 @@ type OtelFluentbit struct {
 	Host                string            `json:"host,omitempty"`
 	Port                int               `json:"port,omitempty"`
 	LogsUri             string            `json:"logsUri,omitempty"`
+	Target              string            `json:"target,omitempty"`
 	LogSuppressInterval int               `json:"logSuppressInterval,omitempty"`
 	Auth                *Auth             `json:"auth,omitempty"`
 	Compress            string            `json:"compress,omitempty"`

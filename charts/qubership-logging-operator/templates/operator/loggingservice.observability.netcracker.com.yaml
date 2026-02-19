@@ -803,66 +803,7 @@ spec:
     {{- if  .Values.fluentbit.output.http }}
       http:
       {{- if .Values.fluentbit.output.http.enabled }}
-        enabled: true
-        host: {{ .Values.fluentbit.output.http.host }}
-        port: {{ .Values.fluentbit.output.http.port }}
-        uri: {{ .Values.fluentbit.output.http.uri | default "/insert/jsonline?_stream_fields=stream&_msg_field=short_message&_time_field=time" | squote }}
-        {{- if .Values.fluentbit.output.http.compress }}
-        compress: {{ .Values.fluentbit.output.http.compress }}
-        {{- end }}
-        {{- if .Values.fluentbit.output.http.format }}
-        format: {{ .Values.fluentbit.output.http.format }}
-        {{- end }}
-        {{- if .Values.fluentbit.output.http.jsonDateFormat }}
-        jsonDateFormat: {{ .Values.fluentbit.output.http.jsonDateFormat }}
-        {{- end }}
-        {{- if .Values.fluentbit.output.http.auth }}
-        {{- if .Values.fluentbit.output.http.auth.token }}
-        {{- if and .Values.fluentbit.output.http.auth.token.name .Values.fluentbit.output.http.auth.token.key }}
-        auth:
-          token:
-            name: {{ .Values.fluentbit.output.http.auth.token.name }}
-            key: {{ .Values.fluentbit.output.http.auth.token.key }}
-        {{- end }}
-        {{- else if and .Values.fluentbit.output.http.auth.user .Values.fluentbit.output.http.auth.password }}
-        {{- if and .Values.fluentbit.output.http.auth.user.name .Values.fluentbit.output.http.auth.user.key .Values.fluentbit.output.http.auth.password.name .Values.fluentbit.output.http.auth.password.key }}
-        auth:
-          user:
-            name: {{ .Values.fluentbit.output.http.auth.user.name }}
-            key: {{ .Values.fluentbit.output.http.auth.user.key }}
-          password:
-            name: {{ .Values.fluentbit.output.http.auth.password.name }}
-            key: {{ .Values.fluentbit.output.http.auth.password.key }}
-        {{- end }}
-        {{- end }}
-        {{- end }}
-        {{- if .Values.fluentbit.output.http.tls }}
-        tls:
-          enabled: {{ default false .Values.fluentbit.output.http.tls.enabled }}
-          {{- if .Values.fluentbit.output.http.tls.ca }}
-          ca:
-            secretKey: {{ .Values.fluentbit.output.http.tls.ca.secretKey }}
-            secretName: {{ .Values.fluentbit.output.http.tls.ca.secretName }}
-          {{- end }}
-          {{- if .Values.fluentbit.output.http.tls.cert }}
-          cert:
-            secretKey: {{ .Values.fluentbit.output.http.tls.cert.secretKey }}
-            secretName: {{ .Values.fluentbit.output.http.tls.cert.secretName }}
-          {{- end }}
-          {{- if .Values.fluentbit.output.http.tls.key }}
-          key:
-            secretKey: {{ .Values.fluentbit.output.http.tls.key.secretKey }}
-            secretName: {{ .Values.fluentbit.output.http.tls.key.secretName }}
-          {{- end }}
-          verify: {{ default false .Values.fluentbit.output.http.tls.verify }}
-          {{- if .Values.fluentbit.output.http.tls.keyPasswd }}
-          keyPasswd: {{ .Values.fluentbit.output.http.tls.keyPasswd }}
-          {{- end }}
-        {{- end }}
-        {{- if .Values.fluentbit.output.http.extraParams }}
-        extraParams: |-
-          {{ default "" .Values.fluentbit.output.http.extraParams | nindent 10 }}
-        {{- end }}
+        {{- toYaml .Values.fluentbit.output.http | nindent 8 }}
       {{- else }}
         enabled: false
       {{- end }}
@@ -870,63 +811,7 @@ spec:
     {{- if  .Values.fluentbit.output.otel }}
       otel:
       {{- if .Values.fluentbit.output.otel.enabled }}
-        enabled: true
-        host: {{ .Values.fluentbit.output.otel.host }}
-        port: {{ .Values.fluentbit.output.otel.port }}
-        logsUri: {{ .Values.fluentbit.output.otel.logsUri | default "/insert/opentelemetry/v1/logs" | squote }}
-        {{- if .Values.fluentbit.output.otel.compress }}
-        compress: {{ .Values.fluentbit.output.otel.compress }}
-        {{- end }}
-        {{- if .Values.fluentbit.output.otel.logSuppressInterval }}
-        logSuppressInterval: {{ .Values.fluentbit.output.otel.logSuppressInterval }}
-        {{- end }}
-        {{- if .Values.fluentbit.output.otel.auth }}
-        {{- if .Values.fluentbit.output.otel.auth.token }}
-        {{- if and .Values.fluentbit.output.otel.auth.token.name .Values.fluentbit.output.otel.auth.token.key }}
-        auth:
-          token:
-            name: {{ .Values.fluentbit.output.otel.auth.token.name }}
-            key: {{ .Values.fluentbit.output.otel.auth.token.key }}
-        {{- end }}
-        {{- else if and .Values.fluentbit.output.otel.auth.user .Values.fluentbit.output.otel.auth.password }}
-        {{- if and .Values.fluentbit.output.otel.auth.user.name .Values.fluentbit.output.otel.auth.user.key .Values.fluentbit.output.otel.auth.password.name .Values.fluentbit.output.otel.auth.password.key }}
-        auth:
-          user:
-            name: {{ .Values.fluentbit.output.otel.auth.user.name }}
-            key: {{ .Values.fluentbit.output.otel.auth.user.key }}
-          password:
-            name: {{ .Values.fluentbit.output.otel.auth.password.name }}
-            key: {{ .Values.fluentbit.output.otel.auth.password.key }}
-        {{- end }}
-        {{- end }}
-        {{- end }}
-        {{- if .Values.fluentbit.output.otel.tls }}
-        tls:
-          enabled: {{ default false .Values.fluentbit.output.otel.tls.enabled }}
-          {{- if .Values.fluentbit.output.otel.tls.ca }}
-          ca:
-            secretKey: {{ .Values.fluentbit.output.otel.tls.ca.secretKey }}
-            secretName: {{ .Values.fluentbit.output.otel.tls.ca.secretName }}
-          {{- end }}
-          {{- if .Values.fluentbit.output.otel.tls.cert }}
-          cert:
-            secretKey: {{ .Values.fluentbit.output.otel.tls.cert.secretKey }}
-            secretName: {{ .Values.fluentbit.output.otel.tls.cert.secretName }}
-          {{- end }}
-          {{- if .Values.fluentbit.output.otel.tls.key }}
-          key:
-            secretKey: {{ .Values.fluentbit.output.otel.tls.key.secretKey }}
-            secretName: {{ .Values.fluentbit.output.otel.tls.key.secretName }}
-          {{- end }}
-          verify: {{ default false .Values.fluentbit.output.otel.tls.verify }}
-          {{- if .Values.fluentbit.output.otel.tls.keyPasswd }}
-          keyPasswd: {{ .Values.fluentbit.output.otel.tls.keyPasswd }}
-          {{- end }}
-        {{- end }}
-        {{- if .Values.fluentbit.output.otel.extraParams }}
-        extraParams: |-
-          {{ default "" .Values.fluentbit.output.otel.extraParams | nindent 10 }}
-        {{- end }}
+        {{- toYaml .Values.fluentbit.output.otel | nindent 8 }}
       {{- else }}
         enabled: false
       {{- end }}
@@ -1191,63 +1076,7 @@ spec:
       {{- if .Values.fluentbit.aggregator.output.otel }}
         otel:
         {{- if .Values.fluentbit.aggregator.output.otel.enabled }}
-          enabled: true
-          host: {{ .Values.fluentbit.aggregator.output.otel.host }}
-          port: {{ .Values.fluentbit.aggregator.output.otel.port }}
-          logsUri: {{ .Values.fluentbit.aggregator.output.otel.logsUri | default "/insert/opentelemetry/v1/logs" | squote }}
-          {{- if .Values.fluentbit.aggregator.output.otel.compress }}
-          compress: {{ .Values.fluentbit.aggregator.output.otel.compress }}
-          {{- end }}
-          {{- if .Values.fluentbit.aggregator.output.otel.logSuppressInterval }}
-          logSuppressInterval: {{ .Values.fluentbit.aggregator.output.otel.logSuppressInterval }}
-          {{- end }}
-          {{- if .Values.fluentbit.aggregator.output.otel.auth }}
-          {{- if .Values.fluentbit.aggregator.output.otel.auth.token }}
-          {{- if and .Values.fluentbit.aggregator.output.otel.auth.token.name .Values.fluentbit.aggregator.output.otel.auth.token.key }}
-          auth:
-            token:
-              name: {{ .Values.fluentbit.aggregator.output.otel.auth.token.name }}
-              key: {{ .Values.fluentbit.aggregator.output.otel.auth.token.key }}
-          {{- end }}
-          {{- else if and .Values.fluentbit.aggregator.output.otel.auth.user .Values.fluentbit.aggregator.output.otel.auth.password }}
-          {{- if and .Values.fluentbit.aggregator.output.otel.auth.user.name .Values.fluentbit.aggregator.output.otel.auth.user.key .Values.fluentbit.aggregator.output.otel.auth.password.name .Values.fluentbit.aggregator.output.otel.auth.password.key }}
-          auth:
-            user:
-              name: {{ .Values.fluentbit.aggregator.output.otel.auth.user.name }}
-              key: {{ .Values.fluentbit.aggregator.output.otel.auth.user.key }}
-            password:
-              name: {{ .Values.fluentbit.aggregator.output.otel.auth.password.name }}
-              key: {{ .Values.fluentbit.aggregator.output.otel.auth.password.key }}
-          {{- end }}
-          {{- end }}
-          {{- end }}
-          {{- if .Values.fluentbit.aggregator.output.otel.tls }}
-          tls:
-            enabled: {{ default false .Values.fluentbit.aggregator.output.otel.tls.enabled }}
-            {{- if .Values.fluentbit.aggregator.output.otel.tls.ca }}
-            ca:
-              secretKey: {{ .Values.fluentbit.aggregator.output.otel.tls.ca.secretKey }}
-              secretName: {{ .Values.fluentbit.aggregator.output.otel.tls.ca.secretName }}
-            {{- end }}
-            {{- if .Values.fluentbit.aggregator.output.otel.tls.cert }}
-            cert:
-              secretKey: {{ .Values.fluentbit.aggregator.output.otel.tls.cert.secretKey }}
-              secretName: {{ .Values.fluentbit.aggregator.output.otel.tls.cert.secretName }}
-            {{- end }}
-            {{- if .Values.fluentbit.aggregator.output.otel.tls.key }}
-            key:
-              secretKey: {{ .Values.fluentbit.aggregator.output.otel.tls.key.secretKey }}
-              secretName: {{ .Values.fluentbit.aggregator.output.otel.tls.key.secretName }}
-            {{- end }}
-            verify: {{ default false .Values.fluentbit.aggregator.output.otel.tls.verify }}
-            {{- if .Values.fluentbit.aggregator.output.otel.tls.keyPasswd }}
-            keyPasswd: {{ .Values.fluentbit.aggregator.output.otel.tls.keyPasswd }}
-            {{- end }}
-          {{- end }}
-          {{- if .Values.fluentbit.aggregator.output.otel.extraParams }}
-          extraParams: |-
-            {{ default "" .Values.fluentbit.aggregator.output.otel.extraParams | nindent 12 }}
-          {{- end }}
+          {{- toYaml .Values.fluentbit.aggregator.output.otel | nindent 10 }}
         {{- else }}
           enabled: false
         {{- end }}

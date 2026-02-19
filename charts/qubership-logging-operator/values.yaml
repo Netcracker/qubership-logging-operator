@@ -3118,7 +3118,7 @@ fluentbit:
         # Mandatory: yes
         #
         host: ""
-        
+
         # Otel output target. Set to "" if the logs should be sent to Otel collector or another opentelemetry API compatible storage.
         # Type: string
         # Mandatory: no

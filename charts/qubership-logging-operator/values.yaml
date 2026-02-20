@@ -1627,9 +1627,9 @@ fluentd:
       # Payload compression mechanism for Http output. Allowed values: text/gzip.
       # Type: string
       # Mandatory: no
-      # Default: text
+      # Default: gzip
       #
-      # compress: gzip
+      compress: gzip
 
       # Additional headers for HTTP request.
       # Type: string
@@ -2049,9 +2049,9 @@ fluentbit:
       # Payload compression mechanism for Http output. Allowed values: gzip, snappy, zstd.
       # Type: string
       # Mandatory: no
-      # Default: none
+      # Default: gzip
       #
-      # compress: gzip
+      compress: gzip
 
       # Additional configuration parameters for Http output.
       # See docs: https://docs.fluentbit.io/manual/data-pipeline/outputs/http#configuration-parameters
@@ -2193,9 +2193,9 @@ fluentbit:
       # Payload compression mechanism for opentelemetry output. Allowed values: gzip, zstd.
       # Type: string
       # Mandatory: no
-      # Default: none
+      # Default: gzip
       #
-      # compress: gzip
+      compress: gzip
 
       # Allows to set a time interval in seconds to suppress log messages from output plugin that appear similar within that interval.
       # Type: int
@@ -2998,9 +2998,9 @@ fluentbit:
         # Payload compression mechanism for Http output. Allowed values: gzip, snappy, zstd.
         # Type: string
         # Mandatory: no
-        # Default: none
+        # Default: gzip
         #
-        # compress: gzip
+        compress: gzip
 
         # Authentication for Http.
         # Secret name and key in the secret storing the parameter should be provided. Username/password or token can be stored in different secrets.
@@ -3142,9 +3142,9 @@ fluentbit:
         # Payload compression mechanism for opentelemetry output. Allowed values: gzip, zstd.
         # Type: string
         # Mandatory: no
-        # Default: none
+        # Default: gzip
         #
-        # compress: gzip
+        compress: gzip
 
         # Allows to set a time interval in seconds to suppress log messages from output plugin that appear similar within that interval.
         # Type: int

@@ -886,6 +886,29 @@ fluentbit:
 | `output.http.tls.key.name`        | string                                                                                                                            | no         | `-`                                                                                | Name of Secret with key                                                                                                                                                                  |
 | `output.http.tls.key.key`         | string                                                                                                                            | no         | `-`                                                                                | Key (filename) in the Secret with private key                                                                                                                                            |
 | `output.http.tls.verify`          | boolean                                                                                                                           | no         | `true`                                                                             | Force certificate validation                                                                                                                                                             |
+| `output.otel.enabled`             | boolean                                                                                                                           | no         | `false`                                                                            | Enables `otel` output.                                                                                                                                                                   |
+| `output.otel.host`                | string                                                                                                                            | no         | `-`                                                                                | Otel host. Opentelemetry-collector or victorialogs. Example: vlsingle-k8s.victorialogs                                                                                                   |
+| `output.otel.port`                | integer                                                                                                                           | no         | `9428`                                                                             | Otel server port                                                                                                                                                                         |
+| `output.otel.target`              | string                                                                                                                            | no         | `victorialogs`                                                                     | Target server for logs ingestion. Used to switch the output configuration depending on a specific storage. If set to `victorialogs` it includes victorialogs specific headers.           |
+| `output.otel.logsUri`             | string                                                                                                                            | no         | `/insert/opentelemetry/v1/logs`                                                    | URI for logs ingestion                                                                                                                                                                   |
+| `output.otel.auth.token.name`     | string                                                                                                                            | no         | `-`                                                                                | Authentication for otel with token. Name of the secret where token is stored                                                                                                             |
+| `output.otel.auth.token.key`      | string                                                                                                                            | no         | `-`                                                                                | Authentication for otel with token. Name of the key in the secret where token is stored                                                                                                  |
+| `output.otel.auth.user.name`      | string                                                                                                                            | no         | `-`                                                                                | Basic authentication credentials for otel. Name of the secret where username is stored                                                                                                   |
+| `output.otel.auth.user.key`       | string                                                                                                                            | no         | `-`                                                                                | Basic authentication credentials for otel. Name of key in the secret where username is stored                                                                                            |
+| `output.otel.auth.password.name`  | string                                                                                                                            | no         | `-`                                                                                | Basic authentication credentials for otel. Name of the secret where password is stored                                                                                                   |
+| `output.otel.auth.password.key`   | string                                                                                                                            | no         | `-`                                                                                | Basic authentication credentials for otel. Name of key in the secret where password is stored                                                                                            |
+| `output.otel.tls.keyPasswd`       | boolean                                                                                                                           | no         | `-`                                                                                | Optional password for private key file                                                                                                                                                   |
+| `output.otel.extraParams`         | string                                                                                                                            | no         | See example below                                                                  | Additional configuration parameters for otel output. See docs: [Opentelemetry output](https://docs.fluentbit.io/manual/data-pipeline/outputs/opentelemetry)                              |
+| `output.otel.compress`            | string                                                                                                                            | no         | `-`                                                                                | Payload compression mechanism. Allowed values: `gzip` and `zstd`. Disabled by default                                                                                                    |
+| `output.otel.logSuppressInterval` | integer                                                                                                                           | no         | `-`                                                                                | Suppresses log messages from output plugin that appear similar within a specified time interval. 0 - no suppression.                                                                     |
+| `output.otel.tls.enabled`         | boolean                                                                                                                           | no         | `false`                                                                            | Flag to enable TLS connection for otel output                                                                                                                                            |
+| `output.otel.tls.ca.name`         | string                                                                                                                            | no         | `-`                                                                                | Name of Secret with otel CA certificate                                                                                                                                                  |
+| `output.otel.tls.ca.key`          | string                                                                                                                            | no         | `-`                                                                                | Key (filename) in the Secret with otel CA certificate                                                                                                                                    |
+| `output.otel.tls.cert.name`       | string                                                                                                                            | no         | `-`                                                                                | Name of Secret with otel certificate                                                                                                                                                     |
+| `output.otel.tls.cert.key`        | string                                                                                                                            | no         | `-`                                                                                | Key (filename) in the Secret with otel certificate                                                                                                                                       |
+| `output.otel.tls.key.name`        | string                                                                                                                            | no         | `-`                                                                                | Name of Secret with key                                                                                                                                                                  |
+| `output.otel.tls.key.key`         | string                                                                                                                            | no         | `-`                                                                                | Key (filename) in the Secret with private key                                                                                                                                            |
+| `output.otel.tls.verify`          | boolean                                                                                                                           | no         | `true`                                                                             | Force certificate validation                                                                                                                                                             |
 <!-- markdownlint-enable line-length -->
 
 Examples:
@@ -1073,6 +1096,53 @@ fluentbit:
           header           ProjectID 23
 ```
 
+Example of FluentBit configuration with Opentelemetry output enabled:
+
+```yaml
+fluentbit:
+  install: true
+  dockerImage: fluent/fluent-bit:4.0.0
+
+  graylogOutput: false
+
+  output:
+    otel:
+      enabled: true
+      host: vlsingle-k8s.victorialogs
+      port: 9428
+      logsUri: /api/v1/logs
+      auth:
+        token:
+          name: otel-secret
+          key: token
+        user:
+          name: otel-secret
+          key: user
+        password:
+          name: otel-secret
+          key: password
+      compress: zstd
+      logSuppressInterval: 5
+      tls:
+        enabled: true
+        ca:
+          secretName: secret-ca
+          secretKey: ca.crt
+        cert:
+          secretName: secret-cert
+          secretKey: certificate.crt
+        key:
+          secretName: secret-key
+          secretKey: privateKey.key
+        verify: true
+        keyPasswd: secretKeyPassword
+      # See docs: https://docs.fluentbit.io/manual/pipeline/outputs/http#configuration-parameters
+      extraParams: |
+          workers          2
+          header           AccountID 12
+          header           ProjectID 23
+```
+
 [Back to TOC](#table-of-contents)
 
 ### FluentBit Aggregator
@@ -1168,6 +1238,29 @@ fluentbit:
 | `output.http.tls.key.name`        | string                                                                                                                 | no         | `-`                                                                                | Name of Secret with key                                                                                                                                                                                                           |
 | `output.http.tls.key.key`         | string                                                                                                                 | no         | `-`                                                                                | Key (filename) in the Secret with private key                                                                                                                                                                                     |
 | `output.http.tls.verify`          | boolean                                                                                                                | no         | `true`                                                                             | Force certificate validation                                                                                                                                                                                                      |
+| `output.otel.enabled`             | boolean                                                                                                                | no         | `false`                                                                            | Enables `otel` output.                                                                                                                                                                                                            |
+| `output.otel.host`                | string                                                                                                                 | no         | `-`                                                                                | Otel host. Opentelemetry-collector or victorialogs. Example: vlsingle-k8s.victorialogs                                                                                                                                            |
+| `output.otel.port`                | integer                                                                                                                | no         | `9428`                                                                             | Otel server port                                                                                                                                                                                                                  |
+| `output.otel.target`              | string                                                                                                                 | no         | `victorialogs`                                                                     | Target server for logs ingestion. Used to switch the output configuration depending on a specific storage. If set to `victorialogs` it includes victorialogs specific headers.                                                    |
+| `output.otel.logsUri`             | string                                                                                                                 | no         | `/insert/opentelemetry/v1/logs`                                                    | URI for logs ingestion                                                                                                                                                                                                            |
+| `output.otel.auth.token.name`     | string                                                                                                                 | no         | `-`                                                                                | Authentication for otel with token. Name of the secret where token is stored                                                                                                                                                      |
+| `output.otel.auth.token.key`      | string                                                                                                                 | no         | `-`                                                                                | Authentication for otel with token. Name of the key in the secret where token is stored                                                                                                                                           |
+| `output.otel.auth.user.name`      | string                                                                                                                 | no         | `-`                                                                                | Basic authentication credentials for otel. Name of the secret where username is stored                                                                                                                                            |
+| `output.otel.auth.user.key`       | string                                                                                                                 | no         | `-`                                                                                | Basic authentication credentials for otel. Name of key in the secret where username is stored                                                                                                                                     |
+| `output.otel.auth.password.name`  | string                                                                                                                 | no         | `-`                                                                                | Basic authentication credentials for otel. Name of the secret where password is stored                                                                                                                                            |
+| `output.otel.auth.password.key`   | string                                                                                                                 | no         | `-`                                                                                | Basic authentication credentials for otel. Name of key in the secret where password is stored                                                                                                                                     |
+| `output.otel.tls.keyPasswd`       | boolean                                                                                                                | no         | `-`                                                                                | Optional password for private key file                                                                                                                                                                                            |
+| `output.otel.extraParams`         | string                                                                                                                 | no         | See example below                                                                  | Additional configuration parameters for otel output. See docs: [Opentelemetry output](https://docs.fluentbit.io/manual/data-pipeline/outputs/opentelemetry)                                                                       |
+| `output.otel.compress`            | string                                                                                                                 | no         | `-`                                                                                | Payload compression mechanism. Allowed values: `gzip` and `zstd`.                                                                                                                                                                 |
+| `output.otel.logSuppressInterval` | integer                                                                                                                | no         | `-`                                                                                | Suppresses log messages from output plugin that appear similar within a specified time interval. 0 - no suppression.                                                                                                              |
+| `output.otel.tls.enabled`         | boolean                                                                                                                | no         | `false`                                                                            | Flag to enable TLS connection for otel output                                                                                                                                                                                     |
+| `output.otel.tls.ca.name`         | string                                                                                                                 | no         | `-`                                                                                | Name of Secret with otel CA certificate                                                                                                                                                                                           |
+| `output.otel.tls.ca.key`          | string                                                                                                                 | no         | `-`                                                                                | Key (filename) in the Secret with otel CA certificate                                                                                                                                                                             |
+| `output.otel.tls.cert.name`       | string                                                                                                                 | no         | `-`                                                                                | Name of Secret with otel certificate                                                                                                                                                                                              |
+| `output.otel.tls.cert.key`        | string                                                                                                                 | no         | `-`                                                                                | Key (filename) in the Secret with otel certificate                                                                                                                                                                                |
+| `output.otel.tls.key.name`        | string                                                                                                                 | no         | `-`                                                                                | Name of Secret with key                                                                                                                                                                                                           |
+| `output.otel.tls.key.key`         | string                                                                                                                 | no         | `-`                                                                                | Key (filename) in the Secret with private key                                                                                                                                                                                     |
+| `output.otel.tls.verify`          | boolean                                                                                                                | no         | `true`                                                                             | Force certificate validation                                                                                                                                                                                                      |
 <!-- markdownlint-enable line-length -->
 
 Examples:
@@ -1319,6 +1412,56 @@ fluentbit:
           password:
             name: http-secret
             key: password
+        tls:
+          enabled: true
+          ca:
+            secretName: secret-ca
+            secretKey: ca.crt
+          cert:
+            secretName: secret-cert
+            secretKey: certificate.crt
+          key:
+            secretName: secret-key
+            secretKey: privateKey.key
+          verify: true
+          keyPasswd: secretKeyPassword
+        # See docs: https://docs.fluentbit.io/manual/pipeline/outputs/http#configuration-parameters
+        extraParams: |
+            workers          2
+            header           AccountID 12
+            header           ProjectID 23
+```
+
+Example of FluentBit HA configuration with Opentelemetry output enabled:
+
+```yaml
+fluentbit:
+  install: true
+  dockerImage: fluent/fluent-bit:4.0.0
+
+  aggregator:
+    install: true
+    dockerImage: fluent/fluent-bit:4.0.0
+    replicas: 2
+    graylogOutput: false
+    output:
+      otel:
+        enabled: true
+        host: vlsingle-k8s.victorialogs
+        port: 9428
+        logsUri: /api/v1/logs
+        auth:
+          token:
+            name: otel-secret
+            key: token
+          user:
+            name: otel-secret
+            key: user
+          password:
+            name: otel-secret
+            key: password
+        compress: zstd
+        logSuppressInterval: 5
         tls:
           enabled: true
           ca:

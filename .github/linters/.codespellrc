@@ -1,3 +1,2 @@
 [codespell]
 skip = */crds/*.yaml,*go.work.sum
-

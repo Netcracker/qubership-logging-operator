@@ -117,6 +117,50 @@ spec:
 {{- end }}
 {{- end }}
 {{- end }}
+{{- if and .Values.Fluentbit.Aggregator.Output .Values.Fluentbit.Aggregator.Output.Http .Values.Fluentbit.Aggregator.Output.Http.Enabled }}
+{{- if and .Values.Fluentbit.Aggregator.Output.Http.TLS .Values.Fluentbit.Aggregator.Output.Http.TLS.Enabled }}
+{{- if and .Values.Fluentbit.Aggregator.Output.Http.TLS.CA .Values.Fluentbit.Aggregator.Output.Http.TLS.CA.SecretName .Values.Fluentbit.Aggregator.Output.Http.TLS.CA.SecretKey }}
+        - name: http-tls-ca
+          secret:
+            secretName: {{ .Values.Fluentbit.Aggregator.Output.Http.TLS.CA.SecretName }}
+            defaultMode: 420 # RW grants for config map files
+{{- end }}
+{{- if and .Values.Fluentbit.Aggregator.Output.Http.TLS.Cert .Values.Fluentbit.Aggregator.Output.Http.TLS.Cert.SecretName .Values.Fluentbit.Aggregator.Output.Http.TLS.Cert.SecretKey }}
+        - name: http-tls-cert
+          secret:
+            secretName: {{ .Values.Fluentbit.Aggregator.Output.Http.TLS.Cert.SecretName }}
+            defaultMode: 420 # RW grants for config map files
+{{- end }}
+{{- if and .Values.Fluentbit.Aggregator.Output.Http.TLS.Key .Values.Fluentbit.Aggregator.Output.Http.TLS.Key.SecretName .Values.Fluentbit.Aggregator.Output.Http.TLS.Key.SecretKey }}
+        - name: http-tls-key
+          secret:
+            secretName: {{ .Values.Fluentbit.Aggregator.Output.Http.TLS.Key.SecretName }}
+            defaultMode: 420 # RW grants for config map files
+{{- end }}
+{{- end }}
+{{- end }}
+{{- if and .Values.Fluentbit.Aggregator.Output .Values.Fluentbit.Aggregator.Output.Otel .Values.Fluentbit.Aggregator.Output.Otel.Enabled }}
+{{- if and .Values.Fluentbit.Aggregator.Output.Otel.TLS .Values.Fluentbit.Aggregator.Output.Otel.TLS.Enabled }}
+{{- if and .Values.Fluentbit.Aggregator.Output.Otel.TLS.CA .Values.Fluentbit.Aggregator.Output.Otel.TLS.CA.SecretName .Values.Fluentbit.Aggregator.Output.Otel.TLS.CA.SecretKey }}
+        - name: otel-tls-ca
+          secret:
+            secretName: {{ .Values.Fluentbit.Aggregator.Output.Otel.TLS.CA.SecretName }}
+            defaultMode: 420 # RW grants for config map files
+{{- end }}
+{{- if and .Values.Fluentbit.Aggregator.Output.Otel.TLS.Cert .Values.Fluentbit.Aggregator.Output.Otel.TLS.Cert.SecretName .Values.Fluentbit.Aggregator.Output.Otel.TLS.Cert.SecretKey }}
+        - name: otel-tls-cert
+          secret:
+            secretName: {{ .Values.Fluentbit.Aggregator.Output.Otel.TLS.Cert.SecretName }}
+            defaultMode: 420 # RW grants for config map files
+{{- end }}
+{{- if and .Values.Fluentbit.Aggregator.Output.Otel.TLS.Key .Values.Fluentbit.Aggregator.Output.Otel.TLS.Key.SecretName .Values.Fluentbit.Aggregator.Output.Otel.TLS.Key.SecretKey }}
+        - name: otel-tls-key
+          secret:
+            secretName: {{ .Values.Fluentbit.Aggregator.Output.Otel.TLS.Key.SecretName }}
+            defaultMode: 420 # RW grants for config map files
+{{- end }}
+{{- end }}
+{{- end }}
       containers:
         - name: configmap-reload
           image: {{ .Values.Fluentbit.Aggregator.ConfigmapReload.DockerImage }}
@@ -176,6 +220,46 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.Fluentbit.Aggregator.Output.Loki.Auth.Token.Name }}
                   key: {{ .Values.Fluentbit.Aggregator.Output.Loki.Auth.Token.Key }}
+{{- end }}
+{{- end }}
+{{- if and .Values.Fluentbit.Aggregator.Output .Values.Fluentbit.Aggregator.Output.Http .Values.Fluentbit.Aggregator.Output.Http.Enabled }}
+{{- if and .Values.Fluentbit.Aggregator.Output.Http.Auth .Values.Fluentbit.Aggregator.Output.Http.Auth.User .Values.Fluentbit.Aggregator.Output.Http.Auth.User.Name .Values.Fluentbit.Aggregator.Output.Http.Auth.User.Key .Values.Fluentbit.Aggregator.Output.Http.Auth.Password .Values.Fluentbit.Aggregator.Output.Http.Auth.Password.Name .Values.Fluentbit.Aggregator.Output.Http.Auth.Password.Key }}
+            - name: HTTP_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.Fluentbit.Aggregator.Output.Http.Auth.User.Name }}
+                  key: {{ .Values.Fluentbit.Aggregator.Output.Http.Auth.User.Key }}
+            - name: HTTP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.Fluentbit.Aggregator.Output.Http.Auth.Password.Name }}
+                  key: {{ .Values.Fluentbit.Aggregator.Output.Http.Auth.Password.Key }}
+{{- else if and .Values.Fluentbit.Aggregator.Output.Http.Auth .Values.Fluentbit.Aggregator.Output.Http.Auth.Token .Values.Fluentbit.Aggregator.Output.Http.Auth.Token.Name .Values.Fluentbit.Aggregator.Output.Http.Auth.Token.Key }}
+            - name: HTTP_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.Fluentbit.Aggregator.Output.Http.Auth.Token.Name }}
+                  key: {{ .Values.Fluentbit.Aggregator.Output.Http.Auth.Token.Key }}
+{{- end }}
+{{- end }}
+{{- if and .Values.Fluentbit.Aggregator.Output .Values.Fluentbit.Aggregator.Output.Otel .Values.Fluentbit.Aggregator.Output.Otel.Enabled }}
+{{- if and .Values.Fluentbit.Aggregator.Output.Otel.Auth .Values.Fluentbit.Aggregator.Output.Otel.Auth.User .Values.Fluentbit.Aggregator.Output.Otel.Auth.User.Name .Values.Fluentbit.Aggregator.Output.Otel.Auth.User.Key .Values.Fluentbit.Aggregator.Output.Otel.Auth.Password .Values.Fluentbit.Aggregator.Output.Otel.Auth.Password.Name .Values.Fluentbit.Aggregator.Output.Otel.Auth.Password.Key }}
+            - name: OTEL_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.Fluentbit.Aggregator.Output.Otel.Auth.User.Name }}
+                  key: {{ .Values.Fluentbit.Aggregator.Output.Otel.Auth.User.Key }}
+            - name: OTEL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.Fluentbit.Aggregator.Output.Otel.Auth.Password.Name }}
+                  key: {{ .Values.Fluentbit.Aggregator.Output.Otel.Auth.Password.Key }}
+{{- else if and .Values.Fluentbit.Aggregator.Output.Otel.Auth .Values.Fluentbit.Aggregator.Output.Otel.Auth.Token .Values.Fluentbit.Aggregator.Output.Otel.Auth.Token.Name .Values.Fluentbit.Aggregator.Output.Otel.Auth.Token.Key }}
+            - name: OTEL_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.Fluentbit.Aggregator.Output.Otel.Auth.Token.Name }}
+                  key: {{ .Values.Fluentbit.Aggregator.Output.Otel.Auth.Token.Key }}
 {{- end }}
 {{- end }}
           resources:
@@ -248,6 +332,50 @@ spec:
               name: loki-tls-key
               readOnly: true
               subPath: {{ .Values.Fluentbit.Aggregator.Output.Loki.TLS.Key.SecretKey }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- if and .Values.Fluentbit.Aggregator.Output .Values.Fluentbit.Aggregator.Output.Http .Values.Fluentbit.Aggregator.Output.Http.Enabled }}
+{{- if and .Values.Fluentbit.Aggregator.Output.Http.TLS .Values.Fluentbit.Aggregator.Output.Http.TLS.Enabled }}
+{{- if and .Values.Fluentbit.Aggregator.Output.Http.TLS.CA .Values.Fluentbit.Aggregator.Output.Http.TLS.CA.SecretName .Values.Fluentbit.Aggregator.Output.Http.TLS.CA.SecretKey }}
+            - mountPath: /fluent-bit/output/http/tls/ca.crt
+              name: http-tls-ca
+              readOnly: true
+              subPath: {{ .Values.Fluentbit.Aggregator.Output.Http.TLS.CA.SecretKey }}
+{{- end }}
+{{- if and .Values.Fluentbit.Aggregator.Output.Http.TLS.Cert .Values.Fluentbit.Aggregator.Output.Http.TLS.Cert.SecretName .Values.Fluentbit.Aggregator.Output.Http.TLS.Cert.SecretKey }}
+            - mountPath: /fluent-bit/output/http/tls/tls.crt
+              name: http-tls-cert
+              readOnly: true
+              subPath: {{ .Values.Fluentbit.Aggregator.Output.Http.TLS.Cert.SecretKey }}
+{{- end }}
+{{- if and .Values.Fluentbit.Aggregator.Output.Http.TLS.Key .Values.Fluentbit.Aggregator.Output.Http.TLS.Key.SecretName .Values.Fluentbit.Aggregator.Output.Http.TLS.Key.SecretKey }}
+            - mountPath: /fluent-bit/output/http/tls/tls.key
+              name: http-tls-key
+              readOnly: true
+              subPath: {{ .Values.Fluentbit.Aggregator.Output.Http.TLS.Key.SecretKey }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- if and .Values.Fluentbit.Aggregator.Output .Values.Fluentbit.Aggregator.Output.Otel .Values.Fluentbit.Aggregator.Output.Otel.Enabled }}
+{{- if and .Values.Fluentbit.Aggregator.Output.Otel.TLS .Values.Fluentbit.Aggregator.Output.Otel.TLS.Enabled }}
+{{- if and .Values.Fluentbit.Aggregator.Output.Otel.TLS.CA .Values.Fluentbit.Aggregator.Output.Otel.TLS.CA.SecretName .Values.Fluentbit.Aggregator.Output.Otel.TLS.CA.SecretKey }}
+            - mountPath: /fluent-bit/output/otel/tls/ca.crt
+              name: otel-tls-ca
+              readOnly: true
+              subPath: {{ .Values.Fluentbit.Aggregator.Output.Otel.TLS.CA.SecretKey }}
+{{- end }}
+{{- if and .Values.Fluentbit.Aggregator.Output.Otel.TLS.Cert .Values.Fluentbit.Aggregator.Output.Otel.TLS.Cert.SecretName .Values.Fluentbit.Aggregator.Output.Otel.TLS.Cert.SecretKey }}
+            - mountPath: /fluent-bit/output/otel/tls/tls.crt
+              name: otel-tls-cert
+              readOnly: true
+              subPath: {{ .Values.Fluentbit.Aggregator.Output.Otel.TLS.Cert.SecretKey }}
+{{- end }}
+{{- if and .Values.Fluentbit.Aggregator.Output.Otel.TLS.Key .Values.Fluentbit.Aggregator.Output.Otel.TLS.Key.SecretName .Values.Fluentbit.Aggregator.Output.Otel.TLS.Key.SecretKey }}
+            - mountPath: /fluent-bit/output/otel/tls/tls.key
+              name: otel-tls-key
+              readOnly: true
+              subPath: {{ .Values.Fluentbit.Aggregator.Output.Otel.TLS.Key.SecretKey }}
 {{- end }}
 {{- end }}
 {{- end }}

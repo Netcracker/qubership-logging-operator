@@ -1585,6 +1585,156 @@ fluentd:
         #   extract_kubernetes_labels false
         #   remove_keys []
         #   custom_headers header:value
+    http:
+      # Flag for enabling Http output.
+      # Type: boolean
+      # Default: false
+      # Mandatory: no
+      #
+      enabled: false
+
+      # Http host.
+      # Type: string
+      # Example: http://10.10.10.10:9428 or https://vlsingle-k8s.victorialogs:9428
+      # Mandatory: yes
+      #
+      host: ""
+
+      # Http path for url to ingest logs.
+      # Type: string
+      # Example: /insert/jsonline
+      # Mandatory: no
+      # Default: /insert/jsonline
+      #
+      # path: /insert/jsonline
+
+      # Authentication for Http output.
+      # Secret name and key in the secret storing the parameter should be provided. Username/password or token can be stored in different secrets.
+      # Type: object
+      # Mandatory: no
+      #
+      # auth:
+      #   token:
+      #     name: http-secret
+      #     key: token
+      #   user:
+      #     name: http-secret
+      #     key: user
+      #   password:
+      #     name: http-secret
+      #     key: password
+
+      # Payload compression mechanism for Http output. Allowed values: text/gzip.
+      # Type: string
+      # Mandatory: no
+      # Default: gzip
+      #
+      compress: gzip
+
+      # Additional headers for HTTP request.
+      # Type: string
+      # Mandatory: no
+      # Default: {"VL-Msg-Field": "log", "VL-Time-Field": "time", "VL-Stream-Fields": "stream"}
+      #
+      # headers: {"VL-Msg-Field": "log", "VL-Time-Field": "time", "VL-Stream-Fields": "stream"}
+
+      # TLS configuration for Http output.
+      # Type: object
+      # Mandatory: no
+      #
+      tls:
+        # Allows enabling TLS for Http output.
+        # Type: bool
+        # Mandatory: no
+        # Default: false
+        #
+        enabled: false
+
+        # Configuration for a custom CA store.
+        # If present, both secretKey and secretName fields are required.
+        # Type: object
+        # Mandatory: no
+        #
+        # ca:
+        #   Name of Secret with CA certificate.
+        #   Type: string
+        #   Mandatory: yes
+        #
+        #   secretName: secret-ca
+
+        #   Key (filename) in the Secret with CA certificate.
+        #   Type: string
+        #   Mandatory: yes
+        #
+        #   secretKey: ca.crt
+
+        # Configuration for a client certificate.
+        # If present, both secretKey and secretName fields are required.
+        # Type: object
+        # Mandatory: no
+        #
+        # cert:
+        #   Name of Secret with client certificate.
+        #   Type: string
+        #   Mandatory: yes
+        #
+        #   secretName: secret-cert
+
+        #   Key (filename) in the Secret with client certificate.
+        #   Type: string
+        #   Mandatory: yes
+        #
+        #   secretKey: certificate.crt
+
+        # Configuration for a key for the certificate file.
+        # If present, both secretKey and secretName fields are required.
+        # Type: object
+        # Mandatory: no
+        #
+        # key:
+        #   Name of Secret with key for the client certificate.
+        #   Type: string
+        #   Mandatory: yes
+        #
+        #   secretName: secret-key
+
+        #   Key (filename) in the Secret with key for the client certificate.
+        #   Type: string
+        #   Mandatory: yes
+        #
+        #   secretKey: privateKey.key
+
+        # Allows any ciphers to be used, may be insecure.
+        # Type: string
+        # Mandatory: no
+        # Default: no value
+        #
+        # ciphers: ""
+
+        # The default version of TLS. Available values:TLSv1_3(since 1.19.0)/TLSv1_2/TLSv1_1
+        # Type: string
+        # Mandatory: no
+        # Default: no value
+        #
+        # version: ":TLSv1_2"
+
+        # Force certificate validation. Available values: none/peer
+        # Type: string
+        # Mandatory: no
+        # Default: "peer"
+        #
+        # verifyMode: "peer"
+
+        # Additional configuration parameters for Http output.
+        # Buffer can be configured here and other available parameters of FluentD Http output plugin.
+        # See all the parameters here: https://docs.fluentd.org/output/http
+        # Type: string
+        # Mandatory: no
+        #
+        # extraParams: |
+        #   extract_kubernetes_labels false
+        #   remove_keys []
+        #   custom_headers header:value
 
   ## Allow creating security resources as PodSecurityPolicy, SecurityContextConstraints
   #
@@ -1867,6 +2017,294 @@ fluentbit:
           Retry_Limit            32
           storage.total_limit_size  5000M
           net.connect_timeout 20
+    http:
+      # Flag for enabling Http output.
+      # Type: boolean
+      # Default: false
+      # Mandatory: no
+      #
+      enabled: false
+
+      # Http host.
+      # Type: string
+      # Example: 10.10.10.10 or vlsingle-k8s.victorialogs
+      # Mandatory: yes
+      #
+      host: ""
+
+      # Http port, for example: 9428
+      # Type: int
+      # Mandatory: yes
+      #
+      # port: 9428
+
+      # Http uri to ingest logs.
+      # Type: string
+      # Example: /insert/jsonline
+      # Mandatory: no
+      # Default: '/insert/jsonline?_stream_fields=stream&_msg_field=short_message&_time_field=time'
+      #
+      # uri: '/insert/jsonline?_stream_fields=stream&_msg_field=short_message&_time_field=time'
+
+      # Payload compression mechanism for Http output. Allowed values: gzip, snappy, zstd.
+      # Type: string
+      # Mandatory: no
+      # Default: gzip
+      #
+      compress: gzip
+
+      # Additional configuration parameters for Http output.
+      # See docs: https://docs.fluentbit.io/manual/data-pipeline/outputs/http#configuration-parameters
+      # Type: string
+      # Mandatory: no
+      #
+      # extraParams: |
+
+      # Authentication for Http.
+      # Secret name and key in the secret storing the parameter should be provided. Username/password or token can be stored in different secrets.
+      # Type: object
+      # Mandatory: no
+      #
+      # auth:
+      #   user:
+      #     name: http-secret
+      #     key: user
+      #   password:
+      #     name: http-secret
+      #     key: password
+      #   token:
+      #     name: http-secret
+      #     key: token
+
+      # TLS configuration for Http output.
+      # Type: object
+      # Mandatory: no
+      #
+      tls:
+        # Allows enabling TLS for Http output.
+        # Type: bool
+        # Mandatory: no
+        # Default: false
+        #
+        enabled: false
+
+        # Configuration for a custom CA store.
+        # If present, both secretKey and secretName fields are required.
+        # Type: object
+        # Mandatory: no
+        #
+        # ca:
+        #   Name of Secret with CA certificate.
+        #   Type: string
+        #   Mandatory: yes
+        #
+        #   secretName: secret-ca
+
+        #   Key (filename) in the Secret with CA certificate.
+        #   Type: string
+        #   Mandatory: yes
+        #
+        #   secretKey: ca.crt
+
+        # Configuration for a client certificate.
+        # If present, both secretKey and secretName fields are required.
+        # Type: object
+        # Mandatory: no
+        #
+        # cert:
+        #   Name of Secret with client certificate.
+        #   Type: string
+        #   Mandatory: yes
+        #
+        #   secretName: secret-cert
+
+        #   Key (filename) in the Secret with client certificate.
+        #   Type: string
+        #   Mandatory: yes
+        #
+        #   secretKey: certificate.crt
+
+        # Configuration for a key for the certificate file.
+        # If present, both secretKey and secretName fields are required.
+        # Type: object
+        # Mandatory: no
+        #
+        # key:
+        #   Name of Secret with key for the client certificate.
+        #   Type: string
+        #   Mandatory: yes
+        #
+        #   secretName: secret-key
+
+        #   Key (filename) in the Secret with key for the client certificate.
+        #   Type: string
+        #   Mandatory: yes
+        #
+        #   secretKey: privateKey.key
+
+        # Force certificate validation.
+        # Type: bool
+        # Mandatory: no
+        # Default: true
+        #
+        # verify: true
+
+        # Optional password for private key file.
+        # Type: string
+        # Mandatory: no
+        #
+        # keyPasswd: secret
+
+    otel:
+      # Flag for enabling opentelemetry output.
+      # Type: boolean
+      # Default: false
+      # Mandatory: no
+      #
+      enabled: false
+
+      # Otel host.
+      # Type: string
+      # Example: 10.10.10.10 or vlsingle-k8s.victorialogs
+      # Mandatory: yes
+      #
+      host: ""
+
+      # Otel port, for example: 9428
+      # Type: int
+      # Mandatory: yes
+      #
+      # port: 9428
+
+      # Otel output target. Set to "" if the logs should be sent to Otel collector or another opentelemetry API compatible storage.
+      # Type: string
+      # Mandatory: no
+      # Default: "victorialogs"
+      #
+      target: "victorialogs"
+
+      # Otel uri to ingest logs.
+      # Type: string
+      # Mandatory: no
+      # Default: '/insert/opentelemetry/v1/logs'
+      #
+      # logsUri: '/insert/opentelemetry/v1/logs'
+
+      # Payload compression mechanism for opentelemetry output. Allowed values: gzip, zstd.
+      # Type: string
+      # Mandatory: no
+      # Default: gzip
+      #
+      compress: gzip
+
+      # Allows to set a time interval in seconds to suppress log messages from output plugin that appear similar within that interval.
+      # Type: int
+      # Mandatory: no
+      # Default: 0 (disabled)
+      #
+      # logSuppressInterval: 0
+
+      # Additional configuration parameters for opentelemetry output.
+      # See docs: https://docs.fluentbit.io/manual/data-pipeline/outputs/opentelemetry
+      # Type: string
+      # Mandatory: no
+      #
+      # extraParams: |
+
+      # Authentication for Otel.
+      # Secret name and key in the secret storing the parameter should be provided. Username/password or token can be stored in different secrets.
+      # Type: object
+      # Mandatory: no
+      #
+      # auth:
+      #   user:
+      #     name: otel-secret
+      #     key: user
+      #   password:
+      #     name: otel-secret
+      #     key: password
+      #   token:
+      #     name: otel-secret
+      #     key: token
+
+      # TLS configuration for otel output.
+      # Type: object
+      # Mandatory: no
+      #
+      tls:
+        # Allows enabling TLS for Otel output.
+        # Type: bool
+        # Mandatory: no
+        # Default: false
+        #
+        enabled: false
+
+        # Configuration for a custom CA store.
+        # If present, both secretKey and secretName fields are required.
+        # Type: object
+        # Mandatory: no
+        #
+        # ca:
+        #   Name of Secret with CA certificate.
+        #   Type: string
+        #   Mandatory: yes
+        #
+        #   secretName: secret-ca
+
+        #   Key (filename) in the Secret with CA certificate.
+        #   Type: string
+        #   Mandatory: yes
+        #
+        #   secretKey: ca.crt
+
+        # Configuration for a client certificate.
+        # If present, both secretKey and secretName fields are required.
+        # Type: object
+        # Mandatory: no
+        #
+        # cert:
+        #   Name of Secret with client certificate.
+        #   Type: string
+        #   Mandatory: yes
+        #
+        #   secretName: secret-cert
+
+        #   Key (filename) in the Secret with client certificate.
+        #   Type: string
+        #   Mandatory: yes
+        #
+        #   secretKey: certificate.crt
+
+        # Configuration for a key for the certificate file.
+        # If present, both secretKey and secretName fields are required.
+        # Type: object
+        # Mandatory: no
+        #
+        # key:
+        #   Name of Secret with key for the client certificate.
+        #   Type: string
+        #   Mandatory: yes
+        #
+        #   secretName: secret-key
+
+        #   Key (filename) in the Secret with key for the client certificate.
+        #   Type: string
+        #   Mandatory: yes
+        #
+        #   secretKey: privateKey.key
+
+        # Force certificate validation.
+        # Type: bool
+        # Mandatory: no
+        # Default: true
+        #
+        # verify: true
+
+        # Optional password for private key file.
+        # Type: string
+        # Mandatory: no
+        #
+        # keyPasswd: secret
 
   # additionalVolumes allows configuration of additional volumes on the output DaemonSet definition.
   # additionalVolumes specified will be appended to other volumes that are generated as a result of StorageSpec objects.
@@ -1997,7 +2435,7 @@ fluentbit:
     # Mandatory: no
     # Default: true
     #
-    verify: true
+    # verify: true
 
     # Optional password for private key file.
     # Type: string
@@ -2529,6 +2967,293 @@ fluentbit:
             Retry_Limit            32
             storage.total_limit_size  5000M
             net.connect_timeout 20
+      http:
+        # Flag for enabling Http output.
+        # Type: boolean
+        # Default: false
+        # Mandatory: no
+        #
+        enabled: false
+
+        # Http host.
+        # Type: string
+        # Example: 10.10.10.10 or vlsingle-k8s.victorialogs
+        # Mandatory: yes
+        #
+        # host: vlsingle-k8s.victorialogs
+
+        # Http port, for example: 9428
+        # Type: int
+        # Mandatory: yes
+        #
+        # port: 9428
+
+        # Uri for Http output.
+        # Type: string
+        # Default: '/insert/jsonline?_stream_fields=stream&_msg_field=short_message&_time_field=time'
+        # Mandatory: no
+        #
+        # uri: '/insert/jsonline?_stream_fields=stream&_msg_field=short_message&_time_field=time'
+
+        # Payload compression mechanism for Http output. Allowed values: gzip, snappy, zstd.
+        # Type: string
+        # Mandatory: no
+        # Default: gzip
+        #
+        compress: gzip
+
+        # Authentication for Http.
+        # Secret name and key in the secret storing the parameter should be provided. Username/password or token can be stored in different secrets.
+        # Type: object
+        # Mandatory: no
+        #
+        # auth:
+        #   user:
+        #     name: http-secret
+        #     key: user
+        #   password:
+        #     name: http-secret
+        #     key: password
+        #   token:
+        #     name: http-secret
+        #     key: token
+
+        # TLS configuration for Http output.
+        # Type: object
+        # Mandatory: no
+        #
+        tls:
+          # Allows enabling TLS for Http output.
+          # Type: bool
+          # Mandatory: no
+          # Default: false
+          #
+          enabled: false
+
+          # Configuration for a custom CA store.
+          # If present, both secretKey and secretName fields are required.
+          # Type: object
+          # Mandatory: no
+          #
+          # ca:
+          #   Name of Secret with CA certificate.
+          #   Type: string
+          #   Mandatory: yes
+          #
+          #   secretName: secret-ca
+
+          #   Key (filename) in the Secret with CA certificate.
+          #   Type: string
+          #   Mandatory: yes
+          #
+          #   secretKey: ca.crt
+
+          # Configuration for a client certificate.
+          # If present, both secretKey and secretName fields are required.
+          # Type: object
+          # Mandatory: no
+          #
+          # cert:
+          #   Name of Secret with client certificate.
+          #   Type: string
+          #   Mandatory: yes
+          #
+          #   secretName: secret-cert
+
+          #   Key (filename) in the Secret with client certificate.
+          #   Type: string
+          #   Mandatory: yes
+          #
+          #   secretKey: certificate.crt
+
+          # Configuration for a key for the certificate file.
+          # If present, both secretKey and secretName fields are required.
+          # Type: object
+          # Mandatory: no
+          #
+          # key:
+          #   Name of Secret with key for the client certificate.
+          #   Type: string
+          #   Mandatory: yes
+          #
+          #   secretName: secret-key
+
+          #   Key (filename) in the Secret with key for the client certificate.
+          #   Type: string
+          #   Mandatory: yes
+          #
+          #   secretKey: privateKey.key
+
+          # Force certificate validation.
+          # Type: bool
+          # Mandatory: no
+          # Default: true
+          #
+          verify: true
+
+          # Optional password for private key file.
+          # Type: string
+          # Mandatory: no
+          #
+          # keyPasswd: secret
+
+          # Additional configuration parameters for Http output. Bearer token can be set here as well.
+          # See docs: https://docs.fluentbit.io/manual/data-pipeline/outputs/http#configuration-parameters
+          # Type: string
+          # Mandatory: no
+          #
+          # extraParams: |
+
+      otel:
+        # Flag for enabling opentelemetry output.
+        # Type: boolean
+        # Default: false
+        # Mandatory: no
+        #
+        enabled: false
+
+        # Otel host.
+        # Type: string
+        # Example: 10.10.10.10 or vlsingle-k8s.victorialogs
+        # Mandatory: yes
+        #
+        host: ""
+
+        # Otel output target. Set to "" if the logs should be sent to Otel collector or another opentelemetry API compatible storage.
+        # Type: string
+        # Mandatory: no
+        # Default: "victorialogs"
+        #
+        target: "victorialogs"
+
+        # Otel port, for example: 9428
+        # Type: int
+        # Mandatory: yes
+        #
+        # port: 9428
+
+        # Otel uri to ingest logs.
+        # Type: string
+        # Mandatory: no
+        # Default: '/insert/opentelemetry/v1/logs'
+        #
+        # logsUri: '/insert/opentelemetry/v1/logs'
+
+        # Payload compression mechanism for opentelemetry output. Allowed values: gzip, zstd.
+        # Type: string
+        # Mandatory: no
+        # Default: gzip
+        #
+        compress: gzip
+
+        # Allows to set a time interval in seconds to suppress log messages from output plugin that appear similar within that interval.
+        # Type: int
+        # Mandatory: no
+        # Default: 0 (disabled)
+        #
+        # logSuppressInterval: 0
+
+        # Additional configuration parameters for opentelemetry output.
+        # See docs: https://docs.fluentbit.io/manual/data-pipeline/outputs/opentelemetry
+        # Type: string
+        # Mandatory: no
+        #
+        # extraParams: |
+
+        # Authentication for Otel.
+        # Secret name and key in the secret storing the parameter should be provided. Username/password or token can be stored in different secrets.
+        # Type: object
+        # Mandatory: no
+        #
+        # auth:
+        #   user:
+        #     name: otel-secret
+        #     key: user
+        #   password:
+        #     name: otel-secret
+        #     key: password
+        #   token:
+        #     name: otel-secret
+        #     key: token
+
+        # TLS configuration for otel output.
+        # Type: object
+        # Mandatory: no
+        #
+        tls:
+          # Allows enabling TLS for Otel output.
+          # Type: bool
+          # Mandatory: no
+          # Default: false
+          #
+          enabled: false
+
+          # Configuration for a custom CA store.
+          # If present, both secretKey and secretName fields are required.
+          # Type: object
+          # Mandatory: no
+          #
+          # ca:
+          #   Name of Secret with CA certificate.
+          #   Type: string
+          #   Mandatory: yes
+          #
+          #   secretName: secret-ca
+
+          #   Key (filename) in the Secret with CA certificate.
+          #   Type: string
+          #   Mandatory: yes
+          #
+          #   secretKey: ca.crt
+
+          # Configuration for a client certificate.
+          # If present, both secretKey and secretName fields are required.
+          # Type: object
+          # Mandatory: no
+          #
+          # cert:
+          #   Name of Secret with client certificate.
+          #   Type: string
+          #   Mandatory: yes
+          #
+          #   secretName: secret-cert
+
+          #   Key (filename) in the Secret with client certificate.
+          #   Type: string
+          #   Mandatory: yes
+          #
+          #   secretKey: certificate.crt
+
+          # Configuration for a key for the certificate file.
+          # If present, both secretKey and secretName fields are required.
+          # Type: object
+          # Mandatory: no
+          #
+          # key:
+          #   Name of Secret with key for the client certificate.
+          #   Type: string
+          #   Mandatory: yes
+          #
+          #   secretName: secret-key
+
+          #   Key (filename) in the Secret with key for the client certificate.
+          #   Type: string
+          #   Mandatory: yes
+          #
+          #   secretKey: privateKey.key
+
+          # Force certificate validation.
+          # Type: bool
+          # Mandatory: no
+          # Default: true
+          #
+          # verify: true
+
+          # Optional password for private key file.
+          # Type: string
+          # Mandatory: no
+          #
+          # keyPasswd: secret
 
     # The size limitation of output buffer
     # Type: string
@@ -2755,3 +3480,34 @@ integrationTests:
   # The parameter specifies the ssh key for login to VM.
   # Type: string
   sshKey: ""
+
+  # VictoriaLogs connection settings
+  victorialogs:
+    # The parameter specifies the url for VictoriaLogs.
+    # Type: string
+    #
+    # Example : https://vlsingle-example.victorialogs:9428
+    url: ""
+
+    # Authentication for VictoriaLogs.
+    # Type: object
+    # Mandatory: no
+    # auth:
+    #   The parameter specifies the secret name and key storing the user for VictoriaLogs.
+    #   Type: string
+    #   user:
+    #     secretName: ""
+    #     key: ""
+
+    # The parameter specifies the secret name and key storing the password for VictoriaLogs.
+    #   Type: string
+    #
+    #   password:
+    #     secretName: ""
+    #     key: ""
+    #   The parameter specifies the secret name and key storing the token for VictoriaLogs.
+    #   Type: string
+    #
+    #   token:
+    #     secretName: ""
+    #     key: ""

@@ -88,6 +88,17 @@ jobs:
           grep "\S" /tmp/linter-config/linters/super-linter.env | grep -v "^#" >> $GITHUB_ENV
         fi
 
+    # Setup Go environment and build the operator to make sure all dependencies are in place for linters
+    - name: Setup Go
+      uses: actions/setup-go@v5
+      with:
+        go-version-file: go.work
+        check-latest: true
+    - name: Prepare workspace
+      shell: bash
+      run: |
+        go work sync
+
     - name: Lint Code Base
       uses: super-linter/super-linter/slim@12562e48d7059cf666c43a4ecb0d3b5a2b31bd9e # v8.4.0
       env:

@@ -1,6 +1,9 @@
 package utils
 
 import (
+	"fmt"
+	"strings"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -62,21 +65,48 @@ func MergeInto(dst, src map[string]string) {
 	}
 }
 
+// TruncLabel truncates a label value to 63 characters (Kubernetes limit). Use for name, app.kubernetes.io/name.
+func TruncLabel(label string) string {
+	if len(label) >= 63 {
+		return strings.Trim(label[:63], "-")
+	}
+	return strings.Trim(label, "-")
+}
+
+// GetInstanceLabel returns a truncated label value for app.kubernetes.io/instance (name-namespace).
+func GetInstanceLabel(name, namespace string) string {
+	return TruncLabel(fmt.Sprintf("%s-%s", name, namespace))
+}
+
 // LabelInput holds parameters for setting labels on operator-managed resources.
-// Component labels are applied to resource metadata only (not to pod templates).
+// ComponentLabels are applied to resource metadata only (not to pod templates) and override base labels on key conflict.
 type LabelInput struct {
 	Name            string
 	Component       string
 	Instance        string
 	Version         string
+	Technology      string
 	ComponentLabels map[string]string
 }
 
-func (in LabelInput) instanceVersionMap() map[string]string {
-	return map[string]string{
-		"app.kubernetes.io/instance": in.Instance,
-		"app.kubernetes.io/version":  in.Version,
+// BaseOnlyLabelInput returns LabelInput with base labels only (no instance, version, technology).
+// Use for ServiceAccount, ClusterRole, Service, ServiceMonitor, etc. per label specification.
+func BaseOnlyLabelInput(name, component string) LabelInput {
+	return LabelInput{Name: name, Component: component}
+}
+
+func (in LabelInput) instanceVersionTechnologyMap() map[string]string {
+	m := make(map[string]string)
+	if in.Instance != "" {
+		m["app.kubernetes.io/instance"] = in.Instance
 	}
+	if in.Version != "" {
+		m["app.kubernetes.io/version"] = in.Version
+	}
+	if in.Technology != "" {
+		m["app.kubernetes.io/technology"] = in.Technology
+	}
+	return m
 }
 
 // resourceLabelsFromBase returns the full resource label map: base maps merged, then component labels merged in.
@@ -86,15 +116,15 @@ func (in LabelInput) resourceLabelsFromBase(baseMaps ...map[string]string) map[s
 	return out
 }
 
-// resourceLabels returns the full resource label map. Existing is merged first; ResourceLabels and instance/version
-// are merged after, so standard labels take precedence on key overlap.
+// resourceLabels returns the full resource label map. Merge order: existing, ResourceLabels, instance/version/technology, ComponentLabels.
+// ComponentLabels override earlier layers on key conflict.
 func (in LabelInput) resourceLabels(existing map[string]string) map[string]string {
-	return in.resourceLabelsFromBase(existing, ResourceLabels(in.Name, in.Component), in.instanceVersionMap())
+	return in.resourceLabelsFromBase(existing, ResourceLabels(in.Name, in.Component), in.instanceVersionTechnologyMap())
 }
 
-// templateLabels returns the label map for pod template (base only, no component labels).
+// templateLabels returns the label map for pod template (base + instance/version/technology; no ComponentLabels).
 func (in LabelInput) templateLabels(existing map[string]string) map[string]string {
-	return MergeLabels(existing, ResourceLabels(in.Name, in.Component), in.instanceVersionMap())
+	return MergeLabels(existing, ResourceLabels(in.Name, in.Component), in.instanceVersionTechnologyMap())
 }
 
 // SetLabelsForResource sets base + component labels on any resource (Service, ServiceAccount, ConfigMap, etc.).
@@ -107,10 +137,17 @@ func SetLabelsForResource(obj metav1.Object, in LabelInput, existing map[string]
 	obj.SetLabels(in.resourceLabels(initial))
 }
 
-// SetLabelsForWorkload sets base + component labels on the resource and base-only labels on the pod template.
-// Component labels are applied to resource metadata only, not to spec.template.metadata.labels.
+// SetLabelsForWorkload sets base + component labels on the resource and base + instance/version/technology on the pod template.
+// ComponentLabels are applied to the resource only, not to spec.template.metadata.labels.
 // Use for DaemonSet, StatefulSet, Deployment, Job — pass the object and &obj.Spec.Template.Labels.
 func SetLabelsForWorkload(obj metav1.Object, templateLabels *map[string]string, in LabelInput) {
 	SetLabelsForResource(obj, in, nil)
 	*templateLabels = in.templateLabels(*templateLabels)
+}
+
+// PodTemplateLabels returns the label map for pod template (base + instance + version + technology).
+// Use for CRs with PodMetadata or other pod-label needs.
+func PodTemplateLabels(name, component, instance, version, technology string) map[string]string {
+	in := LabelInput{Name: name, Component: component, Instance: instance, Version: version, Technology: technology}
+	return in.templateLabels(nil)
 }

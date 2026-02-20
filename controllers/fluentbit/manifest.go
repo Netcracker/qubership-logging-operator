@@ -35,6 +35,7 @@ func fluentbitDaemonSet(cr *loggingService.LoggingService, dynamicParameters uti
 			Component:       "fluentbit",
 			Instance:        util.GetInstanceLabel(daemonSet.GetName(), daemonSet.GetNamespace()),
 			Version:         util.GetTagFromImage(cr.Spec.Fluentbit.DockerImage),
+			Technology:      "c",
 			ComponentLabels: cr.Spec.Fluentbit.Labels,
 		})
 		if cr.Spec.Fluentbit.Annotations != nil {

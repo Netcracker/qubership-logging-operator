@@ -66,6 +66,7 @@ func fluentdDaemonSet(cr *loggingService.LoggingService, dynamicParameters util.
 			Component:       "fluentd",
 			Instance:        util.GetInstanceLabel(daemonSet.GetName(), daemonSet.GetNamespace()),
 			Version:         util.GetTagFromImage(cr.Spec.Fluentd.DockerImage),
+			Technology:      "ruby",
 			ComponentLabels: cr.Spec.Fluentd.Labels,
 		})
 		if cr.Spec.Fluentd.Annotations != nil {

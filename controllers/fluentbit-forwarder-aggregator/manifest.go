@@ -89,6 +89,7 @@ func forwarderDaemonSet(cr *loggingService.LoggingService, dynamicParameters uti
 			Component:       "fluentbit",
 			Instance:        util.GetInstanceLabel(ds.GetName(), ds.GetNamespace()),
 			Version:         util.GetTagFromImage(cr.Spec.Fluentbit.DockerImage),
+			Technology:      "c",
 			ComponentLabels: cr.Spec.Fluentbit.Labels,
 		})
 
@@ -206,6 +207,7 @@ func aggregatorStatefulSet(cr *loggingService.LoggingService) (*appsv1.StatefulS
 			Component:       "fluentbit",
 			Instance:        util.GetInstanceLabel(statefulSet.GetName(), statefulSet.GetNamespace()),
 			Version:         util.GetTagFromImage(cr.Spec.Fluentbit.Aggregator.DockerImage),
+			Technology:      "c",
 			ComponentLabels: cr.Spec.Fluentbit.Aggregator.Labels,
 		})
 		if cr.Spec.Fluentbit.Aggregator.Annotations != nil {

@@ -30,6 +30,7 @@ func eventsReaderDeployment(cr *loggingService.LoggingService) (*appsv1.Deployme
 			Component:       "events-reader",
 			Instance:        util.GetInstanceLabel(deployment.GetName(), deployment.GetNamespace()),
 			Version:         util.GetTagFromImage(cr.Spec.CloudEventsReader.DockerImage),
+			Technology:      "go",
 			ComponentLabels: cr.Spec.CloudEventsReader.Labels,
 		})
 		if cr.Spec.CloudEventsReader.Annotations != nil {

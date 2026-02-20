@@ -84,6 +84,7 @@ func graylogMongoUpgradeJob(cr *loggingService.LoggingService, assetPath string)
 		Component:       "graylog",
 		Instance:        util.GetInstanceLabel(job.GetName(), job.GetNamespace()),
 		Version:         util.GetTagFromImage(job.Spec.Template.Spec.Containers[0].Image),
+		Technology:      "java-others",
 		ComponentLabels: cr.Spec.Graylog.Labels,
 	})
 	return &job, nil
@@ -104,6 +105,7 @@ func graylogStatefulset(cr *loggingService.LoggingService) (*appsv1.StatefulSet,
 			Component:       "graylog",
 			Instance:        util.GetInstanceLabel(statefulset.GetName(), statefulset.GetNamespace()),
 			Version:         util.GetTagFromImage(cr.Spec.Graylog.DockerImage),
+			Technology:      "java-others",
 			ComponentLabels: cr.Spec.Graylog.Labels,
 		})
 		if cr.Spec.Graylog.Annotations != nil {

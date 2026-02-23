@@ -17,6 +17,7 @@ ARTIFACT_NAME=qubership-logging-operator
 
 # Helm charts directory
 HELM_FOLDER=charts/qubership-logging-operator
+CRDS_HELM_CRDS_FOLDER=charts/qubership-logging-crds
 
 # Directories and files
 BUILD_DIR=build
@@ -187,7 +188,7 @@ unit-test:
 #################
 
 # Run document generation
-docs: docs/api.md docs/crds
+docs: docs/api.md docs/crds update-crds
 
 # Run gen-crd-api-reference-docs to generate API documents by operator API
 docs/api.md: docs/api/gen $(TYPES_V1_TARGET)
@@ -216,6 +217,16 @@ endif
 docs/crds:
 	rm -rf $(CRD_PUBLIC_DOC_FOLDER)/*.yaml
 	cp $(CRD_FOLDER)/* $(CRD_PUBLIC_DOC_FOLDER)/
+
+##########################
+# Update CRDs Helm chart #
+##########################
+
+# Copy CRDs from documentation to the qubership-monitoring-crds Helm chart
+.PHONY: update-crds
+update-crds:
+	echo "=> Update CRDs in dedicated Helm chart ..."
+	find $(CRD_FOLDER) \( -name "*.yaml" -o -name "*.yml" \) -exec cp {} ${CRDS_HELM_CRDS_FOLDER}/crds/ \;
 
 ###################
 # Running locally #

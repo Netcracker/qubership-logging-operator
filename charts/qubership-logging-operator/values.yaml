@@ -1498,7 +1498,7 @@ fluentd:
       #   extract_kubernetes_labels false
       #   remove_keys []
       #   custom_headers header:value
-      
+
       # TLS configuration for Loki output.
       # Type: object
       # Mandatory: no

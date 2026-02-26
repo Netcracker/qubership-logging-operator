@@ -4,9 +4,7 @@ kind: GrafanaDashboard
 metadata:
   name: fluentbit-metrics-v1
   labels:
-    app.kubernetes.io/name: fluentbit-metrics-v1
-    app.kubernetes.io/component: monitoring
-    app.kubernetes.io/part-of: logging
+    {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" "fluentbit-metrics-v1" "component" "monitoring") | nindent 4 }}
   {{- if .Values.fluentbit.labels }}
     {{- toYaml .Values.fluentbit.labels | nindent 4 }}
   {{- end }}

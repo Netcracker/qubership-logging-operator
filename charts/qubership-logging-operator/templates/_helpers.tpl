@@ -49,6 +49,48 @@ Add Authorization header if Bearer Token authorization enabled for http output i
 {{- end -}}
 
 {{/*
+Common labels applied to all resources (part-of, managed-by).
+Call with: {{- include "logging-operator.commonLabels" . | nindent 4 }} for metadata.labels,
+or | nindent 8 for spec.template.metadata.labels.
+*/}}
+{{- define "logging-operator.commonLabels" -}}
+app.kubernetes.io/part-of: logging
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end -}}
+
+{{/*
+Resource labels: name, app.kubernetes.io/name, component, part-of, managed-by, and (when not forPodTemplate)
+deployment.netcracker.com/sessionId. Set forPodTemplate: true for spec.template.metadata.labels — sessionId
+belongs on resource metadata only, not on pods.
+Usage: {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" $name "component" $component) | nindent 4 }}
+       {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" $name "component" $component "forPodTemplate" true) | nindent 8 }}
+*/}}
+{{- define "logging-operator.resourceLabels" -}}
+{{- $ctx := .ctx -}}
+{{- $name := .name -}}
+{{- $component := .component -}}
+{{- $forPodTemplate := .forPodTemplate | default false -}}
+name: {{ $name }}
+app.kubernetes.io/name: {{ $name }}
+app.kubernetes.io/component: {{ $component }}
+app.kubernetes.io/part-of: logging
+app.kubernetes.io/managed-by: {{ $ctx.Release.Service }}
+{{- if and $ctx.Values.DEPLOYMENT_SESSION_ID (not $forPodTemplate) }}
+deployment.netcracker.com/sessionId: {{ $ctx.Values.DEPLOYMENT_SESSION_ID | quote }}
+{{- end }}
+{{- end -}}
+
+{{/*
+Outputs the deployment.netcracker.com/sessionId label line when DEPLOYMENT_SESSION_ID is set.
+Usage: {{- include "logging-operator.sessionIdLabel" . | nindent 4 }}
+*/}}
+{{- define "logging-operator.sessionIdLabel" -}}
+{{- if .Values.DEPLOYMENT_SESSION_ID -}}
+deployment.netcracker.com/sessionId: {{ .Values.DEPLOYMENT_SESSION_ID | quote }}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Create the name of the service account to use
 */}}
 {{- define "helm-chart.serviceAccountName" -}}

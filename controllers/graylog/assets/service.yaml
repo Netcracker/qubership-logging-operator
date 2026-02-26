@@ -3,12 +3,7 @@ kind: Service
 metadata:
   name: graylog-service
   namespace: {{ .Release.Namespace }}
-  labels:
-    name: graylog
-    app.kubernetes.io/name: graylog-service
-    app.kubernetes.io/component: graylog
-    app.kubernetes.io/part-of: logging
-    app.kubernetes.io/managed-by: logging-operator
+  labels: {}
 spec:
   selector:
     name: graylog

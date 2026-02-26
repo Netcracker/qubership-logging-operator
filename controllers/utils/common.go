@@ -3,7 +3,6 @@ package utils
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"strings"
 	"time"
 
@@ -141,14 +140,6 @@ func ResourceExists(dc discovery.DiscoveryInterface, apiGroupVersion, kind strin
 func GetTagFromImage(image string) string {
 	partsOfImage := strings.Split(image, ":")
 	return partsOfImage[len(partsOfImage)-1]
-}
-
-func GetInstanceLabel(name, namespace string) string {
-	label := fmt.Sprintf("%s-%s", name, namespace)
-	if len(label) >= 64 {
-		return strings.Trim(label[:64], "-")
-	}
-	return strings.Trim(label, "-")
 }
 
 func GetAggregatorIds(num int) []int {

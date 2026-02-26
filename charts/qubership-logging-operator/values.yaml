@@ -1468,7 +1468,7 @@ fluentd:
       # Default: { "job": "fluentd" }
       # Mandatory: no
       #
-      staticLabels: {"job":"fluentd"}
+      staticLabels: { "job": "fluentd" }
 
       # Labels mappings that defines how to extract labels from each log record
       # Type: string

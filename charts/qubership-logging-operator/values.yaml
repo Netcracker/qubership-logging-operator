@@ -1464,11 +1464,11 @@ fluentd:
       #     key: password
 
       # Static labels that added as stream labels.
-      # Type: string
+      # Type: object
       # Default: { "job": "fluentd" }
       # Mandatory: no
       #
-      staticLabels: '{ "job": "fluentd" }'
+      staticLabels: {"job":"fluentd"}
 
       # Labels mappings that defines how to extract labels from each log record
       # Type: string

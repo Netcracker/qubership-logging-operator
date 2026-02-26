@@ -1468,7 +1468,7 @@ fluentd:
       # Default: { "job": "fluentd" }
       # Mandatory: no
       #
-      staticLabels: { "job": "fluentd" }
+      staticLabels: '{ "job": "fluentd" }'
 
       # Labels mappings that defines how to extract labels from each log record
       # Type: string
@@ -1488,6 +1488,17 @@ fluentd:
         originating_bi_id $.originating_bi_id
         spanId $.spanId
 
+      # Additional configuration parameters for Loki output.
+      # Buffer can be configured here and other available parameters of FluentD Loki output plugin.
+      # See all the parameters here: https://github.com/grafana/loki/blob/main/clients/cmd/fluentd/lib/fluent/plugin/out_loki.rb
+      # Type: string
+      # Mandatory: no
+      #
+      # extraParams: |
+      #   extract_kubernetes_labels false
+      #   remove_keys []
+      #   custom_headers header:value
+      
       # TLS configuration for Loki output.
       # Type: object
       # Mandatory: no
@@ -1575,16 +1586,6 @@ fluentd:
         #
         noVerify: false
 
-        # Additional configuration parameters for Loki output.
-        # Buffer can be configured here and other available parameters of FluentD Loki output plugin.
-        # See all the parameters here: https://github.com/grafana/loki/blob/main/clients/cmd/fluentd/lib/fluent/plugin/out_loki.rb
-        # Type: string
-        # Mandatory: no
-        #
-        # extraParams: |
-        #   extract_kubernetes_labels false
-        #   remove_keys []
-        #   custom_headers header:value
     http:
       # Flag for enabling Http output.
       # Type: boolean
@@ -1632,11 +1633,22 @@ fluentd:
       compress: gzip
 
       # Additional headers for HTTP request.
-      # Type: string
+      # Type: object
       # Mandatory: no
       # Default: {"VL-Msg-Field": "log", "VL-Time-Field": "time", "VL-Stream-Fields": "stream"}
       #
       # headers: {"VL-Msg-Field": "log", "VL-Time-Field": "time", "VL-Stream-Fields": "stream"}
+
+      # Additional configuration parameters for Http output.
+      # Buffer can be configured here and other available parameters of FluentD Http output plugin.
+      # See all the parameters here: https://docs.fluentd.org/output/http
+      # Type: string
+      # Mandatory: no
+      #
+      # extraParams: |
+      #   extract_kubernetes_labels false
+      #   remove_keys []
+      #   custom_headers header:value
 
       # TLS configuration for Http output.
       # Type: object
@@ -1724,17 +1736,6 @@ fluentd:
         # Default: "peer"
         #
         # verifyMode: "peer"
-
-        # Additional configuration parameters for Http output.
-        # Buffer can be configured here and other available parameters of FluentD Http output plugin.
-        # See all the parameters here: https://docs.fluentd.org/output/http
-        # Type: string
-        # Mandatory: no
-        #
-        # extraParams: |
-        #   extract_kubernetes_labels false
-        #   remove_keys []
-        #   custom_headers header:value
 
   ## Allow creating security resources as PodSecurityPolicy, SecurityContextConstraints
   #
@@ -3018,6 +3019,13 @@ fluentbit:
         #     name: http-secret
         #     key: token
 
+        # Additional configuration parameters for Http output. Bearer token can be set here as well.
+        # See docs: https://docs.fluentbit.io/manual/data-pipeline/outputs/http#configuration-parameters
+        # Type: string
+        # Mandatory: no
+        #
+        # extraParams: |
+
         # TLS configuration for Http output.
         # Type: object
         # Mandatory: no
@@ -3096,13 +3104,6 @@ fluentbit:
           # Mandatory: no
           #
           # keyPasswd: secret
-
-          # Additional configuration parameters for Http output. Bearer token can be set here as well.
-          # See docs: https://docs.fluentbit.io/manual/data-pipeline/outputs/http#configuration-parameters
-          # Type: string
-          # Mandatory: no
-          #
-          # extraParams: |
 
       otel:
         # Flag for enabling opentelemetry output.

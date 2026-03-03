@@ -6,7 +6,7 @@ function kv_parse(tag, timestamp, record)
     if record["logfmt_candidate"] == "true" then
         return 0, timestamp, record
     end
-    if record["log"] ~= nil and type(record["log"]) ~= "table" and record["parsed"] == "true" then
+    if record["log"] ~= nil and type(record["log"]) ~= "table" and record["parse_status"] == "success" then
         -- regex to find the end of key=value string in the original string
         -- this regex search the place:
         -- * start from ]

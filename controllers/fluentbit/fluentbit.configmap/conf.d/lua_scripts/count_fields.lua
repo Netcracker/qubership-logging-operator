@@ -20,13 +20,16 @@ function second_count_fields(tag, timestamp, record)
         if record["orig_field_count"] ~= nil then
             count = count - 1 -- Subtracting orig_field_count
         end
+        if record["logfmt_candidate"] ~= nil then
+            count = count - 1 -- Subtracting logfmt_candidate
+        end
         if record["field_count"] ~= nil then
-            count = count - 2 -- Subtracting field_count and parsed
+            count = count - 2 -- Subtracting field_count and parse_status
         end
         if (count > record["orig_field_count"]) then
-            record["parsed"] = "true"
+            record["parse_status"] = "success"
         else
-            record["parsed"] = "false"
+            record["parse_status"] = "failed"
         end
         record["field_count"] = count
         return 2, timestamp, record

@@ -35,8 +35,6 @@ func graylogServiceAccount(cr *loggingService.LoggingService) (*corev1.ServiceAc
 	util.SetLabelsForResource(&sa, util.LabelInput{
 		Name:            sa.GetName(),
 		Component:       "graylog",
-		Instance:        util.GetInstanceLabel(sa.GetName(), sa.GetNamespace()),
-		Version:         util.GetTagFromImage(cr.Spec.Graylog.DockerImage),
 		ComponentLabels: cr.Spec.Graylog.Labels,
 	}, nil)
 	return &sa, nil
@@ -60,8 +58,6 @@ func graylogConfigMap(cr *loggingService.LoggingService) (*corev1.ConfigMap, err
 	util.SetLabelsForResource(&configMap, util.LabelInput{
 		Name:            util.GraylogComponentName,
 		Component:       "graylog",
-		Instance:        util.GetInstanceLabel(configMap.GetName(), configMap.GetNamespace()),
-		Version:         util.GetTagFromImage(cr.Spec.Graylog.DockerImage),
 		ComponentLabels: cr.Spec.Graylog.Labels,
 	}, nil)
 	return &configMap, nil
@@ -79,14 +75,12 @@ func graylogMongoUpgradeJob(cr *loggingService.LoggingService, assetPath string)
 	if err = yaml.NewYAMLOrJSONDecoder(strings.NewReader(fileContent), util.BufferSize).Decode(&job); err != nil {
 		return nil, err
 	}
-	util.SetLabelsForWorkload(&job, &job.Spec.Template.Labels, util.LabelInput{
+	util.SetLabelsForResource(&job, util.LabelInput{
 		Name:            job.GetName(),
 		Component:       "graylog",
-		Instance:        util.GetInstanceLabel(job.GetName(), job.GetNamespace()),
-		Version:         util.GetTagFromImage(job.Spec.Template.Spec.Containers[0].Image),
-		Technology:      "java-others",
 		ComponentLabels: cr.Spec.Graylog.Labels,
-	})
+	}, nil)
+	job.Spec.Template.Labels = util.MergeLabels(util.ResourceLabels(job.GetName(), "graylog"), cr.Spec.Graylog.Labels)
 	return &job, nil
 }
 
@@ -139,8 +133,6 @@ func graylogService(cr *loggingService.LoggingService) (*corev1.Service, error) 
 	util.SetLabelsForResource(&service, util.LabelInput{
 		Name:            service.GetName(),
 		Component:       "graylog",
-		Instance:        util.GetInstanceLabel(service.GetName(), service.GetNamespace()),
-		Version:         util.GetTagFromImage(cr.Spec.Graylog.DockerImage),
 		ComponentLabels: cr.Spec.Graylog.Labels,
 	}, nil)
 	return &service, nil

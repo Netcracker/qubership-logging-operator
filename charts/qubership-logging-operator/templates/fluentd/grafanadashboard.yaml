@@ -4,7 +4,7 @@ kind: GrafanaDashboard
 metadata:
   name: fluentd-grafana-dashboard
   labels:
-    {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" "fluentd-grafana-dashboard" "component" "monitoring") | nindent 4 }}
+    {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" "fluentd-grafana-dashboard" "component" "monitoring" "processedByOperator" "grafana-operator") | nindent 4 }}
   {{- if .Values.fluentd.labels }}
     {{- toYaml .Values.fluentd.labels | nindent 4 }}
   {{- end }}

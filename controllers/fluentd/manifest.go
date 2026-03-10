@@ -43,8 +43,6 @@ func fluentdConfigMap(cr *loggingService.LoggingService, dynamicParameters util.
 	util.SetLabelsForResource(&configMap, util.LabelInput{
 		Name:            util.FluentdComponentName,
 		Component:       "fluentd",
-		Instance:        util.GetInstanceLabel(configMap.GetName(), configMap.GetNamespace()),
-		Version:         util.GetTagFromImage(cr.Spec.Fluentd.DockerImage),
 		ComponentLabels: cr.Spec.Fluentd.Labels,
 	}, nil)
 	return &configMap, nil
@@ -116,8 +114,6 @@ func fluentdService(cr *loggingService.LoggingService, dynamicParameters util.Dy
 	util.SetLabelsForResource(&service, util.LabelInput{
 		Name:            service.GetName(),
 		Component:       "fluentd",
-		Instance:        util.GetInstanceLabel(service.GetName(), service.GetNamespace()),
-		Version:         util.GetTagFromImage(cr.Spec.Fluentd.DockerImage),
 		ComponentLabels: cr.Spec.Fluentd.Labels,
 	}, nil)
 	return &service, nil

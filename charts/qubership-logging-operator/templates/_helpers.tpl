@@ -60,9 +60,10 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 
 {{/*
 Resource labels: name, app.kubernetes.io/name, component, part-of, managed-by, and (when not forPodTemplate)
-deployment.netcracker.com/sessionId. Set forPodTemplate: true for spec.template.metadata.labels — sessionId
-belongs on resource metadata only, not on pods.
+deployment.netcracker.com/sessionId. Optional: processedByOperator (for CRs only).
+Set forPodTemplate: true for spec.template.metadata.labels — sessionId belongs on resource metadata only, not on pods.
 Usage: {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" $name "component" $component) | nindent 4 }}
+       For CRs: add "processedByOperator" "logging-service-operator" or "prometheus-operator" or "grafana-operator"
        {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" $name "component" $component "forPodTemplate" true) | nindent 8 }}
 */}}
 {{- define "logging-operator.resourceLabels" -}}
@@ -75,6 +76,9 @@ app.kubernetes.io/name: {{ $name }}
 app.kubernetes.io/component: {{ $component }}
 app.kubernetes.io/part-of: logging
 app.kubernetes.io/managed-by: {{ $ctx.Release.Service }}
+{{- if .processedByOperator }}
+app.kubernetes.io/processed-by-operator: {{ .processedByOperator }}
+{{- end }}
 {{- if and $ctx.Values.DEPLOYMENT_SESSION_ID (not $forPodTemplate) }}
 deployment.netcracker.com/sessionId: {{ $ctx.Values.DEPLOYMENT_SESSION_ID | quote }}
 {{- end }}

@@ -65,8 +65,6 @@ func eventsReaderService(cr *loggingService.LoggingService) (*corev1.Service, er
 	util.SetLabelsForResource(&service, util.LabelInput{
 		Name:            service.GetName(),
 		Component:       "events-reader",
-		Instance:        util.GetInstanceLabel(service.GetName(), service.GetNamespace()),
-		Version:         util.GetTagFromImage(cr.Spec.CloudEventsReader.DockerImage),
 		ComponentLabels: cr.Spec.CloudEventsReader.Labels,
 	}, nil)
 	return &service, nil

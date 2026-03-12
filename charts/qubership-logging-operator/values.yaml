@@ -258,6 +258,88 @@ graylog:
   # Type: string
   #
   # ingressClassName:
+  
+  # HTTPRoute-specific configuration through Gateway API.
+  httpRoute:
+
+    # Enables / disables deploy of HTTPRoute for Graylog
+    # Type: boolean
+    # Mandatory: no
+    # Default: false
+    #
+    install: false
+
+    # Hostnames for graylog UI.
+    # If not set then host from ingress configuration will be used.
+    # Type: list of strings
+    # Mandatory: yes
+    # Default: ''
+    #
+    hostnames: []
+
+    # Custom HTTPRoute rules to define routing behavior.
+    # If set, these rules are used in the HTTPRoute spec.rules block.
+    # If not set or empty, a single default rule is used:
+    #   - matches path with type PathPrefix and / value
+    #   - backendRefs to graylog:9000
+    #
+    # More info: https://gateway-api.sigs.k8s.io/reference/spec/#httprouterule
+    # Type: list of maps
+    # Mandatory: no
+    #
+    rules: []
+
+    # List of Gateway references this HTTPRoute should bind to.
+    # Each item describes a parent Gateway (via group, kind, name, namespace, and sectionName).
+    # If empty, the HTTPRoute is still created but will not be attached to any Gateway listeners.
+    # Type: list of maps
+    # Mandatory: no
+    # Default: []    
+    # Example: 
+    # - group: gateway.networking.k8s.io
+    #   kind: Gateway
+    #   name: my-gateway
+    #   namespace: gateway-infra
+    #   sectionName: http 
+    #
+    parentRefs: []
+
+      # The API group of the Gateway.
+      # Type: string
+      # Default: gateway.networking.k8s.io
+      # Mandatory: no
+      #
+      # group: ''
+
+      # The kind of the Gateway (default: Gateway).
+      # Type: string
+      # Default: Gateway
+      # Mandatory: no
+      #
+      # kind: Gateway
+
+      # The name of the Gateway resource.
+      # Type: string
+      # Default: not set
+      # Mandatory: yes
+      #
+      # name: ''
+
+      # The namespace of the Gateway resource. If not set, it is assumed to be in the same namespace as the HTTPRoute.
+      # Type: string
+      # Default: not set
+      # Mandatory: no
+      #
+      # namespace: ''
+      
+      
+      # The specific listener name in the Gateway (optional).
+      # If not set, the HTTPRoute will be attached to all listeners of the parent Gateway.
+      # Type: string
+      # Default: not set
+      # Mandatory: no
+      #
+      # sectionName: ''
 
   # Mongo PVC name.
   # Type: string

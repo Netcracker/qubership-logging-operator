@@ -1,0 +1,51 @@
+{{- if .Values.graylog.install }}
+{{- if .Values.graylog.httpRoute.install }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: graylog
+  labels:
+    app.kubernetes.io/name: graylog
+    app.kubernetes.io/component: graylog
+    app.kubernetes.io/part-of: logging
+  {{- if .Values.graylog.labels }}
+    {{- toYaml .Values.graylog.labels | nindent 4 }}
+  {{- end }}
+  {{- if .Values.graylog.annotations }}
+  annotations:
+    {{- toYaml .Values.graylog.annotations | nindent 4 }}
+  {{- end }}
+spec:
+  hostnames:
+  {{- if .Values.graylog.httpRoute.hostnames }}
+  {{- toYaml .Values.graylog.httpRoute.hostnames | nindent 4 }}
+  {{- else if .Values.graylog.host }}
+    - {{ regexFind "([-a-zA-Z\\d]+\\.)+([-a-zA-Z\\d])+" (include "graylog.host" .) }}
+  {{- end }}
+  {{- if .Values.graylog.httpRoute.parentRefs }}
+  parentRefs:
+  {{- range .Values.graylog.httpRoute.parentRefs }}
+    - group: {{ .group | default "gateway.networking.k8s.io" }}
+      kind: {{ .kind | default "Gateway" }}
+      name: {{ .name }}
+      {{- if .namespace }}
+      namespace: {{ .namespace }}
+      {{- end }}
+      {{- if .sectionName }}
+      sectionName: {{ .sectionName }}
+      {{- end }}
+  {{- end }}
+  {{- end }}
+  rules:
+  {{- if .Values.graylog.httpRoute.rules }}
+  {{- toYaml .Values.graylog.httpRoute.rules | nindent 4 }}
+  {{- else }}
+    - matches:
+      - path:
+          type: PathPrefix
+          value: /
+      backendRefs:
+      - name: graylog
+        port: 9000
+  {{- end }}
+  {{- end }}

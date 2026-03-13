@@ -3,22 +3,12 @@ kind: Job
 metadata:
   name: mongo-upgrade-job-42
   namespace: {{ .Release.Namespace }}
-  labels:
-    name: mongo-upgrade-job
-    app.kubernetes.io/name: mongo-upgrade-job-42
-    app.kubernetes.io/component: graylog
-    app.kubernetes.io/part-of: logging
-    app.kubernetes.io/managed-by: logging-operator
+  labels: {}
 spec:
   backoffLimit: 3
   template:
     metadata:
-      labels:
-        name: mongo-upgrade-job
-        app.kubernetes.io/name: mongo-upgrade-job-42
-        app.kubernetes.io/component: graylog
-        app.kubernetes.io/part-of: logging
-        app.kubernetes.io/managed-by: logging-operator
+      labels: {}
     spec:
       restartPolicy: Never
       volumes:

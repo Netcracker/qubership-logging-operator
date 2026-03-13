@@ -4,11 +4,6 @@ metadata:
   name: logging-fluentbit-forwarder
   namespace: {{ .Release.Namespace }}
   labels:
-    name: logging-fluentbit-forwarder
-    app.kubernetes.io/name: logging-fluentbit-forwarder
-    app.kubernetes.io/component: fluentbit
-    app.kubernetes.io/part-of: logging
-    app.kubernetes.io/managed-by: logging-operator
     component: logging-fluentbit-forwarder
 {{- if .Values.OpenshiftDeploy }}
     provider: openshift

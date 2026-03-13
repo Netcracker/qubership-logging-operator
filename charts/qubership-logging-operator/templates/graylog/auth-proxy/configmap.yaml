@@ -5,9 +5,7 @@ kind: ConfigMap
 metadata:
   name: graylog-auth-proxy-config
   labels:
-    app.kubernetes.io/name: graylog-auth-proxy-config
-    app.kubernetes.io/component: graylog
-    app.kubernetes.io/part-of: logging
+    {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" "graylog-auth-proxy-config" "component" "graylog") | nindent 4 }}
   {{- if .Values.graylog.labels }}
     {{- toYaml .Values.graylog.labels | nindent 4 }}
   {{- end }}

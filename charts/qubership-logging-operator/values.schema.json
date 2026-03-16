@@ -2033,9 +2033,9 @@
                                     "type": "string"
                                 },
                                 "staticLabels": {
-                                    "default": {"job":"fluentd"},
+                                    "default": "{\"job\":\"fluentd\"}",
                                     "description": "Static labels that added as stream labels.",
-                                    "type": "object"
+                                    "type": "string"
                                 },
                                 "tenant": {
                                     "description": "Loki tenant ID.",

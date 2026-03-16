@@ -48,4 +48,5 @@ spec:
       - name: graylog
         port: 9000
   {{- end }}
-  {{- end }}
+{{- end }}
+{{- end }}

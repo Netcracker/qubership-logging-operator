@@ -1544,7 +1544,7 @@ fluentd:
       #     name: loki-secret
       #     key: password
 
-      # Static labels that added as stream labels.
+      # Static labels that added as stream labels. Should be valid JSON string with key-value pairs, for example: '{"job":"fluentd","env":"production"}'.
       # Type: string
       # Default: {"job":"fluentd"}
       # Mandatory: no

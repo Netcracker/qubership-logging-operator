@@ -138,6 +138,6 @@ the following fields must always be present in the resulting log output:
 6) namespace – The namespace of the log source. Present only if the log originates from a Kubernetes container.
 7) pod – The pod of the log source. Present only if the log originates from a Kubernetes container.
 8) container – The container of the log source. Present only if the log originates from a Kubernetes container.
-9)  nodename – The Kubernetes node where the log source is located.
+9) nodename – The Kubernetes node where the log source is located.
 10) hostname – The FluentBit pod that processed and sent the log.
 11) labels - The set of labels from the pod originated the log.

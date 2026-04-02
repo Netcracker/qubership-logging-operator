@@ -3,9 +3,9 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: fluentd-cluster-reader
+  name: {{ .Release.Namespace }}-fluentd
   labels:
-    app.kubernetes.io/name: fluentd-cluster-reader
+    app.kubernetes.io/name: {{ .Release.Namespace }}-fluentd
     app.kubernetes.io/component: fluentd
     app.kubernetes.io/part-of: logging
   {{- if .Values.fluentd.labels }}
@@ -21,7 +21,7 @@ roleRef:
   {{- if .Capabilities.APIVersions.Has "security.openshift.io/v1" }}
   name: view # The name of the ClusterRole to bind to
   {{- else }}
-  name: logging-cluster-role
+  name: {{ .Release.Namespace }}-fluentd
   {{- end }}
 subjects:
   - kind: ServiceAccount

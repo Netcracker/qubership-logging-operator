@@ -3,9 +3,9 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: logging-cluster-role
+  name: {{ .Release.Namespace }}-fluentd
   labels:
-    app.kubernetes.io/name: logging-cluster-role
+    app.kubernetes.io/name: {{ .Release.Namespace }}-fluentd
     app.kubernetes.io/component: fluentd
     app.kubernetes.io/part-of: logging
   {{- if .Values.fluentd.labels }}

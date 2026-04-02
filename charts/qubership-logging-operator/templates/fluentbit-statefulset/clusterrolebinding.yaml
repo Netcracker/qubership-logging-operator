@@ -5,9 +5,9 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: logging-fluentbit-agg-cluster-reader
+  name: {{ .Release.Namespace }}-fluentbit-aggregator
   labels:
-    app.kubernetes.io/name: logging-fluentbit-agg-cluster-reader
+    app.kubernetes.io/name: {{ .Release.Namespace }}-fluentbit-aggregator
     app.kubernetes.io/component: fluentbit
     app.kubernetes.io/part-of: logging
   {{- if .Values.fluentbit.labels }}
@@ -20,10 +20,10 @@ metadata:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: logging-fluentbit-aggregator-cluster-role
+  name: {{ ternary "view" (printf "%s-fluentbit-aggregator" .Release.Namespace) (.Values.openshiftDeploy | default false) }}
 subjects:
   - kind: ServiceAccount
-    name: {{ .Values.openshiftDeploy | default false | ternary "view" "logging-fluentbit-aggregator-cluster-role" }}
+    name: logging-fluentbit-aggregator
     namespace: {{ .Release.Namespace }}
 {{- end }}
 {{- end }}

@@ -1,7 +1,7 @@
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: logging-fluentbit-agg-cluster-reader
+  name: {{ .Release.Namespace }}-fluentbit-aggregator
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole

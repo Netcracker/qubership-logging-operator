@@ -3,9 +3,9 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: psp:oob-privileged-psp
+  name: {{ .Release.Namespace }}-psp:oob-privileged
   labels:
-    app.kubernetes.io/name: oob-privileged-psp
+    app.kubernetes.io/name: {{ .Release.Namespace }}-psp:oob-privileged
     app.kubernetes.io/component: graylog
     app.kubernetes.io/part-of: logging
   {{- if .Values.graylog.labels }}

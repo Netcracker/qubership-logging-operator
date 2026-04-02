@@ -293,8 +293,8 @@ graylog:
 The `graylog.tls` section defines parameters enabling TLS for both the Graylog WebUI and the default Inputs.
 It includes two subsections:
 
-* `http` for securing the WebUI
-* `input` for securing Graylog Inputs.
+- `http` for securing the WebUI
+- `input` for securing Graylog Inputs.
 
 All parameters for the Graylog WebUI must be specified under the `graylog.tls.http` section, as shown in the example below:
 

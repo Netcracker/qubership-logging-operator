@@ -122,14 +122,15 @@ flowchart LR
 The current FluentBit pipeline is designed to determine whether a log entry has been successfully parsed,
 identify its format, and detect its severity level.
 
-If the log structure matches any of the supported log formats, 
+If the log structure matches any of the supported log formats,
 the following fields must always be present in the resulting log output:
 
-1) level – The severity level of the log. Must be one of: `debug`, `info`, `notice`, `warning`, `err`, `crit`, `alert`, `emerg`.
+1) level – The severity level of the log.
+   Must be one of: `debug`, `info`, `notice`, `warning`, `err`, `crit`, `alert`, `emerg`.
    If the original severity level cannot be detected, the level is set to info.
 2) parse_status – Indicates whether the log was successfully parsed.
    Possible values: success, failed.
-3) parse_format – The detected original log format. 
+3) parse_format – The detected original log format.
    Possible values: `json`, `logfmt`, `klog`, `qubership`, `java`, `opensearch`, and other third-party formats.
 4) log_category – The source type of the log. Possible values: container, audit, system.
 5) parse_level_unknown – Indicates that the original severity level could not be detected

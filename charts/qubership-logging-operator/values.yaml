@@ -1594,6 +1594,22 @@ fluentd:
       #
       enabled: false
 
+      routing:
+
+        # Enables stream field propagation to http header which is used to route logs to different storage backends.
+        # Type: boolean
+        # Default: false
+        # Mandatory: no
+        #
+        enabled: false
+
+        # Header used to propagate logs stream and further routing to different storage backends.
+        # Type: string
+        # Default: X-Log-Type
+        # Mandatory: no
+        #
+        # logCategoryHeader: X-Log-Type
+
       # Http host.
       # Type: string
       # Example: http://10.10.10.10:9428 or https://vlsingle-k8s.victorialogs:9428
@@ -2155,6 +2171,24 @@ fluentbit:
         # Mandatory: no
         #
         # keyPasswd: secret
+
+      routing:
+
+        # Enables streams routing filters for Http output.
+        # Type: boolean
+        # Default: false
+        # Mandatory: no
+        #
+        enabled: false
+
+        # Header which is used by vmauth in routing rules to different vlsingle instances.
+        # For example, if headerTag is set to X-Log-Type, FluentBit will add this header with value of record's tag for each log
+        # and vmauth can route logs based on this header value.
+        # Type: string
+        # Default: stream
+        # Mandatory: no
+        #
+        # headerTag: X-Log-Type
 
     otel:
       # Flag for enabling opentelemetry output.
@@ -3104,6 +3138,24 @@ fluentbit:
           # Mandatory: no
           #
           # keyPasswd: secret
+
+        routing:
+
+          # Enables streams routing filters for Http output.
+          # Type: boolean
+          # Default: false
+          # Mandatory: no
+          #
+          enabled: false
+
+          # Header which is used by vmauth in routing rules to different vlsingle instances.
+          # For example, if headerTag is set to X-Log-Type, FluentBit will add this header with value of record's tag for each log
+          # and vmauth can route logs based on this header value.
+          # Type: string
+          # Default: stream
+          # Mandatory: no
+          #
+          # headerTag: X-Log-Type
 
       otel:
         # Flag for enabling opentelemetry output.

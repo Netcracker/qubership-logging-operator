@@ -262,12 +262,12 @@
                             "properties": {
                                 "http": {
                                     "properties": {
-                                        "streamsRouting": {
+                                        "routing": {
                                             "description": "Allows to route logs to different storage instances based on the log type.",
                                             "properties": {
                                                 "enabled": {
                                                     "default": false,
-                                                    "description": "Flag for enabling streams routing for HTTP output.",
+                                                    "description": "Flag for enabling logs routing for HTTP output.",
                                                     "type": "boolean"
                                                 },
                                                 "headerTag": {
@@ -1043,12 +1043,12 @@
                     "properties": {
                         "http": {
                             "properties": {
-                                "streamsRouting": {
+                                "routing": {
                                     "description": "Allows to route logs to different storage instances based on the log type.",
                                     "properties": {
                                         "enabled": {
                                             "default": false,
-                                            "description": "Flag for enabling streams routing for HTTP output.",
+                                            "description": "Flag for enabling logs routing for HTTP output.",
                                             "type": "boolean"
                                         },
                                         "headerTag": {
@@ -1855,8 +1855,8 @@
                                             "description": "Enable HTTP routing.",
                                             "type": "boolean"
                                         },
-                                        "headerTag": {
-                                            "description": "Header tag to use for HTTP routing.",
+                                        "logCategoryHeader": {
+                                            "description": "Header name which carries log category and to be used for HTTP routing.",
                                             "type": "string"
                                         }
                                     },

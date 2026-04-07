@@ -5082,6 +5082,13 @@ spec:
                                 type: string
                               port:
                                 type: integer
+                              routing:
+                                properties:
+                                  enabled:
+                                    type: boolean
+                                  headerTag:
+                                    type: string
+                                type: object
                               tls:
                                 properties:
                                   ca:
@@ -5749,6 +5756,13 @@ spec:
                             type: string
                           port:
                             type: integer
+                          routing:
+                            properties:
+                              enabled:
+                                type: boolean
+                              headerTag:
+                                type: string
+                            type: object
                           tls:
                             properties:
                               ca:
@@ -9307,6 +9321,13 @@ spec:
                             type: string
                           path:
                             type: string
+                          routing:
+                            properties:
+                              enabled:
+                                type: boolean
+                              logCategoryHeader:
+                                type: string
+                            type: object
                           tls:
                             properties:
                               ca:

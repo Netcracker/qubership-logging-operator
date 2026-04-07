@@ -3,6 +3,7 @@ package fluentbit_forwarder_aggregator
 import (
 	"errors"
 	"fmt"
+	"maps"
 	"time"
 
 	loggingService "github.com/Netcracker/qubership-logging-operator/api/v1"
@@ -48,9 +49,7 @@ func (r *HAFluentReconciler) handleForwarderDaemonSet(cr *loggingService.Logging
 			if e.Labels == nil && m.Labels != nil {
 				e.SetLabels(m.Labels)
 			} else {
-				for k, v := range m.Labels {
-					e.Labels[k] = v
-				}
+				maps.Copy(e.Labels, m.Labels)
 			}
 			e.Spec.Template.SetLabels(m.Spec.Template.GetLabels())
 			e.Spec.Template.Spec.Containers = m.Spec.Template.Spec.Containers
@@ -164,9 +163,7 @@ func (r *HAFluentReconciler) handleAggregatorStatefulSet(cr *loggingService.Logg
 			if e.Labels == nil && ss.Labels != nil {
 				e.SetLabels(ss.Labels)
 			} else {
-				for k, v := range ss.Labels {
-					e.Labels[k] = v
-				}
+				maps.Copy(e.Labels, ss.Labels)
 			}
 			e.Spec.Template.SetLabels(ss.Spec.Template.GetLabels())
 			e.Spec.Template.Spec.Containers = ss.Spec.Template.Spec.Containers

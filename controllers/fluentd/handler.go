@@ -2,6 +2,7 @@ package fluentd
 
 import (
 	"fmt"
+	"maps"
 
 	loggingService "github.com/Netcracker/qubership-logging-operator/api/v1"
 	util "github.com/Netcracker/qubership-logging-operator/controllers/utils"
@@ -46,9 +47,7 @@ func (r *FluentdReconciler) handleDaemonSet(cr *loggingService.LoggingService) e
 			if e.Labels == nil && m.Labels != nil {
 				e.SetLabels(m.Labels)
 			} else {
-				for k, v := range m.Labels {
-					e.Labels[k] = v
-				}
+				maps.Copy(e.Labels, m.Labels)
 			}
 			e.Spec.Template.SetLabels(m.Spec.Template.GetLabels())
 			e.Spec.Template.Spec.Containers = m.Spec.Template.Spec.Containers

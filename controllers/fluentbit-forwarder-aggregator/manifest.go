@@ -3,6 +3,7 @@ package fluentbit_forwarder_aggregator
 import (
 	"embed"
 	"fmt"
+	"maps"
 	"strings"
 
 	loggingService "github.com/Netcracker/qubership-logging-operator/api/v1"
@@ -47,9 +48,7 @@ func forwarderConfigMap(cr *loggingService.LoggingService, dynamicParameters uti
 
 	// Set custom scripts from parameters
 	if cr.Spec.Fluentbit.CustomLuaScriptConf != nil {
-		for scriptName, script := range cr.Spec.Fluentbit.CustomLuaScriptConf {
-			configMapData[scriptName] = script
-		}
+		maps.Copy(configMapData, cr.Spec.Fluentbit.CustomLuaScriptConf)
 	}
 
 	configMap := corev1.ConfigMap{
@@ -162,9 +161,7 @@ func aggregatorConfigMap(cr *loggingService.LoggingService, dynamicParameters ut
 
 	// Set custom scripts from parameters
 	if cr.Spec.Fluentbit.Aggregator.CustomLuaScriptConf != nil {
-		for scriptName, script := range cr.Spec.Fluentbit.Aggregator.CustomLuaScriptConf {
-			configMapData[scriptName] = script
-		}
+		maps.Copy(configMapData, cr.Spec.Fluentbit.Aggregator.CustomLuaScriptConf)
 	}
 
 	configMap := corev1.ConfigMap{

@@ -5,6 +5,12 @@
 # Provide a name of CR
 name: qubership-logging
 
+# Netcracker deployment session ID. When set, adds deployment.netcracker.com/sessionId to all resources.
+# Type: string
+# Mandatory: no
+#
+# DEPLOYMENT_SESSION_ID: ""
+
 # Specifies whether a cluster-admin entities should be created.
 # Type: bool
 # Mandatory: no
@@ -239,6 +245,16 @@ graylog:
   # Default: true
   #
   createIngress: true
+
+  # Netcracker labels for Ingress (only on kind: Ingress, not OpenShift Route).
+  # Type: object
+  # Mandatory: no
+  #
+  ingressLabels:
+    # private-network = intranet; public-network = internet
+    ingressType: public-network
+    # dev-user | ops-user | conf-user | end-user
+    ingressAudienceType: ops-user
 
   # The Graylog host for ingress. For example: https://graylog-service.kubernetes.cloud.org/
   # Type: string

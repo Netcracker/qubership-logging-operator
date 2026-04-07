@@ -35,11 +35,15 @@ users:
 defaultAddCapabilities: []
 requiredDropCapabilities: []
 allowedCapabilities: []
+seccompProfiles:
+  - runtime/default
 volumes:
   - configMap
+  - downwardAPI
   - emptyDir
   - hostPath
   - persistentVolumeClaim
+  - projected
   - secret
 allowHostNetwork: false
 allowHostPorts: false

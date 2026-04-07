@@ -482,7 +482,7 @@ spec:
         {{- end }}
         {{- end }}
         {{- if .Values.fluentd.output.loki.staticLabels }}
-        staticLabels: {{ toJson .Values.fluentd.output.loki.staticLabels | quote }}
+        staticLabels: {{ .Values.fluentd.output.loki.staticLabels | squote }}
         {{- end }}
         {{- if .Values.fluentd.output.loki.labelsMapping }}
         labelsMapping: |-

@@ -17,7 +17,8 @@ globals = {
     "second_count_fields",
     "execute_real_func_test_new_gen",
     "execute_test",
-    "execute_test_new_gen"
+    "execute_test_new_gen",
+    "extract_hostname"
 }
 
 -- Ignore specific error codes

@@ -41,11 +41,11 @@ annotations:
   fluentbit.io/parser:: logfmt
 ```
 
-If no annotation is provided, the default parser used is `json`. If the message is parsed by suggested parsed,
+If no annotation is provided, the default parser used is `json`. If the message is parsed by suggested parser,
 it bypasses the generic filters chain and is sent to outputs. Otherwise the log message passes through
 the generic filters chain, and if it matches any parser from the list of available parsers - additional fields
-appear in the record, the FluentBit pipeline adds a `parsed` field with the value `true`. If the message does not match
-any defined parser, it will be marked with `parsed: false`.
+appear in the record, the FluentBit pipeline adds a `parse_status` field with the value `success`. If the message
+does not match any defined parser, it will be marked with `parse_status: failed`.
 
 ## Pipeline Design
 
@@ -62,9 +62,9 @@ flowchart LR
         FRT["filter-rewrite-tag.conf<br/>Match pods*<br/>Rule: $pod ^kube-.* klog.$TAG false"] --> FC
         FRT["filter-rewrite-tag.conf<br/>Match pods*<br/>Rule: $pod ^kube-.* klog.$TAG false"] --> FVALID
         FRTP["filter-rewrite-tag.conf<br/>Match klog.*<br/>klog parsers"] --> FVALID
-        FVALID["filter-validate.conf<br/>Second count fields<br/>Set parsed: true | false<br/>Remove log field if parsed: true"] --> FGEN
+        FVALID["filter-validate.conf<br/>Second count fields<br/>Set parse_status: success | false<br/>Remove log field if parse_status: success"] --> FGEN
         FGEN["filter-generic.conf<br/>Generic filters chain<br/>Match pods*<br/>Applied only to messages with existing and not empty log field"] --> FPGEN
-        FPGEN["filter-post-generic.conf<br/>Count fields<br/>Set parsed: true | false<br/>Parse [key=value] labels<br/>Add mandatory fields for GELF format<br/>Mark audit messages with special field"] --> FNL
+        FPGEN["filter-post-generic.conf<br/>Count fields<br/>Set parse_status: success | false<br/>Parse [key=value] labels<br/>Add mandatory fields for GELF format<br/>Mark audit messages with special field"] --> FNL
         FNL["filter-nonsupported-levels.conf<br/>Lua script converting level to FluentBit supported values"] --> FULC
         FNL["filter-nonsupported-levels.conf<br/>Lua script converting level to FluentBit supported values"] --> OGRAY
         OGRAY["output-graylog.conf<br/>Sends data to graylog host in GELF format"]

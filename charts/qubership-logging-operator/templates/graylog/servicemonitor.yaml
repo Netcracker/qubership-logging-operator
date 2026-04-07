@@ -3,9 +3,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   labels:
-    app.kubernetes.io/name: graylog-service-monitor
-    app.kubernetes.io/component: monitoring
-    app.kubernetes.io/part-of: logging
+    {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" "graylog-service-monitor" "component" "monitoring" "processedByOperator" "prometheus-operator") | nindent 4 }}
   {{- if .Values.graylog.labels }}
     {{- toYaml .Values.graylog.labels | nindent 4 }}
   {{- end }}
@@ -31,8 +29,8 @@ spec:
           regex: org_graylog2_rest_.*
           sourceLabels:
             - __name__
-      path: /api/plugins/org.graylog.plugins.metrics.prometheus/metrics
-      port: graylog
+      path: /api/metrics/prometheus
+      port: graylog-metrics
       {{- if .Values.graylog.tls }}
       {{- if .Values.graylog.tls.http }}
       {{- if .Values.graylog.tls.http.enabled }}

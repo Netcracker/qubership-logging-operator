@@ -5,15 +5,16 @@ kind: Ingress
 metadata:
   name: graylog
   labels:
-    app.kubernetes.io/name: graylog
-    app.kubernetes.io/component: graylog
-    app.kubernetes.io/part-of: logging
+    {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" "graylog" "component" "graylog") | nindent 4 }}
   {{- if .Values.graylog.labels }}
     {{- toYaml .Values.graylog.labels | nindent 4 }}
   {{- end }}
-  annotations:
   {{- if .Values.graylog.annotations }}
+  annotations:
     {{- toYaml .Values.graylog.annotations | nindent 4 }}
+  {{- end }}
+  {{- if and .Values.graylog.httpRoute.install .Values.graylog.addIngressIgnoreAnnotation }}
+    gateway-api-converter.netcracker.com/ignore: "true"
   {{- end }}
   {{- if and .Values.graylog.tls .Values.graylog.tls.http .Values.graylog.tls.http.enabled }}
     nginx.ingress.kubernetes.io/backend-protocol: HTTPS

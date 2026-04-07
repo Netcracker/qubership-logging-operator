@@ -9,11 +9,11 @@ Unfortunately, in some cases, the renewal of certificates at destinations doesn'
 steps are required. The table below reflects actions required after updating the certificates:
 
 | Service             | No extra steps | Restart pod |
-|---------------------|----------------|-------------|
-| Graylog HTTP server |                | ✅           |
-| Graylog inputs      |                | ✅           |
-| Fluentd             |                | ✅           |
-| Fluent-bit          |                | ✅           |
+| ------------------- | -------------- | ----------- |
+| Graylog HTTP server |                | ✔           |
+| Graylog inputs      |                | ✔           |
+| Fluentd             |                | ✔           |
+| Fluent-bit          |                | ✔           |
 
 After restart, components may be unavailable for a short time.
 
@@ -118,9 +118,9 @@ In this schema Logging support TLS for next channels:
 
 | Connection                  | Status        |
 | --------------------------- | ------------- |
-| User - Graylog UI           | ✅ Support     |
-| Graylog - Elasticsearch     | ✗ Not Support |
-| Fluentd/FluentBit - Graylog | ✅ Support     |
+| User - Graylog UI           | ✔ Support     |
+| Graylog - Elasticsearch     | ✘ Not Support |
+| Fluentd/FluentBit - Graylog | ✔ Support     |
 | Fluentd/FluentBit - Logs    | N/A           |
 
 where:
@@ -150,15 +150,15 @@ In this schema Logging support TLS for next channels:
 
 | Connection                  | Status                |
 | --------------------------- | --------------------- |
-| User - Graylog UI           | ✅ Support             |
-| Graylog - Elasticsearch     | ✅ Support             |
-| Fluentd/FluentBit - Graylog | ✅/✗ Partially Support |
+| User - Graylog UI           | ✔ Support             |
+| Graylog - Elasticsearch     | ✔ Support             |
+| Fluentd/FluentBit - Graylog | ✔/✘ Partially Support |
 | Fluentd/FluentBit - Logs    | N/A                   |
 
 where:
 
 * `N/A` is `Not Applicable` because Fluentd/FluentBit read logs directly from containers log files on node.
-* `✅/✗ Partially Support` means that for Graylog in Cloud currently there is no ability to configure TLS Input.
+* `✔/✘ Partially Support` means that for Graylog in Cloud currently there is no ability to configure TLS Input.
   But this feature in plans and will be implemented soon.
 
 And one more important difference from schema when Graylog deploy on VM is TLS for Graylog UI. In the Cloud we have

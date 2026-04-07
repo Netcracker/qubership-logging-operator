@@ -12,7 +12,8 @@ The collection of the following logs is supported:
 
 Custom log processing from any other source and integration with external log processing systems is also available.
 
-The collected logs can be split into groups with different access permissions to avoid unauthorized access to sensitive data.
+The collected logs can be split into groups with different access permissions
+to avoid unauthorized access to sensitive data.
 
 The logging service is based on a third-party solution, Graylog. For more information,
 refer to the [Official Graylog Documentation](https://go2docs.graylog.org).

@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1alpha1
+package v1
 
 import (
 	"context"
@@ -123,8 +123,8 @@ type Graylog struct {
 	MaxSize                                  int                          `json:"maxSize,omitempty"`
 	InputbufferProcessors                    int                          `json:"inputbufferProcessors,omitempty"`
 	StartupTimeout                           int                          `json:"startupTimeout,omitempty"`
-	IndexShards                              int                          `json:"indexShards,omitempty"`
-	IndexReplicas                            int                          `json:"indexReplicas,omitempty"`
+	IndexShards                              *int                         `json:"indexShards,omitempty"`
+	IndexReplicas                            *int                         `json:"indexReplicas,omitempty"`
 	MaxNumberOfIndices                       int                          `json:"maxNumberOfIndices,omitempty"`
 	LogsRotationSizeGb                       int                          `json:"logsRotationSizeGb,omitempty"`
 	InputPort                                int                          `json:"inputPort"`
@@ -366,6 +366,17 @@ type FluentdLokiTLS struct {
 	FluentdTLSParams `json:",inline"`
 }
 
+type FluentdHttpTLS struct {
+	Certificates         `json:",inline"`
+	FluentdHttpTLSParams `json:",inline"`
+}
+
+type FluentdHttpTLSParams struct {
+	Enabled    bool   `json:"enabled,omitempty"`
+	VerifyMode string `json:"verifyMode,omitempty"`
+	Version    string `json:"version,omitempty"`
+	Ciphers    string `json:"ciphers,omitempty"`
+}
 type FluentbitTLS struct {
 	TLS                `json:",inline"`
 	FluentbitTLSParams `json:",inline"`
@@ -378,6 +389,11 @@ type FluentbitTLSParams struct {
 }
 
 type FluentbitLokiTLS struct {
+	Certificates       `json:",inline"`
+	FluentbitTLSParams `json:",inline"`
+}
+
+type FluentbitHttpTLS struct {
 	Certificates       `json:",inline"`
 	FluentbitTLSParams `json:",inline"`
 }
@@ -456,6 +472,8 @@ type ConfigmapReload struct {
 
 type OutputFluentbit struct {
 	Loki *LokiFluentbit `json:"loki,omitempty"`
+	Http *HttpFluentbit `json:"http,omitempty"`
+	Otel *OtelFluentbit `json:"otel,omitempty"`
 }
 
 type LokiFluentbit struct {
@@ -469,14 +487,46 @@ type LokiFluentbit struct {
 	ExtraParams   string            `json:"extraParams,omitempty"`
 }
 
+type HttpFluentbit struct {
+	Enabled        bool                  `json:"enabled,omitempty"`
+	Routing        *FluentbitHTTPRouting `json:"routing,omitempty"`
+	Host           string                `json:"host,omitempty"`
+	Port           int                   `json:"port,omitempty"`
+	Uri            string                `json:"uri,omitempty"`
+	Auth           *Auth                 `json:"auth,omitempty"`
+	Compress       string                `json:"compress,omitempty"`
+	TLS            *FluentbitHttpTLS     `json:"tls,omitempty"`
+	JsonDateFormat string                `json:"jsonDateFormat,omitempty"`
+	Format         string                `json:"format,omitempty"`
+	ExtraParams    string                `json:"extraParams,omitempty"`
+}
+
+type OtelFluentbit struct {
+	Enabled             bool              `json:"enabled,omitempty"`
+	Host                string            `json:"host,omitempty"`
+	Port                int               `json:"port,omitempty"`
+	LogsUri             string            `json:"logsUri,omitempty"`
+	Target              string            `json:"target,omitempty"`
+	LogSuppressInterval int               `json:"logSuppressInterval,omitempty"`
+	Auth                *Auth             `json:"auth,omitempty"`
+	Compress            string            `json:"compress,omitempty"`
+	TLS                 *FluentbitHttpTLS `json:"tls,omitempty"`
+	ExtraParams         string            `json:"extraParams,omitempty"`
+}
+
 type Auth struct {
 	Token    *v1.SecretKeySelector `yaml:"token" json:"token,omitempty"`
 	User     *v1.SecretKeySelector `yaml:"username" json:"user,omitempty"`
 	Password *v1.SecretKeySelector `yaml:"password" json:"password,omitempty"`
 }
 
+type FluentbitHTTPRouting struct {
+	Enabled   bool   `json:"enabled,omitempty"`
+	HeaderTag string `json:"headerTag,omitempty"`
+}
 type OutputFluentd struct {
 	Loki *LokiFluentd `json:"loki,omitempty"`
+	Http *HttpFluentd `json:"http,omitempty"`
 }
 
 type LokiFluentd struct {
@@ -488,6 +538,22 @@ type LokiFluentd struct {
 	LabelsMapping string          `json:"labelsMapping,omitempty"`
 	TLS           *FluentdLokiTLS `json:"tls,omitempty"`
 	ExtraParams   string          `json:"extraParams,omitempty"`
+}
+type HttpFluentd struct {
+	Enabled     bool               `json:"enabled,omitempty"`
+	Routing     FluentdHTTPRouting `json:"routing,omitempty"`
+	Host        string             `json:"host,omitempty"`
+	Path        string             `json:"path,omitempty"`
+	Compress    string             `json:"compress,omitempty"`
+	Headers     map[string]string  `json:"headers,omitempty"`
+	Auth        *Auth              `json:"auth,omitempty"`
+	TLS         *FluentdHttpTLS    `json:"tls,omitempty"`
+	ExtraParams string             `json:"extraParams,omitempty"`
+}
+
+type FluentdHTTPRouting struct {
+	Enabled           bool   `json:"enabled,omitempty"`
+	LogCategoryHeader string `json:"logCategoryHeader,omitempty"`
 }
 
 func (in *LoggingService) ToParams() LoggingServiceParameters {

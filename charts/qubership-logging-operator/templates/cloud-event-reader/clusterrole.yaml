@@ -4,17 +4,15 @@ kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: {{ .Release.Namespace }}-cloud-events-reader
-  labels:
-    app.kubernetes.io/name: {{ .Release.Namespace }}-cloud-events-reader
-    app.kubernetes.io/component: events-reader
-    app.kubernetes.io/part-of: logging
-  {{- if .Values.cloudEventsReader.labels }}
-    {{- toYaml .Values.cloudEventsReader.labels | nindent 4 }}
-  {{- end }}
   {{- if .Values.cloudEventsReader.annotations }}
   annotations:
     {{- toYaml .Values.cloudEventsReader.annotations | nindent 4 }}
   {{- end }}
+  labels:
+    {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" "{{ .Release.Namespace }}-cloud-events-reader" "component" "events-reader") | nindent 4 }}
+    {{- if .Values.cloudEventsReader.labels }}
+      {{- toYaml .Values.cloudEventsReader.labels | nindent 4 }}
+    {{- end }}
 roleRef:
   kind: ClusterRole
   name: view

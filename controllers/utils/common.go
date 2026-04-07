@@ -3,11 +3,10 @@ package utils
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"strings"
 	"time"
 
-	loggingService "github.com/Netcracker/qubership-logging-operator/api/v1alpha1"
+	loggingService "github.com/Netcracker/qubership-logging-operator/api/v1"
 	"github.com/go-logr/logr"
 	core "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -141,14 +140,6 @@ func ResourceExists(dc discovery.DiscoveryInterface, apiGroupVersion, kind strin
 func GetTagFromImage(image string) string {
 	partsOfImage := strings.Split(image, ":")
 	return partsOfImage[len(partsOfImage)-1]
-}
-
-func GetInstanceLabel(name, namespace string) string {
-	label := fmt.Sprintf("%s-%s", name, namespace)
-	if len(label) >= 64 {
-		return strings.Trim(label[:64], "-")
-	}
-	return strings.Trim(label, "-")
 }
 
 func GetAggregatorIds(num int) []int {

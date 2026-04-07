@@ -6,6 +6,7 @@ from PlatformLibrary import PlatformLibrary
 environ = os.environ
 namespace = environ.get("LOGGING_PROJECT")
 external_graylog_server = environ.get("EXTERNAL_GRAYLOG_SERVER")
+graylog_install = environ.get("GRAYLOG_INSTALL")
 service = 'graylog'
 timeout = 300
 timeout_before_start = int(environ.get('TIMEOUT_BEFORE_START'))
@@ -21,6 +22,8 @@ if __name__ == '__main__':
     print("Checking Graylog stateful set is ready")
     if external_graylog_server == "true":
         print('Graylog is ready!')
+    elif graylog_install != "true":
+        print('Graylog is not available, skipping the check!')
     else:
         timeout_start = time.time()
         while time.time() < timeout_start + timeout:

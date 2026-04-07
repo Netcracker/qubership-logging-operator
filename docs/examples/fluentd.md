@@ -85,7 +85,7 @@ Configuration for alternative output destinations:
 ## Key Configuration Parameters
 
 | Parameter | Description | Values |
-|-----------|-------------|--------|
+| --------- | ----------- | ------ |
 | `fluentd.install` | Enable FluentD deployment | `true`/`false` |
 | `fluentd.graylogHost` | Graylog server hostname/IP | Hostname or IP |
 | `fluentd.graylogPort` | Graylog input port | Port number (default: 12201) |

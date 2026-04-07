@@ -2,7 +2,7 @@
   "disabled_processors": [],
   "processor_order": [
     {
-      "class_name": "org.qubership.graylog2.plugin.processor.ObfuscationMessageProcessor",
+      "class_name": "com.netcracker.graylog2.plugin.processor.ObfuscationMessageProcessor",
       "name": "Message Obfuscator"
     },
     {

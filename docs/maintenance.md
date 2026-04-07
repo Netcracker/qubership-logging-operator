@@ -5,7 +5,8 @@ as hardware upgrade and so on.
 
 ## Logging Backup
 
-Logging-backuper provides an ability to backup all logging data (logs, configuration, and so on) and to make restore if required.
+Logging-backuper provides an ability to backup all logging data
+(logs, configuration, and so on) and to make restore if required.
 
 Logging-backuper is installed on the same VM as Graylog and operates as a separate Docker container.
 

@@ -4,17 +4,15 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: {{ .Release.Namespace }}-psp:oob-privileged
-  labels:
-    app.kubernetes.io/name: {{ .Release.Namespace }}-psp:oob-privileged
-    app.kubernetes.io/component: graylog
-    app.kubernetes.io/part-of: logging
-  {{- if .Values.graylog.labels }}
-    {{- toYaml .Values.graylog.labels | nindent 4 }}
-  {{- end }}
   {{- if .Values.graylog.annotations }}
   annotations:
     {{- toYaml .Values.graylog.annotations | nindent 4 }}
   {{- end }}
+  labels:
+    {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" "{{ .Release.Namespace }}-psp:oob-privileged" "component" "graylog") | nindent 4 }}
+    {{- if .Values.graylog.labels }}
+      {{- toYaml .Values.graylog.labels | nindent 4 }}
+    {{- end }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole # Must be Role or ClusterRole

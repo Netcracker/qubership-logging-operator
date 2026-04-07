@@ -10,7 +10,8 @@ function update_level(tag, timestamp, record)
   if (record["level"] ~= nil) then
     record["level"] = string.lower(record["level"]):gsub("^%s*(.-)%s*$", "%1")
     local first_ch = string.sub(record["level"], 1, 1)
-    if first_ch == '0' then
+    -- p = panic
+    if first_ch == '0' or first_ch == 'p' then
       record["level"] = "emerg"
     -- a = alert, f = fatal, s = severe
     elseif first_ch == '1' or first_ch == 'a' or first_ch == 'f' or first_ch == 's' then
@@ -29,8 +30,8 @@ function update_level(tag, timestamp, record)
     -- i = info
     elseif first_ch == '6' or first_ch == 'i' then
       record["level"] = "info"
-    -- d = debug, t = trace
-    elseif first_ch == '7' or first_ch == 'd' or first_ch == 't' then
+    -- d = debug, t = trace, v = verbose
+    elseif first_ch == '7' or first_ch == 'd' or first_ch == 't' or first_ch == 'v' then
       record["level"] = "debug"
     -- e, er = err, e(~=r) = emerg
     elseif first_ch == 'e' then
@@ -40,11 +41,11 @@ function update_level(tag, timestamp, record)
         record["level"] = "err"
       end
     else
-      record["level_unknown"] = "true"
+      record["parse_level_unknown"] = "true"
       record["level"] = "info"
     end
   else
-    record["level_unknown"] = "true"
+    record["parse_level_unknown"] = "true"
     record["level"] = "info"
   end
 

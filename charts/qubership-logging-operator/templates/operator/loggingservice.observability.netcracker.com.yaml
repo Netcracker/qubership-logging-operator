@@ -1,11 +1,9 @@
-apiVersion: logging.qubership.org/v1alpha1
+apiVersion: logging.netcracker.com/v1
 kind: LoggingService
 metadata:
   name: {{ .Values.name }}
   labels:
-    app.kubernetes.io/name: {{ .Values.name }}
-    app.kubernetes.io/component: logging-operator
-    app.kubernetes.io/part-of: logging
+    {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" .Values.name "component" "logging-operator" "processedByOperator" "logging-service-operator") | nindent 4 }}
   {{- if .Values.labels }}
     {{- toYaml .Values.labels | nindent 4 }}
   {{- end }}
@@ -37,10 +35,10 @@ spec:
     {{- if .Values.graylog.logLevel }}
     logLevel: {{ .Values.graylog.logLevel }}
     {{- end }}
-    {{- if  .Values.graylog.indexShards }}
+    {{- if  hasKey .Values.graylog "indexShards" }}
     indexShards: {{ .Values.graylog.indexShards }}
     {{- end }}
-    {{- if .Values.graylog.indexReplicas }}
+    {{- if hasKey .Values.graylog "indexReplicas" }}
     indexReplicas: {{ .Values.graylog.indexReplicas }}
     {{- end }}
     {{- if .Values.graylog.priorityClassName }}
@@ -103,9 +101,12 @@ spec:
     {{- if .Values.graylog.customPluginsPaths }}
     customPluginsPaths: {{ .Values.graylog.customPluginsPaths }}
     {{- end }}
-    {{- if .Values.graylog.labels }}
+    {{- if or .Values.DEPLOYMENT_SESSION_ID .Values.graylog.labels }}
     labels:
+      {{- include "logging-operator.sessionIdLabel" . | nindent 6 }}
+      {{- if .Values.graylog.labels }}
       {{- toYaml .Values.graylog.labels | nindent 6 }}
+      {{- end }}
     {{- end }}
     {{- if .Values.graylog.annotations }}
     annotations:
@@ -422,9 +423,12 @@ spec:
     cloudEventsReaderFormat: {{ .Values.fluentd.cloudEventsReaderFormat }}
     {{- end }}
     watchKubernetesMetadata: {{ default true .Values.fluentd.watchKubernetesMetadata }}
-    {{- if .Values.fluentd.labels }}
+    {{- if or .Values.DEPLOYMENT_SESSION_ID .Values.fluentd.labels }}
     labels:
+      {{- include "logging-operator.sessionIdLabel" . | nindent 6 }}
+      {{- if .Values.fluentd.labels }}
       {{- toYaml .Values.fluentd.labels | nindent 6 }}
+      {{- end }}
     {{- end }}
     {{- if .Values.fluentd.annotations }}
     annotations:
@@ -451,8 +455,9 @@ spec:
     extraFields:
       {{- toYaml .Values.fluentd.extraFields | nindent 6 }}
     {{- end }}
-    {{- if and .Values.fluentd.output  .Values.fluentd.output.loki }}
+    {{- if and .Values.fluentd.output }}
     output:
+    {{- if  .Values.fluentd.output.loki }}
       loki:
       {{- if .Values.fluentd.output.loki.enabled }}
         enabled: true
@@ -481,7 +486,7 @@ spec:
         {{- end }}
         {{- end }}
         {{- if .Values.fluentd.output.loki.staticLabels }}
-        staticLabels: {{ toJson .Values.fluentd.output.loki.staticLabels | quote }}
+        staticLabels: {{ .Values.fluentd.output.loki.staticLabels | squote }}
         {{- end }}
         {{- if .Values.fluentd.output.loki.labelsMapping }}
         labelsMapping: |-
@@ -520,6 +525,15 @@ spec:
         enabled: false
       {{- end }}
     {{- end }}
+    {{- if  .Values.fluentd.output.http }}
+      http:
+      {{- if .Values.fluentd.output.http.enabled }}
+        {{- toYaml .Values.fluentd.output.http | nindent 8 }}
+      {{- else }}
+        enabled: false
+      {{- end }}
+    {{- end }}
+  {{- end }}
   {{- end }}
   {{- if .Values.fluentbit.install }}
   fluentbit:
@@ -634,9 +648,12 @@ spec:
     customLuaScriptConf:
       {{- toYaml .Values.fluentbit.customLuaScriptConf | nindent 6 }}
     watchKubernetesMetadata: {{ default true .Values.fluentbit.watchKubernetesMetadata }}
-    {{- if .Values.fluentbit.labels }}
+    {{- if or .Values.DEPLOYMENT_SESSION_ID .Values.fluentbit.labels }}
     labels:
+      {{- include "logging-operator.sessionIdLabel" . | nindent 6 }}
+      {{- if .Values.fluentbit.labels }}
       {{- toYaml .Values.fluentbit.labels | nindent 6 }}
+      {{- end }}
     {{- end }}
     {{- if .Values.fluentbit.annotations }}
     annotations:
@@ -664,8 +681,9 @@ spec:
     extraFields:
       {{- toYaml .Values.fluentbit.extraFields | nindent 6 }}
     {{- end }}
-    {{- if and .Values.fluentbit.output  .Values.fluentbit.output.loki }}
+    {{- if .Values.fluentbit.output }}
     output:
+    {{- if .Values.fluentbit.output.loki }}
       loki:
       {{- if .Values.fluentbit.output.loki.enabled }}
         enabled: true
@@ -730,6 +748,23 @@ spec:
       {{- else }}
         enabled: false
       {{- end }}
+    {{- end }}
+    {{- if  .Values.fluentbit.output.http }}
+      http:
+      {{- if .Values.fluentbit.output.http.enabled }}
+        {{- toYaml .Values.fluentbit.output.http | nindent 8 }}
+      {{- else }}
+        enabled: false
+      {{- end }}
+    {{- end }}
+    {{- if  .Values.fluentbit.output.otel }}
+      otel:
+      {{- if .Values.fluentbit.output.otel.enabled }}
+        {{- toYaml .Values.fluentbit.output.otel | nindent 8 }}
+      {{- else }}
+        enabled: false
+      {{- end }}
+    {{- end }}
     {{- end }}
     {{- if .Values.fluentbit.aggregator }}
     aggregator:
@@ -821,9 +856,12 @@ spec:
         {{ default "" .Values.fluentbit.aggregator.customOutputConf | nindent 8 }}
       customLuaScriptConf:
         {{- toYaml .Values.fluentbit.aggregator.customLuaScriptConf | nindent 8 }}
-      {{- if .Values.fluentbit.aggregator.labels }}
+      {{- if or .Values.DEPLOYMENT_SESSION_ID .Values.fluentbit.aggregator.labels }}
       labels:
+        {{- include "logging-operator.sessionIdLabel" . | nindent 8 }}
+        {{- if .Values.fluentbit.aggregator.labels }}
         {{- toYaml .Values.fluentbit.aggregator.labels | nindent 8 }}
+        {{- end }}
       {{- end }}
       {{- if .Values.fluentbit.aggregator.annotations }}
       annotations:
@@ -852,8 +890,9 @@ spec:
       extraFields:
         {{- toYaml .Values.fluentbit.aggregator.extraFields | nindent 8 }}
       {{- end }}
-      {{- if and .Values.fluentbit.aggregator.output  .Values.fluentbit.aggregator.output.loki }}
+      {{- if .Values.fluentbit.aggregator.output }}
       output:
+      {{- if .Values.fluentbit.aggregator.output.loki }}
         loki:
         {{- if .Values.fluentbit.aggregator.output.loki.enabled }}
           enabled: true
@@ -919,7 +958,24 @@ spec:
           enabled: false
         {{- end }}
       {{- end }}
+      {{- if .Values.fluentbit.aggregator.output.http }}
+        http:
+        {{- if .Values.fluentbit.aggregator.output.http.enabled }}
+          {{- toYaml .Values.fluentbit.aggregator.output.http | nindent 10 }}
+        {{- else }}
+          enabled: false
+        {{- end }}
+      {{- end }}
+      {{- if .Values.fluentbit.aggregator.output.otel }}
+        otel:
+        {{- if .Values.fluentbit.aggregator.output.otel.enabled }}
+          {{- toYaml .Values.fluentbit.aggregator.output.otel | nindent 10 }}
+        {{- else }}
+          enabled: false
+        {{- end }}
+      {{- end }}
     {{- end }}
+  {{- end }}
   {{- end }}
   {{- if .Values.cloudEventsReader.install }}
   cloudEventsReader:
@@ -953,9 +1009,12 @@ spec:
     affinity:
       {{- toYaml .Values.cloudEventsReader.affinity | nindent 6 }}
     {{- end }}
-    {{- if .Values.cloudEventsReader.labels }}
+    {{- if or .Values.DEPLOYMENT_SESSION_ID .Values.cloudEventsReader.labels }}
     labels:
+      {{- include "logging-operator.sessionIdLabel" . | nindent 6 }}
+      {{- if .Values.cloudEventsReader.labels }}
       {{- toYaml .Values.cloudEventsReader.labels | nindent 6 }}
+      {{- end }}
     {{- end }}
     {{- if .Values.cloudEventsReader.annotations }}
     annotations:

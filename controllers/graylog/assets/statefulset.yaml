@@ -4,11 +4,7 @@ metadata:
   name: graylog
   namespace: "{{ .Release.Namespace }}"
   labels:
-    name: graylog
-    app.kubernetes.io/name: graylog
-    app.kubernetes.io/component: graylog
-    app.kubernetes.io/part-of: logging
-    app.kubernetes.io/managed-by: logging-operator
+    app.kubernetes.io/technology: java-others
 spec:
   {{- if ne .Values.Graylog.Replicas nil }}
   replicas: {{ .Values.Graylog.Replicas }}
@@ -26,11 +22,7 @@ spec:
   template:
     metadata:
       labels:
-        name: graylog
-        app.kubernetes.io/name: graylog
-        app.kubernetes.io/component: graylog
-        app.kubernetes.io/part-of: logging
-        app.kubernetes.io/managed-by: logging-operator
+        app.kubernetes.io/technology: java-others
     spec:
       volumes:
         - name: data
@@ -445,6 +437,9 @@ spec:
               protocol: UDP
             - name: graylog-{{ .Values.Graylog.InputPort }}
               containerPort: {{ .Values.Graylog.InputPort }}
+              protocol: TCP
+            - name: graylog-metrics
+              containerPort: 9833
               protocol: TCP
 {{- if .Values.Graylog.GraylogResources }}
           resources:

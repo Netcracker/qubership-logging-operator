@@ -5,6 +5,12 @@
 # Provide a name of CR
 name: qubership-logging
 
+# Netcracker deployment session ID. When set, adds deployment.netcracker.com/sessionId to all resources.
+# Type: string
+# Mandatory: no
+#
+# DEPLOYMENT_SESSION_ID: ""
+
 # Specifies whether a cluster-admin entities should be created.
 # Type: bool
 # Mandatory: no
@@ -240,6 +246,16 @@ graylog:
   #
   createIngress: true
 
+  # Netcracker labels for Ingress (only on kind: Ingress, not OpenShift Route).
+  # Type: object
+  # Mandatory: no
+  #
+  ingressLabels:
+    # private-network = intranet; public-network = internet
+    ingressType: public-network
+    # dev-user | ops-user | conf-user | end-user
+    ingressAudienceType: ops-user
+
   # The Graylog host for ingress. For example: https://graylog-service.kubernetes.cloud.org/
   # Type: string
   #
@@ -258,6 +274,87 @@ graylog:
   # Type: string
   #
   # ingressClassName:
+
+  # HTTPRoute-specific configuration through Gateway API.
+  httpRoute:
+
+    # Enables / disables deploy of HTTPRoute for Graylog
+    # Type: boolean
+    # Mandatory: no
+    # Default: false
+    #
+    install: false
+
+    # Hostnames for graylog UI.
+    # If not set then host from ingress configuration will be used.
+    # Type: list of strings
+    # Mandatory: yes
+    # Default: ''
+    #
+    hostnames: []
+
+    # Custom HTTPRoute rules to define routing behavior.
+    # If set, these rules are used in the HTTPRoute spec.rules block.
+    # If not set or empty, a single default rule is used:
+    #   - matches path with type PathPrefix and / value
+    #   - backendRefs to graylog:9000
+    #
+    # More info: https://gateway-api.sigs.k8s.io/reference/spec/#httprouterule
+    # Type: list of maps
+    # Mandatory: no
+    #
+    rules: []
+
+    # List of Gateway references this HTTPRoute should bind to.
+    # Each item describes a parent Gateway (via group, kind, name, namespace, and sectionName).
+    # If empty, the HTTPRoute is still created but will not be attached to any Gateway listeners.
+    # Type: list of maps
+    # Mandatory: no
+    # Default: []
+    # Example:
+    # - group: gateway.networking.k8s.io
+    #   kind: Gateway
+    #   name: my-gateway
+    #   namespace: gateway-infra
+    #   sectionName: http
+    #
+    parentRefs: []
+
+    #  # The API group of the Gateway.
+    #  # Type: string
+    #  # Default: gateway.networking.k8s.io
+    #  # Mandatory: no
+    #  #
+    #  # group: ''
+    #
+    #  # The kind of the Gateway (default: Gateway).
+    #  # Type: string
+    #  # Default: Gateway
+    #  # Mandatory: no
+    #  #
+    #  # kind: Gateway
+    #
+    #  # The name of the Gateway resource.
+    #  # Type: string
+    #  # Default: not set
+    #  # Mandatory: yes
+    #  #
+    #  # name: ''
+    #
+    #  # The namespace of the Gateway resource. If not set, it is assumed to be in the same namespace as the HTTPRoute.
+    #  # Type: string
+    #  # Default: not set
+    #  # Mandatory: no
+    #  #
+    #  # namespace: ''
+    #
+    #  # The specific listener name in the Gateway (optional).
+    #  # If not set, the HTTPRoute will be attached to all listeners of the parent Gateway.
+    #  # Type: string
+    #  # Default: not set
+    #  # Mandatory: no
+    #  #
+    #  # sectionName: ''
 
   # Mongo PVC name.
   # Type: string
@@ -517,7 +614,7 @@ graylog:
   #   maxSize: 1073741824
   #   maxNumberOfIndices: 5
 
-  # Logs contains special key-value markers: ["billing.qubership.org/application=billing"]
+  # Logs contains special key-value markers: ["billing.netcracker.com/application=billing"]
   # OR ["app.kubernetes.io/part-of=billing"]
   # - name: "Bill Cycle logs"
   #   install: false
@@ -1463,12 +1560,12 @@ fluentd:
       #     name: loki-secret
       #     key: password
 
-      # Static labels that added as stream labels.
+      # Static labels that added as stream labels. Should be valid JSON string with key-value pairs, for example: '{"job":"fluentd","env":"production"}'.
       # Type: string
-      # Default: { "job": "fluentd" }
+      # Default: {"job":"fluentd"}
       # Mandatory: no
       #
-      staticLabels: { "job": "fluentd" }
+      staticLabels: '{"job":"fluentd"}'
 
       # Labels mappings that defines how to extract labels from each log record
       # Type: string
@@ -1487,6 +1584,17 @@ fluentd:
         addressTo $.addressTo
         originating_bi_id $.originating_bi_id
         spanId $.spanId
+
+      # Additional configuration parameters for Loki output.
+      # Buffer can be configured here and other available parameters of FluentD Loki output plugin.
+      # See all the parameters here: https://github.com/grafana/loki/blob/main/clients/cmd/fluentd/lib/fluent/plugin/out_loki.rb
+      # Type: string
+      # Mandatory: no
+      #
+      # extraParams: |
+      #   extract_kubernetes_labels false
+      #   remove_keys []
+      #   custom_headers header:value
 
       # TLS configuration for Loki output.
       # Type: object
@@ -1575,16 +1683,172 @@ fluentd:
         #
         noVerify: false
 
-        # Additional configuration parameters for Loki output.
-        # Buffer can be configured here and other available parameters of FluentD Loki output plugin.
-        # See all the parameters here: https://github.com/grafana/loki/blob/main/clients/cmd/fluentd/lib/fluent/plugin/out_loki.rb
-        # Type: string
+    http:
+      # Flag for enabling Http output.
+      # Type: boolean
+      # Default: false
+      # Mandatory: no
+      #
+      enabled: false
+
+      routing:
+
+        # Enables stream field propagation to http header which is used to route logs to different storage backends.
+        # Type: boolean
+        # Default: false
         # Mandatory: no
         #
-        # extraParams: |
-        #   extract_kubernetes_labels false
-        #   remove_keys []
-        #   custom_headers header:value
+        enabled: false
+
+        # Header used to propagate logs stream and further routing to different storage backends.
+        # Type: string
+        # Default: X-Log-Type
+        # Mandatory: no
+        #
+        # logCategoryHeader: X-Log-Type
+
+      # Http host.
+      # Type: string
+      # Example: http://10.10.10.10:9428 or https://vlsingle-k8s.victorialogs:9428
+      # Mandatory: yes
+      #
+      host: ""
+
+      # Http path for url to ingest logs.
+      # Type: string
+      # Example: /insert/jsonline
+      # Mandatory: no
+      # Default: /insert/jsonline
+      #
+      # path: /insert/jsonline
+
+      # Authentication for Http output.
+      # Secret name and key in the secret storing the parameter should be provided. Username/password or token can be stored in different secrets.
+      # Type: object
+      # Mandatory: no
+      #
+      # auth:
+      #   token:
+      #     name: http-secret
+      #     key: token
+      #   user:
+      #     name: http-secret
+      #     key: user
+      #   password:
+      #     name: http-secret
+      #     key: password
+
+      # Payload compression mechanism for Http output. Allowed values: text/gzip.
+      # Type: string
+      # Mandatory: no
+      # Default: gzip
+      #
+      compress: gzip
+
+      # Additional headers for HTTP request.
+      # Type: object
+      # Mandatory: no
+      # Default: {"VL-Msg-Field": "log", "VL-Time-Field": "time", "VL-Stream-Fields": "stream"}
+      #
+      # headers: {"VL-Msg-Field": "log", "VL-Time-Field": "time", "VL-Stream-Fields": "stream"}
+
+      # Additional configuration parameters for Http output.
+      # Buffer can be configured here and other available parameters of FluentD Http output plugin.
+      # See all the parameters here: https://docs.fluentd.org/output/http
+      # Type: string
+      # Mandatory: no
+      #
+      # extraParams: |
+      #   extract_kubernetes_labels false
+      #   remove_keys []
+      #   custom_headers header:value
+
+      # TLS configuration for Http output.
+      # Type: object
+      # Mandatory: no
+      #
+      tls:
+        # Allows enabling TLS for Http output.
+        # Type: bool
+        # Mandatory: no
+        # Default: false
+        #
+        enabled: false
+
+        # Configuration for a custom CA store.
+        # If present, both secretKey and secretName fields are required.
+        # Type: object
+        # Mandatory: no
+        #
+        # ca:
+        #   Name of Secret with CA certificate.
+        #   Type: string
+        #   Mandatory: yes
+        #
+        #   secretName: secret-ca
+
+        #   Key (filename) in the Secret with CA certificate.
+        #   Type: string
+        #   Mandatory: yes
+        #
+        #   secretKey: ca.crt
+
+        # Configuration for a client certificate.
+        # If present, both secretKey and secretName fields are required.
+        # Type: object
+        # Mandatory: no
+        #
+        # cert:
+        #   Name of Secret with client certificate.
+        #   Type: string
+        #   Mandatory: yes
+        #
+        #   secretName: secret-cert
+
+        #   Key (filename) in the Secret with client certificate.
+        #   Type: string
+        #   Mandatory: yes
+        #
+        #   secretKey: certificate.crt
+
+        # Configuration for a key for the certificate file.
+        # If present, both secretKey and secretName fields are required.
+        # Type: object
+        # Mandatory: no
+        #
+        # key:
+        #   Name of Secret with key for the client certificate.
+        #   Type: string
+        #   Mandatory: yes
+        #
+        #   secretName: secret-key
+
+        #   Key (filename) in the Secret with key for the client certificate.
+        #   Type: string
+        #   Mandatory: yes
+        #
+        #   secretKey: privateKey.key
+
+        # Allows any ciphers to be used, may be insecure.
+        # Type: string
+        # Mandatory: no
+        # Default: no value
+        #
+        # ciphers: ""
+
+        # The default version of TLS. Available values:TLSv1_3(since 1.19.0)/TLSv1_2/TLSv1_1
+        # Type: string
+        # Mandatory: no
+        # Default: no value
+        #
+        # version: ":TLSv1_2"
+
+        # Force certificate validation. Available values: none/peer
+        # Type: string
+        # Mandatory: no
+        # Default: "peer"
+        #
+        # verifyMode: "peer"
 
   ## Allow creating security resources as PodSecurityPolicy, SecurityContextConstraints
   #
@@ -1867,6 +2131,312 @@ fluentbit:
           Retry_Limit            32
           storage.total_limit_size  5000M
           net.connect_timeout 20
+    http:
+      # Flag for enabling Http output.
+      # Type: boolean
+      # Default: false
+      # Mandatory: no
+      #
+      enabled: false
+
+      # Http host.
+      # Type: string
+      # Example: 10.10.10.10 or vlsingle-k8s.victorialogs
+      # Mandatory: yes
+      #
+      host: ""
+
+      # Http port, for example: 9428
+      # Type: int
+      # Mandatory: yes
+      #
+      # port: 9428
+
+      # Http uri to ingest logs.
+      # Type: string
+      # Example: /insert/jsonline
+      # Mandatory: no
+      # Default: '/insert/jsonline?_stream_fields=stream&_msg_field=short_message&_time_field=time'
+      #
+      # uri: '/insert/jsonline?_stream_fields=stream&_msg_field=short_message&_time_field=time'
+
+      # Payload compression mechanism for Http output. Allowed values: gzip, snappy, zstd.
+      # Type: string
+      # Mandatory: no
+      # Default: gzip
+      #
+      compress: gzip
+
+      # Additional configuration parameters for Http output.
+      # See docs: https://docs.fluentbit.io/manual/data-pipeline/outputs/http#configuration-parameters
+      # Type: string
+      # Mandatory: no
+      #
+      # extraParams: |
+
+      # Authentication for Http.
+      # Secret name and key in the secret storing the parameter should be provided. Username/password or token can be stored in different secrets.
+      # Type: object
+      # Mandatory: no
+      #
+      # auth:
+      #   user:
+      #     name: http-secret
+      #     key: user
+      #   password:
+      #     name: http-secret
+      #     key: password
+      #   token:
+      #     name: http-secret
+      #     key: token
+
+      # TLS configuration for Http output.
+      # Type: object
+      # Mandatory: no
+      #
+      tls:
+        # Allows enabling TLS for Http output.
+        # Type: bool
+        # Mandatory: no
+        # Default: false
+        #
+        enabled: false
+
+        # Configuration for a custom CA store.
+        # If present, both secretKey and secretName fields are required.
+        # Type: object
+        # Mandatory: no
+        #
+        # ca:
+        #   Name of Secret with CA certificate.
+        #   Type: string
+        #   Mandatory: yes
+        #
+        #   secretName: secret-ca
+
+        #   Key (filename) in the Secret with CA certificate.
+        #   Type: string
+        #   Mandatory: yes
+        #
+        #   secretKey: ca.crt
+
+        # Configuration for a client certificate.
+        # If present, both secretKey and secretName fields are required.
+        # Type: object
+        # Mandatory: no
+        #
+        # cert:
+        #   Name of Secret with client certificate.
+        #   Type: string
+        #   Mandatory: yes
+        #
+        #   secretName: secret-cert
+
+        #   Key (filename) in the Secret with client certificate.
+        #   Type: string
+        #   Mandatory: yes
+        #
+        #   secretKey: certificate.crt
+
+        # Configuration for a key for the certificate file.
+        # If present, both secretKey and secretName fields are required.
+        # Type: object
+        # Mandatory: no
+        #
+        # key:
+        #   Name of Secret with key for the client certificate.
+        #   Type: string
+        #   Mandatory: yes
+        #
+        #   secretName: secret-key
+
+        #   Key (filename) in the Secret with key for the client certificate.
+        #   Type: string
+        #   Mandatory: yes
+        #
+        #   secretKey: privateKey.key
+
+        # Force certificate validation.
+        # Type: bool
+        # Mandatory: no
+        # Default: true
+        #
+        # verify: true
+
+        # Optional password for private key file.
+        # Type: string
+        # Mandatory: no
+        #
+        # keyPasswd: secret
+
+      routing:
+
+        # Enables streams routing filters for Http output.
+        # Type: boolean
+        # Default: false
+        # Mandatory: no
+        #
+        enabled: false
+
+        # Header which is used by vmauth in routing rules to different vlsingle instances.
+        # For example, if headerTag is set to X-Log-Type, FluentBit will add this header with value of record's tag for each log
+        # and vmauth can route logs based on this header value.
+        # Type: string
+        # Default: stream
+        # Mandatory: no
+        #
+        # headerTag: X-Log-Type
+
+    otel:
+      # Flag for enabling opentelemetry output.
+      # Type: boolean
+      # Default: false
+      # Mandatory: no
+      #
+      enabled: false
+
+      # Otel host.
+      # Type: string
+      # Example: 10.10.10.10 or vlsingle-k8s.victorialogs
+      # Mandatory: yes
+      #
+      host: ""
+
+      # Otel port, for example: 9428
+      # Type: int
+      # Mandatory: yes
+      #
+      # port: 9428
+
+      # Otel output target. Set to "" if the logs should be sent to Otel collector or another opentelemetry API compatible storage.
+      # Type: string
+      # Mandatory: no
+      # Default: "victorialogs"
+      #
+      target: "victorialogs"
+
+      # Otel uri to ingest logs.
+      # Type: string
+      # Mandatory: no
+      # Default: '/insert/opentelemetry/v1/logs'
+      #
+      # logsUri: '/insert/opentelemetry/v1/logs'
+
+      # Payload compression mechanism for opentelemetry output. Allowed values: gzip, zstd.
+      # Type: string
+      # Mandatory: no
+      # Default: gzip
+      #
+      compress: gzip
+
+      # Allows to set a time interval in seconds to suppress log messages from output plugin that appear similar within that interval.
+      # Type: int
+      # Mandatory: no
+      # Default: 0 (disabled)
+      #
+      # logSuppressInterval: 0
+
+      # Additional configuration parameters for opentelemetry output.
+      # See docs: https://docs.fluentbit.io/manual/data-pipeline/outputs/opentelemetry
+      # Type: string
+      # Mandatory: no
+      #
+      # extraParams: |
+
+      # Authentication for Otel.
+      # Secret name and key in the secret storing the parameter should be provided. Username/password or token can be stored in different secrets.
+      # Type: object
+      # Mandatory: no
+      #
+      # auth:
+      #   user:
+      #     name: otel-secret
+      #     key: user
+      #   password:
+      #     name: otel-secret
+      #     key: password
+      #   token:
+      #     name: otel-secret
+      #     key: token
+
+      # TLS configuration for otel output.
+      # Type: object
+      # Mandatory: no
+      #
+      tls:
+        # Allows enabling TLS for Otel output.
+        # Type: bool
+        # Mandatory: no
+        # Default: false
+        #
+        enabled: false
+
+        # Configuration for a custom CA store.
+        # If present, both secretKey and secretName fields are required.
+        # Type: object
+        # Mandatory: no
+        #
+        # ca:
+        #   Name of Secret with CA certificate.
+        #   Type: string
+        #   Mandatory: yes
+        #
+        #   secretName: secret-ca
+
+        #   Key (filename) in the Secret with CA certificate.
+        #   Type: string
+        #   Mandatory: yes
+        #
+        #   secretKey: ca.crt
+
+        # Configuration for a client certificate.
+        # If present, both secretKey and secretName fields are required.
+        # Type: object
+        # Mandatory: no
+        #
+        # cert:
+        #   Name of Secret with client certificate.
+        #   Type: string
+        #   Mandatory: yes
+        #
+        #   secretName: secret-cert
+
+        #   Key (filename) in the Secret with client certificate.
+        #   Type: string
+        #   Mandatory: yes
+        #
+        #   secretKey: certificate.crt
+
+        # Configuration for a key for the certificate file.
+        # If present, both secretKey and secretName fields are required.
+        # Type: object
+        # Mandatory: no
+        #
+        # key:
+        #   Name of Secret with key for the client certificate.
+        #   Type: string
+        #   Mandatory: yes
+        #
+        #   secretName: secret-key
+
+        #   Key (filename) in the Secret with key for the client certificate.
+        #   Type: string
+        #   Mandatory: yes
+        #
+        #   secretKey: privateKey.key
+
+        # Force certificate validation.
+        # Type: bool
+        # Mandatory: no
+        # Default: true
+        #
+        # verify: true
+
+        # Optional password for private key file.
+        # Type: string
+        # Mandatory: no
+        #
+        # keyPasswd: secret
 
   # additionalVolumes allows configuration of additional volumes on the output DaemonSet definition.
   # additionalVolumes specified will be appended to other volumes that are generated as a result of StorageSpec objects.
@@ -1997,7 +2567,7 @@ fluentbit:
     # Mandatory: no
     # Default: true
     #
-    verify: true
+    # verify: true
 
     # Optional password for private key file.
     # Type: string
@@ -2529,6 +3099,311 @@ fluentbit:
             Retry_Limit            32
             storage.total_limit_size  5000M
             net.connect_timeout 20
+      http:
+        # Flag for enabling Http output.
+        # Type: boolean
+        # Default: false
+        # Mandatory: no
+        #
+        enabled: false
+
+        # Http host.
+        # Type: string
+        # Example: 10.10.10.10 or vlsingle-k8s.victorialogs
+        # Mandatory: yes
+        #
+        # host: vlsingle-k8s.victorialogs
+
+        # Http port, for example: 9428
+        # Type: int
+        # Mandatory: yes
+        #
+        # port: 9428
+
+        # Uri for Http output.
+        # Type: string
+        # Default: '/insert/jsonline?_stream_fields=stream&_msg_field=short_message&_time_field=time'
+        # Mandatory: no
+        #
+        # uri: '/insert/jsonline?_stream_fields=stream&_msg_field=short_message&_time_field=time'
+
+        # Payload compression mechanism for Http output. Allowed values: gzip, snappy, zstd.
+        # Type: string
+        # Mandatory: no
+        # Default: gzip
+        #
+        compress: gzip
+
+        # Authentication for Http.
+        # Secret name and key in the secret storing the parameter should be provided. Username/password or token can be stored in different secrets.
+        # Type: object
+        # Mandatory: no
+        #
+        # auth:
+        #   user:
+        #     name: http-secret
+        #     key: user
+        #   password:
+        #     name: http-secret
+        #     key: password
+        #   token:
+        #     name: http-secret
+        #     key: token
+
+        # Additional configuration parameters for Http output. Bearer token can be set here as well.
+        # See docs: https://docs.fluentbit.io/manual/data-pipeline/outputs/http#configuration-parameters
+        # Type: string
+        # Mandatory: no
+        #
+        # extraParams: |
+
+        # TLS configuration for Http output.
+        # Type: object
+        # Mandatory: no
+        #
+        tls:
+          # Allows enabling TLS for Http output.
+          # Type: bool
+          # Mandatory: no
+          # Default: false
+          #
+          enabled: false
+
+          # Configuration for a custom CA store.
+          # If present, both secretKey and secretName fields are required.
+          # Type: object
+          # Mandatory: no
+          #
+          # ca:
+          #   Name of Secret with CA certificate.
+          #   Type: string
+          #   Mandatory: yes
+          #
+          #   secretName: secret-ca
+
+          #   Key (filename) in the Secret with CA certificate.
+          #   Type: string
+          #   Mandatory: yes
+          #
+          #   secretKey: ca.crt
+
+          # Configuration for a client certificate.
+          # If present, both secretKey and secretName fields are required.
+          # Type: object
+          # Mandatory: no
+          #
+          # cert:
+          #   Name of Secret with client certificate.
+          #   Type: string
+          #   Mandatory: yes
+          #
+          #   secretName: secret-cert
+
+          #   Key (filename) in the Secret with client certificate.
+          #   Type: string
+          #   Mandatory: yes
+          #
+          #   secretKey: certificate.crt
+
+          # Configuration for a key for the certificate file.
+          # If present, both secretKey and secretName fields are required.
+          # Type: object
+          # Mandatory: no
+          #
+          # key:
+          #   Name of Secret with key for the client certificate.
+          #   Type: string
+          #   Mandatory: yes
+          #
+          #   secretName: secret-key
+
+          #   Key (filename) in the Secret with key for the client certificate.
+          #   Type: string
+          #   Mandatory: yes
+          #
+          #   secretKey: privateKey.key
+
+          # Force certificate validation.
+          # Type: bool
+          # Mandatory: no
+          # Default: true
+          #
+          verify: true
+
+          # Optional password for private key file.
+          # Type: string
+          # Mandatory: no
+          #
+          # keyPasswd: secret
+
+        routing:
+
+          # Enables streams routing filters for Http output.
+          # Type: boolean
+          # Default: false
+          # Mandatory: no
+          #
+          enabled: false
+
+          # Header which is used by vmauth in routing rules to different vlsingle instances.
+          # For example, if headerTag is set to X-Log-Type, FluentBit will add this header with value of record's tag for each log
+          # and vmauth can route logs based on this header value.
+          # Type: string
+          # Default: stream
+          # Mandatory: no
+          #
+          # headerTag: X-Log-Type
+
+      otel:
+        # Flag for enabling opentelemetry output.
+        # Type: boolean
+        # Default: false
+        # Mandatory: no
+        #
+        enabled: false
+
+        # Otel host.
+        # Type: string
+        # Example: 10.10.10.10 or vlsingle-k8s.victorialogs
+        # Mandatory: yes
+        #
+        host: ""
+
+        # Otel output target. Set to "" if the logs should be sent to Otel collector or another opentelemetry API compatible storage.
+        # Type: string
+        # Mandatory: no
+        # Default: "victorialogs"
+        #
+        target: "victorialogs"
+
+        # Otel port, for example: 9428
+        # Type: int
+        # Mandatory: yes
+        #
+        # port: 9428
+
+        # Otel uri to ingest logs.
+        # Type: string
+        # Mandatory: no
+        # Default: '/insert/opentelemetry/v1/logs'
+        #
+        # logsUri: '/insert/opentelemetry/v1/logs'
+
+        # Payload compression mechanism for opentelemetry output. Allowed values: gzip, zstd.
+        # Type: string
+        # Mandatory: no
+        # Default: gzip
+        #
+        compress: gzip
+
+        # Allows to set a time interval in seconds to suppress log messages from output plugin that appear similar within that interval.
+        # Type: int
+        # Mandatory: no
+        # Default: 0 (disabled)
+        #
+        # logSuppressInterval: 0
+
+        # Additional configuration parameters for opentelemetry output.
+        # See docs: https://docs.fluentbit.io/manual/data-pipeline/outputs/opentelemetry
+        # Type: string
+        # Mandatory: no
+        #
+        # extraParams: |
+
+        # Authentication for Otel.
+        # Secret name and key in the secret storing the parameter should be provided. Username/password or token can be stored in different secrets.
+        # Type: object
+        # Mandatory: no
+        #
+        # auth:
+        #   user:
+        #     name: otel-secret
+        #     key: user
+        #   password:
+        #     name: otel-secret
+        #     key: password
+        #   token:
+        #     name: otel-secret
+        #     key: token
+
+        # TLS configuration for otel output.
+        # Type: object
+        # Mandatory: no
+        #
+        tls:
+          # Allows enabling TLS for Otel output.
+          # Type: bool
+          # Mandatory: no
+          # Default: false
+          #
+          enabled: false
+
+          # Configuration for a custom CA store.
+          # If present, both secretKey and secretName fields are required.
+          # Type: object
+          # Mandatory: no
+          #
+          # ca:
+          #   Name of Secret with CA certificate.
+          #   Type: string
+          #   Mandatory: yes
+          #
+          #   secretName: secret-ca
+
+          #   Key (filename) in the Secret with CA certificate.
+          #   Type: string
+          #   Mandatory: yes
+          #
+          #   secretKey: ca.crt
+
+          # Configuration for a client certificate.
+          # If present, both secretKey and secretName fields are required.
+          # Type: object
+          # Mandatory: no
+          #
+          # cert:
+          #   Name of Secret with client certificate.
+          #   Type: string
+          #   Mandatory: yes
+          #
+          #   secretName: secret-cert
+
+          #   Key (filename) in the Secret with client certificate.
+          #   Type: string
+          #   Mandatory: yes
+          #
+          #   secretKey: certificate.crt
+
+          # Configuration for a key for the certificate file.
+          # If present, both secretKey and secretName fields are required.
+          # Type: object
+          # Mandatory: no
+          #
+          # key:
+          #   Name of Secret with key for the client certificate.
+          #   Type: string
+          #   Mandatory: yes
+          #
+          #   secretName: secret-key
+
+          #   Key (filename) in the Secret with key for the client certificate.
+          #   Type: string
+          #   Mandatory: yes
+          #
+          #   secretKey: privateKey.key
+
+          # Force certificate validation.
+          # Type: bool
+          # Mandatory: no
+          # Default: true
+          #
+          # verify: true
+
+          # Optional password for private key file.
+          # Type: string
+          # Mandatory: no
+          #
+          # keyPasswd: secret
 
     # The size limitation of output buffer
     # Type: string
@@ -2740,7 +3615,7 @@ integrationTests:
     enabled: false
     isShortStatusMessage: true
     onlyIntegrationTests: true
-    customResourcePath: "logging.qubership.org/v1alpha1/logging-operator/loggingservices/logging-service"
+    customResourcePath: "logging.netcracker.com/v1/logging-operator/loggingservices/logging-service"
 
   # PriorityClassName assigned to the Pods to prevent them from evicting.
   # Type: string
@@ -2755,3 +3630,34 @@ integrationTests:
   # The parameter specifies the ssh key for login to VM.
   # Type: string
   sshKey: ""
+
+  # VictoriaLogs connection settings
+  victorialogs:
+    # The parameter specifies the url for VictoriaLogs.
+    # Type: string
+    #
+    # Example : https://vlsingle-example.victorialogs:9428
+    url: ""
+
+    # Authentication for VictoriaLogs.
+    # Type: object
+    # Mandatory: no
+    # auth:
+    #   The parameter specifies the secret name and key storing the user for VictoriaLogs.
+    #   Type: string
+    #   user:
+    #     secretName: ""
+    #     key: ""
+
+    # The parameter specifies the secret name and key storing the password for VictoriaLogs.
+    #   Type: string
+    #
+    #   password:
+    #     secretName: ""
+    #     key: ""
+    #   The parameter specifies the secret name and key storing the token for VictoriaLogs.
+    #   Type: string
+    #
+    #   token:
+    #     secretName: ""
+    #     key: ""

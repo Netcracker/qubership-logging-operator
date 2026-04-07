@@ -20,7 +20,7 @@ import (
 	"time"
 
 	"github.com/Masterminds/sprig"
-	v11 "github.com/Netcracker/qubership-logging-operator/api/v1alpha1"
+	"github.com/Netcracker/qubership-logging-operator/api/v1"
 	"k8s.io/client-go/kubernetes"
 )
 
@@ -62,6 +62,44 @@ func ParseTemplate(fileContent, filePath string, parameters interface{}) (string
 	funcMap["resIndex"] = GetFromResourceMap
 	funcMap["timeNow"] = GetTimeNow
 	funcMap["getAggregators"] = GetAggregatorIds
+
+	funcMap["isValidShards"] = func(v interface{}) bool {
+		switch val := v.(type) {
+		case *int:
+			if val == nil {
+				return false
+			}
+			return *val >= 1
+		case int:
+			return val >= 1 // Minimum valid number of shards
+		case int64:
+			return val >= 1
+		case string:
+			i, err := strconv.Atoi(val)
+			return err == nil && i >= 1
+		default:
+			return false
+		}
+	}
+
+	funcMap["isValidReplicas"] = func(v interface{}) bool {
+		switch val := v.(type) {
+		case *int:
+			if val == nil {
+				return false
+			}
+			return *val >= 0
+		case int:
+			return val >= 0 // Minimum valid number of replicas
+		case int64:
+			return val >= 0
+		case string:
+			i, err := strconv.Atoi(val)
+			return err == nil && i >= 0
+		default:
+			return false
+		}
+	}
 
 	goTemplate, err := template.New(filePath).Funcs(funcMap).Parse(fileContent)
 	if err != nil {
@@ -135,7 +173,7 @@ func DownloadFile(fullURLFile string, fileName string) error {
 	return nil
 }
 
-func DownloadFileTLS(ctx context.Context, contentPackPath *v11.ContentPackPathHTTPConfig, fileName string, clientSet kubernetes.Interface, namespace string) error {
+func DownloadFileTLS(ctx context.Context, contentPackPath *v1.ContentPackPathHTTPConfig, fileName string, clientSet kubernetes.Interface, namespace string) error {
 	logger.V(Debug).Info("Try download " + contentPackPath.URL + " into file " + fileName)
 	file, err := os.Create(fileName)
 	if err != nil {

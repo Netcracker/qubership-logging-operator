@@ -12,10 +12,10 @@ metadata:
     {{- toYaml .Values.graylog.annotations | nindent 4 }}
   {{- end }}
   labels:
-    {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" .Values.graylog.securityResources.name "component" "graylog") | nindent 4 }}
-  {{- if .Values.graylog.labels }}
-    {{- toYaml .Values.graylog.labels | nindent 4 }}
-  {{- end }}
+    {{- include "logging.labels" (dict "ctx" . "name" .Values.graylog.securityResources.name "component" "graylog") | nindent 4 }}
+    {{- if .Values.graylog.labels }}
+    {{- include "logging.extraLabels" (dict "ctx" . "extraLabels" .Values.graylog.labels) | nindent 4 }}
+    {{- end }}
 spec:
   privileged: false
   # Required to prevent escalations to root.

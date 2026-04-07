@@ -9,9 +9,9 @@ metadata:
     {{- toYaml .Values.cloudEventsReader.annotations | nindent 4 }}
   {{- end }}
   labels:
-    {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" (printf "%s-cloud-events-reader" .Release.Namespace) "component" "events-reader") | nindent 4 }}
+    {{- include "logging.labels" (dict "ctx" . "name" (printf "%s-cloud-events-reader" .Release.Namespace) "component" "events-reader") | nindent 4 }}
     {{- if .Values.cloudEventsReader.labels }}
-      {{- toYaml .Values.cloudEventsReader.labels | nindent 4 }}
+    {{- include "logging.extraLabels" (dict "ctx" . "extraLabels" .Values.cloudEventsReader.labels) | nindent 4 }}
     {{- end }}
 roleRef:
   kind: ClusterRole

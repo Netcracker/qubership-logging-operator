@@ -4,10 +4,10 @@ kind: Service
 metadata:
   name: {{ .Values.integrationTests.service.name }}
   labels:
-    {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" .Values.integrationTests.service.name "component" "integration-tests") | nindent 4 }}
-  {{- if .Values.integrationTests.labels }}
-    {{- toYaml .Values.integrationTests.labels | nindent 4 }}
-  {{- end }}
+    {{- include "logging.labels" (dict "ctx" . "name" .Values.integrationTests.service.name "component" "integration-tests") | nindent 4 }}
+    {{- if .Values.integrationTests.labels }}
+    {{- include "logging.extraLabels" (dict "ctx" . "extraLabels" .Values.integrationTests.labels) | nindent 4 }}
+    {{- end }}
   {{- if .Values.integrationTests.annotations }}
   annotations:
     {{- toYaml .Values.integrationTests.annotations | nindent 4 }}

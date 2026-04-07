@@ -9,10 +9,10 @@ priority: 3
 metadata:
   name: {{ .Values.fluentbit.securityResources.name }}
   labels:
-    {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" .Values.fluentbit.securityResources.name "component" "fluentbit") | nindent 4 }}
-  {{- if .Values.fluentbit.labels }}
-    {{- toYaml .Values.fluentbit.labels | nindent 4 }}
-  {{- end }}
+    {{- include "logging.labels" (dict "ctx" . "name" .Values.fluentbit.securityResources.name "component" "fluentbit") | nindent 4 }}
+    {{- if .Values.fluentbit.labels }}
+    {{- include "logging.extraLabels" (dict "ctx" . "extraLabels" .Values.fluentbit.labels) | nindent 4 }}
+    {{- end }}
   {{- if .Values.fluentbit.annotations }}
   annotations:
     {{- toYaml .Values.fluentbit.annotations | nindent 4 }}

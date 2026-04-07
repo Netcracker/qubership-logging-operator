@@ -9,9 +9,9 @@ metadata:
     {{- toYaml .Values.fluentd.annotations | nindent 4 }}
   {{- end }}
   labels:
-    {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" (printf "%s-fluentd" .Release.Namespace) "component" "fluentd") | nindent 4 }}
+    {{- include "logging.labels" (dict "ctx" . "name" (printf "%s-fluentd" .Release.Namespace) "component" "fluentd") | nindent 4 }}
     {{- if .Values.fluentd.labels }}
-      {{- toYaml .Values.fluentd.labels | nindent 4 }}
+    {{- include "logging.extraLabels" (dict "ctx" . "extraLabels" .Values.fluentd.labels) | nindent 4 }}
     {{- end }}
 rules:
   - apiGroups:

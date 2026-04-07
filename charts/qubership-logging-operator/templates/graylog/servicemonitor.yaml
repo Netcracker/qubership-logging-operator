@@ -3,10 +3,11 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   labels:
-    {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" "graylog-service-monitor" "component" "monitoring" "processedByOperator" "prometheus-operator") | nindent 4 }}
-  {{- if .Values.graylog.labels }}
-    {{- toYaml .Values.graylog.labels | nindent 4 }}
-  {{- end }}
+    {{- include "logging.labels" (dict "ctx" . "name" "graylog-service-monitor" "component" "monitoring") | nindent 4 }}
+    app.kubernetes.io/processed-by-operator: prometheus-operator
+    {{- if .Values.graylog.labels }}
+    {{- include "logging.extraLabels" (dict "ctx" . "extraLabels" .Values.graylog.labels) | nindent 4 }}
+    {{- end }}
   {{- if .Values.graylog.annotations }}
   annotations:
     {{- toYaml .Values.graylog.annotations | nindent 4 }}

@@ -5,10 +5,10 @@ kind: ConfigMap
 metadata:
   name: graylog-auth-proxy-config
   labels:
-    {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" "graylog-auth-proxy-config" "component" "graylog") | nindent 4 }}
-  {{- if .Values.graylog.labels }}
-    {{- toYaml .Values.graylog.labels | nindent 4 }}
-  {{- end }}
+    {{- include "logging.labels" (dict "ctx" . "name" "graylog-auth-proxy-config" "component" "graylog") | nindent 4 }}
+    {{- if .Values.graylog.labels }}
+    {{- include "logging.extraLabels" (dict "ctx" . "extraLabels" .Values.graylog.labels) | nindent 4 }}
+    {{- end }}
   {{- if .Values.graylog.annotations }}
   annotations:
     {{- toYaml .Values.graylog.annotations | nindent 4 }}

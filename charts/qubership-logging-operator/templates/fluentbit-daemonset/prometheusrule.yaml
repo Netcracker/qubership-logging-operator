@@ -4,11 +4,12 @@ kind: PrometheusRule
 metadata:
   name: prometheus-fluentbit-alerts
   labels:
-    {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" "prometheus-fluentbit-alerts" "component" "monitoring" "processedByOperator" "prometheus-operator") | nindent 4 }}
+    {{- include "logging.labels" (dict "ctx" . "name" "prometheus-fluentbit-alerts" "component" "monitoring") | nindent 4 }}
+    app.kubernetes.io/processed-by-operator: prometheus-operator
     role: alert-rules
-  {{- if .Values.fluentbit.labels }}
-    {{- toYaml .Values.fluentbit.labels | nindent 4 }}
-  {{- end }}
+    {{- if .Values.fluentbit.labels }}
+    {{- include "logging.extraLabels" (dict "ctx" . "extraLabels" .Values.fluentbit.labels) | nindent 4 }}
+    {{- end }}
   {{- if .Values.fluentbit.annotations }}
   annotations:
     {{- toYaml .Values.fluentbit.annotations | nindent 4 }}

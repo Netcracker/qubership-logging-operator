@@ -1,6 +1,8 @@
 package events_reader
 
 import (
+	"maps"
+
 	loggingService "github.com/Netcracker/qubership-logging-operator/api/v1"
 	util "github.com/Netcracker/qubership-logging-operator/controllers/utils"
 	appsv1 "k8s.io/api/apps/v1"
@@ -27,9 +29,7 @@ func (r *EventsReaderReconciler) handleDeployment(cr *loggingService.LoggingServ
 			if e.Labels == nil && m.Labels != nil {
 				e.SetLabels(m.Labels)
 			} else {
-				for k, v := range m.Labels {
-					e.Labels[k] = v
-				}
+				maps.Copy(e.Labels, m.Labels)
 			}
 			e.Spec.Selector = m.Spec.Selector
 			e.Spec.Template.SetLabels(m.Spec.Template.GetLabels())

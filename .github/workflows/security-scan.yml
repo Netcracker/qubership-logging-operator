@@ -2,6 +2,8 @@ name: Security Scan Docker Packages
 run-name: >
   Security Scan #${{ github.run_number }} for ${{ inputs.image != '' && inputs.image != null && inputs.image || 'all repository docker images' }}
 on:
+  schedule:
+    - cron: "0 3 * * 0" # every Sunday at 03:00 UTC
   workflow_dispatch:
     inputs:
       target:
@@ -12,14 +14,14 @@ on:
           - docker
           - source
       image:
-        description: "Docker image (for docker). By default ghcr.io/<owner>/<repo>:latest"
+        description: "Docker image (for docker). By default ghcr.io/<owner>/<repo>:main"
         required: false
         default: ""
         type: string
       tag:
-        description: "Tag of the image to scan. By default 'latest'"
+        description: "Tag of the image to scan. By default 'main'"
         required: false
-        default: "latest"
+        default: "main"
         type: string
       only-high-critical:
         description: "Scope only HIGH + CRITICAL"
@@ -46,8 +48,6 @@ on:
         required: false
         default: true
         type: boolean
-  schedule:
-    - cron: "0 3 * * 0" # every Sunday at 03:00 UTC
 
 jobs:
   debug-packages:

@@ -106,13 +106,13 @@ func (updater *StatusUpdater) patch() error {
 		updater.log.Error(err, "failed to marshal object")
 		return err
 	}
-	object := &unstructured.Unstructured{Object: map[string]interface{}{}}
+	object := &unstructured.Unstructured{Object: map[string]any{}}
 	if err = json.Unmarshal(resourceBuf, object); err != nil {
 		updater.log.Error(err, "failed to unmarshal object")
 		return err
 	}
 
-	mergePatch, err := json.Marshal(map[string]interface{}{
+	mergePatch, err := json.Marshal(map[string]any{
 		"status": object.Object["status"],
 	})
 	if err != nil {

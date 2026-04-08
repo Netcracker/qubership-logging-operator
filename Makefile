@@ -12,7 +12,7 @@ endif
 #############
 
 # Set build version
-VERSION=14.22.0
+VERSION=14.30.0
 ARTIFACT_NAME=qubership-logging-operator
 
 # Helm charts directory
@@ -35,7 +35,7 @@ TYPES_V1_TARGET=api/v1/loggingservice_types.go
 API_DOC_GEN_BINARY_DIR?=$(shell pwd)/api
 
 # Tools
-CONTROLLER_GEN_PACKAGE=sigs.k8s.io/controller-tools/cmd/controller-gen@v0.16.5
+CONTROLLER_GEN_PACKAGE=sigs.k8s.io/controller-tools/cmd/controller-gen@v0.20.1
 GEN_CRD_API_PACKAGE=github.com/ahmetb/gen-crd-api-reference-docs@v0.3.0
 
 # Detect the build environment, local or Jenkins builder

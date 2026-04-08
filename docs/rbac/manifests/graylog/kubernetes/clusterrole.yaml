@@ -1,10 +1,10 @@
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: logging-graylog-cluster-role
+  name: {{ .Release.Namespace }}-graylog
   labels:
-    name: logging-graylog-cluster-role
-    app.kubernetes.io/name: logging-graylog-cluster-role
+    name: {{ .Release.Namespace }}-graylog
+    app.kubernetes.io/name: {{ .Release.Namespace }}-graylog
     app.kubernetes.io/component: graylog
     app.kubernetes.io/part-of: logging
     app.kubernetes.io/managed-by: manually

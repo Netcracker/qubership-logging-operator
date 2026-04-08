@@ -3,6 +3,7 @@ package fluentbit
 import (
 	"embed"
 	"fmt"
+	"maps"
 	"strings"
 
 	loggingService "github.com/Netcracker/qubership-logging-operator/api/v1"
@@ -117,9 +118,7 @@ func fluentbitConfigMap(cr *loggingService.LoggingService, dynamicParameters uti
 
 	// Set custom scripts from parameters
 	if cr.Spec.Fluentbit.CustomLuaScriptConf != nil {
-		for scriptName, script := range cr.Spec.Fluentbit.CustomLuaScriptConf {
-			configMapData[scriptName] = script
-		}
+		maps.Copy(configMapData, cr.Spec.Fluentbit.CustomLuaScriptConf)
 	}
 
 	// Set custom output from parameters

@@ -3,16 +3,16 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: psp:oob-privileged-psp
-  labels:
-    {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" "oob-privileged-psp" "component" "graylog") | nindent 4 }}
-  {{- if .Values.graylog.labels }}
-    {{- toYaml .Values.graylog.labels | nindent 4 }}
-  {{- end }}
+  name: {{ .Release.Namespace }}-psp-oob-privileged
   {{- if .Values.graylog.annotations }}
   annotations:
     {{- toYaml .Values.graylog.annotations | nindent 4 }}
   {{- end }}
+  labels:
+    {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" (printf "%s-psp-oob-privileged" .Release.Namespace) "component" "graylog") | nindent 4 }}
+    {{- if .Values.graylog.labels }}
+      {{- toYaml .Values.graylog.labels | nindent 4 }}
+    {{- end }}
 rules:
   {{- if $.Capabilities.APIVersions.Has "policy/v1beta1" }}
   - apiGroups:

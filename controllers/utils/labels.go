@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"maps"
 	"strings"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -20,8 +21,8 @@ const (
 // Single source of truth for operator-created resources; mirrors Helm commonLabels.
 func CommonLabels() map[string]string {
 	return map[string]string{
-		"app.kubernetes.io/part-of":    PartOfLogging,
-		"app.kubernetes.io/managed-by": ManagedByOperator,
+		"app.kubernetes.io/part-of":             PartOfLogging,
+		"app.kubernetes.io/managed-by":          ManagedByOperator,
 		"app.kubernetes.io/managed-by-operator": OperatorDeploymentName,
 	}
 }
@@ -41,15 +42,13 @@ func ResourceLabels(name, component string) map[string]string {
 
 // MergeLabels returns a new map with all key-value pairs from the given maps.
 // Later maps override earlier ones on key conflict. Nil maps are skipped.
-func MergeLabels(maps ...map[string]string) map[string]string {
+func MergeLabels(mapsToMerge ...map[string]string) map[string]string {
 	out := make(map[string]string)
-	for _, m := range maps {
+	for _, m := range mapsToMerge {
 		if m == nil {
 			continue
 		}
-		for k, v := range m {
-			out[k] = v
-		}
+		maps.Copy(out, m)
 	}
 	return out
 }
@@ -60,9 +59,7 @@ func MergeInto(dst, src map[string]string) {
 	if src == nil {
 		return
 	}
-	for k, v := range src {
-		dst[k] = v
-	}
+	maps.Copy(dst, src)
 }
 
 // TruncLabel truncates a label value to 63 characters (Kubernetes limit). Use for name, app.kubernetes.io/name.

@@ -24,9 +24,9 @@ const (
 )
 
 type Request struct {
-	Method string      `json:"method"`
-	URL    string      `json:"url"`
-	Body   interface{} `json:"body,omitempty"`
+	Method string `json:"method"`
+	URL    string `json:"url"`
+	Body   any    `json:"body,omitempty"`
 }
 
 func (connector *GraylogConnector) SendRequestToOpenSearch(method string, urlPath string, data []byte, cr *loggingService.LoggingService) error {

@@ -3,8 +3,8 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.16.5
-    logging-operator.logging.netcracker.com/version: 14.22.0
+    controller-gen.kubebuilder.io/version: v0.20.1
+    logging-operator.logging.netcracker.com/version: 14.30.0
   labels:
     app.kubernetes.io/component: qubership-logging-operator
     app.kubernetes.io/part-of: logging

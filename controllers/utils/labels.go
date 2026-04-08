@@ -20,8 +20,8 @@ const (
 // Single source of truth for operator-created resources; mirrors Helm commonLabels.
 func CommonLabels() map[string]string {
 	return map[string]string{
-		"app.kubernetes.io/part-of":    PartOfLogging,
-		"app.kubernetes.io/managed-by": ManagedByOperator,
+		"app.kubernetes.io/part-of":             PartOfLogging,
+		"app.kubernetes.io/managed-by":          ManagedByOperator,
 		"app.kubernetes.io/managed-by-operator": OperatorDeploymentName,
 	}
 }

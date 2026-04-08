@@ -1,0 +1,38 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    "schedule:weekly"
+  ],
+  "labels": [
+    "dependencies"
+  ],
+  "prConcurrentLimit": 20,
+  "packageRules": [
+    {
+      "matchManagers": ["github-actions"],
+      "groupName": "actions-deps",
+      "matchPackageNames": ["*"]
+    },
+    {
+      "matchManagers": ["gomod"],
+      "groupName": "k8s.io",
+      "matchPackageNames": ["k8s.io/{/,}**"]
+    },
+    {
+      "matchManagers": ["gomod"],
+      "groupName": "go.opentelemetry.io",
+      "matchPackageNames": ["go.opentelemetry.io/{/,}**"]
+    },
+    {
+      "matchManagers": ["dockerfile"],
+      "groupName": "docker-deps",
+      "matchFileNames": [
+        "Dockerfile",
+        "integration-tests/Dockerfile",
+        "integration-tests/**/Dockerfile"
+      ],
+      "matchPackageNames": ["*"]
+    }
+  ]
+}

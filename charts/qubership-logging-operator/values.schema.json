@@ -262,6 +262,21 @@
                             "properties": {
                                 "http": {
                                     "properties": {
+                                        "routing": {
+                                            "description": "Allows to route logs to different storage instances based on the log type.",
+                                            "properties": {
+                                                "enabled": {
+                                                    "default": false,
+                                                    "description": "Flag for enabling logs routing for HTTP output.",
+                                                    "type": "boolean"
+                                                },
+                                                "headerTag": {
+                                                    "description": "The name of the header that should be used for propagating the log type.",
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
                                         "auth": {
                                             "properties": {
                                                 "password": {
@@ -1028,6 +1043,21 @@
                     "properties": {
                         "http": {
                             "properties": {
+                                "routing": {
+                                    "description": "Allows to route logs to different storage instances based on the log type.",
+                                    "properties": {
+                                        "enabled": {
+                                            "default": false,
+                                            "description": "Flag for enabling logs routing for HTTP output.",
+                                            "type": "boolean"
+                                        },
+                                        "headerTag": {
+                                            "description": "The name of the header that should be used for propagating the log type.",
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                },
                                 "auth": {
                                     "properties": {
                                         "password": {
@@ -1818,6 +1848,20 @@
                         "http": {
                             "description": "HTTP output configuration.",
                             "properties": {
+                                "routing": {
+                                    "description": "Propagates additional information to HTTP outgoing traffic so it will be properly routed further.",
+                                    "properties": {
+                                        "enabled": {
+                                            "description": "Enable HTTP routing.",
+                                            "type": "boolean"
+                                        },
+                                        "logCategoryHeader": {
+                                            "description": "Header name which carries log category and to be used for HTTP routing.",
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                },
                                 "auth": {
                                     "description": "Authentication for HTTP output. Secret name and key must be provided for each credential.",
                                     "properties": {
@@ -2033,9 +2077,9 @@
                                     "type": "string"
                                 },
                                 "staticLabels": {
-                                    "default": {"job":"fluentd"},
-                                    "description": "Static labels that added as stream labels.",
-                                    "type": "object"
+                                    "default": "'{\"job\":\"fluentd\"}'",
+                                    "description": "Static labels that added as stream labels.  Should be valid JSON string with key-value pairs.",
+                                    "type": "string"
                                 },
                                 "tenant": {
                                     "description": "Loki tenant ID.",

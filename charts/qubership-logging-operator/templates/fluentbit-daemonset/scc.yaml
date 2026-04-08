@@ -9,9 +9,7 @@ priority: 3
 metadata:
   name: {{ .Values.fluentbit.securityResources.name }}
   labels:
-    app.kubernetes.io/name: {{ .Values.fluentbit.securityResources.name }}
-    app.kubernetes.io/component: fluentbit
-    app.kubernetes.io/part-of: logging
+    {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" .Values.fluentbit.securityResources.name "component" "fluentbit") | nindent 4 }}
   {{- if .Values.fluentbit.labels }}
     {{- toYaml .Values.fluentbit.labels | nindent 4 }}
   {{- end }}

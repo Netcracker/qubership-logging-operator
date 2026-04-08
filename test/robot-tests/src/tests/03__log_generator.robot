@@ -184,10 +184,10 @@ Search Messages In Victorialogs By Query
         ${namespace}=    Set Variable If
         ...    '${namespace[0]}' == 'PASS'    ${namespace[1]}    ${EMPTY}
 
-        ${parsed}=    Run Keyword And Ignore Error
-        ...    Get From Dictionary    ${obj}    parsed
-        ${parsed}=    Set Variable If
-        ...    '${parsed[0]}' == 'PASS'    ${parsed[1]}    ${EMPTY}
+        ${parse_status}=    Run Keyword And Ignore Error
+        ...    Get From Dictionary    ${obj}    parse_status
+        ${parse_status}=    Set Variable If
+        ...    '${parse_status[0]}' == 'PASS'    ${parse_status[1]}    ${EMPTY}
 
         ${time}=    Run Keyword And Ignore Error
         ...    Get From Dictionary    ${obj}    _time
@@ -199,7 +199,7 @@ Search Messages In Victorialogs By Query
         ...    message=${vl_msg}
         ...    pod=${vl_pod}
         ...    namespace=${namespace}
-        ...    parsed=${parsed}
+        ...    parse_status=${parse_status}
         ...    time=${time}
 
         &{wrapper}=    Create Dictionary    message=${msg}
@@ -239,8 +239,8 @@ Check Message Parsing
     Should Be Equal As Strings  ${log_namespace}  ${NAMESPACE}
     Should Contain    ${pod}    ${pod_name}
     IF  ${fluentd_exists} != True
-        ${parsed}=  Get From Dictionary  ${message}  parsed
-        Should Be Equal As Strings  ${parsed}  true  Log message is not parsed
+        ${parse_status}=  Get From Dictionary  ${message}  parse_status
+        Should Be Equal As Strings  ${parse_status}  success  Log message is not parsed
     END
     IF    ${graylog_available}
         IF    ${fluentd_exists} == True

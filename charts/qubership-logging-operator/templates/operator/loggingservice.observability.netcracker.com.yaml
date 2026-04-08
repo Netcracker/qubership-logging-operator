@@ -3,9 +3,7 @@ kind: LoggingService
 metadata:
   name: {{ .Values.name }}
   labels:
-    app.kubernetes.io/name: {{ .Values.name }}
-    app.kubernetes.io/component: logging-operator
-    app.kubernetes.io/part-of: logging
+    {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" .Values.name "component" "logging-operator" "processedByOperator" "logging-service-operator") | nindent 4 }}
   {{- if .Values.labels }}
     {{- toYaml .Values.labels | nindent 4 }}
   {{- end }}
@@ -103,9 +101,12 @@ spec:
     {{- if .Values.graylog.customPluginsPaths }}
     customPluginsPaths: {{ .Values.graylog.customPluginsPaths }}
     {{- end }}
-    {{- if .Values.graylog.labels }}
+    {{- if or .Values.DEPLOYMENT_SESSION_ID .Values.graylog.labels }}
     labels:
+      {{- include "logging-operator.sessionIdLabel" . | nindent 6 }}
+      {{- if .Values.graylog.labels }}
       {{- toYaml .Values.graylog.labels | nindent 6 }}
+      {{- end }}
     {{- end }}
     {{- if .Values.graylog.annotations }}
     annotations:
@@ -422,9 +423,12 @@ spec:
     cloudEventsReaderFormat: {{ .Values.fluentd.cloudEventsReaderFormat }}
     {{- end }}
     watchKubernetesMetadata: {{ default true .Values.fluentd.watchKubernetesMetadata }}
-    {{- if .Values.fluentd.labels }}
+    {{- if or .Values.DEPLOYMENT_SESSION_ID .Values.fluentd.labels }}
     labels:
+      {{- include "logging-operator.sessionIdLabel" . | nindent 6 }}
+      {{- if .Values.fluentd.labels }}
       {{- toYaml .Values.fluentd.labels | nindent 6 }}
+      {{- end }}
     {{- end }}
     {{- if .Values.fluentd.annotations }}
     annotations:
@@ -482,7 +486,7 @@ spec:
         {{- end }}
         {{- end }}
         {{- if .Values.fluentd.output.loki.staticLabels }}
-        staticLabels: {{ toJson .Values.fluentd.output.loki.staticLabels | quote }}
+        staticLabels: {{ .Values.fluentd.output.loki.staticLabels | squote }}
         {{- end }}
         {{- if .Values.fluentd.output.loki.labelsMapping }}
         labelsMapping: |-
@@ -524,65 +528,7 @@ spec:
     {{- if  .Values.fluentd.output.http }}
       http:
       {{- if .Values.fluentd.output.http.enabled }}
-        enabled: true
-        host: {{ .Values.fluentd.output.http.host }}
-        path: {{ .Values.fluentd.output.http.path | default "/insert/jsonline" }}
-        headers: {{ include "fluentd.output.http.headers" . | nindent 10 }}
-        {{- if .Values.fluentd.output.http.compress }}
-        compress: {{ .Values.fluentd.output.http.compress }}
-        {{- end }}
-        {{- if .Values.fluentd.output.http.auth }}
-        {{- if and .Values.fluentd.output.http.auth.user  .Values.fluentd.output.http.auth.password }}
-        {{- if and .Values.fluentd.output.http.auth.user.name .Values.fluentd.output.http.auth.user.key .Values.fluentd.output.http.auth.password.name .Values.fluentd.output.http.auth.password.key }}
-        auth:
-          user:
-            name: {{ .Values.fluentd.output.http.auth.user.name }}
-            key: {{ .Values.fluentd.output.http.auth.user.key }}
-          password:
-            name: {{ .Values.fluentd.output.http.auth.password.name }}
-            key: {{ .Values.fluentd.output.http.auth.password.key }}
-        {{- end }}
-        {{- else if .Values.fluentd.output.http.auth.token }}
-        {{- if and .Values.fluentd.output.http.auth.token.name .Values.fluentd.output.http.auth.token.key }}
-        auth:
-          token:
-            name: {{ .Values.fluentd.output.http.auth.token.name }}
-            key: {{ .Values.fluentd.output.http.auth.token.key }}
-        {{- end }}
-        {{- end }}
-        {{- end }}
-        {{- if .Values.fluentd.output.http.tls }}
-        tls:
-          enabled: {{ default false .Values.fluentd.output.http.tls.enabled }}
-          {{- if .Values.fluentd.output.http.tls.version }}
-          version: {{ .Values.fluentd.output.http.tls.version }}
-          {{- end }}
-          {{- if .Values.fluentd.output.http.tls.verifyMode }}
-          verifyMode: {{ .Values.fluentd.output.http.tls.verifyMode }}
-          {{- end }}
-          {{- if .Values.fluentd.output.http.tls.ca }}
-          ca:
-            secretKey: {{ .Values.fluentd.output.http.tls.ca.secretKey }}
-            secretName: {{ .Values.fluentd.output.http.tls.ca.secretName }}
-          {{- end }}
-          {{- if .Values.fluentd.output.http.tls.cert }}
-          cert:
-            secretKey: {{ .Values.fluentd.output.http.tls.cert.secretKey }}
-            secretName: {{ .Values.fluentd.output.http.tls.cert.secretName }}
-          {{- end }}
-          {{- if .Values.fluentd.output.http.tls.key }}
-          key:
-            secretKey: {{ .Values.fluentd.output.http.tls.key.secretKey }}
-            secretName: {{ .Values.fluentd.output.http.tls.key.secretName }}
-          {{- end }}
-          {{- if .Values.fluentd.output.http.tls.ciphers }}
-          ciphers: {{ .Values.fluentd.output.http.tls.ciphers }}
-          {{- end }}
-        {{- end }}
-        {{- if .Values.fluentd.output.http.extraParams }}
-        extraParams: |-
-          {{ default "" .Values.fluentd.output.http.extraParams | nindent 10 }}
-        {{- end }}
+        {{- toYaml .Values.fluentd.output.http | nindent 8 }}
       {{- else }}
         enabled: false
       {{- end }}
@@ -702,9 +648,12 @@ spec:
     customLuaScriptConf:
       {{- toYaml .Values.fluentbit.customLuaScriptConf | nindent 6 }}
     watchKubernetesMetadata: {{ default true .Values.fluentbit.watchKubernetesMetadata }}
-    {{- if .Values.fluentbit.labels }}
+    {{- if or .Values.DEPLOYMENT_SESSION_ID .Values.fluentbit.labels }}
     labels:
+      {{- include "logging-operator.sessionIdLabel" . | nindent 6 }}
+      {{- if .Values.fluentbit.labels }}
       {{- toYaml .Values.fluentbit.labels | nindent 6 }}
+      {{- end }}
     {{- end }}
     {{- if .Values.fluentbit.annotations }}
     annotations:
@@ -907,9 +856,12 @@ spec:
         {{ default "" .Values.fluentbit.aggregator.customOutputConf | nindent 8 }}
       customLuaScriptConf:
         {{- toYaml .Values.fluentbit.aggregator.customLuaScriptConf | nindent 8 }}
-      {{- if .Values.fluentbit.aggregator.labels }}
+      {{- if or .Values.DEPLOYMENT_SESSION_ID .Values.fluentbit.aggregator.labels }}
       labels:
+        {{- include "logging-operator.sessionIdLabel" . | nindent 8 }}
+        {{- if .Values.fluentbit.aggregator.labels }}
         {{- toYaml .Values.fluentbit.aggregator.labels | nindent 8 }}
+        {{- end }}
       {{- end }}
       {{- if .Values.fluentbit.aggregator.annotations }}
       annotations:
@@ -1009,66 +961,7 @@ spec:
       {{- if .Values.fluentbit.aggregator.output.http }}
         http:
         {{- if .Values.fluentbit.aggregator.output.http.enabled }}
-          enabled: true
-          host: {{ .Values.fluentbit.aggregator.output.http.host }}
-          port: {{ .Values.fluentbit.aggregator.output.http.port }}
-          uri: {{ .Values.fluentbit.aggregator.output.http.uri | default "/insert/jsonline?_stream_fields=stream&_msg_field=short_message&_time_field=time" | squote }}
-          {{- if .Values.fluentbit.aggregator.output.http.compress }}
-          compress: {{ .Values.fluentbit.aggregator.output.http.compress }}
-          {{- end }}
-          {{- if .Values.fluentbit.aggregator.output.http.format }}
-          format: {{ .Values.fluentbit.aggregator.output.http.format }}
-          {{- end }}
-          {{- if .Values.fluentbit.aggregator.output.http.jsonDateFormat }}
-          jsonDateFormat: {{ .Values.fluentbit.aggregator.output.http.jsonDateFormat }}
-          {{- end }}
-          {{- if .Values.fluentbit.aggregator.output.http.auth }}
-          {{- if .Values.fluentbit.aggregator.output.http.auth.token }}
-          {{- if and .Values.fluentbit.aggregator.output.http.auth.token.name .Values.fluentbit.aggregator.output.http.auth.token.key }}
-          auth:
-            token:
-              name: {{ .Values.fluentbit.aggregator.output.http.auth.token.name }}
-              key: {{ .Values.fluentbit.aggregator.output.http.auth.token.key }}
-          {{- end }}
-          {{- else if and .Values.fluentbit.aggregator.output.http.auth.user .Values.fluentbit.aggregator.output.http.auth.password }}
-          {{- if and .Values.fluentbit.aggregator.output.http.auth.user.name .Values.fluentbit.aggregator.output.http.auth.user.key .Values.fluentbit.aggregator.output.http.auth.password.name .Values.fluentbit.aggregator.output.http.auth.password.key }}
-          auth:
-            user:
-              name: {{ .Values.fluentbit.aggregator.output.http.auth.user.name }}
-              key: {{ .Values.fluentbit.aggregator.output.http.auth.user.key }}
-            password:
-              name: {{ .Values.fluentbit.aggregator.output.http.auth.password.name }}
-              key: {{ .Values.fluentbit.aggregator.output.http.auth.password.key }}
-          {{- end }}
-          {{- end }}
-          {{- end }}
-          {{- if .Values.fluentbit.aggregator.output.http.tls }}
-          tls:
-            enabled: {{ default false .Values.fluentbit.aggregator.output.http.tls.enabled }}
-            {{- if .Values.fluentbit.aggregator.output.http.tls.ca }}
-            ca:
-              secretKey: {{ .Values.fluentbit.aggregator.output.http.tls.ca.secretKey }}
-              secretName: {{ .Values.fluentbit.aggregator.output.http.tls.ca.secretName }}
-            {{- end }}
-            {{- if .Values.fluentbit.aggregator.output.http.tls.cert }}
-            cert:
-              secretKey: {{ .Values.fluentbit.aggregator.output.http.tls.cert.secretKey }}
-              secretName: {{ .Values.fluentbit.aggregator.output.http.tls.cert.secretName }}
-            {{- end }}
-            {{- if .Values.fluentbit.aggregator.output.http.tls.key }}
-            key:
-              secretKey: {{ .Values.fluentbit.aggregator.output.http.tls.key.secretKey }}
-              secretName: {{ .Values.fluentbit.aggregator.output.http.tls.key.secretName }}
-            {{- end }}
-            verify: {{ default false .Values.fluentbit.aggregator.output.http.tls.verify }}
-            {{- if .Values.fluentbit.aggregator.output.http.tls.keyPasswd }}
-            keyPasswd: {{ .Values.fluentbit.aggregator.output.http.tls.keyPasswd }}
-            {{- end }}
-          {{- end }}
-          {{- if .Values.fluentbit.aggregator.output.http.extraParams }}
-          extraParams: |-
-            {{ default "" .Values.fluentbit.aggregator.output.http.extraParams | nindent 12 }}
-          {{- end }}
+          {{- toYaml .Values.fluentbit.aggregator.output.http | nindent 10 }}
         {{- else }}
           enabled: false
         {{- end }}
@@ -1116,9 +1009,12 @@ spec:
     affinity:
       {{- toYaml .Values.cloudEventsReader.affinity | nindent 6 }}
     {{- end }}
-    {{- if .Values.cloudEventsReader.labels }}
+    {{- if or .Values.DEPLOYMENT_SESSION_ID .Values.cloudEventsReader.labels }}
     labels:
+      {{- include "logging-operator.sessionIdLabel" . | nindent 6 }}
+      {{- if .Values.cloudEventsReader.labels }}
       {{- toYaml .Values.cloudEventsReader.labels | nindent 6 }}
+      {{- end }}
     {{- end }}
     {{- if .Values.cloudEventsReader.annotations }}
     annotations:

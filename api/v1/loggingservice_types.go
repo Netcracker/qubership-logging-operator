@@ -488,16 +488,17 @@ type LokiFluentbit struct {
 }
 
 type HttpFluentbit struct {
-	Enabled        bool              `json:"enabled,omitempty"`
-	Host           string            `json:"host,omitempty"`
-	Port           int               `json:"port,omitempty"`
-	Uri            string            `json:"uri,omitempty"`
-	Auth           *Auth             `json:"auth,omitempty"`
-	Compress       string            `json:"compress,omitempty"`
-	TLS            *FluentbitHttpTLS `json:"tls,omitempty"`
-	JsonDateFormat string            `json:"jsonDateFormat,omitempty"`
-	Format         string            `json:"format,omitempty"`
-	ExtraParams    string            `json:"extraParams,omitempty"`
+	Enabled        bool                  `json:"enabled,omitempty"`
+	Routing        *FluentbitHTTPRouting `json:"routing,omitempty"`
+	Host           string                `json:"host,omitempty"`
+	Port           int                   `json:"port,omitempty"`
+	Uri            string                `json:"uri,omitempty"`
+	Auth           *Auth                 `json:"auth,omitempty"`
+	Compress       string                `json:"compress,omitempty"`
+	TLS            *FluentbitHttpTLS     `json:"tls,omitempty"`
+	JsonDateFormat string                `json:"jsonDateFormat,omitempty"`
+	Format         string                `json:"format,omitempty"`
+	ExtraParams    string                `json:"extraParams,omitempty"`
 }
 
 type OtelFluentbit struct {
@@ -519,6 +520,10 @@ type Auth struct {
 	Password *v1.SecretKeySelector `yaml:"password" json:"password,omitempty"`
 }
 
+type FluentbitHTTPRouting struct {
+	Enabled   bool   `json:"enabled,omitempty"`
+	HeaderTag string `json:"headerTag,omitempty"`
+}
 type OutputFluentd struct {
 	Loki *LokiFluentd `json:"loki,omitempty"`
 	Http *HttpFluentd `json:"http,omitempty"`
@@ -535,14 +540,20 @@ type LokiFluentd struct {
 	ExtraParams   string          `json:"extraParams,omitempty"`
 }
 type HttpFluentd struct {
-	Enabled     bool              `json:"enabled,omitempty"`
-	Host        string            `json:"host,omitempty"`
-	Path        string            `json:"path,omitempty"`
-	Compress    string            `json:"compress,omitempty"`
-	Headers     map[string]string `json:"headers,omitempty"`
-	Auth        *Auth             `json:"auth,omitempty"`
-	TLS         *FluentdHttpTLS   `json:"tls,omitempty"`
-	ExtraParams string            `json:"extraParams,omitempty"`
+	Enabled     bool               `json:"enabled,omitempty"`
+	Routing     FluentdHTTPRouting `json:"routing,omitempty"`
+	Host        string             `json:"host,omitempty"`
+	Path        string             `json:"path,omitempty"`
+	Compress    string             `json:"compress,omitempty"`
+	Headers     map[string]string  `json:"headers,omitempty"`
+	Auth        *Auth              `json:"auth,omitempty"`
+	TLS         *FluentdHttpTLS    `json:"tls,omitempty"`
+	ExtraParams string             `json:"extraParams,omitempty"`
+}
+
+type FluentdHTTPRouting struct {
+	Enabled           bool   `json:"enabled,omitempty"`
+	LogCategoryHeader string `json:"logCategoryHeader,omitempty"`
 }
 
 func (in *LoggingService) ToParams() LoggingServiceParameters {

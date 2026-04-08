@@ -12,30 +12,37 @@ on:
       included-tags:
         description: "Tags to include for deletion"
         required: false
-        default: ""
+        default: "*"
       excluded-tags:
         description: "Tags to exclude from deletion"
         required: false
-        default: "release*"
+        default: "main,latest,release*,semver"
       dry-run:
         description: "Enable dry-run mode"
         required: false
-        default: "false"
+        default: false
+        type: boolean
 
 jobs:
   cleanup:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6.0.1
+      - name: "Summary"
+        run: |
+          echo "**Event**: ${{ github.event_name }}"
+          echo "**Actor**: ${{ github.actor }}"
+          echo "**Threshold days**: ${{ github.event.inputs.threshold-days || 7 }}"
+          echo "**Included tags**: ${{ github.event.inputs.included-tags || '*' }}"
+          echo "**Excluded tags**: ${{ github.event.inputs.excluded-tags || 'main,latest,release*,semver' }}"
+          echo "**Dry-run**: ${{ github.event.inputs.dry-run || 'false' }}"
 
       - name: Run Container Package Cleanup Action
-        uses: Netcracker/qubership-workflow-hub/actions/container-package-cleanup@6b356d28e46b2d4683cccb1d91f92643d7f0c513 # v2.0.11
+        uses: Netcracker/qubership-workflow-hub/actions/container-package-cleanup@d11baa8a4b42d1a931808c0766ee23eb344c47dd # v2.2.0
         with:
-          threshold-days: ${{ github.event.inputs.threshold-days || 8 }}
-          included-tags: ${{ github.event.inputs.included-tags || 'dev*' }}
-          excluded-tags: ${{ github.event.inputs.excluded-tags || 'release*' }}
+          threshold-days: ${{ github.event.inputs.threshold-days || 7 }}
+          included-tags: ${{ github.event.inputs.included-tags || '*' }}
+          excluded-tags: ${{ github.event.inputs.excluded-tags || 'main,latest,release*,semver' }}
           dry-run: ${{ github.event.inputs.dry-run || 'false' }}
         env:
-          PACKAGE_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
+          PACKAGE_TOKEN: ${{ secrets.GH_RWD_PACKAGE_TOKEN }}

@@ -7,9 +7,7 @@ kind: ClusterRoleBinding
 metadata:
   name: logging-fluentbit-agg-cluster-reader
   labels:
-    app.kubernetes.io/name: logging-fluentbit-agg-cluster-reader
-    app.kubernetes.io/component: fluentbit
-    app.kubernetes.io/part-of: logging
+    {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" "logging-fluentbit-agg-cluster-reader" "component" "fluentbit") | nindent 4 }}
   {{- if .Values.fluentbit.labels }}
     {{- toYaml .Values.fluentbit.labels | nindent 4 }}
   {{- end }}

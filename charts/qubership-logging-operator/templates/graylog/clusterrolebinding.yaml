@@ -5,9 +5,7 @@ kind: ClusterRoleBinding
 metadata:
   name: psp:oob-privileged-psp
   labels:
-    app.kubernetes.io/name: oob-privileged-psp
-    app.kubernetes.io/component: graylog
-    app.kubernetes.io/part-of: logging
+    {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" "oob-privileged-psp" "component" "graylog") | nindent 4 }}
   {{- if .Values.graylog.labels }}
     {{- toYaml .Values.graylog.labels | nindent 4 }}
   {{- end }}

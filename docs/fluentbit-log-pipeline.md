@@ -10,11 +10,11 @@ It supports multiple log formats and dynamically selects parsers based on pod an
 Fluent Bit can parse logs in the following formats:
 
 <!-- markdownlint-disable line-length -->
-| Format       | Description                                                                                                                                                                                |
-| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `logfmt`     | Key-value structured logs. See more details in [logfmt](https://brandur.org/logfmt).                                                                                                       |
-| `json`       | Standard JSON format. For better readability, it's recommended to use only flattened JSON without nested structures. See more details in [JSON logs](./cookbook/log-formats.md#json-logs). |
-| `qubership`  | The unified logging format used by **Qubership Cloud** microservices. See more details in [Qubership log format](./cookbook/log-formats.md#qubership-log-format)                           |
+| Format      | Description                                                                                                                                                                                |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `logfmt`    | Key-value structured logs. See more details in [logfmt](https://brandur.org/logfmt).                                                                                                       |
+| `json`      | Standard JSON format. For better readability, it's recommended to use only flattened JSON without nested structures. See more details in [JSON logs](./cookbook/log-formats.md#json-logs). |
+| `qubership` | The unified logging format used by **Qubership Cloud** microservices. See more details in [Qubership log format](./cookbook/log-formats.md#qubership-log-format)                           |
 <!-- markdownlint-enable line-length -->
 
 ## Third-Party Log Formats
@@ -41,11 +41,11 @@ annotations:
   fluentbit.io/parser:: logfmt
 ```
 
-If no annotation is provided, the default parser used is `json`. If the message is parsed by suggested parsed,
+If no annotation is provided, the default parser used is `json`. If the message is parsed by suggested parser,
 it bypasses the generic filters chain and is sent to outputs. Otherwise the log message passes through
 the generic filters chain, and if it matches any parser from the list of available parsers - additional fields
-appear in the record, the FluentBit pipeline adds a `parsed` field with the value `true`. If the message does not match
-any defined parser, it will be marked with `parsed: false`.
+appear in the record, the FluentBit pipeline adds a `parse_status` field with the value `success`. If the message
+does not match any defined parser, it will be marked with `parse_status: failed`.
 
 ## Pipeline Design
 
@@ -62,9 +62,9 @@ flowchart LR
         FRT["filter-rewrite-tag.conf<br/>Match pods*<br/>Rule: $pod ^kube-.* klog.$TAG false"] --> FC
         FRT["filter-rewrite-tag.conf<br/>Match pods*<br/>Rule: $pod ^kube-.* klog.$TAG false"] --> FVALID
         FRTP["filter-rewrite-tag.conf<br/>Match klog.*<br/>klog parsers"] --> FVALID
-        FVALID["filter-validate.conf<br/>Second count fields<br/>Set parsed: true | false<br/>Remove log field if parsed: true"] --> FGEN
+        FVALID["filter-validate.conf<br/>Second count fields<br/>Set parse_status: success | false<br/>Remove log field if parse_status: success"] --> FGEN
         FGEN["filter-generic.conf<br/>Generic filters chain<br/>Match pods*<br/>Applied only to messages with existing and not empty log field"] --> FPGEN
-        FPGEN["filter-post-generic.conf<br/>Count fields<br/>Set parsed: true | false<br/>Parse [key=value] labels<br/>Add mandatory fields for GELF format<br/>Mark audit messages with special field"] --> FNL
+        FPGEN["filter-post-generic.conf<br/>Count fields<br/>Set parse_status: success | false<br/>Parse [key=value] labels<br/>Add mandatory fields for GELF format<br/>Mark audit messages with special field"] --> FNL
         FNL["filter-nonsupported-levels.conf<br/>Lua script converting level to FluentBit supported values"] --> FULC
         FNL["filter-nonsupported-levels.conf<br/>Lua script converting level to FluentBit supported values"] --> OGRAY
         OGRAY["output-graylog.conf<br/>Sends data to graylog host in GELF format"]
@@ -114,4 +114,30 @@ flowchart LR
 | 34  | filters/filter-unparsed-log-counter.conf      | FILTER log_to_metrics (Regex parsed ^false$)                                          | Match_regex (pods\|klog).*                | Generates the prometheus metric `parse_error_total`                                                                                                                                                                     |
 | 35  | outputs/output-graylog.conf                   | OUTPUT gelf                                                                           | Match_regex (audit\|system\|pods\|klog).* | Sends data in GELF format to graylog host defined in the output config                                                                                                                                                  |
 | 36  | outputs/output-prometheus-log-to-metrics.conf | OUTPUT prometheus_exporter                                                            | Match parse_error_metrics                 | Exposes the metric `parse_error_total` to the `2021` port                                                                                                                                                               |
+| 37  | outputs/output-http.cond                      | OUTPUT http                                                                           | Match *                                   | Sends data in json_lines format to HTTP storage backend (VictoriaLogs)                                                                                                                                                  |
 <!-- textlint-enable -->
+
+### Expected fields in result logs
+
+The current FluentBit pipeline is designed to determine whether a log entry has been successfully parsed,
+identify its format, and detect its severity level.
+
+If the log structure matches any of the supported log formats,
+the following fields must always be present in the resulting log output:
+
+1) level – The severity level of the log.
+   Must be one of: `debug`, `info`, `notice`, `warning`, `err`, `crit`, `alert`, `emerg`.
+   If the original severity level cannot be detected, the level is set to info.
+2) parse_status – Indicates whether the log was successfully parsed.
+   Possible values: success, failed.
+3) parse_format – The detected original log format.
+   Possible values: `json`, `logfmt`, `klog`, `qubership`, `java`, `opensearch`, and other third-party formats.
+4) log_category – The source type of the log. Possible values: container, audit, system.
+5) parse_level_unknown – Indicates that the original severity level could not be detected
+   or did not match any known severity levels.
+6) namespace – The namespace of the log source. Present only if the log originates from a Kubernetes container.
+7) pod – The pod of the log source. Present only if the log originates from a Kubernetes container.
+8) container – The container of the log source. Present only if the log originates from a Kubernetes container.
+9) nodename – The Kubernetes node where the log source is located.
+10) hostname – The FluentBit pod that processed and sent the log.
+11) labels - The set of labels from the pod originated the log.

@@ -262,7 +262,7 @@ func (restClient *RestClient) SetAuthHeader(request *http.Request) {
 			b.WriteString(base64.StdEncoding.EncodeToString(
 				fmt.Appendf(nil, "%s:%s", restClient.Auth.Name, restClient.Auth.Password)))
 		} else if restClient.Auth.Token != "" {
-			b.WriteString(fmt.Sprintf("Bearer %s", restClient.Auth.Token))
+			fmt.Fprintf(&b, "Bearer %s", restClient.Auth.Token)
 		}
 		request.Header.Add("Authorization", b.String())
 	}

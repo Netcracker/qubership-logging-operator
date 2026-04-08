@@ -181,7 +181,7 @@ test: unit-test
 .PHONY: unit-test
 unit-test:
 	echo "=> Run Golang unit-tests ..."
-	go test -race $(TEST_RUN_ARGS) $(pkgs) -count=1 -v
+	go test -race -cover $(TEST_RUN_ARGS) $(pkgs) -count=1 -v
 
 #################
 # Documentation #

@@ -2,16 +2,16 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: logging-service-operator
-  labels:
-    {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" "logging-service-operator" "component" "logging-operator") | nindent 4 }}
-  {{- if .Values.labels }}
-    {{- toYaml .Values.labels | nindent 4 }}
-  {{- end }}
+  name: {{ .Release.Namespace }}-logging-operator
   {{- if .Values.annotations }}
   annotations:
     {{- toYaml .Values.annotations | nindent 4 }}
   {{- end }}
+  labels:
+    {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" (printf "%s-logging-operator" .Release.Namespace) "component" "logging-operator") | nindent 4 }}
+    {{- if .Values.labels }}
+      {{- toYaml .Values.labels | nindent 4 }}
+    {{- end }}
 rules:
   # Need to get list of nodes and them runtimes to discover which runtime type should use
   - apiGroups:

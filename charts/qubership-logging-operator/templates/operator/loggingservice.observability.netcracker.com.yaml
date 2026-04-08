@@ -3,10 +3,9 @@ kind: LoggingService
 metadata:
   name: {{ .Values.name }}
   labels:
-    {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" .Values.name "component" "logging-operator" "processedByOperator" "logging-service-operator") | nindent 4 }}
-  {{- if .Values.labels }}
-    {{- toYaml .Values.labels | nindent 4 }}
-  {{- end }}
+    {{- include "logging.labels" (dict "ctx" . "name" .Values.name "component" "logging-operator") | nindent 4 }}
+    app.kubernetes.io/processed-by-operator: logging-service-operator
+    {{- include "logging.extraLabels" . | nindent 4 }}
   {{- if .Values.annotations }}
   annotations:
     {{- toYaml .Values.annotations | nindent 4 }}
@@ -103,9 +102,11 @@ spec:
     {{- end }}
     {{- if or .Values.DEPLOYMENT_SESSION_ID .Values.graylog.labels }}
     labels:
-      {{- include "logging-operator.sessionIdLabel" . | nindent 6 }}
+      {{- if .Values.DEPLOYMENT_SESSION_ID }}
+      deployment.netcracker.com/sessionId: {{ .Values.DEPLOYMENT_SESSION_ID | quote }}
+      {{- end }}
       {{- if .Values.graylog.labels }}
-      {{- toYaml .Values.graylog.labels | nindent 6 }}
+      {{- include "logging.extraLabels" (dict "ctx" . "extraLabels" .Values.graylog.labels) | nindent 6 }}
       {{- end }}
     {{- end }}
     {{- if .Values.graylog.annotations }}
@@ -425,9 +426,11 @@ spec:
     watchKubernetesMetadata: {{ default true .Values.fluentd.watchKubernetesMetadata }}
     {{- if or .Values.DEPLOYMENT_SESSION_ID .Values.fluentd.labels }}
     labels:
-      {{- include "logging-operator.sessionIdLabel" . | nindent 6 }}
+      {{- if .Values.DEPLOYMENT_SESSION_ID }}
+      deployment.netcracker.com/sessionId: {{ .Values.DEPLOYMENT_SESSION_ID | quote }}
+      {{- end }}
       {{- if .Values.fluentd.labels }}
-      {{- toYaml .Values.fluentd.labels | nindent 6 }}
+      {{- include "logging.extraLabels" (dict "ctx" . "extraLabels" .Values.fluentd.labels) | nindent 6 }}
       {{- end }}
     {{- end }}
     {{- if .Values.fluentd.annotations }}
@@ -650,9 +653,11 @@ spec:
     watchKubernetesMetadata: {{ default true .Values.fluentbit.watchKubernetesMetadata }}
     {{- if or .Values.DEPLOYMENT_SESSION_ID .Values.fluentbit.labels }}
     labels:
-      {{- include "logging-operator.sessionIdLabel" . | nindent 6 }}
+      {{- if .Values.DEPLOYMENT_SESSION_ID }}
+      deployment.netcracker.com/sessionId: {{ .Values.DEPLOYMENT_SESSION_ID | quote }}
+      {{- end }}
       {{- if .Values.fluentbit.labels }}
-      {{- toYaml .Values.fluentbit.labels | nindent 6 }}
+      {{- include "logging.extraLabels" (dict "ctx" . "extraLabels" .Values.fluentbit.labels) | nindent 6 }}
       {{- end }}
     {{- end }}
     {{- if .Values.fluentbit.annotations }}
@@ -858,9 +863,11 @@ spec:
         {{- toYaml .Values.fluentbit.aggregator.customLuaScriptConf | nindent 8 }}
       {{- if or .Values.DEPLOYMENT_SESSION_ID .Values.fluentbit.aggregator.labels }}
       labels:
-        {{- include "logging-operator.sessionIdLabel" . | nindent 8 }}
+        {{- if .Values.DEPLOYMENT_SESSION_ID }}
+        deployment.netcracker.com/sessionId: {{ .Values.DEPLOYMENT_SESSION_ID | quote }}
+        {{- end }}
         {{- if .Values.fluentbit.aggregator.labels }}
-        {{- toYaml .Values.fluentbit.aggregator.labels | nindent 8 }}
+        {{- include "logging.extraLabels" (dict "ctx" . "extraLabels" .Values.fluentbit.aggregator.labels) | nindent 8 }}
         {{- end }}
       {{- end }}
       {{- if .Values.fluentbit.aggregator.annotations }}
@@ -1011,9 +1018,11 @@ spec:
     {{- end }}
     {{- if or .Values.DEPLOYMENT_SESSION_ID .Values.cloudEventsReader.labels }}
     labels:
-      {{- include "logging-operator.sessionIdLabel" . | nindent 6 }}
+      {{- if .Values.DEPLOYMENT_SESSION_ID }}
+      deployment.netcracker.com/sessionId: {{ .Values.DEPLOYMENT_SESSION_ID | quote }}
+      {{- end }}
       {{- if .Values.cloudEventsReader.labels }}
-      {{- toYaml .Values.cloudEventsReader.labels | nindent 6 }}
+      {{- include "logging.extraLabels" (dict "ctx" . "extraLabels" .Values.cloudEventsReader.labels) | nindent 6 }}
       {{- end }}
     {{- end }}
     {{- if .Values.cloudEventsReader.annotations }}

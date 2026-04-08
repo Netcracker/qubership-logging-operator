@@ -4,10 +4,8 @@ kind: Issuer
 metadata:
   name: logging-ca-issuer
   labels:
-    {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" "logging-ca-issuer" "component" "logging-operator") | nindent 4 }}
-  {{- if .Values.labels }}
-    {{- toYaml .Values.labels | nindent 4 }}
-  {{- end }}
+    {{- include "logging.labels" (dict "ctx" . "name" "logging-ca-issuer" "component" "logging-operator") | nindent 4 }}
+    {{- include "logging.extraLabels" . | nindent 4 }}
   {{- if .Values.annotations }}
   annotations:
     {{- toYaml .Values.annotations | nindent 4 }}

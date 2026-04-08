@@ -8,6 +8,8 @@ github.com/Masterminds/sprig v2.22.0+incompatible h1:z4yfnGrZ7netVz+0EDJ0Wi+5VZC
 github.com/Masterminds/sprig v2.22.0+incompatible/go.mod h1:y6hNFY5UBTIWBxnzTeuNhlNS5hqE0NB0E6fgfo2Br3o=
 github.com/Netcracker/qubership-logging-operator/api v0.0.0-20260407144119-44bac3998873 h1:+x93eVVoGFHTt18B4zRRAwag2/+HIi5WqefCYY8n8cQ=
 github.com/Netcracker/qubership-logging-operator/api v0.0.0-20260407144119-44bac3998873/go.mod h1:Mzl7n1OT+VxaDdBvATAGpCCmHNln+TShMZBfDNRQ8XI=
+github.com/Netcracker/qubership-logging-operator/api v0.0.0-20260408142321-0e091a3dea36 h1:c7vRIxyxcCIEJerkZCOSz6MHQcrxbBYRLNKae9DNaE0=
+github.com/Netcracker/qubership-logging-operator/api v0.0.0-20260408142321-0e091a3dea36/go.mod h1:7O47kqXxVvH7tCh7nOdWF8RPZr4S0zrizSCmCFTaLLw=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
 github.com/cespare/xxhash/v2 v2.3.0 h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs=

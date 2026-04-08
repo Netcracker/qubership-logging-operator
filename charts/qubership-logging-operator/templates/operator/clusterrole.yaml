@@ -8,7 +8,7 @@ metadata:
     {{- toYaml .Values.annotations | nindent 4 }}
   {{- end }}
   labels:
-    {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" "{{ .Release.Namespace }}-logging-operator" "component" "logging-operator") | nindent 4 }}
+    {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" (printf "%s-logging-operator" .Release.Namespace) "component" "logging-operator") | nindent 4 }}
     {{- if .Values.labels }}
       {{- toYaml .Values.labels | nindent 4 }}
     {{- end }}

@@ -149,8 +149,8 @@ func TestToParams(t *testing.T) {
 
 	params := ls.ToParams()
 
-	if params.Release.Namespace != "logging-ns" {
-		t.Errorf("expected namespace logging-ns, got %q", params.Release.Namespace)
+	if params.Namespace != "logging-ns" {
+		t.Errorf("expected namespace logging-ns, got %q", params.Namespace)
 	}
 	if params.Values.ContainerRuntimeType != "containerd" {
 		t.Errorf("expected ContainerRuntimeType containerd, got %q", params.Values.ContainerRuntimeType)

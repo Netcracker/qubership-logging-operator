@@ -4,35 +4,37 @@ name: Test Logging Installation
 on:
   push:
     branches: [main]
-    paths:
-    - '**'
-    - '!.github/**'
-    - '.github/workflows/integration-tests.yaml'
-    - '!docs/**'
-    - '!CODE-OF-CONDUCT.md'
-    - '!CONTRIBUTING.md'
-    - '!LICENSE'
-    - '!README.md'
-    - '!SECURITY.md'
+    paths-ignore:
+    - '.github/**'
+    - '.qubership/**'
+    - 'docker-transfer/**'
+    - 'docs/**'
+    - 'scripts/**'
+    - 'tools/**'
+    - 'Makefile'
+    - 'renovate.json'
+    - 'go.*'
+    - '*.md'
   pull_request:
     types: [opened, synchronize, reopened]
     branches: [main]
-    paths:
-    - '**'
-    - '!.github/**'
-    - '.github/workflows/integration-tests.yaml'
-    - '!docs/**'
-    - '!CODE-OF-CONDUCT.md'
-    - '!CONTRIBUTING.md'
-    - '!LICENSE'
-    - '!README.md'
-    - '!SECURITY.md'
+    paths-ignore:
+    - '.github/**'
+    - '.qubership/**'
+    - 'docker-transfer/**'
+    - 'docs/**'
+    - 'scripts/**'
+    - 'tools/**'
+    - 'Makefile'
+    - 'renovate.json'
+    - 'go.*'
+    - '*.md'
 
 env:
-  kind_version: v0.27.0
+  kind_version: v0.31.0
   opensearch_namespace: opensearch
-  opensearch_version: release-2025.2-1.14.4
-  opensearch_image_version: '1.14.5'
+  opensearch_version: 1.14.5
+  opensearch_image_version: 1.14.5
   namespace: logging
   max_attempts: 100
   delay: 10

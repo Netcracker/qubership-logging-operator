@@ -2,6 +2,7 @@ package graylog
 
 import (
 	"errors"
+	"maps"
 	"time"
 
 	loggingService "github.com/Netcracker/qubership-logging-operator/api/v1"
@@ -136,9 +137,7 @@ func (r *GraylogReconciler) handleStatefulset(cr *loggingService.LoggingService)
 			if e.Labels == nil && m.Labels != nil {
 				e.SetLabels(m.Labels)
 			} else {
-				for k, v := range m.Spec.Template.Labels {
-					e.Labels[k] = v
-				}
+				maps.Copy(e.Labels, m.Spec.Template.Labels)
 			}
 			e.Spec.Replicas = m.Spec.Replicas
 			e.Spec.Selector = m.Spec.Selector

@@ -121,9 +121,9 @@ func (connector *GraylogConnector) UploadContentPacks(cr *loggingService.Logging
 }
 
 func (connector *GraylogConnector) ManageContentPacks(cr *loggingService.LoggingService) error {
-	contentPacks := strings.Split(cr.Spec.Graylog.ContentPackPaths, ",")
+	contentPacks := strings.SplitSeq(cr.Spec.Graylog.ContentPackPaths, ",")
 
-	for _, item := range contentPacks {
+	for item := range contentPacks {
 		fullName := filepath.Join(dataDir, filepath.Base(item))
 
 		if err := util.DownloadFile(item, fullName); err != nil {

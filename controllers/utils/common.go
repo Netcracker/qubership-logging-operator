@@ -26,7 +26,7 @@ func ToString(duration time.Duration) string {
 	return (duration - (duration % time.Millisecond)).String()
 }
 
-func ToJSON(object interface{}) string {
+func ToJSON(object any) string {
 	bytes, err := json.Marshal(object)
 	if err != nil {
 		logger.Error(err, "An unexpected problem in parsing object to json")

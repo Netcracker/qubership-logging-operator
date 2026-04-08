@@ -57,13 +57,13 @@ func MustAssetReader(assets embed.FS, asset string) string {
 	return string(content)
 }
 
-func ParseTemplate(fileContent, filePath string, parameters interface{}) (string, error) {
+func ParseTemplate(fileContent, filePath string, parameters any) (string, error) {
 	funcMap := sprig.TxtFuncMap()
 	funcMap["resIndex"] = GetFromResourceMap
 	funcMap["timeNow"] = GetTimeNow
 	funcMap["getAggregators"] = GetAggregatorIds
 
-	funcMap["isValidShards"] = func(v interface{}) bool {
+	funcMap["isValidShards"] = func(v any) bool {
 		switch val := v.(type) {
 		case *int:
 			if val == nil {
@@ -82,7 +82,7 @@ func ParseTemplate(fileContent, filePath string, parameters interface{}) (string
 		}
 	}
 
-	funcMap["isValidReplicas"] = func(v interface{}) bool {
+	funcMap["isValidReplicas"] = func(v any) bool {
 		switch val := v.(type) {
 		case *int:
 			if val == nil {
@@ -259,10 +259,10 @@ func (restClient *RestClient) SetAuthHeader(request *http.Request) {
 		var b bytes.Buffer
 		if restClient.Auth.Name != "" && restClient.Auth.Password != "" {
 			b.WriteString("Basic ")
-			b.WriteString(base64.StdEncoding.EncodeToString([]byte(
-				fmt.Sprintf("%s:%s", restClient.Auth.Name, restClient.Auth.Password))))
+			b.WriteString(base64.StdEncoding.EncodeToString(
+				fmt.Appendf(nil, "%s:%s", restClient.Auth.Name, restClient.Auth.Password)))
 		} else if restClient.Auth.Token != "" {
-			b.WriteString(fmt.Sprintf("Bearer %s", restClient.Auth.Token))
+			fmt.Fprintf(&b, "Bearer %s", restClient.Auth.Token)
 		}
 		request.Header.Add("Authorization", b.String())
 	}
@@ -327,7 +327,7 @@ func Unzip(src string, dest string) ([]string, error) {
 	return filenames, nil
 }
 
-func DataFromDirectory(assets embed.FS, directoryPath string, parameters interface{}) (map[string]string, error) {
+func DataFromDirectory(assets embed.FS, directoryPath string, parameters any) (map[string]string, error) {
 	data := map[string]string{}
 
 	files, err := assets.ReadDir(directoryPath)

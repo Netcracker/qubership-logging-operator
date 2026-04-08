@@ -9,7 +9,7 @@ metadata:
     {{- toYaml .Values.fluentbit.annotations | nindent 4 }}
   {{- end }}
   labels:
-    {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" "{{ .Release.Namespace }}-fluentbit" "component" "fluentbit") | nindent 4 }}
+    {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" (printf "%s-fluentbit" .Release.Namespace) "component" "fluentbit") | nindent 4 }}
     {{- if .Values.fluentbit.labels }}
       {{- toYaml .Values.fluentbit.labels | nindent 4 }}
     {{- end }}

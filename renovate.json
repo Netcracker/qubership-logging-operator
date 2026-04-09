@@ -11,19 +11,16 @@
   "customManagers": [
     {
       "customType": "regex",
+      "description": "Update versions via inline renovate annotation comments",
       "fileMatch": [
         "controllers/fluentd/fluentd\\.configmap/conf\\.d/outputs/output-prometheus\\.conf",
         "charts/qubership-logging-operator/templates/_helpers\\.tpl",
         "charts/qubership-logging-operator/values\\.yaml"
       ],
       "matchStrings": [
-        "version (?<currentValue>[0-9.-]+)",
-        "ghcr\\.io/netcracker/qubership-fluentd:(?<currentValue>[^\\s\"'<]+)"
+        "# renovate: datasource=(?<datasource>[a-z-]+?) depName=(?<depName>[^\\s]+)(?: versioning=(?<versioning>[a-z-0-9]+))?[^\\n]*\\n[^\\n]*?(?<currentValue>[0-9][^\\s\"'\\n<]*)"
       ],
-      "datasourceTemplate": "github-releases",
-      "packageNameTemplate": "Netcracker/qubership-fluentd",
-      "extractVersionTemplate": "^v?(?<version>.+)$",
-      "versioningTemplate": "loose"
+      "extractVersionTemplate": "^v?(?<version>.+)$"
     }
   ],
   "packageRules": [

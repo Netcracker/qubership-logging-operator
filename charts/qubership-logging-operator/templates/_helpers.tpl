@@ -340,6 +340,7 @@ Image can be found from:
   {{- if .Values.fluentd.dockerImage -}}
     {{- printf "%s" .Values.fluentd.dockerImage -}}
   {{- else -}}
+    {{- /* # renovate: datasource=github-releases depName=Netcracker/qubership-fluentd versioning=loose */ -}}
     {{- print "ghcr.io/netcracker/qubership-fluentd:1.19.2-1" -}}
   {{- end -}}
 {{- end -}}

@@ -8,7 +8,26 @@
     "dependencies"
   ],
   "prConcurrentLimit": 20,
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Update versions via inline renovate annotation comments",
+      "managerFilePatterns": [
+        "/controllers/fluentd/fluentd\\.configmap/conf\\.d/outputs/output-prometheus\\.conf/",
+        "/charts/qubership-logging-operator/templates/_helpers\\.tpl/",
+        "/charts/qubership-logging-operator/values\\.yaml/"
+      ],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>[a-z-]+?) depName=(?<depName>[^\\s]+)(?: versioning=(?<versioning>[a-z-0-9]+))?[^\\n]*\\n[^\\n]*?(?<currentValue>[0-9][^\\s\"'\\n<]*)"
+      ],
+      "extractVersionTemplate": "^v?(?<version>.+)$"
+    }
+  ],
   "packageRules": [
+    {
+      "matchPackageNames": ["Netcracker/qubership-fluentd"],
+      "ignoreUnstable": false
+    },
     {
       "matchManagers": ["github-actions"],
       "groupName": "actions-deps",

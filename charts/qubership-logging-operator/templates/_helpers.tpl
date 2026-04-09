@@ -475,7 +475,6 @@ MongoDB 4.0 image.
   {{- if .Values.graylog.mongodb40Image -}}
     {{- printf "%s" .Values.graylog.mongodb40Image -}}
   {{- else -}}
-    {{- /* # renovate: datasource=docker depName=mongo */ -}}
     {{- print "docker.io/mongo:4.0.28" -}}
   {{- end -}}
 {{- end -}}
@@ -487,7 +486,6 @@ MongoDB 4.2 image.
   {{- if .Values.graylog.mongodb42Image -}}
     {{- printf "%s" .Values.graylog.mongodb42Image -}}
   {{- else -}}
-    {{- /* # renovate: datasource=docker depName=mongo */ -}}
     {{- print "docker.io/mongo:4.2.22" -}}
   {{- end -}}
 {{- end -}}
@@ -499,7 +497,6 @@ MongoDB 4.4 image.
   {{- if .Values.graylog.mongodb44Image -}}
     {{- printf "%s" .Values.graylog.mongodb44Image -}}
   {{- else -}}
-    {{- /* # renovate: datasource=docker depName=mongo */ -}}
     {{- print "docker.io/mongo:4.4.17" -}}
   {{- end -}}
 {{- end -}}

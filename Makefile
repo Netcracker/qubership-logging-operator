@@ -37,6 +37,7 @@ API_DOC_GEN_BINARY_DIR?=$(shell pwd)/api
 # Tools
 CONTROLLER_GEN_PACKAGE=sigs.k8s.io/controller-tools/cmd/controller-gen@v0.20.1
 GEN_CRD_API_PACKAGE=github.com/ahmetb/gen-crd-api-reference-docs@v0.3.0
+HELM_DOCS_PACKAGE=github.com/norwoodj/helm-docs/cmd/helm-docs@v1.14.2
 
 # Detect the build environment, local or Jenkins builder
 BUILD_DATE=$(shell date +"%Y%m%d-%T")
@@ -188,7 +189,29 @@ unit-test:
 #################
 
 # Run document generation
-docs: docs/api.md docs/crds update-crds
+docs: docs/api.md docs/crds update-crds docs/helm
+
+# Generate Helm chart documentation using helm-docs
+.PHONY: docs/helm
+docs/helm: helm-docs
+	$(HELM_DOCS) --chart-search-root $(HELM_FOLDER)
+
+# Find or download helm-docs, download if necessary
+.PHONY: helm-docs
+helm-docs:
+ifeq (, $(shell which helm-docs))
+	@{ \
+		set -e ;\
+		HELM_DOCS_TMP_DIR=$$(mktemp -d) ;\
+		cd $$HELM_DOCS_TMP_DIR ;\
+		go mod init tmp ;\
+		go install $(HELM_DOCS_PACKAGE) ;\
+		rm -rf $$HELM_DOCS_TMP_DIR ;\
+	}
+HELM_DOCS=$(GOBIN)/helm-docs
+else
+HELM_DOCS=$(shell which helm-docs)
+endif
 
 # Run gen-crd-api-reference-docs to generate API documents by operator API
 docs/api.md: docs/api/gen $(TYPES_V1_TARGET)

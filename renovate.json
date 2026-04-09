@@ -48,8 +48,7 @@
       "groupName": "docker-deps",
       "matchFileNames": [
         "Dockerfile",
-        "integration-tests/Dockerfile",
-        "integration-tests/**/Dockerfile"
+        "tests/robot-tests/Dockerfile"
       ],
       "matchPackageNames": ["*"]
     }

@@ -8,10 +8,10 @@ priority: 3
 metadata:
   name: {{ .Values.fluentd.securityResources.name }}
   labels:
-    {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" .Values.fluentd.securityResources.name "component" "fluentd") | nindent 4 }}
-  {{- if .Values.fluentd.labels }}
-    {{- toYaml .Values.fluentd.labels | nindent 4 }}
-  {{- end }}
+    {{- include "logging.labels" (dict "ctx" . "name" .Values.fluentd.securityResources.name "component" "fluentd") | nindent 4 }}
+    {{- if .Values.fluentd.labels }}
+    {{- include "logging.extraLabels" (dict "ctx" . "extraLabels" .Values.fluentd.labels) | nindent 4 }}
+    {{- end }}
   {{- if .Values.fluentd.annotations }}
   annotations:
     {{- toYaml .Values.fluentd.annotations | nindent 4 }}

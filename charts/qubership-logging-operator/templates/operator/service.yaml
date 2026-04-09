@@ -4,9 +4,9 @@ kind: Service
 metadata:
   name: logging-service-operator
   labels:
-    {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" "logging-service-operator" "component" "logging-operator") | nindent 4 }}
+    {{- include "logging.labels" (dict "ctx" . "name" "logging-service-operator" "component" "logging-operator") | nindent 4 }}
     {{- if .Values.pprof.service.labels }}
-      {{ toYaml .Values.pprof.service.labels | indent 4 }}
+    {{- include "logging.extraLabels" (dict "ctx" . "extraLabels" .Values.pprof.service.labels) | nindent 4 }}
     {{- end }}
   {{- if .Values.pprof.service.annotations }}
   annotations:

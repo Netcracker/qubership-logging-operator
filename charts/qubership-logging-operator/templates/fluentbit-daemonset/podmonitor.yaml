@@ -4,10 +4,11 @@ kind: PodMonitor
 metadata:
   name: fluentbit-all-pods
   labels:
-    {{- include "logging-operator.resourceLabels" (dict "ctx" . "name" "fluentbit-all-pods" "component" "monitoring" "processedByOperator" "prometheus-operator") | nindent 4 }}
-  {{- if .Values.fluentbit.labels }}
-    {{- toYaml .Values.fluentbit.labels | nindent 4 }}
-  {{- end }}
+    {{- include "logging.labels" (dict "ctx" . "name" "fluentbit-all-pods" "component" "monitoring") | nindent 4 }}
+    app.kubernetes.io/processed-by-operator: prometheus-operator
+    {{- if .Values.fluentbit.labels }}
+    {{- include "logging.extraLabels" (dict "ctx" . "extraLabels" .Values.fluentbit.labels) | nindent 4 }}
+    {{- end }}
   {{- if .Values.fluentbit.annotations }}
   annotations:
     {{- toYaml .Values.fluentbit.annotations | nindent 4 }}

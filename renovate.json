@@ -8,7 +8,29 @@
     "dependencies"
   ],
   "prConcurrentLimit": 20,
+  "customManagers": [
+    {
+      "customType": "regex",
+      "fileMatch": [
+        "controllers/fluentd/fluentd\\.configmap/conf\\.d/outputs/output-prometheus\\.conf",
+        "charts/qubership-logging-operator/templates/_helpers\\.tpl",
+        "charts/qubership-logging-operator/values\\.yaml"
+      ],
+      "matchStrings": [
+        "version (?<currentValue>[0-9.-]+)",
+        "ghcr\\.io/netcracker/qubership-fluentd:(?<currentValue>[^\\s\"'<]+)"
+      ],
+      "datasourceTemplate": "github-releases",
+      "packageNameTemplate": "Netcracker/qubership-fluentd",
+      "extractVersionTemplate": "^v?(?<version>.+)$",
+      "versioningTemplate": "loose"
+    }
+  ],
   "packageRules": [
+    {
+      "matchPackageNames": ["Netcracker/qubership-fluentd"],
+      "ignoreUnstable": false
+    },
     {
       "matchManagers": ["github-actions"],
       "groupName": "actions-deps",

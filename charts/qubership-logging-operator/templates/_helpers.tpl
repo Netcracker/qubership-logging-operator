@@ -428,7 +428,7 @@ Image can be found from:
     {{- printf "%s" .Values.graylog.mongodbImage -}}
   {{- else -}}
     {{- /* # renovate: datasource=docker depName=mongo */ -}}
-    {{- print "docker.io/mongo:5.0.31" -}}
+    {{- print "docker.io/mongo:5.0.32" -}}
   {{- end -}}
 {{- end -}}
 

@@ -16,6 +16,9 @@ on:
         required: true
         default: './charts/qubership-logging-operator/Chart.yaml'
 
+permissions:
+  contents: read
+
 jobs:
   check-tag:
     runs-on: ubuntu-latest

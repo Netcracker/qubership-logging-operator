@@ -354,7 +354,7 @@ Image can be found from:
     {{- printf "%s" .Values.fluentbit.dockerImage -}}
   {{- else -}}
     {{- /* # renovate: datasource=docker depName=fluent/fluent-bit */ -}}
-    {{- print "docker.io/fluent/fluent-bit:4.0.1" -}}
+    {{- print "docker.io/fluent/fluent-bit:4.2.3" -}}
   {{- end -}}
 {{- end -}}
 
@@ -428,7 +428,7 @@ Image can be found from:
     {{- printf "%s" .Values.graylog.mongodbImage -}}
   {{- else -}}
     {{- /* # renovate: datasource=docker depName=mongo */ -}}
-    {{- print "docker.io/mongo:5.0.31" -}}
+    {{- print "docker.io/mongo:5.0.32" -}}
   {{- end -}}
 {{- end -}}
 
@@ -458,7 +458,7 @@ Image can be found from:
     {{- printf "%s" .Values.graylog.initSetupImage -}}
   {{- else -}}
     {{- /* # renovate: datasource=docker depName=alpine */ -}}
-    {{- print "docker.io/alpine:3.21.3" -}}
+    {{- print "docker.io/alpine:3.23.3" -}}
   {{- end -}}
 {{- end -}}
 

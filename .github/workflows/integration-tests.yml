@@ -36,7 +36,7 @@ env:
   opensearch_version: 2.3.0
   # renovate: datasource=docker depName=ghcr.io/netcracker/qubership-opensearch-operator
   opensearch_image_version: 2.3.0
-  opensearch_major_version: 3
+  opensearch_major_version: 2
   namespace: logging
   max_attempts: 100
   delay: 10

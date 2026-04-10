@@ -157,7 +157,7 @@ jobs:
         helm upgrade --install opensearch \
           --namespace=${{ env.opensearch_namespace }} \
           --create-namespace \
-          ./qubership-opensearch/charts/helm/opensearch-service \
+          ./operator/charts/helm/opensearch-service \
           -f ./opensearch_values.yaml
 
     - name: Check opensearch deployment status

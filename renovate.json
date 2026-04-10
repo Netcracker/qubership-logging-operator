@@ -15,7 +15,8 @@
       "managerFilePatterns": [
         "/controllers/fluentd/fluentd\\.configmap/conf\\.d/outputs/output-prometheus\\.conf/",
         "/charts/qubership-logging-operator/templates/_helpers\\.tpl/",
-        "/charts/qubership-logging-operator/values\\.yaml/"
+        "/charts/qubership-logging-operator/values\\.yaml/",
+        "/.github/workflows/integration-tests\\.yml/"
       ],
       "matchStrings": [
         "# renovate: datasource=(?<datasource>[a-z-]+?) depName=(?<depName>[^\\s]+)(?: versioning=(?<versioning>[a-z-0-9]+))?[^\\n]*\\n[^\\n]*?(?<currentValue>[0-9][^\\s\"'\\n<]*)"
@@ -25,8 +26,36 @@
   ],
   "packageRules": [
     {
-      "matchPackageNames": ["Netcracker/qubership-fluentd"],
-      "ignoreUnstable": false
+      "matchManagers": ["regex"],
+      "matchPackageNames": [
+        "Netcracker/qubership-opensearch",
+        "ghcr.io/netcracker/qubership-opensearch-operator",
+        "kubernetes-sigs/kind"
+      ],
+      "groupName": "integration-tests",
+      "separateMajorMinor": false
+    },
+    {
+      "matchManagers": ["regex"],
+      "matchPackageNames": [
+        "Netcracker/qubership-fluentd",
+        "Netcracker/qubership-kube-events-reader",
+        "Netcracker/qubership-graylog-plugins-init",
+        "Netcracker/qubership-graylog-auth-proxy"
+      ],
+      "ignoreUnstable": false,
+      "groupName": "netcracker-deps"
+    },
+    {
+      "matchManagers": ["regex"],
+      "matchPackageNames": [
+        "graylog/graylog",
+        "jimmidyson/configmap-reload",
+        "fluent/fluent-bit",
+        "mongo",
+        "alpine"
+      ],
+      "groupName": "third-party-images"
     },
     {
       "matchManagers": ["github-actions"],

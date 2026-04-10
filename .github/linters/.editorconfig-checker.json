@@ -1,5 +1,5 @@
 {
     "Exclude": [
-        "charts/qubership-logging-operator/*.md"
+        "charts/qubership-logging-operator/.*\\.md"
     ]
 }

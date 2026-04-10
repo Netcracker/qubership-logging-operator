@@ -8,7 +8,79 @@
     "dependencies"
   ],
   "prConcurrentLimit": 20,
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Update versions via inline renovate annotation comments",
+      "managerFilePatterns": [
+        "/controllers/fluentd/fluentd\\.configmap/conf\\.d/outputs/output-prometheus\\.conf/",
+        "/charts/qubership-logging-operator/templates/_helpers\\.tpl/",
+        "/charts/qubership-logging-operator/values\\.yaml/",
+        "/.github/workflows/integration-tests\\.yml/"
+      ],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>[a-z-]+?) depName=(?<depName>[^\\s]+)(?: versioning=(?<versioning>[a-z-0-9]+))?[^\\n]*\\n[^\\n]*?(?<currentValue>[0-9][^\\s\"'\\n<]*)"
+      ],
+      "extractVersionTemplate": "^v?(?<version>.+)$"
+    }
+  ],
   "packageRules": [
+    {
+      "matchManagers": ["custom.regex"],
+      "matchPackageNames": [
+        "Netcracker/qubership-opensearch",
+        "ghcr.io/netcracker/qubership-opensearch-operator",
+        "kubernetes-sigs/kind"
+      ],
+      "groupName": "integration-tests",
+      "separateMajorMinor": false
+    },
+    {
+      "matchManagers": ["custom.regex"],
+      "matchPackageNames": [
+        "Netcracker/qubership-fluentd",
+        "Netcracker/qubership-kube-events-reader",
+        "Netcracker/qubership-graylog-plugins-init",
+        "Netcracker/qubership-graylog-auth-proxy"
+      ],
+      "ignoreUnstable": false,
+      "groupName": "netcracker-deps"
+    },
+    {
+      "matchManagers": ["custom.regex"],
+      "matchPackageNames": ["mongo"],
+      "matchCurrentVersion": "/^5\\./",
+      "allowedVersions": ">=5.0.0 <6.0.0"
+    },
+    {
+      "matchManagers": ["custom.regex"],
+      "matchPackageNames": ["mongo"],
+      "matchCurrentVersion": "/^4\\.0\\./",
+      "allowedVersions": ">=4.0.0 <4.1.0"
+    },
+    {
+      "matchManagers": ["custom.regex"],
+      "matchPackageNames": ["mongo"],
+      "matchCurrentVersion": "/^4\\.2\\./",
+      "allowedVersions": ">=4.2.0 <4.3.0"
+    },
+    {
+      "matchManagers": ["custom.regex"],
+      "matchPackageNames": ["mongo"],
+      "matchCurrentVersion": "/^4\\.4\\./",
+      "allowedVersions": ">=4.4.0 <4.5.0"
+    },
+    {
+      "matchManagers": ["custom.regex"],
+      "matchPackageNames": [
+        "graylog/graylog",
+        "jimmidyson/configmap-reload",
+        "fluent/fluent-bit",
+        "mongo",
+        "alpine"
+      ],
+      "groupName": "third-party-images"
+    },
     {
       "matchManagers": ["github-actions"],
       "groupName": "actions-deps",

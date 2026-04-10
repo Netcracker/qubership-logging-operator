@@ -303,6 +303,7 @@ Image can be found from:
   {{- if .Values.graylog.dockerImage -}}
     {{- printf "%s" .Values.graylog.dockerImage -}}
   {{- else -}}
+    {{- /* # renovate: datasource=docker depName=graylog/graylog */ -}}
     {{- print "docker.io/graylog/graylog:5.2.12" -}}
   {{- end -}}
 {{- end -}}
@@ -317,7 +318,8 @@ Image can be found from:
   {{- if .Values.fluentd.dockerImage -}}
     {{- printf "%s" .Values.fluentd.dockerImage -}}
   {{- else -}}
-    {{- print "ghcr.io/netcracker/qubership-fluentd:main" -}}
+    {{- /* # renovate: datasource=github-releases depName=Netcracker/qubership-fluentd versioning=loose */ -}}
+    {{- print "ghcr.io/netcracker/qubership-fluentd:1.19.2-1" -}}
   {{- end -}}
 {{- end -}}
 
@@ -331,6 +333,7 @@ Image can be found from:
   {{- if .Values.fluentd.configmapReload.dockerImage -}}
     {{- printf "%s" .Values.fluentd.configmapReload.dockerImage -}}
   {{- else -}}
+    {{- /* # renovate: datasource=github-releases depName=jimmidyson/configmap-reload versioning=semver */ -}}
     {{- print "ghcr.io/jimmidyson/configmap-reload:v0.15.0" -}}
   {{- end -}}
 {{- end -}}
@@ -345,7 +348,8 @@ Image can be found from:
   {{- if .Values.fluentbit.dockerImage -}}
     {{- printf "%s" .Values.fluentbit.dockerImage -}}
   {{- else -}}
-    {{- print "docker.io/fluent/fluent-bit:4.0.1" -}}
+    {{- /* # renovate: datasource=docker depName=fluent/fluent-bit */ -}}
+    {{- print "docker.io/fluent/fluent-bit:4.2.3" -}}
   {{- end -}}
 {{- end -}}
 
@@ -359,6 +363,7 @@ Image can be found from:
   {{- if .Values.fluentbit.configmapReload.dockerImage -}}
     {{- printf "%s" .Values.fluentbit.configmapReload.dockerImage -}}
   {{- else -}}
+    {{- /* # renovate: datasource=github-releases depName=jimmidyson/configmap-reload versioning=semver */ -}}
     {{- print "ghcr.io/jimmidyson/configmap-reload:v0.15.0" -}}
   {{- end -}}
 {{- end -}}
@@ -373,7 +378,8 @@ Image can be found from:
   {{- if .Values.cloudEventsReader.dockerImage -}}
     {{- printf "%s" .Values.cloudEventsReader.dockerImage -}}
   {{- else -}}
-    {{- print "ghcr.io/netcracker/qubership-kube-events-reader:main" -}}
+    {{- /* # renovate: datasource=github-releases depName=Netcracker/qubership-kube-events-reader versioning=semver */ -}}
+    {{- print "ghcr.io/netcracker/qubership-kube-events-reader:2.8.0" -}}
   {{- end -}}
 {{- end -}}
 
@@ -401,7 +407,8 @@ Image can be found from:
   {{- if .Values.graylog.initContainerDockerImage -}}
     {{- printf "%s" .Values.graylog.initContainerDockerImage -}}
   {{- else -}}
-    {{- print "ghcr.io/netcracker/qubership-graylog-plugins-init:main" -}}
+    {{- /* # renovate: datasource=github-releases depName=Netcracker/qubership-graylog-plugins-init versioning=semver */ -}}
+    {{- print "ghcr.io/netcracker/qubership-graylog-plugins-init:0.1.0" -}}
   {{- end -}}
 {{- end -}}
 
@@ -415,7 +422,8 @@ Image can be found from:
   {{- if .Values.graylog.mongodbImage -}}
     {{- printf "%s" .Values.graylog.mongodbImage -}}
   {{- else -}}
-    {{- print "docker.io/mongo:5.0.31" -}}
+    {{- /* # renovate: datasource=docker depName=mongo */ -}}
+    {{- print "docker.io/mongo:5.0.32" -}}
   {{- end -}}
 {{- end -}}
 
@@ -429,7 +437,8 @@ Image can be found from:
   {{- if .Values.graylog.authProxy.image -}}
     {{- printf "%s" .Values.graylog.authProxy.image -}}
   {{- else -}}
-    {{- print "ghcr.io/netcracker/qubership-graylog-auth-proxy:main" -}}
+    {{- /* # renovate: datasource=github-releases depName=Netcracker/qubership-graylog-auth-proxy versioning=semver */ -}}
+    {{- print "ghcr.io/netcracker/qubership-graylog-auth-proxy:0.2.3" -}}
   {{- end -}}
 {{- end -}}
 
@@ -443,7 +452,8 @@ Image can be found from:
   {{- if .Values.graylog.initSetupImage -}}
     {{- printf "%s" .Values.graylog.initSetupImage -}}
   {{- else -}}
-    {{- print "docker.io/alpine:3.21.3" -}}
+    {{- /* # renovate: datasource=docker depName=alpine */ -}}
+    {{- print "docker.io/alpine:3.23.3" -}}
   {{- end -}}
 {{- end -}}
 
@@ -460,6 +470,7 @@ MongoDB 4.0 image.
   {{- if .Values.graylog.mongodb40Image -}}
     {{- printf "%s" .Values.graylog.mongodb40Image -}}
   {{- else -}}
+    {{- /* # renovate: datasource=docker depName=mongo */ -}}
     {{- print "docker.io/mongo:4.0.28" -}}
   {{- end -}}
 {{- end -}}
@@ -471,6 +482,7 @@ MongoDB 4.2 image.
   {{- if .Values.graylog.mongodb42Image -}}
     {{- printf "%s" .Values.graylog.mongodb42Image -}}
   {{- else -}}
+    {{- /* # renovate: datasource=docker depName=mongo */ -}}
     {{- print "docker.io/mongo:4.2.22" -}}
   {{- end -}}
 {{- end -}}
@@ -482,6 +494,7 @@ MongoDB 4.4 image.
   {{- if .Values.graylog.mongodb44Image -}}
     {{- printf "%s" .Values.graylog.mongodb44Image -}}
   {{- else -}}
+    {{- /* # renovate: datasource=docker depName=mongo */ -}}
     {{- print "docker.io/mongo:4.4.17" -}}
   {{- end -}}
 {{- end -}}

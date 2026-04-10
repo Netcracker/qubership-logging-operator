@@ -100,14 +100,9 @@ spec:
     {{- if .Values.graylog.customPluginsPaths }}
     customPluginsPaths: {{ .Values.graylog.customPluginsPaths }}
     {{- end }}
-    {{- if or .Values.DEPLOYMENT_SESSION_ID .Values.graylog.labels }}
+    {{- if .Values.graylog.labels }}
     labels:
-      {{- if .Values.DEPLOYMENT_SESSION_ID }}
-      deployment.netcracker.com/sessionId: {{ .Values.DEPLOYMENT_SESSION_ID | quote }}
-      {{- end }}
-      {{- if .Values.graylog.labels }}
       {{- include "logging.extraLabels" (dict "ctx" . "extraLabels" .Values.graylog.labels) | nindent 6 }}
-      {{- end }}
     {{- end }}
     {{- if .Values.graylog.annotations }}
     annotations:
@@ -424,14 +419,9 @@ spec:
     cloudEventsReaderFormat: {{ .Values.fluentd.cloudEventsReaderFormat }}
     {{- end }}
     watchKubernetesMetadata: {{ default true .Values.fluentd.watchKubernetesMetadata }}
-    {{- if or .Values.DEPLOYMENT_SESSION_ID .Values.fluentd.labels }}
+    {{- if .Values.fluentd.labels }}
     labels:
-      {{- if .Values.DEPLOYMENT_SESSION_ID }}
-      deployment.netcracker.com/sessionId: {{ .Values.DEPLOYMENT_SESSION_ID | quote }}
-      {{- end }}
-      {{- if .Values.fluentd.labels }}
       {{- include "logging.extraLabels" (dict "ctx" . "extraLabels" .Values.fluentd.labels) | nindent 6 }}
-      {{- end }}
     {{- end }}
     {{- if .Values.fluentd.annotations }}
     annotations:
@@ -651,14 +641,9 @@ spec:
     customLuaScriptConf:
       {{- toYaml .Values.fluentbit.customLuaScriptConf | nindent 6 }}
     watchKubernetesMetadata: {{ default true .Values.fluentbit.watchKubernetesMetadata }}
-    {{- if or .Values.DEPLOYMENT_SESSION_ID .Values.fluentbit.labels }}
+    {{- if .Values.fluentbit.labels }}
     labels:
-      {{- if .Values.DEPLOYMENT_SESSION_ID }}
-      deployment.netcracker.com/sessionId: {{ .Values.DEPLOYMENT_SESSION_ID | quote }}
-      {{- end }}
-      {{- if .Values.fluentbit.labels }}
       {{- include "logging.extraLabels" (dict "ctx" . "extraLabels" .Values.fluentbit.labels) | nindent 6 }}
-      {{- end }}
     {{- end }}
     {{- if .Values.fluentbit.annotations }}
     annotations:
@@ -861,14 +846,9 @@ spec:
         {{ default "" .Values.fluentbit.aggregator.customOutputConf | nindent 8 }}
       customLuaScriptConf:
         {{- toYaml .Values.fluentbit.aggregator.customLuaScriptConf | nindent 8 }}
-      {{- if or .Values.DEPLOYMENT_SESSION_ID .Values.fluentbit.aggregator.labels }}
+      {{- if .Values.fluentbit.aggregator.labels }}
       labels:
-        {{- if .Values.DEPLOYMENT_SESSION_ID }}
-        deployment.netcracker.com/sessionId: {{ .Values.DEPLOYMENT_SESSION_ID | quote }}
-        {{- end }}
-        {{- if .Values.fluentbit.aggregator.labels }}
         {{- include "logging.extraLabels" (dict "ctx" . "extraLabels" .Values.fluentbit.aggregator.labels) | nindent 8 }}
-        {{- end }}
       {{- end }}
       {{- if .Values.fluentbit.aggregator.annotations }}
       annotations:
@@ -1016,14 +996,9 @@ spec:
     affinity:
       {{- toYaml .Values.cloudEventsReader.affinity | nindent 6 }}
     {{- end }}
-    {{- if or .Values.DEPLOYMENT_SESSION_ID .Values.cloudEventsReader.labels }}
+    {{- if .Values.cloudEventsReader.labels }}
     labels:
-      {{- if .Values.DEPLOYMENT_SESSION_ID }}
-      deployment.netcracker.com/sessionId: {{ .Values.DEPLOYMENT_SESSION_ID | quote }}
-      {{- end }}
-      {{- if .Values.cloudEventsReader.labels }}
       {{- include "logging.extraLabels" (dict "ctx" . "extraLabels" .Values.cloudEventsReader.labels) | nindent 6 }}
-      {{- end }}
     {{- end }}
     {{- if .Values.cloudEventsReader.annotations }}
     annotations:

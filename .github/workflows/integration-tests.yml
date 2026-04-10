@@ -30,12 +30,12 @@ on:
 
 env:
   # renovate: datasource=github-releases depName=kubernetes-sigs/kind versioning=semver
-  kind_version: v0.27.0
+  kind_version: v0.31.0
   opensearch_namespace: opensearch
   # renovate: datasource=github-releases depName=Netcracker/qubership-opensearch versioning=semver
   opensearch_version: 2.3.0
   # renovate: datasource=docker depName=ghcr.io/netcracker/qubership-opensearch-operator
-  opensearch_image_version: '1.14.5'
+  opensearch_image_version: 2.3.0
   namespace: logging
   max_attempts: 100
   delay: 10

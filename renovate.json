@@ -48,6 +48,30 @@
     },
     {
       "matchManagers": ["regex"],
+      "matchPackageNames": ["mongo"],
+      "matchCurrentVersion": "/^5\\./",
+      "allowedVersions": ">=5.0.0 <6.0.0"
+    },
+    {
+      "matchManagers": ["regex"],
+      "matchPackageNames": ["mongo"],
+      "matchCurrentVersion": "/^4\\.0\\./",
+      "allowedVersions": ">=4.0.0 <4.1.0"
+    },
+    {
+      "matchManagers": ["regex"],
+      "matchPackageNames": ["mongo"],
+      "matchCurrentVersion": "/^4\\.2\\./",
+      "allowedVersions": ">=4.2.0 <4.3.0"
+    },
+    {
+      "matchManagers": ["regex"],
+      "matchPackageNames": ["mongo"],
+      "matchCurrentVersion": "/^4\\.4\\./",
+      "allowedVersions": ">=4.4.0 <4.5.0"
+    },
+    {
+      "matchManagers": ["regex"],
       "matchPackageNames": [
         "graylog/graylog",
         "jimmidyson/configmap-reload",

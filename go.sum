@@ -12,6 +12,8 @@ github.com/Netcracker/qubership-logging-operator/api v0.0.0-20260408142321-0e091
 github.com/Netcracker/qubership-logging-operator/api v0.0.0-20260408142321-0e091a3dea36/go.mod h1:7O47kqXxVvH7tCh7nOdWF8RPZr4S0zrizSCmCFTaLLw=
 github.com/Netcracker/qubership-logging-operator/api v0.0.0-20260408171442-049588ac6ea9 h1:zuyORE6LA766EBiII8zkeGp15rk4udkI0yZwmqLnzBA=
 github.com/Netcracker/qubership-logging-operator/api v0.0.0-20260408171442-049588ac6ea9/go.mod h1:7O47kqXxVvH7tCh7nOdWF8RPZr4S0zrizSCmCFTaLLw=
+github.com/Netcracker/qubership-logging-operator/api v0.0.0-20260410124626-7b056ad5ee0c h1:IpvYUsEQ7PPFbIW4FsYnGYLMO+u0ggmkEnzQIY81YLk=
+github.com/Netcracker/qubership-logging-operator/api v0.0.0-20260410124626-7b056ad5ee0c/go.mod h1:7O47kqXxVvH7tCh7nOdWF8RPZr4S0zrizSCmCFTaLLw=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
 github.com/cespare/xxhash/v2 v2.3.0 h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs=

@@ -349,7 +349,7 @@ Image can be found from:
     {{- printf "%s" .Values.fluentbit.dockerImage -}}
   {{- else -}}
     {{- /* # renovate: datasource=docker depName=fluent/fluent-bit */ -}}
-    {{- print "docker.io/fluent/fluent-bit:4.2.3" -}}
+    {{- print "docker.io/fluent/fluent-bit:4.2.4" -}}
   {{- end -}}
 {{- end -}}
 
@@ -483,7 +483,7 @@ MongoDB 4.2 image.
     {{- printf "%s" .Values.graylog.mongodb42Image -}}
   {{- else -}}
     {{- /* # renovate: datasource=docker depName=mongo */ -}}
-    {{- print "docker.io/mongo:4.2.22" -}}
+    {{- print "docker.io/mongo:4.2.24" -}}
   {{- end -}}
 {{- end -}}
 
@@ -495,6 +495,6 @@ MongoDB 4.4 image.
     {{- printf "%s" .Values.graylog.mongodb44Image -}}
   {{- else -}}
     {{- /* # renovate: datasource=docker depName=mongo */ -}}
-    {{- print "docker.io/mongo:4.4.17" -}}
+    {{- print "docker.io/mongo:4.4.30" -}}
   {{- end -}}
 {{- end -}}

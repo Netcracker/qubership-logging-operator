@@ -3691,7 +3691,7 @@
               },
               "editorMode": "code",
               "exemplar": false,
-              "expr": "sum by (namespace, pod, container) (\r\n  rate(log_metric_counter_parse_error_total[$__rate_interval])\r\n)",
+              "expr": "sum by (namespace, pod, container) (\r\n  rate(fluentbit_parse_error_total[$__rate_interval])\r\n)",
               "format": "time_series",
               "instant": false,
               "interval": "",

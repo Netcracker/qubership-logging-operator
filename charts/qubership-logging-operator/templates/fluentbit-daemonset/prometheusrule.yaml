@@ -39,7 +39,7 @@ spec:
         summary: "Graylog pod is not running"
         description: "Graylog pod is not in Running state for more than {{ default "3m" .Values.fluentbit.prometheusRules.alertDelay }}."
     - alert: Fluent bit high parse error rate
-      expr: max by(namespace, pod, container) (rate(log_metric_counter_parse_error_total[5m])) > {{ default 20 .Values.fluentbit.prometheusRules.parseErrorRateThreshold }}
+      expr: max by(namespace, pod, container) (rate(fluentbit_parse_error_total[5m])) > {{ default 20 .Values.fluentbit.prometheusRules.parseErrorRateThreshold }}
       for: {{ default "5m" .Values.fluentbit.prometheusRules.alertDelay }}
       labels:
         severity: warning

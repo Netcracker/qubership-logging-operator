@@ -22,8 +22,9 @@ jobs:
         id: restore-cache
         with:
           path: .lycheecache
-          key: cache-lychee-v1 # static key for cache (same cache for all branches).
+          key: cache-lychee-${{ github.run_id }}
           restore-keys: cache-lychee-
+          save-always: true
 
       - name: Link Checker
         id: lychee

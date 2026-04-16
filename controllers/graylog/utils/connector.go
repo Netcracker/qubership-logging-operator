@@ -30,6 +30,10 @@ const (
 	pipelineUrl                 = "system/pipelines/pipeline"
 	processingRulesUrl          = "system/pipelines/rule"
 	authHeaderUrl               = "system/authentication/http-header-auth-config"
+	operatorGraylogSecretDir    = "/etc/logging-operator/graylog-secret"
+	operatorGraylogUserFile     = operatorGraylogSecretDir + "/user"
+	operatorGraylogPasswordFile = operatorGraylogSecretDir + "/password"
+	operatorElasticHostFile     = operatorGraylogSecretDir + "/elasticsearchHost"
 )
 
 type GraylogConnector struct {
@@ -84,13 +88,9 @@ func CreateConnector(ctx context.Context, cr *loggingService.LoggingService, ass
 			Password: cr.Spec.Graylog.Password,
 		}
 	} else {
-		name := os.Getenv("GRAYLOG_USERNAME")
-		pwd := os.Getenv("GRAYLOG_PASSWORD")
-		if len(name) != 0 && len(pwd) != 0 {
-			user = &util.Creds{
-				Name:     name,
-				Password: pwd,
-			}
+		user, err = readOperatorGraylogCreds()
+		if err != nil {
+			return nil, err
 		}
 	}
 
@@ -125,7 +125,11 @@ func CreateConnector(ctx context.Context, cr *loggingService.LoggingService, ass
 
 	if len(host) == 0 {
 		var u *url.URL
-		u, err = url.Parse(os.Getenv("ELASTICSEARCH_HOST"))
+		elasticSearchHost, err := readSecretFileValue(operatorElasticHostFile)
+		if err != nil {
+			return nil, err
+		}
+		u, err = url.Parse(elasticSearchHost)
 		if err != nil {
 			return nil, err
 		}
@@ -172,6 +176,32 @@ func CreateConnector(ctx context.Context, cr *loggingService.LoggingService, ass
 		Assets:               assets,
 		EnabledStreams:       enabledStreams,
 		TLSEnabled:           cr.Spec.Graylog.TLS.HTTP.Enabled,
+	}, nil
+}
+
+func readSecretFileValue(path string) (string, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return "", err
+	}
+
+	return strings.TrimSpace(string(data)), nil
+}
+
+func readOperatorGraylogCreds() (*util.Creds, error) {
+	name, err := readSecretFileValue(operatorGraylogUserFile)
+	if err != nil {
+		return nil, err
+	}
+
+	password, err := readSecretFileValue(operatorGraylogPasswordFile)
+	if err != nil {
+		return nil, err
+	}
+
+	return &util.Creds{
+		Name:     name,
+		Password: password,
 	}, nil
 }
 

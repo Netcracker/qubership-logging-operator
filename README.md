@@ -137,8 +137,7 @@ flowchart TB
         end
         
         subgraph "Applications"
-            APP1[App Pods]
-            APP2[App Pods]
+            APP[App Pods]
             K8S[Kubernetes API]
         end
     end
@@ -153,11 +152,11 @@ flowchart TB
     LO --> GL
     LO --> ER
     
-    APP1 --> FB
-    APP2 --> FB
+    APP --> FB
+    APP --> FD
     K8S --> ER
     
-    FB --> FD
+    FB --> GL
     FD --> GL
     ER --> GL
     

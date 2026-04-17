@@ -33,6 +33,19 @@ spec:
       {{- end }}
     spec:
       serviceAccountName: logging-service-operator
+      {{- if .Values.graylog.install }}
+      volumes:
+        - name: graylog-secret-files
+          secret:
+            secretName: {{ default "graylog-secret" .Values.graylog.graylogSecretName }}
+            items:
+              - key: user
+                path: user
+              - key: password
+                path: password
+              - key: elasticsearchHost
+                path: elasticsearchHost
+      {{- end }}
       {{- if and .Values.nodeSelectorKey .Values.nodeSelectorValue }}
       nodeSelector:
         {{ .Values.nodeSelectorKey | indent 8 }}: {{ .Values.nodeSelectorValue }}
@@ -95,22 +108,11 @@ spec:
               value: {{ default "10s" .Values.podMonitor.scrapeTimeout }}
             - name: LOG_LEVEL
               value: {{ default "info" .Values.logLevel }}
-            {{- if .Values.graylog.install }}
-            - name: GRAYLOG_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  key: user
-                  name: {{ default "graylog-secret" .Values.graylog.graylogSecretName }}
-            - name: GRAYLOG_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  key: password
-                  name: {{ default "graylog-secret" .Values.graylog.graylogSecretName }}
-            - name: ELASTICSEARCH_HOST
-              valueFrom:
-                secretKeyRef:
-                  key: elasticsearchHost
-                  name: {{ default "graylog-secret" .Values.graylog.graylogSecretName }}
-            {{- end }}
+          {{- if .Values.graylog.install }}
+          volumeMounts:
+            - name: graylog-secret-files
+              mountPath: /etc/logging-operator/graylog-secret
+              readOnly: true
+          {{- end }}
   strategy:
     type: Recreate

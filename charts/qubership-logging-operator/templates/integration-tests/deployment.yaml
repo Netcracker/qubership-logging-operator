@@ -70,26 +70,8 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
-            - name: GRAYLOG_USER
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.integrationTests.service.name }}-secret
-                  key: graylog-user
-            - name: GRAYLOG_PASS
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.integrationTests.service.name }}-secret
-                  key: graylog-password
-            - name: VM_USER
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.integrationTests.service.name }}-secret
-                  key: vm-user
-            - name: SSH_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.integrationTests.service.name }}-secret
-                  key: ssh-key
+            - name: INTEGRATION_TESTS_SECRETS_DIR
+              value: /run/secrets/integration-tests
             - name: GRAYLOG_INSTALL
               value: {{ .Values.graylog.install | quote }}
           {{- if .Values.integrationTests.victorialogs.url }}
@@ -98,23 +80,14 @@ spec:
           {{- end }}
           {{- if .Values.integrationTests.victorialogs.auth }}
           {{- if .Values.integrationTests.victorialogs.auth.token }}
-            - name: VL_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.integrationTests.victorialogs.auth.token.secretName | default "victorialogs-auth-secret" | quote }}
-                  key: {{ .Values.integrationTests.victorialogs.auth.token.key | default "token" | quote }}
+            - name: VL_TOKEN_FILE
+              value: /run/secrets/vl-token/vl_token
           {{- end }}
-          {{- if and .Values.integrationTests.victorialogs.auth.user .Values.integrationTests.victorialogs.auth.password | quote }}
-            - name: VL_USER
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.integrationTests.victorialogs.auth.user.secretName | default "victorialogs-http-secret" | quote }}
-                  key: {{ .Values.integrationTests.victorialogs.auth.user.key | default "username" | quote }}
-            - name: VL_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.integrationTests.victorialogs.auth.password.secretName | default "victorialogs-http-secret" | quote }}
-                  key: {{ .Values.integrationTests.victorialogs.auth.password.key | default "password" | quote }}
+          {{- if and .Values.integrationTests.victorialogs.auth.user .Values.integrationTests.victorialogs.auth.password }}
+            - name: VL_USER_FILE
+              value: /run/secrets/vl-http-user/vl_user
+            - name: VL_PASSWORD_FILE
+              value: /run/secrets/vl-http-password/vl_password
           {{- end }}
           {{- end }}
             - name: OPERATION_RETRY_INTERVAL
@@ -133,6 +106,25 @@ spec:
               value: {{ toYaml .Values.integrationTests.statusWriting.customResourcePath }}
             - name: IS_STATUS_BOOLEAN
               value: "true"
+          volumeMounts:
+            - name: integration-credentials
+              mountPath: /run/secrets/integration-tests
+              readOnly: true
+          {{- if .Values.integrationTests.victorialogs.auth }}
+          {{- if .Values.integrationTests.victorialogs.auth.token }}
+            - name: vl-token
+              mountPath: /run/secrets/vl-token
+              readOnly: true
+          {{- end }}
+          {{- if and .Values.integrationTests.victorialogs.auth.user .Values.integrationTests.victorialogs.auth.password }}
+            - name: vl-http-user
+              mountPath: /run/secrets/vl-http-user
+              readOnly: true
+            - name: vl-http-password
+              mountPath: /run/secrets/vl-http-password
+              readOnly: true
+          {{- end }}
+          {{- end }}
           resources:
             requests:
               memory: {{ default "128Mi" .Values.integrationTests.resources.requests.memory }}
@@ -142,4 +134,35 @@ spec:
               cpu: {{ default "200m" .Values.integrationTests.resources.limits.cpu }}
           terminationMessagePath: /dev/termination-log
           imagePullPolicy: IfNotPresent
+      volumes:
+        - name: integration-credentials
+          secret:
+            secretName: {{ .Values.integrationTests.service.name }}-secret
+      {{- if .Values.integrationTests.victorialogs.auth }}
+      {{- if .Values.integrationTests.victorialogs.auth.token }}
+        - name: vl-token
+          secret:
+            secretName: {{ .Values.integrationTests.victorialogs.auth.token.secretName | default "victorialogs-auth-secret" }}
+            optional: true
+            items:
+              - key: {{ .Values.integrationTests.victorialogs.auth.token.key | default "token" }}
+                path: vl_token
+      {{- end }}
+      {{- if and .Values.integrationTests.victorialogs.auth.user .Values.integrationTests.victorialogs.auth.password }}
+        - name: vl-http-user
+          secret:
+            secretName: {{ .Values.integrationTests.victorialogs.auth.user.secretName | default "victorialogs-http-secret" }}
+            optional: true
+            items:
+              - key: {{ .Values.integrationTests.victorialogs.auth.user.key | default "username" }}
+                path: vl_user
+        - name: vl-http-password
+          secret:
+            secretName: {{ .Values.integrationTests.victorialogs.auth.password.secretName | default "victorialogs-http-secret" }}
+            optional: true
+            items:
+              - key: {{ .Values.integrationTests.victorialogs.auth.password.key | default "password" }}
+                path: vl_password
+      {{- end }}
+      {{- end }}
 {{- end }}

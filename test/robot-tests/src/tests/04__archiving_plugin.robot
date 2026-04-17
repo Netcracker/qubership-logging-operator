@@ -5,18 +5,16 @@ Library         DateTime
 Library	        Collections
 Library         OperatingSystem
 Library         lib/LoggingLibrary.py
-Suite Setup     Setup
+Resource        secrets.robot
+Suite Setup     Run Keywords  Load Integration Test Secrets
+...  AND  Setup
 
 *** Variables ***
 ${GRAYLOG_PROTOCOL}             %{GRAYLOG_PROTOCOL}
 ${GRAYLOG_HOST}                 %{GRAYLOG_HOST}
 ${GRAYLOG_PORT}                 %{GRAYLOG_PORT}
-${GRAYLOG_USER}                 %{GRAYLOG_USER}
-${GRAYLOG_PASS}                 %{GRAYLOG_PASS}
 ${OPERATION_RETRY_COUNT}        30x
 ${OPERATION_RETRY_INTERVAL}     5s
-${SSH_KEY}                      %{SSH_KEY}
-${VM_USER}                      %{VM_USER}
 
 *** Keywords ***
 Setup

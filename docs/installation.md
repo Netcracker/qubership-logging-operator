@@ -392,7 +392,7 @@ to handle Graylog’s load (when deploying Graylog in the cloud).
 Installation consists of the following steps:
 
 1. Obtain the helm chart.
-  
+
    ```sh
    git clone https://github.com/Netcracker/qubership-logging-operator.git
    cd logging-operator/charts/logging-operator
@@ -432,7 +432,7 @@ Installation consists of the following steps:
    * `opensearch_user` and `opensearch_password`: credentials for OpenSearch user
    * `opensearch_host`: the address of OpenSearch (usually `opensearch.opensearch`)
    * `opensearch_port`: opensearch port (default `9200`)
-  
+
 3. Install the Helm chart from the local repository.
 
    ```sh
@@ -467,7 +467,7 @@ Installation consists of the following steps:
    NAME                                               READY     STATUS             RESTARTS   AGE
    events-reader-64d6698bb8-tfp5l                     1/1       Running            0          1m
    logging-fluentd-sh86l                              1/1       Running            0          1m
-   logging-service-operator-7b586d8767-lpwzl          1/1       Running            0          1m
+   logging-operator-7b586d8767-lpwzl          1/1       Running            0          1m
    ```
 
    All pods should enter the `Running` and `Ready` state within a few minutes.

@@ -120,7 +120,7 @@ func main() {
 				Protocol:   v1.ProtocolTCP,
 				TargetPort: intstr.IntOrString{Type: intstr.Int, IntVal: metricsPort}},
 		}
-		serviceName := "logging-service-operator-metrics"
+		serviceName := "logging-operator-metrics"
 		label := utils.MergeLabels(
 			utils.ResourceLabels(serviceName, "logging-operator"),
 			map[string]string{"app.kubernetes.io/instance": utils.GetInstanceLabel(serviceName, namespace)},
@@ -128,7 +128,7 @@ func main() {
 		// Create Service object to expose the metrics port(s).
 		service := &v1.Service{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      "logging-service-operator-metrics",
+				Name:      "logging-operator-metrics",
 				Namespace: namespace,
 				Labels:    label,
 			},

@@ -271,7 +271,7 @@ jobs:
             exit 1
           fi
           echo "Attempt $attempt/$max_attempts: Checking logging-operator pod status..."
-          pod=$(kubectl get pod -l name=logging-service-operator -n ${{ env.namespace }} -o jsonpath='{.items[0]}')
+          pod=$(kubectl get pod -l name=logging-operator -n ${{ env.namespace }} -o jsonpath='{.items[0]}')
           phase=$(echo "$pod" | jq -r '.status.phase')
           ready=$(echo "$pod" | jq -r '.status.conditions[] | select(.type == "Ready") | .status')
           scheduled=$(echo "$pod" | jq -r '.status.conditions[] | select(.type == "PodScheduled") | .status')

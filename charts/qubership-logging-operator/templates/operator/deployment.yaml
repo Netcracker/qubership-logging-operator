@@ -19,6 +19,8 @@ spec:
   selector:
     matchLabels:
       name: logging-service-operator
+  strategy:
+    type: Recreate
   template:
     metadata:
       labels:
@@ -57,12 +59,7 @@ spec:
             {{- end }}
           imagePullPolicy: IfNotPresent
           resources:
-            limits:
-              cpu: "150m"
-              memory: "100Mi"
-            requests:
-              cpu: "25m"
-              memory: "50Mi"
+            {{- toYaml .Values.resources | nindent 12 }}
           ports:
             - name: "http-metrics"
               containerPort: 8383
@@ -90,11 +87,11 @@ spec:
               value: {{ .Values.skipMetricsService | quote }}
             {{- end }}
             - name: SCRAPE_INTERVAL
-              value: {{ default "30s" .Values.podMonitor.scrapeInterval }}
+              value: {{ .Values.podMonitor.scrapeInterval | default "30s" }}
             - name: SCRAPE_TIMEOUT
-              value: {{ default "10s" .Values.podMonitor.scrapeTimeout }}
+              value: {{ .Values.podMonitor.scrapeTimeout | default "10s" }}
             - name: LOG_LEVEL
-              value: {{ default "info" .Values.logLevel }}
+              value: {{ .Values.logLevel | default "info" }}
             {{- if .Values.graylog.install }}
             - name: GRAYLOG_USERNAME
               valueFrom:
@@ -112,5 +109,8 @@ spec:
                   key: elasticsearchHost
                   name: {{ default "graylog-secret" .Values.graylog.graylogSecretName }}
             {{- end }}
-  strategy:
-    type: Recreate
+          livenessProbe:
+            {{- toYaml .Values.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.readinessProbe | nindent 12 }}
+

@@ -33,8 +33,7 @@ import (
 var (
 	scheme            = apiruntime.NewScheme()
 	logger            = utils.Logger("cmd")
-	metricsHost       = "0.0.0.0"
-	metricsPort int32 = 8383
+	metricsPort int32 = 8080
 )
 
 func init() {
@@ -50,11 +49,17 @@ func printVersion() {
 }
 
 func main() {
-	var pprofAddr string
-	var pprofEnabled bool
+	var metricsAddr, probeAddr, pprofAddr string
+	var enableLeaderElection, pprofEnabled bool
 
+	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
+	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 	flag.BoolVar(&pprofEnabled, "pprof-enable", true, "Enable pprof.")
 	flag.StringVar(&pprofAddr, "pprof-address", ":9180", "The pprof address.")
+	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
+		"Enable leader election for controller manager. "+
+			"Enabling this will ensure there is only one active controller manager.")
+
 	printVersion()
 	logf.SetLogger(logger)
 	namespace, found := os.LookupEnv("WATCH_NAMESPACE")
@@ -63,10 +68,13 @@ func main() {
 	}
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
-		Scheme: scheme,
-		Metrics: metricsserver.Options{
-			BindAddress: fmt.Sprintf("%s:%d", metricsHost, metricsPort),
-		},
+		Scheme:                 scheme,
+		Metrics:                metricsserver.Options{BindAddress: metricsAddr},
+		HealthProbeBindAddress: probeAddr,
+		ReadinessEndpointName:  "/ready",
+		LivenessEndpointName:   "/health",
+		LeaderElection:         enableLeaderElection,
+		LeaderElectionID:       "asd23ha2.logging.netcracker.com",
 		Cache: cache.Options{
 			DefaultNamespaces: map[string]cache.Config{
 				namespace: {},
@@ -94,7 +102,11 @@ func main() {
 	if !found || skipMetricsService != "true" {
 		// Add to the below struct any other metrics ports you want to expose.
 		servicePorts := []v1.ServicePort{
-			{Port: metricsPort, Name: "http-metrics", Protocol: v1.ProtocolTCP, TargetPort: intstr.IntOrString{Type: intstr.Int, IntVal: metricsPort}},
+			{
+				Port:       metricsPort,
+				Name:       "http-metrics",
+				Protocol:   v1.ProtocolTCP,
+				TargetPort: intstr.IntOrString{Type: intstr.Int, IntVal: metricsPort}},
 		}
 		serviceName := "logging-service-operator-metrics"
 		label := utils.MergeLabels(

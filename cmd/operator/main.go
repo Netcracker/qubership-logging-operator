@@ -18,6 +18,7 @@ import (
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
+	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
@@ -33,8 +34,7 @@ import (
 var (
 	scheme            = apiruntime.NewScheme()
 	logger            = utils.Logger("cmd")
-	metricsHost       = "0.0.0.0"
-	metricsPort int32 = 8383
+	metricsPort int32 = 8080
 )
 
 func init() {
@@ -50,12 +50,20 @@ func printVersion() {
 }
 
 func main() {
-	var pprofAddr string
-	var pprofEnabled bool
+	var metricsAddr, probeAddr, pprofAddr string
+	var enableLeaderElection, pprofEnabled bool
 
+	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
+	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 	flag.BoolVar(&pprofEnabled, "pprof-enable", true, "Enable pprof.")
 	flag.StringVar(&pprofAddr, "pprof-address", ":9180", "The pprof address.")
+	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
+		"Enable leader election for controller manager. "+
+			"Enabling this will ensure there is only one active controller manager.")
+	flag.Parse()
+
 	printVersion()
+
 	logf.SetLogger(logger)
 	namespace, found := os.LookupEnv("WATCH_NAMESPACE")
 	if !found {
@@ -63,10 +71,13 @@ func main() {
 	}
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
-		Scheme: scheme,
-		Metrics: metricsserver.Options{
-			BindAddress: fmt.Sprintf("%s:%d", metricsHost, metricsPort),
-		},
+		Scheme:                 scheme,
+		Metrics:                metricsserver.Options{BindAddress: metricsAddr},
+		HealthProbeBindAddress: probeAddr,
+		ReadinessEndpointName:  "/ready",
+		LivenessEndpointName:   "/health",
+		LeaderElection:         enableLeaderElection,
+		LeaderElectionID:       "asd23ha2.logging.netcracker.com",
 		Cache: cache.Options{
 			DefaultNamespaces: map[string]cache.Config{
 				namespace: {},
@@ -75,6 +86,15 @@ func main() {
 	})
 	if err != nil {
 		logger.Error(err, "unable to start manager")
+		os.Exit(1)
+	}
+
+	if err := mgr.AddHealthzCheck("health", healthz.Ping); err != nil {
+		logger.Error(err, "unable to set up health check")
+		os.Exit(1)
+	}
+	if err := mgr.AddReadyzCheck("ready", healthz.Ping); err != nil {
+		logger.Error(err, "unable to set up ready check")
 		os.Exit(1)
 	}
 
@@ -94,9 +114,13 @@ func main() {
 	if !found || skipMetricsService != "true" {
 		// Add to the below struct any other metrics ports you want to expose.
 		servicePorts := []v1.ServicePort{
-			{Port: metricsPort, Name: "http-metrics", Protocol: v1.ProtocolTCP, TargetPort: intstr.IntOrString{Type: intstr.Int, IntVal: metricsPort}},
+			{
+				Port:       metricsPort,
+				Name:       "http-metrics",
+				Protocol:   v1.ProtocolTCP,
+				TargetPort: intstr.IntOrString{Type: intstr.Int, IntVal: metricsPort}},
 		}
-		serviceName := "logging-service-operator-metrics"
+		serviceName := "logging-operator-metrics"
 		label := utils.MergeLabels(
 			utils.ResourceLabels(serviceName, "logging-operator"),
 			map[string]string{"app.kubernetes.io/instance": utils.GetInstanceLabel(serviceName, namespace)},
@@ -104,7 +128,7 @@ func main() {
 		// Create Service object to expose the metrics port(s).
 		service := &v1.Service{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      "logging-service-operator-metrics",
+				Name:      "logging-operator-metrics",
 				Namespace: namespace,
 				Labels:    label,
 			},

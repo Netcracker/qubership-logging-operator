@@ -2,9 +2,20 @@
 
 # qubership-logging-operator
 
-![Version: 2.5.0](https://img.shields.io/badge/Version-2.5.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 14.30.0](https://img.shields.io/badge/AppVersion-14.30.0-informational?style=flat-square)
+
+
+![Version: 2.5.0](https://img.shields.io/badge/Version-2.5.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 14.30.0](https://img.shields.io/badge/AppVersion-14.30.0-informational?style=flat-square) 
 
 A Helm chart for qubership-logging-operator
+
+
+
+
+
+
+
+
+
 
 ## Values
 
@@ -188,7 +199,7 @@ not set
 			<td>fluentbit.aggregator.customFilterConf</td>
 			<td>string</td>
 			<td><pre lang="json">
-null
+""
 </pre>
 </td>
 			<td>FluentBit custom filter configuration.</td>
@@ -197,7 +208,7 @@ null
 			<td>fluentbit.aggregator.customInputConf</td>
 			<td>string</td>
 			<td><pre lang="json">
-null
+""
 </pre>
 </td>
 			<td>FluentBit custom input configuration.</td>
@@ -215,7 +226,7 @@ null
 			<td>fluentbit.aggregator.customOutputConf</td>
 			<td>string</td>
 			<td><pre lang="json">
-null
+""
 </pre>
 </td>
 			<td>FluentBit custom output configuration.</td>
@@ -713,7 +724,7 @@ true
 			<td>fluentbit.customFilterConf</td>
 			<td>string</td>
 			<td><pre lang="json">
-null
+""
 </pre>
 </td>
 			<td>FluentBit custom filter configuration.</td>
@@ -722,7 +733,7 @@ null
 			<td>fluentbit.customInputConf</td>
 			<td>string</td>
 			<td><pre lang="json">
-null
+""
 </pre>
 </td>
 			<td>FluentBit custom input configuration.</td>
@@ -740,7 +751,7 @@ null
 			<td>fluentbit.customOutputConf</td>
 			<td>string</td>
 			<td><pre lang="json">
-null
+""
 </pre>
 </td>
 			<td>FluentBit custom output configuration.</td>
@@ -1365,26 +1376,6 @@ not set
 			<td>Allow to add filter to parse json of Kubernetes events logs from Cloud Events Reader</td>
 		</tr>
 		<tr>
-			<td>fluentd.configmapReload</td>
-			<td>object</td>
-			<td><pre lang="json">
-{
-  "resources": {
-    "limits": {
-      "cpu": "50m",
-      "memory": "50Mi"
-    },
-    "requests": {
-      "cpu": "10m",
-      "memory": "10Mi"
-    }
-  }
-}
-</pre>
-</td>
-			<td>A docker image to use for fluent daemon set. dockerImage: ghcr.io/netcracker/qubership-fluentd:main</td>
-		</tr>
-		<tr>
 			<td>fluentd.configmapReload.resources</td>
 			<td>object</td>
 			<td><pre lang="json">
@@ -1484,6 +1475,39 @@ true
 			<td>Enable input for Kubernetes audit logs from /var/log/kubernetes/kube-apiserver-audit.log and /var/log/kubernetes/audit.log.</td>
 		</tr>
 		<tr>
+			<td>fluentd.output</td>
+			<td>object</td>
+			<td><pre lang="json">
+{
+  "http": {
+    "auth": {},
+    "compress": "gzip",
+    "enabled": false,
+    "host": "",
+    "routing": {
+      "enabled": false
+    },
+    "tls": {
+      "enabled": false
+    }
+  },
+  "loki": {
+    "auth": {},
+    "enabled": false,
+    "labelsMapping": "stream $.stream\ncontainer $.container\npod $.pod\nnamespace $.namespace\nlevel $.level\nhostname $.hostname\nnodename $.kubernetes_host\nrequest_id $.request_id\ntenant_id $.tenant_id\naddressTo $.addressTo\noriginating_bi_id $.originating_bi_id\nspanId $.spanId",
+    "staticLabels": "{\"job\":\"fluentd\"}",
+    "tls": {
+      "allCiphers": true,
+      "enabled": false,
+      "noVerify": false
+    }
+  }
+}
+</pre>
+</td>
+			<td>Output configuration.</td>
+		</tr>
+		<tr>
 			<td>fluentd.output.http</td>
 			<td>object</td>
 			<td><pre lang="json">
@@ -1567,6 +1591,25 @@ false
 </pre>
 </td>
 			<td>Allows enabling TLS for Http output.</td>
+		</tr>
+		<tr>
+			<td>fluentd.output.loki</td>
+			<td>object</td>
+			<td><pre lang="json">
+{
+  "auth": {},
+  "enabled": false,
+  "labelsMapping": "stream $.stream\ncontainer $.container\npod $.pod\nnamespace $.namespace\nlevel $.level\nhostname $.hostname\nnodename $.kubernetes_host\nrequest_id $.request_id\ntenant_id $.tenant_id\naddressTo $.addressTo\noriginating_bi_id $.originating_bi_id\nspanId $.spanId",
+  "staticLabels": "{\"job\":\"fluentd\"}",
+  "tls": {
+    "allCiphers": true,
+    "enabled": false,
+    "noVerify": false
+  }
+}
+</pre>
+</td>
+			<td>Loki output configuration.</td>
 		</tr>
 		<tr>
 			<td>fluentd.output.loki.auth</td>
@@ -2042,7 +2085,7 @@ false
 false
 </pre>
 </td>
-			<td>Establish a STARTTLS protected session.</td>
+			<td>Establish a STAR TLS protected session.</td>
 		</tr>
 		<tr>
 			<td>graylog.authProxy.ldap.url</td>
@@ -2848,6 +2891,24 @@ false
 			<td>Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. Ref: https://kubernetes.io/docs/user-guide/labels</td>
 		</tr>
 		<tr>
+			<td>livenessProbe</td>
+			<td>object</td>
+			<td><pre lang="json">
+{
+  "failureThreshold": 3,
+  "httpGet": {
+    "path": "/health",
+    "port": 8081
+  },
+  "initialDelaySeconds": 5,
+  "periodSeconds": 10,
+  "timeoutSeconds": 5
+}
+</pre>
+</td>
+			<td>Liveness probe for logging-operator</td>
+		</tr>
+		<tr>
 			<td>logLevel</td>
 			<td>string</td>
 			<td><pre lang="json">
@@ -2884,7 +2945,7 @@ false
 }
 </pre>
 </td>
-			<td>Pod monitor for qubership-logging-operator</td>
+			<td>Pod monitor for logging-operator</td>
 		</tr>
 		<tr>
 			<td>podMonitor.scrapeInterval</td>
@@ -2921,7 +2982,7 @@ false
 }
 </pre>
 </td>
-			<td>qubership-logging-operator pprof</td>
+			<td>logging-operator pprof</td>
 		</tr>
 		<tr>
 			<td>pprof.containerPort</td>
@@ -2939,7 +3000,7 @@ false
 true
 </pre>
 </td>
-			<td>Indicates if qubership-logging-operator has pprof enabled.</td>
+			<td>Indicates if logging-operator has pprof enabled.</td>
 		</tr>
 		<tr>
 			<td>pprof.service</td>
@@ -3001,6 +3062,46 @@ true
 </td>
 			<td>Type of pprof service</td>
 		</tr>
+		<tr>
+			<td>readinessProbe</td>
+			<td>object</td>
+			<td><pre lang="json">
+{
+  "failureThreshold": 3,
+  "httpGet": {
+    "path": "/ready",
+    "port": 8081
+  },
+  "initialDelaySeconds": 3,
+  "periodSeconds": 10,
+  "timeoutSeconds": 5
+}
+</pre>
+</td>
+			<td>Readiness probe for logging-operator</td>
+		</tr>
+		<tr>
+			<td>resources</td>
+			<td>object</td>
+			<td><pre lang="json">
+{
+  "limits": {
+    "cpu": "150m",
+    "memory": "100Mi"
+  },
+  "requests": {
+    "cpu": "25m",
+    "memory": "50Mi"
+  }
+}
+</pre>
+</td>
+			<td>Resources for logging-operator</td>
+		</tr>
 	</tbody>
 </table>
+
+
+
+
 

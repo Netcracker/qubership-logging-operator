@@ -16,7 +16,7 @@ def add_security_context_to_deployment(path_to_file, namespace):
     pods = k8s_lib.get_pods(namespace)
     security_context = None
     for pod in pods:
-        if 'logging-service-operator' in pod.metadata.name:
+        if 'logging-operator' in pod.metadata.name:
             security_context = pod.spec.security_context
             break
     if security_context is None:

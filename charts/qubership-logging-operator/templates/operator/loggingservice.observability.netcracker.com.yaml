@@ -3,8 +3,8 @@ kind: LoggingService
 metadata:
   name: {{ .Values.name }}
   labels:
-    {{- include "logging.labels" (dict "ctx" . "name" .Values.name "component" "logging-operator") | nindent 4 }}
-    app.kubernetes.io/processed-by-operator: logging-service-operator
+    {{- include "logging.labels" (dict "ctx" . "name" .Values.name "component" "operator") | nindent 4 }}
+    app.kubernetes.io/processed-by-operator: logging-operator
     {{- include "logging.extraLabels" . | nindent 4 }}
   {{- if .Values.annotations }}
   annotations:

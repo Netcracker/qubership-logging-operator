@@ -21,7 +21,7 @@ ipv6: false
 # @default -- "containerd"
 # containerRuntimeType: containerd
 
-# -- Image of qubership-logging-operator
+# -- Image of logging-operator
 # operatorImage: ghcr.io/netcracker/qubership-logging-operator:main
 
 # -- The log level of operator logs.
@@ -45,9 +45,9 @@ annotations: {}
 # Ref: https://kubernetes.io/docs/user-guide/labels
 labels: {}
 
-# -- qubership-logging-operator pprof
+# -- logging-operator pprof
 pprof:
-  # -- Indicates if qubership-logging-operator has pprof enabled.
+  # -- Indicates if logging-operator has pprof enabled.
   install: true
   # -- Port of pprof which use in container
   containerPort: 9180
@@ -69,12 +69,41 @@ pprof:
 # -- Allow disabling create MetricsService during deploy
 # skipMetricsService: false
 
-# -- Pod monitor for qubership-logging-operator
+# -- Resources for logging-operator
+resources:
+  requests:
+    cpu: 25m
+    memory: 50Mi
+  limits:
+    cpu: 150m
+    memory: 100Mi
+
+# -- Pod monitor for logging-operator
 podMonitor:
   # -- Allow change metrics scrape timeout
   scrapeTimeout: 10s
   # -- Allow change metrics scrape interval
   scrapeInterval: 30s
+
+# -- Liveness probe for logging-operator
+livenessProbe:
+  httpGet:
+    path: /health
+    port: 8081
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+# -- Readiness probe for logging-operator
+readinessProbe:
+  httpGet:
+    path: /ready
+    port: 8081
+  initialDelaySeconds: 3
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
 
 # -- Mandatory values for Graylog.
 # @default -- {}

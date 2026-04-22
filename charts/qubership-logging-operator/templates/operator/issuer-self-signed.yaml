@@ -4,7 +4,7 @@ kind: Issuer
 metadata:
   name: logging-self-signed-issuer
   labels:
-    {{- include "logging.labels" (dict "ctx" . "name" "logging-self-signed-issuer" "component" "logging-operator") | nindent 4 }}
+    {{- include "logging.labels" (dict "ctx" . "name" "logging-self-signed-issuer" "component" "operator") | nindent 4 }}
     {{- include "logging.extraLabels" . | nindent 4 }}
   {{- if .Values.annotations }}
   annotations:

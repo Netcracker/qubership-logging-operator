@@ -15,7 +15,7 @@ import (
 
 var (
 	ErrPodMonitorNotPresent = fmt.Errorf("no PodMonitor registered with the API")
-	SelectorLabels          = map[string]string{"name": "logging-service-operator"}
+	SelectorLabels          = map[string]string{"name": "logging-operator"}
 )
 
 // CreatePodMonitors creates PodMonitors objects based on an array of Pod objects.

@@ -2,9 +2,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: logging-service-operator
+  name: logging-operator
   labels:
-    {{- include "logging.labels" (dict "ctx" . "name" "logging-service-operator" "component" "logging-operator") | nindent 4 }}
+    {{- include "logging.labels" (dict "ctx" . "name" "logging-operator" "component" "logging-operator") | nindent 4 }}
     {{- if .Values.pprof.service.labels }}
     {{- include "logging.extraLabels" (dict "ctx" . "extraLabels" .Values.pprof.service.labels) | nindent 4 }}
     {{- end }}
@@ -20,5 +20,5 @@ spec:
       targetPort: {{ .Values.pprof.containerPort }}
       protocol: TCP
   selector:
-    name: logging-service-operator
+    name: logging-operator
 {{- end }}

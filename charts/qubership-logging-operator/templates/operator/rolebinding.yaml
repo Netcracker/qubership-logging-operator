@@ -1,9 +1,9 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: logging-service-operator
+  name: logging-operator
   labels:
-    {{- include "logging.labels" (dict "ctx" . "name" "logging-service-operator" "component" "logging-operator") | nindent 4 }}
+    {{- include "logging.labels" (dict "ctx" . "name" "logging-operator" "component" "logging-operator") | nindent 4 }}
     {{- include "logging.extraLabels" . | nindent 4 }}
   {{- if .Values.annotations }}
   annotations:
@@ -11,8 +11,8 @@ metadata:
   {{- end }}
 subjects:
 - kind: ServiceAccount
-  name: logging-service-operator
+  name: logging-operator
 roleRef:
   kind: Role
-  name: logging-service-operator
+  name: logging-operator
   apiGroup: rbac.authorization.k8s.io

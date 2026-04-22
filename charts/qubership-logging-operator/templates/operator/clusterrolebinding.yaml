@@ -12,7 +12,7 @@ metadata:
     {{- include "logging.extraLabels" . | nindent 4 }}
 subjects:
   - kind: ServiceAccount
-    name: logging-service-operator
+    name: logging-operator
     namespace: {{ .Release.Namespace }}
 roleRef:
   kind: ClusterRole

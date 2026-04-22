@@ -57,7 +57,7 @@ Add Authorization header if Bearer Token authorization enabled for http output i
 name: {{ $name }}
 app.kubernetes.io/name: {{ $name }}
 app.kubernetes.io/component: {{ $component }}
-app.kubernetes.io/part-of: logging
+app.kubernetes.io/part-of: logging-service
 app.kubernetes.io/managed-by: {{ $ctx.Release.Service }}
 {{- end -}}
 

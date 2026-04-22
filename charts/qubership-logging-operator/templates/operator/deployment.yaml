@@ -1,11 +1,11 @@
-{{- $instance := cat "logging-service-operator-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
+{{- $instance := cat "logging-operator-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
 {{- $image := include "logging-operator.image" . }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: logging-service-operator
+  name: logging-operator
   labels:
-    {{- include "logging.labels" (dict "ctx" . "name" "logging-service-operator" "component" "logging-operator") | nindent 4 }}
+    {{- include "logging.labels" (dict "ctx" . "name" "logging-operator" "component" "logging-operator") | nindent 4 }}
     app.kubernetes.io/instance: {{ $instance }}
     app.kubernetes.io/version: {{ splitList ":" $image | last | quote }}
     app.kubernetes.io/technology: go
@@ -18,13 +18,13 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      name: logging-service-operator
+      name: logging-operator
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
-        {{- include "logging.labels" (dict "ctx" . "name" "logging-service-operator" "component" "logging-operator") | nindent 8 }}
+        {{- include "logging.labels" (dict "ctx" . "name" "logging-operator" "component" "logging-operator") | nindent 8 }}
         app.kubernetes.io/instance: {{ $instance }}
         app.kubernetes.io/version: {{ splitList ":" $image | last | quote }}
         app.kubernetes.io/technology: go
@@ -34,7 +34,7 @@ spec:
         {{ toYaml .Values.annotations | nindent 8 }}
       {{- end }}
     spec:
-      serviceAccountName: logging-service-operator
+      serviceAccountName: logging-operator
       {{- if and .Values.nodeSelectorKey .Values.nodeSelectorValue }}
       nodeSelector:
         {{ .Values.nodeSelectorKey | indent 8 }}: {{ .Values.nodeSelectorValue }}

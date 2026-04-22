@@ -53,25 +53,22 @@ spec:
           args:
             - '--pprof-enable={{ .Values.pprof.install }}'
             {{- if .Values.pprof.install }}
-            {{- if .Values.pprof.service.port }}
             - '--pprof-address=:{{ .Values.pprof.service.port }}'
-            {{- end }}
             {{- end }}
           imagePullPolicy: IfNotPresent
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           ports:
-            - name: "http-metrics"
-              containerPort: 8383
-              protocol: "TCP"
+            - containerPort: 8080
+              name: metrics
+              protocol: TCP
+            - containerPort: 8081
+              name: http
+              protocol: TCP
             {{- if .Values.pprof.install }}
-            {{- if .Values.pprof.containerPort }}
-            {{- if .Values.pprof.service.portName }}
             - containerPort: {{ .Values.pprof.containerPort }}
               name: {{ .Values.pprof.service.portName }}
               protocol: TCP
-            {{- end }}
-            {{- end }}
             {{- end }}
           env:
             - name: WATCH_NAMESPACE

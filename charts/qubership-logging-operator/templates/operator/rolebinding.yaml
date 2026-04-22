@@ -3,7 +3,7 @@ kind: RoleBinding
 metadata:
   name: logging-operator
   labels:
-    {{- include "logging.labels" (dict "ctx" . "name" "logging-operator" "component" "logging-operator") | nindent 4 }}
+    {{- include "logging.labels" (dict "ctx" . "name" "logging-operator" "component" "operator") | nindent 4 }}
     {{- include "logging.extraLabels" . | nindent 4 }}
   {{- if .Values.annotations }}
   annotations:

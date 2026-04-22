@@ -18,6 +18,7 @@ import (
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
+	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
@@ -59,8 +60,10 @@ func main() {
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
+	flag.Parse()
 
 	printVersion()
+
 	logf.SetLogger(logger)
 	namespace, found := os.LookupEnv("WATCH_NAMESPACE")
 	if !found {
@@ -83,6 +86,15 @@ func main() {
 	})
 	if err != nil {
 		logger.Error(err, "unable to start manager")
+		os.Exit(1)
+	}
+
+	if err := mgr.AddHealthzCheck("health", healthz.Ping); err != nil {
+		logger.Error(err, "unable to set up health check")
+		os.Exit(1)
+	}
+	if err := mgr.AddReadyzCheck("ready", healthz.Ping); err != nil {
+		logger.Error(err, "unable to set up ready check")
 		os.Exit(1)
 	}
 

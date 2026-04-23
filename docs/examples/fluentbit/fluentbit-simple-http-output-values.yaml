@@ -1,0 +1,16 @@
+# This is a YAML-formatted file.
+# All parameters specify only as example
+
+fluentbit:
+  install: true
+
+  graylogOutput: false
+
+  output:
+    http:
+      enabled: true
+      host: 1.2.3.4
+      compress: gzip
+
+fluentd:
+  install: false

@@ -1,0 +1,31 @@
+# This is a YAML-formatted file.
+# All parameters specify only as example
+
+fluentd:
+  install: true
+
+  graylogOutput: false
+
+  output:
+    http:
+      enabled: true
+      host: 1.2.3.4
+      compress: gzip
+      auth:
+        user:
+          key: username
+          name: vl-write-user
+        password:
+          key: password
+          name: vl-write-user
+
+---
+# This Kubernetes should be created before deploy logging operator and FluentBit
+apiVersion: v1
+kind: Secret
+metadata:
+  name: vl-write-user
+type: Opaque
+stringData:
+  username: username
+  password: password

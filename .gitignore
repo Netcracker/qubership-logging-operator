@@ -16,3 +16,6 @@ venv/
 
 # MkDocs
 site/
+
+# Claude Code local settings
+.claude/

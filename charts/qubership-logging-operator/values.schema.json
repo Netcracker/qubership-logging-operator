@@ -1,10 +1,16 @@
 {
     "$defs": {
         "integerOrString": {
-            "type": ["integer", "string"]
+            "type": [
+                "integer",
+                "string"
+            ]
         },
         "optionalString": {
-            "type": ["string", "null"]
+            "type": [
+                "string",
+                "null"
+            ]
         }
     },
     "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -22,20 +28,28 @@
             "properties": {
                 "affinity": {
                     "description": "Pod's scheduling constraints.",
-                    "examples": [{
+                    "examples": [
+                        {
                             "podAntiAffinity": {
-                                "requiredDuringSchedulingIgnoredDuringExecution": [{
+                                "requiredDuringSchedulingIgnoredDuringExecution": [
+                                    {
                                         "labelSelector": {
-                                            "matchExpressions": [{
+                                            "matchExpressions": [
+                                                {
                                                     "key": "app",
                                                     "operator": "In",
-                                                    "values": ["nginx"]
-                                                }]
+                                                    "values": [
+                                                        "nginx"
+                                                    ]
+                                                }
+                                            ]
                                         },
                                         "topologyKey": "kubernetes.io/hostname"
-                                    }]
+                                    }
+                                ]
                             }
-                        }],
+                        }
+                    ],
                     "type": "object"
                 },
                 "annotations": {
@@ -80,11 +94,20 @@
                                 "cpu": {
                                     "$ref": "#/$defs/integerOrString",
                                     "description": "Maximum amount of CPU resource that can be used by a container's process during 1 scheduling period (100ms). Can be integer cores or millicores.",
-                                    "examples": ["1", "500m"]
+                                    "examples": [
+                                        "1",
+                                        "500m"
+                                    ]
                                 },
                                 "memory": {
                                     "description": "Maximum amount of memory that can be allocated to a container's process. Can be expressed as a plain integer or as a fixed-point number using one of these quantity suffixes: E, P, T, G, M, k. Also the power-of-two equivalents are available: Ei, Pi, Ti, Gi, Mi, Ki.",
-                                    "examples": ["128974848", "129e6", "129M", "128974848000m", "123Mi"],
+                                    "examples": [
+                                        "128974848",
+                                        "129e6",
+                                        "129M",
+                                        "128974848000m",
+                                        "123Mi"
+                                    ],
                                     "type": "string"
                                 }
                             },
@@ -95,11 +118,20 @@
                                 "cpu": {
                                     "$ref": "#/$defs/integerOrString",
                                     "description": "Initial and guaranteed amount of CPU resource that will be reserved by a container's process during 1 scheduling period (100ms). Can be integer cores or millicores.",
-                                    "examples": ["1", "500m"]
+                                    "examples": [
+                                        "1",
+                                        "500m"
+                                    ]
                                 },
                                 "memory": {
                                     "description": "Initial amount of memory that will be allocated to a container's process. Can be expressed as a plain integer or as a fixed-point number using one of these quantity suffixes: E, P, T, G, M, k. Also the power-of-two equivalents are available: Ei, Pi, Ti, Gi, Mi, Ki.",
-                                    "examples": ["128974848", "129e6", "129M", "128974848000m", "123Mi"],
+                                    "examples": [
+                                        "128974848",
+                                        "129e6",
+                                        "129M",
+                                        "128974848000m",
+                                        "123Mi"
+                                    ],
                                     "type": "string"
                                 }
                             },
@@ -113,7 +145,9 @@
         },
         "cloudURL": {
             "description": "Cloud address. Openshift cloud may require to set the current host address.",
-            "examples": ["https://kubernetes.default.svc"],
+            "examples": [
+                "https://kubernetes.default.svc"
+            ],
             "type": "string"
         },
         "containerRuntimeType": {
@@ -157,11 +191,20 @@
                                                 "cpu": {
                                                     "$ref": "#/$defs/integerOrString",
                                                     "description": "Maximum amount of CPU resource that can be used by a container's process during 1 scheduling period (100ms). Can be integer cores or millicores.",
-                                                    "examples": ["1", "500m"]
+                                                    "examples": [
+                                                        "1",
+                                                        "500m"
+                                                    ]
                                                 },
                                                 "memory": {
                                                     "description": "Maximum amount of memory that can be allocated to a container's process. Can be expressed as a plain integer or as a fixed-point number using one of these quantity suffixes: E, P, T, G, M, k. Also the power-of-two equivalents are available: Ei, Pi, Ti, Gi, Mi, Ki.",
-                                                    "examples": ["128974848", "129e6", "129M", "128974848000m", "123Mi"],
+                                                    "examples": [
+                                                        "128974848",
+                                                        "129e6",
+                                                        "129M",
+                                                        "128974848000m",
+                                                        "123Mi"
+                                                    ],
                                                     "type": "string"
                                                 }
                                             },
@@ -172,11 +215,20 @@
                                                 "cpu": {
                                                     "$ref": "#/$defs/integerOrString",
                                                     "description": "Initial and guaranteed amount of CPU resource that will be reserved by a container's process during 1 scheduling period (100ms). Can be integer cores or millicores.",
-                                                    "examples": ["1", "500m"]
+                                                    "examples": [
+                                                        "1",
+                                                        "500m"
+                                                    ]
                                                 },
                                                 "memory": {
                                                     "description": "Initial amount of memory that will be allocated to a container's process. Can be expressed as a plain integer or as a fixed-point number using one of these quantity suffixes: E, P, T, G, M, k. Also the power-of-two equivalents are available: Ei, Pi, Ti, Gi, Mi, Ki.",
-                                                    "examples": ["128974848", "129e6", "129M", "128974848000m", "123Mi"],
+                                                    "examples": [
+                                                        "128974848",
+                                                        "129e6",
+                                                        "129M",
+                                                        "128974848000m",
+                                                        "123Mi"
+                                                    ],
                                                     "type": "string"
                                                 }
                                             },
@@ -194,9 +246,11 @@
                         },
                         "customLuaScriptConf": {
                             "description": "FluentBit custom lua script configuration. Note: it's very important to keep the indents.",
-                            "examples": [{
+                            "examples": [
+                                {
                                     "scriptname.lua": "\n      <script_content>"
-                                }],
+                                }
+                            ],
                             "type": "object"
                         },
                         "customOutputConf": {
@@ -250,12 +304,16 @@
                         },
                         "nodeSelectorKey": {
                             "description": "Defines a list of nodes the pods are scheduled on. Used with nodeSelectorValue.",
-                            "examples": ["region"],
+                            "examples": [
+                                "region"
+                            ],
                             "type": "string"
                         },
                         "nodeSelectorValue": {
                             "description": "Defines a list of nodes the pods are scheduled on. Used with nodeSelectorKey.",
-                            "examples": ["primary"],
+                            "examples": [
+                                "primary"
+                            ],
                             "type": "string"
                         },
                         "output": {
@@ -317,6 +375,28 @@
                                                         }
                                                     },
                                                     "type": "object"
+                                                },
+                                                "credentials": {
+                                                    "description": "Inline credentials for authentication. Chart creates a Kubernetes Secret automatically.",
+                                                    "properties": {
+                                                        "username": {
+                                                            "description": "Username for basic authentication",
+                                                            "type": "string"
+                                                        },
+                                                        "password": {
+                                                            "description": "Password for basic authentication",
+                                                            "type": "string"
+                                                        },
+                                                        "token": {
+                                                            "description": "Bearer token for token-based authentication",
+                                                            "type": "string"
+                                                        },
+                                                        "secretName": {
+                                                            "description": "Optional name for the auto-created Secret. If not specified, a default name is generated.",
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "type": "object"
                                                 }
                                             },
                                             "type": "object"
@@ -324,7 +404,12 @@
                                         "compress": {
                                             "default": "gzip",
                                             "description": "Payload compression mechanism for Http output. Allowed values: gzip, snappy, zstd.",
-                                            "enum": ["gzip", "snappy", "zstd", ""],
+                                            "enum": [
+                                                "gzip",
+                                                "snappy",
+                                                "zstd",
+                                                ""
+                                            ],
                                             "type": "string"
                                         },
                                         "enabled": {
@@ -334,17 +419,24 @@
                                         },
                                         "extraParams": {
                                             "description": "Additional configuration parameters for Http output. Bearer token can be set here as well. See docs: https://docs.fluentbit.io/manual/data-pipeline/outputs/http#configuration-parameters",
-                                            "examples": ["|\n  workers  2\n  header  AccountID  100"],
+                                            "examples": [
+                                                "|\n  workers  2\n  header  AccountID  100"
+                                            ],
                                             "type": "string"
                                         },
                                         "host": {
                                             "description": "Http host.",
-                                            "examples": ["vlsingle-k8s.victorialogs", "victorialogs.example.com"],
+                                            "examples": [
+                                                "vlsingle-k8s.victorialogs",
+                                                "victorialogs.example.com"
+                                            ],
                                             "type": "string"
                                         },
                                         "port": {
                                             "description": "Http port",
-                                            "examples": ["9428"],
+                                            "examples": [
+                                                "9428"
+                                            ],
                                             "type": "integer"
                                         },
                                         "tls": {
@@ -462,6 +554,28 @@
                                                         }
                                                     },
                                                     "type": "object"
+                                                },
+                                                "credentials": {
+                                                    "description": "Inline credentials for authentication. Chart creates a Kubernetes Secret automatically.",
+                                                    "properties": {
+                                                        "username": {
+                                                            "description": "Username for basic authentication",
+                                                            "type": "string"
+                                                        },
+                                                        "password": {
+                                                            "description": "Password for basic authentication",
+                                                            "type": "string"
+                                                        },
+                                                        "token": {
+                                                            "description": "Bearer token for token-based authentication",
+                                                            "type": "string"
+                                                        },
+                                                        "secretName": {
+                                                            "description": "Optional name for the auto-created Secret. If not specified, a default name is generated.",
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "type": "object"
                                                 }
                                             },
                                             "type": "object"
@@ -473,23 +587,32 @@
                                         },
                                         "extraParams": {
                                             "description": "Additional configuration parameters for Loki output. See docs: https://docs.fluentbit.io/manual/pipeline/outputs/loki#configuration-parameters",
-                                            "examples": ["|\n            workers                2\n            Retry_Limit            32\n            storage.total_limit_size  5000M\n            net.connect_timeout 20"],
+                                            "examples": [
+                                                "|\n            workers                2\n            Retry_Limit            32\n            storage.total_limit_size  5000M\n            net.connect_timeout 20"
+                                            ],
                                             "type": "string"
                                         },
                                         "host": {
                                             "description": "Loki host.",
-                                            "examples": ["loki-write.loki.svc", "10.10.10.10"],
+                                            "examples": [
+                                                "loki-write.loki.svc",
+                                                "10.10.10.10"
+                                            ],
                                             "type": "string"
                                         },
                                         "labelsMapping": {
                                             "description": "Labels mappings that defines how to extract labels from each log record. Value should contain a JSON object.",
-                                            "examples": ["|-\n          {\n              \"container\": \"container\",\n              \"pod\": \"pod\",\n              \"namespace\": \"namespace\",\n              \"stream\": \"stream\",\n              \"level\": \"level\",\n              \"hostname\": \"hostname\",\n              \"nodename\": \"nodename\",\n              \"request_id\": \"request_id\",\n              \"tenant_id\": \"tenant_id\",\n              \"addressTo\": \"addressTo\",\n              \"originating_bi_id\": \"originating_bi_id\",\n              \"spanId\": \"spanId\"\n          }"],
+                                            "examples": [
+                                                "|-\n          {\n              \"container\": \"container\",\n              \"pod\": \"pod\",\n              \"namespace\": \"namespace\",\n              \"stream\": \"stream\",\n              \"level\": \"level\",\n              \"hostname\": \"hostname\",\n              \"nodename\": \"nodename\",\n              \"request_id\": \"request_id\",\n              \"tenant_id\": \"tenant_id\",\n              \"addressTo\": \"addressTo\",\n              \"originating_bi_id\": \"originating_bi_id\",\n              \"spanId\": \"spanId\"\n          }"
+                                            ],
                                             "type": "string"
                                         },
                                         "staticLabels": {
                                             "default": "job=fluentbit",
                                             "description": "Static labels that added as stream labels.",
-                                            "examples": ["job=fluentbit"],
+                                            "examples": [
+                                                "job=fluentbit"
+                                            ],
                                             "type": "string"
                                         },
                                         "tenant": {
@@ -608,6 +731,28 @@
                                                         }
                                                     },
                                                     "type": "object"
+                                                },
+                                                "credentials": {
+                                                    "description": "Inline credentials for authentication. Chart creates a Kubernetes Secret automatically.",
+                                                    "properties": {
+                                                        "username": {
+                                                            "description": "Username for basic authentication",
+                                                            "type": "string"
+                                                        },
+                                                        "password": {
+                                                            "description": "Password for basic authentication",
+                                                            "type": "string"
+                                                        },
+                                                        "token": {
+                                                            "description": "Bearer token for token-based authentication",
+                                                            "type": "string"
+                                                        },
+                                                        "secretName": {
+                                                            "description": "Optional name for the auto-created Secret. If not specified, a default name is generated.",
+                                                            "type": "string"
+                                                        }
+                                                    },
+                                                    "type": "object"
                                                 }
                                             },
                                             "type": "object"
@@ -628,7 +773,10 @@
                                         },
                                         "host": {
                                             "description": "Otel host.",
-                                            "examples": ["10.10.10.10.", "vlsingle-k8s.victorialogs"],
+                                            "examples": [
+                                                "10.10.10.10.",
+                                                "vlsingle-k8s.victorialogs"
+                                            ],
                                             "type": "string"
                                         },
                                         "logSuppressInterval": {
@@ -733,11 +881,20 @@
                                         "cpu": {
                                             "$ref": "#/$defs/integerOrString",
                                             "description": "Maximum amount of CPU resource that can be used by a container's process during 1 scheduling period (100ms). Can be integer cores or millicores.",
-                                            "examples": ["1", "500m"]
+                                            "examples": [
+                                                "1",
+                                                "500m"
+                                            ]
                                         },
                                         "memory": {
                                             "description": "Maximum amount of memory that can be allocated to a container's process. Can be expressed as a plain integer or as a fixed-point number using one of these quantity suffixes: E, P, T, G, M, k. Also the power-of-two equivalents are available: Ei, Pi, Ti, Gi, Mi, Ki.",
-                                            "examples": ["128974848", "129e6", "129M", "128974848000m", "123Mi"],
+                                            "examples": [
+                                                "128974848",
+                                                "129e6",
+                                                "129M",
+                                                "128974848000m",
+                                                "123Mi"
+                                            ],
                                             "type": "string"
                                         }
                                     },
@@ -748,11 +905,20 @@
                                         "cpu": {
                                             "$ref": "#/$defs/integerOrString",
                                             "description": "Initial and guaranteed amount of CPU resource that will be reserved by a container's process during 1 scheduling period (100ms). Can be integer cores or millicores.",
-                                            "examples": ["1", "500m"]
+                                            "examples": [
+                                                "1",
+                                                "500m"
+                                            ]
                                         },
                                         "memory": {
                                             "description": "Initial amount of memory that will be allocated to a container's process. Can be expressed as a plain integer or as a fixed-point number using one of these quantity suffixes: E, P, T, G, M, k. Also the power-of-two equivalents are available: Ei, Pi, Ti, Gi, Mi, Ki.",
-                                            "examples": ["128974848", "129e6", "129M", "128974848000m", "123Mi"],
+                                            "examples": [
+                                                "128974848",
+                                                "129e6",
+                                                "129M",
+                                                "128974848000m",
+                                                "123Mi"
+                                            ],
                                             "type": "string"
                                         }
                                     },
@@ -867,16 +1033,22 @@
                         },
                         "tolerations": {
                             "description": "List of tolerations applied to FluentBit aggregator Pods.",
-                            "examples": [[{
+                            "examples": [
+                                [
+                                    {
                                         "key": "node-role.kubernetes.io/master",
                                         "operator": "Exists"
-                                    }, {
+                                    },
+                                    {
                                         "effect": "NoExecute",
                                         "operator": "Exists"
-                                    }, {
+                                    },
+                                    {
                                         "effect": "NoSchedule",
                                         "operator": "Exists"
-                                    }]],
+                                    }
+                                ]
+                            ],
                             "items": {
                                 "type": "object"
                             },
@@ -928,11 +1100,20 @@
                                         "cpu": {
                                             "$ref": "#/$defs/integerOrString",
                                             "description": "Maximum amount of CPU resource that can be used by a container's process during 1 scheduling period (100ms). Can be integer cores or millicores.",
-                                            "examples": ["1", "500m"]
+                                            "examples": [
+                                                "1",
+                                                "500m"
+                                            ]
                                         },
                                         "memory": {
                                             "description": "Maximum amount of memory that can be allocated to a container's process. Can be expressed as a plain integer or as a fixed-point number using one of these quantity suffixes: E, P, T, G, M, k. Also the power-of-two equivalents are available: Ei, Pi, Ti, Gi, Mi, Ki.",
-                                            "examples": ["128974848", "129e6", "129M", "128974848000m", "123Mi"],
+                                            "examples": [
+                                                "128974848",
+                                                "129e6",
+                                                "129M",
+                                                "128974848000m",
+                                                "123Mi"
+                                            ],
                                             "type": "string"
                                         }
                                     },
@@ -943,11 +1124,20 @@
                                         "cpu": {
                                             "$ref": "#/$defs/integerOrString",
                                             "description": "Initial and guaranteed amount of CPU resource that will be reserved by a container's process during 1 scheduling period (100ms). Can be integer cores or millicores.",
-                                            "examples": ["1", "500m"]
+                                            "examples": [
+                                                "1",
+                                                "500m"
+                                            ]
                                         },
                                         "memory": {
                                             "description": "Initial amount of memory that will be allocated to a container's process. Can be expressed as a plain integer or as a fixed-point number using one of these quantity suffixes: E, P, T, G, M, k. Also the power-of-two equivalents are available: Ei, Pi, Ti, Gi, Mi, Ki.",
-                                            "examples": ["128974848", "129e6", "129M", "128974848000m", "123Mi"],
+                                            "examples": [
+                                                "128974848",
+                                                "129e6",
+                                                "129M",
+                                                "128974848000m",
+                                                "123Mi"
+                                            ],
                                             "type": "string"
                                         }
                                     },
@@ -1098,6 +1288,28 @@
                                                 }
                                             },
                                             "type": "object"
+                                        },
+                                        "credentials": {
+                                            "description": "Inline credentials for authentication. Chart creates a Kubernetes Secret automatically.",
+                                            "properties": {
+                                                "username": {
+                                                    "description": "Username for basic authentication",
+                                                    "type": "string"
+                                                },
+                                                "password": {
+                                                    "description": "Password for basic authentication",
+                                                    "type": "string"
+                                                },
+                                                "token": {
+                                                    "description": "Bearer token for token-based authentication",
+                                                    "type": "string"
+                                                },
+                                                "secretName": {
+                                                    "description": "Optional name for the auto-created Secret. If not specified, a default name is generated.",
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
                                         }
                                     },
                                     "type": "object"
@@ -1105,7 +1317,12 @@
                                 "compress": {
                                     "default": "gzip",
                                     "description": "Payload compression mechanism for Http output. Allowed values: gzip, snappy, zstd.",
-                                    "enum": ["gzip", "snappy", "zstd", ""],
+                                    "enum": [
+                                        "gzip",
+                                        "snappy",
+                                        "zstd",
+                                        ""
+                                    ],
                                     "type": "string"
                                 },
                                 "enabled": {
@@ -1115,17 +1332,24 @@
                                 },
                                 "extraParams": {
                                     "description": "Additional configuration parameters for Http output. Bearer token can be set here as well. See docs: https://docs.fluentbit.io/manual/data-pipeline/outputs/http#configuration-parameters",
-                                    "examples": ["|\n  workers  2\n  header  AccountID  100"],
+                                    "examples": [
+                                        "|\n  workers  2\n  header  AccountID  100"
+                                    ],
                                     "type": "string"
                                 },
                                 "host": {
                                     "description": "Http host.",
-                                    "examples": ["vlsingle-k8s.victorialogs", "victorialogs.example.com"],
+                                    "examples": [
+                                        "vlsingle-k8s.victorialogs",
+                                        "victorialogs.example.com"
+                                    ],
                                     "type": "string"
                                 },
                                 "port": {
                                     "description": "Http port",
-                                    "examples": ["9428"],
+                                    "examples": [
+                                        "9428"
+                                    ],
                                     "type": "integer"
                                 },
                                 "tls": {
@@ -1243,6 +1467,28 @@
                                                 }
                                             },
                                             "type": "object"
+                                        },
+                                        "credentials": {
+                                            "description": "Inline credentials for authentication. Chart creates a Kubernetes Secret automatically.",
+                                            "properties": {
+                                                "username": {
+                                                    "description": "Username for basic authentication",
+                                                    "type": "string"
+                                                },
+                                                "password": {
+                                                    "description": "Password for basic authentication",
+                                                    "type": "string"
+                                                },
+                                                "token": {
+                                                    "description": "Bearer token for token-based authentication",
+                                                    "type": "string"
+                                                },
+                                                "secretName": {
+                                                    "description": "Optional name for the auto-created Secret. If not specified, a default name is generated.",
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
                                         }
                                     },
                                     "type": "object"
@@ -1254,23 +1500,32 @@
                                 },
                                 "extraParams": {
                                     "description": "Additional configuration parameters for Loki output. See docs: https://docs.fluentbit.io/manual/pipeline/outputs/loki#configuration-parameters",
-                                    "examples": ["|\n            workers                2\n            Retry_Limit            32\n            storage.total_limit_size  5000M\n            net.connect_timeout 20"],
+                                    "examples": [
+                                        "|\n            workers                2\n            Retry_Limit            32\n            storage.total_limit_size  5000M\n            net.connect_timeout 20"
+                                    ],
                                     "type": "string"
                                 },
                                 "host": {
                                     "description": "Loki host.",
-                                    "examples": ["loki-write.loki.svc", "10.10.10.10"],
+                                    "examples": [
+                                        "loki-write.loki.svc",
+                                        "10.10.10.10"
+                                    ],
                                     "type": "string"
                                 },
                                 "labelsMapping": {
                                     "description": "Labels mappings that defines how to extract labels from each log record. Value should contain a JSON object.",
-                                    "examples": ["|-\n          {\n              \"container\": \"container\",\n              \"pod\": \"pod\",\n              \"namespace\": \"namespace\",\n              \"stream\": \"stream\",\n              \"level\": \"level\",\n              \"hostname\": \"hostname\",\n              \"nodename\": \"nodename\",\n              \"request_id\": \"request_id\",\n              \"tenant_id\": \"tenant_id\",\n              \"addressTo\": \"addressTo\",\n              \"originating_bi_id\": \"originating_bi_id\",\n              \"spanId\": \"spanId\"\n          }"],
+                                    "examples": [
+                                        "|-\n          {\n              \"container\": \"container\",\n              \"pod\": \"pod\",\n              \"namespace\": \"namespace\",\n              \"stream\": \"stream\",\n              \"level\": \"level\",\n              \"hostname\": \"hostname\",\n              \"nodename\": \"nodename\",\n              \"request_id\": \"request_id\",\n              \"tenant_id\": \"tenant_id\",\n              \"addressTo\": \"addressTo\",\n              \"originating_bi_id\": \"originating_bi_id\",\n              \"spanId\": \"spanId\"\n          }"
+                                    ],
                                     "type": "string"
                                 },
                                 "staticLabels": {
                                     "default": "job=fluentbit",
                                     "description": "Static labels that added as stream labels.",
-                                    "examples": ["job=fluentbit"],
+                                    "examples": [
+                                        "job=fluentbit"
+                                    ],
                                     "type": "string"
                                 },
                                 "tenant": {
@@ -1389,6 +1644,28 @@
                                                 }
                                             },
                                             "type": "object"
+                                        },
+                                        "credentials": {
+                                            "description": "Inline credentials for authentication. Chart creates a Kubernetes Secret automatically.",
+                                            "properties": {
+                                                "username": {
+                                                    "description": "Username for basic authentication",
+                                                    "type": "string"
+                                                },
+                                                "password": {
+                                                    "description": "Password for basic authentication",
+                                                    "type": "string"
+                                                },
+                                                "token": {
+                                                    "description": "Bearer token for token-based authentication",
+                                                    "type": "string"
+                                                },
+                                                "secretName": {
+                                                    "description": "Optional name for the auto-created Secret. If not specified, a default name is generated.",
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
                                         }
                                     },
                                     "type": "object"
@@ -1409,7 +1686,10 @@
                                 },
                                 "host": {
                                     "description": "Otel host.",
-                                    "examples": ["10.10.10.10", "vlsingle-k8s.victorialogs"],
+                                    "examples": [
+                                        "10.10.10.10",
+                                        "vlsingle-k8s.victorialogs"
+                                    ],
                                     "type": "string"
                                 },
                                 "logSuppressInterval": {
@@ -1625,7 +1905,7 @@
                                     "type": "boolean"
                                 },
                                 "renewBefore": {
-                                    "description": "Defines how long before the certificate’s expiry cert-manager should attempt to renew it.",
+                                    "description": "Defines how long before the certificate\u2019s expiry cert-manager should attempt to renew it.",
                                     "type": "integer"
                                 },
                                 "secretName": {
@@ -1719,11 +1999,20 @@
                                         "cpu": {
                                             "$ref": "#/$defs/integerOrString",
                                             "description": "Maximum amount of CPU resource that can be used by a container's process during 1 scheduling period (100ms). Can be integer cores or millicores.",
-                                            "examples": ["1", "500m"]
+                                            "examples": [
+                                                "1",
+                                                "500m"
+                                            ]
                                         },
                                         "memory": {
                                             "description": "Maximum amount of memory that can be allocated to a container's process. Can be expressed as a plain integer or as a fixed-point number using one of these quantity suffixes: E, P, T, G, M, k. Also the power-of-two equivalents are available: Ei, Pi, Ti, Gi, Mi, Ki.",
-                                            "examples": ["128974848", "129e6", "129M", "128974848000m", "123Mi"],
+                                            "examples": [
+                                                "128974848",
+                                                "129e6",
+                                                "129M",
+                                                "128974848000m",
+                                                "123Mi"
+                                            ],
                                             "type": "string"
                                         }
                                     },
@@ -1734,11 +2023,20 @@
                                         "cpu": {
                                             "$ref": "#/$defs/integerOrString",
                                             "description": "Initial and guaranteed amount of CPU resource that will be reserved by a container's process during 1 scheduling period (100ms). Can be integer cores or millicores.",
-                                            "examples": ["1", "500m"]
+                                            "examples": [
+                                                "1",
+                                                "500m"
+                                            ]
                                         },
                                         "memory": {
                                             "description": "Initial amount of memory that will be allocated to a container's process. Can be expressed as a plain integer or as a fixed-point number using one of these quantity suffixes: E, P, T, G, M, k. Also the power-of-two equivalents are available: Ei, Pi, Ti, Gi, Mi, Ki.",
-                                            "examples": ["128974848", "129e6", "129M", "128974848000m", "123Mi"],
+                                            "examples": [
+                                                "128974848",
+                                                "129e6",
+                                                "129M",
+                                                "128974848000m",
+                                                "123Mi"
+                                            ],
                                             "type": "string"
                                         }
                                     },
@@ -1773,7 +2071,11 @@
                 },
                 "excludePath": {
                     "description": "Path to exclude logs, it can have multiple values as an array.",
-                    "examples": [["/var/log/pods/openshift-dns_dns-default*/dns/*.log"]],
+                    "examples": [
+                        [
+                            "/var/log/pods/openshift-dns_dns-default*/dns/*.log"
+                        ]
+                    ],
                     "items": {
                         "type": "string"
                     },
@@ -1781,10 +2083,12 @@
                 },
                 "extraFields": {
                     "description": "Adds additional custom fields/labels to every log message by using filter based on record_transformer plugin. This parameter will override existing fields if their keys match those specified in extraFields. This filter works after all other filters except the custom filter.",
-                    "examples": [{
+                    "examples": [
+                        {
                             "bar_key": "bar_value",
                             "foo_key": "foo_value"
-                        }],
+                        }
+                    ],
                     "type": "object"
                 },
                 "fileStorage": {
@@ -1835,12 +2139,16 @@
                 },
                 "nodeSelectorKey": {
                     "description": "Defines which nodes the pods are scheduled on. Used with nodeSelectorValue",
-                    "examples": ["region"],
+                    "examples": [
+                        "region"
+                    ],
                     "type": "string"
                 },
                 "nodeSelectorValue": {
                     "description": "Defines which nodes the pods are scheduled on. Used with nodeSelectorKey",
-                    "examples": ["primary"],
+                    "examples": [
+                        "primary"
+                    ],
                     "type": "string"
                 },
                 "output": {
@@ -1906,6 +2214,28 @@
                                                 }
                                             },
                                             "type": "object"
+                                        },
+                                        "credentials": {
+                                            "description": "Inline credentials for authentication. Chart creates a Kubernetes Secret automatically.",
+                                            "properties": {
+                                                "username": {
+                                                    "description": "Username for basic authentication",
+                                                    "type": "string"
+                                                },
+                                                "password": {
+                                                    "description": "Password for basic authentication",
+                                                    "type": "string"
+                                                },
+                                                "token": {
+                                                    "description": "Bearer token for token-based authentication",
+                                                    "type": "string"
+                                                },
+                                                "secretName": {
+                                                    "description": "Optional name for the auto-created Secret. If not specified, a default name is generated.",
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
                                         }
                                     },
                                     "type": "object"
@@ -1930,7 +2260,10 @@
                                 },
                                 "host": {
                                     "description": "HTTP host URL for ingesting logs.",
-                                    "examples": ["http://10.10.10.10:9428", "https://vlsingle-k8s.victorialogs:9428"],
+                                    "examples": [
+                                        "http://10.10.10.10:9428",
+                                        "https://vlsingle-k8s.victorialogs:9428"
+                                    ],
                                     "type": "string"
                                 },
                                 "path": {
@@ -2053,6 +2386,28 @@
                                                 }
                                             },
                                             "type": "object"
+                                        },
+                                        "credentials": {
+                                            "description": "Inline credentials for authentication. Chart creates a Kubernetes Secret automatically.",
+                                            "properties": {
+                                                "username": {
+                                                    "description": "Username for basic authentication",
+                                                    "type": "string"
+                                                },
+                                                "password": {
+                                                    "description": "Password for basic authentication",
+                                                    "type": "string"
+                                                },
+                                                "token": {
+                                                    "description": "Bearer token for token-based authentication",
+                                                    "type": "string"
+                                                },
+                                                "secretName": {
+                                                    "description": "Optional name for the auto-created Secret. If not specified, a default name is generated.",
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
                                         }
                                     },
                                     "type": "object"
@@ -2068,12 +2423,17 @@
                                 },
                                 "host": {
                                     "description": "Loki host URL.",
-                                    "examples": ["http://10.10.10.10:3100", "http://loki-write.loki.svc:3100"],
+                                    "examples": [
+                                        "http://10.10.10.10:3100",
+                                        "http://loki-write.loki.svc:3100"
+                                    ],
                                     "type": "string"
                                 },
                                 "labelsMapping": {
                                     "description": "Labels mappings that defines how to extract labels from each log record",
-                                    "examples": ["|-\n        stream $.stream\n        container $.container\n        pod $.pod\n        namespace $.namespace\n        level $.level\n        hostname $.hostname\n        nodename $.kubernetes_host\n        request_id $.request_id\n        tenant_id $.tenant_id\n        addressTo $.addressTo\n        originating_bi_id $.originating_bi_id\n        spanId $.spanId"],
+                                    "examples": [
+                                        "|-\n        stream $.stream\n        container $.container\n        pod $.pod\n        namespace $.namespace\n        level $.level\n        hostname $.hostname\n        nodename $.kubernetes_host\n        request_id $.request_id\n        tenant_id $.tenant_id\n        addressTo $.addressTo\n        originating_bi_id $.originating_bi_id\n        spanId $.spanId"
+                                    ],
                                     "type": "string"
                                 },
                                 "staticLabels": {
@@ -2083,7 +2443,9 @@
                                 },
                                 "tenant": {
                                     "description": "Loki tenant ID.",
-                                    "examples": ["fake"],
+                                    "examples": [
+                                        "fake"
+                                    ],
                                     "type": "string"
                                 },
                                 "tls": {
@@ -2187,11 +2549,20 @@
                                 "cpu": {
                                     "$ref": "#/$defs/integerOrString",
                                     "description": "Maximum amount of CPU resource that can be used by a container's process during 1 scheduling period (100ms). Can be integer cores or millicores.",
-                                    "examples": ["1", "500m"]
+                                    "examples": [
+                                        "1",
+                                        "500m"
+                                    ]
                                 },
                                 "memory": {
                                     "description": "Maximum amount of memory that can be allocated to a container's process. Can be expressed as a plain integer or as a fixed-point number using one of these quantity suffixes: E, P, T, G, M, k. Also the power-of-two equivalents are available: Ei, Pi, Ti, Gi, Mi, Ki.",
-                                    "examples": ["128974848", "129e6", "129M", "128974848000m", "123Mi"],
+                                    "examples": [
+                                        "128974848",
+                                        "129e6",
+                                        "129M",
+                                        "128974848000m",
+                                        "123Mi"
+                                    ],
                                     "type": "string"
                                 }
                             },
@@ -2202,11 +2573,20 @@
                                 "cpu": {
                                     "$ref": "#/$defs/integerOrString",
                                     "description": "Initial and guaranteed amount of CPU resource that will be reserved by a container's process during 1 scheduling period (100ms). Can be integer cores or millicores.",
-                                    "examples": ["1", "500m"]
+                                    "examples": [
+                                        "1",
+                                        "500m"
+                                    ]
                                 },
                                 "memory": {
                                     "description": "Initial amount of memory that will be allocated to a container's process. Can be expressed as a plain integer or as a fixed-point number using one of these quantity suffixes: E, P, T, G, M, k. Also the power-of-two equivalents are available: Ei, Pi, Ti, Gi, Mi, Ki.",
-                                    "examples": ["128974848", "129e6", "129M", "128974848000m", "123Mi"],
+                                    "examples": [
+                                        "128974848",
+                                        "129e6",
+                                        "129M",
+                                        "128974848000m",
+                                        "123Mi"
+                                    ],
                                     "type": "string"
                                 }
                             },
@@ -2309,7 +2689,7 @@
                                     "type": "boolean"
                                 },
                                 "renewBefore": {
-                                    "description": "Defines how long before the certificate’s expiry cert-manager should attempt to renew it.",
+                                    "description": "Defines how long before the certificate\u2019s expiry cert-manager should attempt to renew it.",
                                     "type": "integer"
                                 },
                                 "secretName": {
@@ -2629,11 +3009,20 @@
                                         "cpu": {
                                             "$ref": "#/$defs/integerOrString",
                                             "description": "Maximum amount of CPU resource that can be used by a container's process during 1 scheduling period (100ms). Can be integer cores or millicores.",
-                                            "examples": ["1", "500m"]
+                                            "examples": [
+                                                "1",
+                                                "500m"
+                                            ]
                                         },
                                         "memory": {
                                             "description": "Maximum amount of memory that can be allocated to a container's process. Can be expressed as a plain integer or as a fixed-point number using one of these quantity suffixes: E, P, T, G, M, k. Also the power-of-two equivalents are available: Ei, Pi, Ti, Gi, Mi, Ki.",
-                                            "examples": ["128974848", "129e6", "129M", "128974848000m", "123Mi"],
+                                            "examples": [
+                                                "128974848",
+                                                "129e6",
+                                                "129M",
+                                                "128974848000m",
+                                                "123Mi"
+                                            ],
                                             "type": "string"
                                         }
                                     },
@@ -2644,11 +3033,20 @@
                                         "cpu": {
                                             "$ref": "#/$defs/integerOrString",
                                             "description": "Initial and guaranteed amount of CPU resource that will be reserved by a container's process during 1 scheduling period (100ms). Can be integer cores or millicores.",
-                                            "examples": ["1", "500m"]
+                                            "examples": [
+                                                "1",
+                                                "500m"
+                                            ]
                                         },
                                         "memory": {
                                             "description": "Initial and guaranteed amount of memory that will be allocated to a container's process. Can be expressed as a plain integer or as a fixed-point number using one of these quantity suffixes: E, P, T, G, M, k. Also the power-of-two equivalents are available: Ei, Pi, Ti, Gi, Mi, Ki.",
-                                            "examples": ["128974848", "129e6", "129M", "128974848000m", "123Mi"],
+                                            "examples": [
+                                                "128974848",
+                                                "129e6",
+                                                "129M",
+                                                "128974848000m",
+                                                "123Mi"
+                                            ],
                                             "type": "string"
                                         }
                                     },
@@ -2688,7 +3086,9 @@
                 },
                 "contentPack": {
                     "description": "Graylog content packs.",
-                    "examples": [[{
+                    "examples": [
+                        [
+                            {
                                 "http": {
                                     "credentials": {
                                         "password": {
@@ -2717,7 +3117,9 @@
                                     },
                                     "url": "<graylog content pack path>"
                                 }
-                            }]],
+                            }
+                        ]
+                    ],
                     "items": {
                         "type": "object"
                     },
@@ -2763,11 +3165,20 @@
                                 "cpu": {
                                     "$ref": "#/$defs/integerOrString",
                                     "description": "Maximum amount of CPU resource that can be used by a container's process during 1 scheduling period (100ms). Can be integer cores or millicores.",
-                                    "examples": ["1", "500m"]
+                                    "examples": [
+                                        "1",
+                                        "500m"
+                                    ]
                                 },
                                 "memory": {
                                     "description": "Maximum amount of memory that can be allocated to a container's process. Can be expressed as a plain integer or as a fixed-point number using one of these quantity suffixes: E, P, T, G, M, k. Also the power-of-two equivalents are available: Ei, Pi, Ti, Gi, Mi, Ki.",
-                                    "examples": ["128974848", "129e6", "129M", "128974848000m", "123Mi"],
+                                    "examples": [
+                                        "128974848",
+                                        "129e6",
+                                        "129M",
+                                        "128974848000m",
+                                        "123Mi"
+                                    ],
                                     "type": "string"
                                 }
                             },
@@ -2778,11 +3189,20 @@
                                 "cpu": {
                                     "$ref": "#/$defs/integerOrString",
                                     "description": "Initial and guaranteed amount of CPU resource that will be reserved by a container's process during 1 scheduling period (100ms). Can be integer cores or millicores.",
-                                    "examples": ["1", "500m"]
+                                    "examples": [
+                                        "1",
+                                        "500m"
+                                    ]
                                 },
                                 "memory": {
                                     "description": "Initial and guaranteed amount of memory that will be allocated to a container's process. Can be expressed as a plain integer or as a fixed-point number using one of these quantity suffixes: E, P, T, G, M, k. Also the power-of-two equivalents are available: Ei, Pi, Ti, Gi, Mi, Ki.",
-                                    "examples": ["128974848", "129e6", "129M", "128974848000m", "123Mi"],
+                                    "examples": [
+                                        "128974848",
+                                        "129e6",
+                                        "129M",
+                                        "128974848000m",
+                                        "123Mi"
+                                    ],
                                     "type": "string"
                                 }
                             },
@@ -2797,7 +3217,9 @@
                 },
                 "host": {
                     "description": "The Graylog host for ingress.",
-                    "examples": ["https://graylog-service.kubernetes.cloud.org/"],
+                    "examples": [
+                        "https://graylog-service.kubernetes.cloud.org/"
+                    ],
                     "type": "string"
                 },
                 "indexReplicas": {
@@ -2826,11 +3248,20 @@
                                 "cpu": {
                                     "$ref": "#/$defs/integerOrString",
                                     "description": "Maximum amount of CPU resource that can be used by a container's process during 1 scheduling period (100ms). Can be integer cores or millicores.",
-                                    "examples": ["1", "500m"]
+                                    "examples": [
+                                        "1",
+                                        "500m"
+                                    ]
                                 },
                                 "memory": {
                                     "description": "Maximum amount of memory that can be allocated to a container's process. Can be expressed as a plain integer or as a fixed-point number using one of these quantity suffixes: E, P, T, G, M, k. Also the power-of-two equivalents are available: Ei, Pi, Ti, Gi, Mi, Ki.",
-                                    "examples": ["128974848", "129e6", "129M", "128974848000m", "123Mi"],
+                                    "examples": [
+                                        "128974848",
+                                        "129e6",
+                                        "129M",
+                                        "128974848000m",
+                                        "123Mi"
+                                    ],
                                     "type": "string"
                                 }
                             },
@@ -2841,11 +3272,20 @@
                                 "cpu": {
                                     "$ref": "#/$defs/integerOrString",
                                     "description": "Initial and guaranteed amount of CPU resource that will be reserved by a container's process during 1 scheduling period (100ms). Can be integer cores or millicores.",
-                                    "examples": ["1", "500m"]
+                                    "examples": [
+                                        "1",
+                                        "500m"
+                                    ]
                                 },
                                 "memory": {
                                     "description": "Initial and guaranteed amount of memory that will be allocated to a container's process. Can be expressed as a plain integer or as a fixed-point number using one of these quantity suffixes: E, P, T, G, M, k. Also the power-of-two equivalents are available: Ei, Pi, Ti, Gi, Mi, Ki.",
-                                    "examples": ["128974848", "129e6", "129M", "128974848000m", "123Mi"],
+                                    "examples": [
+                                        "128974848",
+                                        "129e6",
+                                        "129M",
+                                        "128974848000m",
+                                        "123Mi"
+                                    ],
                                     "type": "string"
                                 }
                             },
@@ -2895,11 +3335,20 @@
                                 "cpu": {
                                     "$ref": "#/$defs/integerOrString",
                                     "description": "Maximum amount of CPU resource that can be used by a container's process during 1 scheduling period (100ms). Can be integer cores or millicores.",
-                                    "examples": ["1", "500m"]
+                                    "examples": [
+                                        "1",
+                                        "500m"
+                                    ]
                                 },
                                 "memory": {
                                     "description": "Maximum amount of memory that can be allocated to a container's process. Can be expressed as a plain integer or as a fixed-point number using one of these quantity suffixes: E, P, T, G, M, k. Also the power-of-two equivalents are available: Ei, Pi, Ti, Gi, Mi, Ki.",
-                                    "examples": ["128974848", "129e6", "129M", "128974848000m", "123Mi"],
+                                    "examples": [
+                                        "128974848",
+                                        "129e6",
+                                        "129M",
+                                        "128974848000m",
+                                        "123Mi"
+                                    ],
                                     "type": "string"
                                 }
                             },
@@ -2910,11 +3359,20 @@
                                 "cpu": {
                                     "$ref": "#/$defs/integerOrString",
                                     "description": "Initial and guaranteed amount of CPU resource that will be reserved by a container's process during 1 scheduling period (100ms). Can be integer cores or millicores.",
-                                    "examples": ["1", "500m"]
+                                    "examples": [
+                                        "1",
+                                        "500m"
+                                    ]
                                 },
                                 "memory": {
                                     "description": "Initial and guaranteed amount of memory that will be allocated to a container's process. Can be expressed as a plain integer or as a fixed-point number using one of these quantity suffixes: E, P, T, G, M, k. Also the power-of-two equivalents are available: Ei, Pi, Ti, Gi, Mi, Ki.",
-                                    "examples": ["128974848", "129e6", "129M", "128974848000m", "123Mi"],
+                                    "examples": [
+                                        "128974848",
+                                        "129e6",
+                                        "129M",
+                                        "128974848000m",
+                                        "123Mi"
+                                    ],
                                     "type": "string"
                                 }
                             },
@@ -3206,7 +3664,7 @@
                                             "type": "boolean"
                                         },
                                         "renewBefore": {
-                                            "description": "Defines how long before the certificate’s expiry cert-manager should attempt to renew it.",
+                                            "description": "Defines how long before the certificate\u2019s expiry cert-manager should attempt to renew it.",
                                             "type": "integer"
                                         },
                                         "secretName": {
@@ -3273,7 +3731,7 @@
                                             "type": "boolean"
                                         },
                                         "renewBefore": {
-                                            "description": "Defines how long before the certificate’s expiry cert-manager should attempt to renew it.",
+                                            "description": "Defines how long before the certificate\u2019s expiry cert-manager should attempt to renew it.",
                                             "type": "integer"
                                         },
                                         "secretName": {
@@ -3327,17 +3785,26 @@
                 },
                 "graylogHost": {
                     "description": "Graylog host.",
-                    "examples": ["10.10.10.10", "graylog-service.graylog.svc"],
+                    "examples": [
+                        "10.10.10.10",
+                        "graylog-service.graylog.svc"
+                    ],
                     "type": "string"
                 },
                 "graylogPort": {
                     "description": "Graylog port",
-                    "examples": ["80", "443"],
+                    "examples": [
+                        "80",
+                        "443"
+                    ],
                     "type": "integer"
                 },
                 "graylogProtocol": {
                     "description": "Graylog protocol.",
-                    "examples": ["http", "https"],
+                    "examples": [
+                        "http",
+                        "https"
+                    ],
                     "type": "string"
                 },
                 "image": {
@@ -3360,11 +3827,20 @@
                                 "cpu": {
                                     "$ref": "#/$defs/integerOrString",
                                     "description": "Maximum amount of CPU resource that can be used by a container's process during 1 scheduling period (100ms). Can be integer cores or millicores.",
-                                    "examples": ["1", "500m"]
+                                    "examples": [
+                                        "1",
+                                        "500m"
+                                    ]
                                 },
                                 "memory": {
                                     "description": "Maximum amount of memory that can be allocated to a container's process. Can be expressed as a plain integer or as a fixed-point number using one of these quantity suffixes: E, P, T, G, M, k. Also the power-of-two equivalents are available: Ei, Pi, Ti, Gi, Mi, Ki.",
-                                    "examples": ["128974848", "129e6", "129M", "128974848000m", "123Mi"],
+                                    "examples": [
+                                        "128974848",
+                                        "129e6",
+                                        "129M",
+                                        "128974848000m",
+                                        "123Mi"
+                                    ],
                                     "type": "string"
                                 }
                             },
@@ -3375,11 +3851,20 @@
                                 "cpu": {
                                     "$ref": "#/$defs/integerOrString",
                                     "description": "Initial and guaranteed amount of CPU resource that will be reserved by a container's process during 1 scheduling period (100ms). Can be integer cores or millicores.",
-                                    "examples": ["1", "500m"]
+                                    "examples": [
+                                        "1",
+                                        "500m"
+                                    ]
                                 },
                                 "memory": {
                                     "description": "Initial amount of memory that will be allocated to a container's process. Can be expressed as a plain integer or as a fixed-point number using one of these quantity suffixes: E, P, T, G, M, k. Also the power-of-two equivalents are available: Ei, Pi, Ti, Gi, Mi, Ki.",
-                                    "examples": ["128974848", "129e6", "129M", "128974848000m", "123Mi"],
+                                    "examples": [
+                                        "128974848",
+                                        "129e6",
+                                        "129M",
+                                        "128974848000m",
+                                        "123Mi"
+                                    ],
                                     "type": "string"
                                 }
                             },
@@ -3483,7 +3968,9 @@
                         },
                         "url": {
                             "description": "The parameter specifies the url for VictoriaLogs.",
-                            "examples": ["https://vlsingle-example.victorialogs:9428"],
+                            "examples": [
+                                "https://vlsingle-example.victorialogs:9428"
+                            ],
                             "type": "string"
                         }
                     },
@@ -3502,9 +3989,11 @@
         },
         "labels": {
             "description": "Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and services. More info: https://kubernetes.io/docs/user-guide/labels",
-            "examples": [{
+            "examples": [
+                {
                     "field": "value"
-                }],
+                }
+            ],
             "type": "object"
         },
         "logLevel": {

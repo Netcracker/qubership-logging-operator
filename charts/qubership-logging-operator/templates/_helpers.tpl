@@ -44,6 +44,8 @@ Add Authorization header if Bearer Token authorization enabled for http output i
 {{- end }}
 {{- if and $http.auth $http.auth.token $http.auth.token.name $http.auth.token.key }}
   {{- $_ := set $headers "Authorization" "Bearer #{ENV['HTTP_TOKEN']}" }}
+{{- else if and $http.auth $http.auth.credentials $http.auth.credentials.token }}
+  {{- $_ := set $headers "Authorization" "Bearer #{ENV['HTTP_TOKEN']}" }}
 {{- end }}
 {{- toYaml $headers }}
 {{- end -}}
@@ -496,5 +498,75 @@ MongoDB 4.4 image.
   {{- else -}}
     {{- /* # renovate: datasource=docker depName=mongo */ -}}
     {{- print "docker.io/mongo:4.4.30" -}}
+  {{- end -}}
+{{- end -}}
+
+{{/*
+Return the secret name for output auth credentials.
+Accepts a dict with "auth" (the auth config) and "default" (default secret name).
+*/}}
+{{- define "logging.output.auth.secretName" -}}
+  {{- if and .auth.credentials .auth.credentials.secretName -}}
+    {{- .auth.credentials.secretName -}}
+  {{- else -}}
+    {{- .default -}}
+  {{- end -}}
+{{- end -}}
+
+{{/*
+Check if output auth credentials should create a secret.
+Returns "true" if credentials are set AND no explicit secret refs override them.
+Accepts a dict with "auth" (the auth config).
+*/}}
+{{- define "logging.output.auth.shouldCreateSecret" -}}
+  {{- if .auth.credentials -}}
+    {{- $hasTokenRef := and .auth.token .auth.token.name .auth.token.key -}}
+    {{- $hasUserRef := and .auth.user .auth.user.name .auth.user.key .auth.password .auth.password.name .auth.password.key -}}
+    {{- if not (or $hasTokenRef $hasUserRef) -}}
+      {{- if or .auth.credentials.token (and .auth.credentials.username .auth.credentials.password) -}}
+true
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{/*
+Render the CRD-compatible auth block for Loki outputs.
+Accepts a dict with "auth" (the auth config) and "default" (default secret name).
+*/}}
+{{- define "logging.output.auth" -}}
+  {{- if .auth.token -}}
+    {{- if and .auth.token.name .auth.token.key }}
+auth:
+  token:
+    name: {{ .auth.token.name }}
+    key: {{ .auth.token.key }}
+    {{- end -}}
+  {{- else if and .auth.user .auth.password -}}
+    {{- if and .auth.user.name .auth.user.key .auth.password.name .auth.password.key }}
+auth:
+  user:
+    name: {{ .auth.user.name }}
+    key: {{ .auth.user.key }}
+  password:
+    name: {{ .auth.password.name }}
+    key: {{ .auth.password.key }}
+    {{- end -}}
+  {{- else if .auth.credentials -}}
+    {{- $secretName := include "logging.output.auth.secretName" . -}}
+    {{- if .auth.credentials.token }}
+auth:
+  token:
+    name: {{ $secretName }}
+    key: token
+    {{- else if and .auth.credentials.username .auth.credentials.password }}
+auth:
+  user:
+    name: {{ $secretName }}
+    key: username
+  password:
+    name: {{ $secretName }}
+    key: password
+    {{- end -}}
   {{- end -}}
 {{- end -}}

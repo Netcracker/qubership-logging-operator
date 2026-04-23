@@ -890,7 +890,15 @@ fluentd:
       # tenant:
 
       # -- Authentication for Loki.
+      # Inline credentials can be specified via `credentials` (chart creates the Secret automatically).
+      # Alternatively, reference pre-created secrets via `token`, `user`, `password`.
+      # If both are specified, secret references take priority.
       auth: {}
+        # credentials:
+        #   username: ""
+        #   password: ""
+        #   token: ""
+        #   secretName: ""
         # token:
         #   name: loki-secret
         #   key: token
@@ -979,8 +987,15 @@ fluentd:
       # path: /insert/jsonline
 
       # -- Authentication for HTTP output.
-      # Secret name and key in the secret storing the parameter should be provided. Username/password or token can be stored in different secrets.
+      # Inline credentials can be specified via `credentials` (chart creates the Secret automatically).
+      # Alternatively, reference pre-created secrets via `token`, `user`, `password`.
+      # If both are specified, secret references take priority.
       auth: {}
+        # credentials:
+        #   username: ""
+        #   password: ""
+        #   token: ""
+        #   secretName: ""
         # token:
         #   name: vl-write-token
         #   key: token
@@ -1283,7 +1298,15 @@ fluentbit:
       # tenant:
 
       # -- Authentication for Loki.
+      # Inline credentials can be specified via `credentials` (chart creates the Secret automatically).
+      # Alternatively, reference pre-created secrets via `token`, `user`, `password`.
+      # If both are specified, secret references take priority.
       auth: {}
+        # credentials:
+        #   username: ""
+        #   password: ""
+        #   token: ""
+        #   secretName: ""
         # token:
         #   name: loki-secret
         #   key: token
@@ -1371,7 +1394,15 @@ fluentbit:
       # extraParams: |
 
       # -- Authentication for Http.
+      # Inline credentials can be specified via `credentials` (chart creates the Secret automatically).
+      # Alternatively, reference pre-created secrets via `token`, `user`, `password`.
+      # If both are specified, secret references take priority.
       auth: {}
+        # credentials:
+        #   username: ""
+        #   password: ""
+        #   token: ""
+        #   secretName: ""
         # user:
         #   name: http-secret
         #   key: user
@@ -1448,8 +1479,15 @@ fluentbit:
       # extraParams: |
 
       # -- Authentication for Otel.
-      # Secret name and key in the secret storing the parameter should be provided. Username/password or token can be stored in different secrets.
+      # Inline credentials can be specified via `credentials` (chart creates the Secret automatically).
+      # Alternatively, reference pre-created secrets via `token`, `user`, `password`.
+      # If both are specified, secret references take priority.
       auth: {}
+        # credentials:
+        #   username: ""
+        #   password: ""
+        #   token: ""
+        #   secretName: ""
         # user:
         #   name: otel-secret
         #   key: user
@@ -1673,7 +1711,15 @@ fluentbit:
         # host: loki-write.loki.svc
 
         # -- Authentication for Loki.
+        # Inline credentials can be specified via `credentials` (chart creates the Secret automatically).
+        # Alternatively, reference pre-created secrets via `token`, `user`, `password`.
+        # If both are specified, secret references take priority.
         auth: {}
+          # credentials:
+          #   username: ""
+          #   password: ""
+          #   token: ""
+          #   secretName: ""
           # token:
           #   name: loki-secret
           #   key: token
@@ -1757,9 +1803,15 @@ fluentbit:
         # compress: gzip
 
         # -- Authentication for Http.
-        # Secret name and key in the secret storing the parameter should be provided. Username/password or token can be stored in different secrets.
-        #
+        # Inline credentials can be specified via `credentials` (chart creates the Secret automatically).
+        # Alternatively, reference pre-created secrets via `token`, `user`, `password`.
+        # If both are specified, secret references take priority.
         auth: {}
+          # credentials:
+          #   username: ""
+          #   password: ""
+          #   token: ""
+          #   secretName: ""
           # user:
           #   name: http-secret
           #   key: user
@@ -1841,8 +1893,15 @@ fluentbit:
         # extraParams: |
 
         # -- Authentication for Otel.
-        # Secret name and key in the secret storing the parameter should be provided. Username/password or token can be stored in different secrets.
+        # Inline credentials can be specified via `credentials` (chart creates the Secret automatically).
+        # Alternatively, reference pre-created secrets via `token`, `user`, `password`.
+        # If both are specified, secret references take priority.
         auth: {}
+          # credentials:
+          #   username: ""
+          #   password: ""
+          #   token: ""
+          #   secretName: ""
           # user:
           #   name: otel-secret
           #   key: user

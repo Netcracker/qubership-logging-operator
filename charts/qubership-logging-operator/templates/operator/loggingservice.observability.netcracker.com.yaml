@@ -459,24 +459,7 @@ spec:
         tenant: {{ .Values.fluentd.output.loki.tenant }}
         {{- end }}
         {{- if .Values.fluentd.output.loki.auth }}
-        {{- if .Values.fluentd.output.loki.auth.token }}
-        {{- if and .Values.fluentd.output.loki.auth.token.name .Values.fluentd.output.loki.auth.token.key }}
-        auth:
-          token:
-            name: {{ .Values.fluentd.output.loki.auth.token.name }}
-            key: {{ .Values.fluentd.output.loki.auth.token.key }}
-        {{- end }}
-        {{- else if and .Values.fluentd.output.loki.auth.user  .Values.fluentd.output.loki.auth.password }}
-        {{- if and .Values.fluentd.output.loki.auth.user.name .Values.fluentd.output.loki.auth.user.key .Values.fluentd.output.loki.auth.password.name .Values.fluentd.output.loki.auth.password.key }}
-        auth:
-          user:
-            name: {{ .Values.fluentd.output.loki.auth.user.name }}
-            key: {{ .Values.fluentd.output.loki.auth.user.key }}
-          password:
-            name: {{ .Values.fluentd.output.loki.auth.password.name }}
-            key: {{ .Values.fluentd.output.loki.auth.password.key }}
-        {{- end }}
-        {{- end }}
+        {{- include "logging.output.auth" (dict "auth" .Values.fluentd.output.loki.auth "default" (printf "%s-fluentd-loki-auth" .Release.Name)) | nindent 8 }}
         {{- end }}
         {{- if .Values.fluentd.output.loki.staticLabels }}
         staticLabels: {{ .Values.fluentd.output.loki.staticLabels | squote }}
@@ -521,7 +504,20 @@ spec:
     {{- if  .Values.fluentd.output.http }}
       http:
       {{- if .Values.fluentd.output.http.enabled }}
-        {{- toYaml .Values.fluentd.output.http | nindent 8 }}
+        {{- $http := deepCopy .Values.fluentd.output.http }}
+        {{- if and $http.auth $http.auth.credentials }}
+          {{- $defaultSecretName := include "logging.output.auth.secretName" (dict "auth" $http.auth "default" (printf "%s-fluentd-http-auth" .Release.Name)) }}
+          {{- if not (or (and $http.auth.token $http.auth.token.name) (and $http.auth.user $http.auth.user.name $http.auth.password $http.auth.password.name)) }}
+            {{- if $http.auth.credentials.token }}
+              {{- $_ := set $http.auth "token" (dict "name" $defaultSecretName "key" "token") }}
+            {{- else if and $http.auth.credentials.username $http.auth.credentials.password }}
+              {{- $_ := set $http.auth "user" (dict "name" $defaultSecretName "key" "username") }}
+              {{- $_ := set $http.auth "password" (dict "name" $defaultSecretName "key" "password") }}
+            {{- end }}
+          {{- end }}
+          {{- $_ := set $http "auth" (omit $http.auth "credentials") }}
+        {{- end }}
+        {{- toYaml $http | nindent 8 }}
       {{- else }}
         enabled: false
       {{- end }}
@@ -682,24 +678,7 @@ spec:
         tenant: {{ .Values.fluentbit.output.loki.tenant }}
         {{- end }}
         {{- if .Values.fluentbit.output.loki.auth }}
-        {{- if .Values.fluentbit.output.loki.auth.token }}
-        {{- if and .Values.fluentbit.output.loki.auth.token.name .Values.fluentbit.output.loki.auth.token.key }}
-        auth:
-          token:
-            name: {{ .Values.fluentbit.output.loki.auth.token.name }}
-            key: {{ .Values.fluentbit.output.loki.auth.token.key }}
-        {{- end }}
-        {{- else if and .Values.fluentbit.output.loki.auth.user .Values.fluentbit.output.loki.auth.password }}
-        {{- if and .Values.fluentbit.output.loki.auth.user.name .Values.fluentbit.output.loki.auth.user.key .Values.fluentbit.output.loki.auth.password.name .Values.fluentbit.output.loki.auth.password.key }}
-        auth:
-          user:
-            name: {{ .Values.fluentbit.output.loki.auth.user.name }}
-            key: {{ .Values.fluentbit.output.loki.auth.user.key }}
-          password:
-            name: {{ .Values.fluentbit.output.loki.auth.password.name }}
-            key: {{ .Values.fluentbit.output.loki.auth.password.key }}
-        {{- end }}
-        {{- end }}
+        {{- include "logging.output.auth" (dict "auth" .Values.fluentbit.output.loki.auth "default" (printf "%s-fluentbit-loki-auth" .Release.Name)) | nindent 8 }}
         {{- end }}
         {{- if .Values.fluentbit.output.loki.staticLabels }}
         staticLabels: {{ .Values.fluentbit.output.loki.staticLabels }}
@@ -742,7 +721,20 @@ spec:
     {{- if  .Values.fluentbit.output.http }}
       http:
       {{- if .Values.fluentbit.output.http.enabled }}
-        {{- toYaml .Values.fluentbit.output.http | nindent 8 }}
+        {{- $http := deepCopy .Values.fluentbit.output.http }}
+        {{- if and $http.auth $http.auth.credentials }}
+          {{- $defaultSecretName := include "logging.output.auth.secretName" (dict "auth" $http.auth "default" (printf "%s-fluentbit-http-auth" .Release.Name)) }}
+          {{- if not (or (and $http.auth.token $http.auth.token.name) (and $http.auth.user $http.auth.user.name $http.auth.password $http.auth.password.name)) }}
+            {{- if $http.auth.credentials.token }}
+              {{- $_ := set $http.auth "token" (dict "name" $defaultSecretName "key" "token") }}
+            {{- else if and $http.auth.credentials.username $http.auth.credentials.password }}
+              {{- $_ := set $http.auth "user" (dict "name" $defaultSecretName "key" "username") }}
+              {{- $_ := set $http.auth "password" (dict "name" $defaultSecretName "key" "password") }}
+            {{- end }}
+          {{- end }}
+          {{- $_ := set $http "auth" (omit $http.auth "credentials") }}
+        {{- end }}
+        {{- toYaml $http | nindent 8 }}
       {{- else }}
         enabled: false
       {{- end }}
@@ -750,7 +742,20 @@ spec:
     {{- if  .Values.fluentbit.output.otel }}
       otel:
       {{- if .Values.fluentbit.output.otel.enabled }}
-        {{- toYaml .Values.fluentbit.output.otel | nindent 8 }}
+        {{- $otel := deepCopy .Values.fluentbit.output.otel }}
+        {{- if and $otel.auth $otel.auth.credentials }}
+          {{- $defaultSecretName := include "logging.output.auth.secretName" (dict "auth" $otel.auth "default" (printf "%s-fluentbit-otel-auth" .Release.Name)) }}
+          {{- if not (or (and $otel.auth.token $otel.auth.token.name) (and $otel.auth.user $otel.auth.user.name $otel.auth.password $otel.auth.password.name)) }}
+            {{- if $otel.auth.credentials.token }}
+              {{- $_ := set $otel.auth "token" (dict "name" $defaultSecretName "key" "token") }}
+            {{- else if and $otel.auth.credentials.username $otel.auth.credentials.password }}
+              {{- $_ := set $otel.auth "user" (dict "name" $defaultSecretName "key" "username") }}
+              {{- $_ := set $otel.auth "password" (dict "name" $defaultSecretName "key" "password") }}
+            {{- end }}
+          {{- end }}
+          {{- $_ := set $otel "auth" (omit $otel.auth "credentials") }}
+        {{- end }}
+        {{- toYaml $otel | nindent 8 }}
       {{- else }}
         enabled: false
       {{- end }}
@@ -888,24 +893,7 @@ spec:
           tenant: {{ .Values.fluentbit.aggregator.output.loki.tenant }}
           {{- end }}
           {{- if .Values.fluentbit.aggregator.output.loki.auth }}
-          {{- if .Values.fluentbit.aggregator.output.loki.auth.token }}
-          {{- if and .Values.fluentbit.aggregator.output.loki.auth.token.name .Values.fluentbit.aggregator.output.loki.auth.token.key }}
-          auth:
-            token:
-              name: {{ .Values.fluentbit.aggregator.output.loki.auth.token.name }}
-              key: {{ .Values.fluentbit.aggregator.output.loki.auth.token.key }}
-          {{- end }}
-          {{- else if and .Values.fluentbit.aggregator.output.loki.auth.user .Values.fluentbit.aggregator.output.loki.auth.password }}
-          {{- if and .Values.fluentbit.aggregator.output.loki.auth.user.name .Values.fluentbit.aggregator.output.loki.auth.user.key .Values.fluentbit.aggregator.output.loki.auth.password.name .Values.fluentbit.aggregator.output.loki.auth.password.key }}
-          auth:
-            user:
-              name: {{ .Values.fluentbit.aggregator.output.loki.auth.user.name }}
-              key: {{ .Values.fluentbit.aggregator.output.loki.auth.user.key }}
-            password:
-              name: {{ .Values.fluentbit.aggregator.output.loki.auth.password.name }}
-              key: {{ .Values.fluentbit.aggregator.output.loki.auth.password.key }}
-          {{- end }}
-          {{- end }}
+          {{- include "logging.output.auth" (dict "auth" .Values.fluentbit.aggregator.output.loki.auth "default" (printf "%s-fluentbit-aggregator-loki-auth" .Release.Name)) | nindent 10 }}
           {{- end }}
           {{- if .Values.fluentbit.aggregator.output.loki.staticLabels }}
           staticLabels: {{ .Values.fluentbit.aggregator.output.loki.staticLabels }}
@@ -948,7 +936,20 @@ spec:
       {{- if .Values.fluentbit.aggregator.output.http }}
         http:
         {{- if .Values.fluentbit.aggregator.output.http.enabled }}
-          {{- toYaml .Values.fluentbit.aggregator.output.http | nindent 10 }}
+          {{- $http := deepCopy .Values.fluentbit.aggregator.output.http }}
+          {{- if and $http.auth $http.auth.credentials }}
+            {{- $defaultSecretName := include "logging.output.auth.secretName" (dict "auth" $http.auth "default" (printf "%s-fluentbit-aggregator-http-auth" .Release.Name)) }}
+            {{- if not (or (and $http.auth.token $http.auth.token.name) (and $http.auth.user $http.auth.user.name $http.auth.password $http.auth.password.name)) }}
+              {{- if $http.auth.credentials.token }}
+                {{- $_ := set $http.auth "token" (dict "name" $defaultSecretName "key" "token") }}
+              {{- else if and $http.auth.credentials.username $http.auth.credentials.password }}
+                {{- $_ := set $http.auth "user" (dict "name" $defaultSecretName "key" "username") }}
+                {{- $_ := set $http.auth "password" (dict "name" $defaultSecretName "key" "password") }}
+              {{- end }}
+            {{- end }}
+            {{- $_ := set $http "auth" (omit $http.auth "credentials") }}
+          {{- end }}
+          {{- toYaml $http | nindent 10 }}
         {{- else }}
           enabled: false
         {{- end }}
@@ -956,7 +957,20 @@ spec:
       {{- if .Values.fluentbit.aggregator.output.otel }}
         otel:
         {{- if .Values.fluentbit.aggregator.output.otel.enabled }}
-          {{- toYaml .Values.fluentbit.aggregator.output.otel | nindent 10 }}
+          {{- $otel := deepCopy .Values.fluentbit.aggregator.output.otel }}
+          {{- if and $otel.auth $otel.auth.credentials }}
+            {{- $defaultSecretName := include "logging.output.auth.secretName" (dict "auth" $otel.auth "default" (printf "%s-fluentbit-aggregator-otel-auth" .Release.Name)) }}
+            {{- if not (or (and $otel.auth.token $otel.auth.token.name) (and $otel.auth.user $otel.auth.user.name $otel.auth.password $otel.auth.password.name)) }}
+              {{- if $otel.auth.credentials.token }}
+                {{- $_ := set $otel.auth "token" (dict "name" $defaultSecretName "key" "token") }}
+              {{- else if and $otel.auth.credentials.username $otel.auth.credentials.password }}
+                {{- $_ := set $otel.auth "user" (dict "name" $defaultSecretName "key" "username") }}
+                {{- $_ := set $otel.auth "password" (dict "name" $defaultSecretName "key" "password") }}
+              {{- end }}
+            {{- end }}
+            {{- $_ := set $otel "auth" (omit $otel.auth "credentials") }}
+          {{- end }}
+          {{- toYaml $otel | nindent 10 }}
         {{- else }}
           enabled: false
         {{- end }}

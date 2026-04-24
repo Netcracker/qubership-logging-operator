@@ -43,9 +43,9 @@ Add Authorization header if Bearer Token authorization enabled for http output i
   {{- $headers := dict "VL-Msg-Field" "log" "VL-Time-Field" "time" "VL-Stream-Fields" "stream" }}
 {{- end }}
 {{- if and $http.auth $http.auth.token $http.auth.token.name $http.auth.token.key }}
-  {{- $_ := set $headers "Authorization" "Bearer #{ENV['HTTP_TOKEN']}" }}
+  {{- $_ := set $headers "Authorization" "Bearer #{File.read('/fluentd/output/http/auth/token').strip}" }}
 {{- else if and $http.auth $http.auth.credentials $http.auth.credentials.token }}
-  {{- $_ := set $headers "Authorization" "Bearer #{ENV['HTTP_TOKEN']}" }}
+  {{- $_ := set $headers "Authorization" "Bearer #{File.read('/fluentd/output/http/auth/token').strip}" }}
 {{- end }}
 {{- toYaml $headers }}
 {{- end -}}

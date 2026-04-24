@@ -6,6 +6,9 @@ on:
       version:
         description: "Version"
         required: true
+      appVersion:
+        description: "Application Version"
+        required: true
       dry-run:
         type: boolean
         description: "Dry run"
@@ -73,7 +76,8 @@ jobs:
       - name: Change Chart Version Action
         uses: netcracker/qubership-workflow-hub/actions/chart-version@d11baa8a4b42d1a931808c0766ee23eb344c47dd # v2.2.0
         with:
-          chart-app-version: ${{ github.event.inputs.version }}
+          new-chart-version: ${{ github.event.inputs.version }}
+          chart-app-version: ${{ github.event.inputs.appVersion }}
           chart-yaml-path: ${{ github.event.inputs.path-to-chart }}
 
       - name: Commit and push chart version

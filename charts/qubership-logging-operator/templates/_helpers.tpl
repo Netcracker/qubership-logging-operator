@@ -455,7 +455,7 @@ Image can be found from:
     {{- printf "%s" .Values.graylog.initSetupImage -}}
   {{- else -}}
     {{- /* # renovate: datasource=docker depName=alpine */ -}}
-    {{- print "docker.io/alpine:3.23.3" -}}
+    {{- print "docker.io/alpine:3.23.4" -}}
   {{- end -}}
 {{- end -}}
 

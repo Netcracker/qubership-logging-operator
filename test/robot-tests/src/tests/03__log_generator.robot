@@ -3,12 +3,7 @@ ${GRAYLOG_PROTOCOL}             %{GRAYLOG_PROTOCOL}
 ${GRAYLOG_HOST}                 %{GRAYLOG_HOST}
 ${OPENSHIFT_DEPLOY}             %{OPENSHIFT_DEPLOY}
 ${GRAYLOG_PORT}                 %{GRAYLOG_PORT}
-${GRAYLOG_USER}                 %{GRAYLOG_USER}
-${GRAYLOG_PASS}                 %{GRAYLOG_PASS}
 ${VICTORIALOGS_URL}             %{VICTORIALOGS_URL=}
-${VL_USER}                      %{VL_USER=}
-${VL_PASSWORD}                  %{VL_PASSWORD=}
-${VL_TOKEN}                     %{VL_TOKEN=}
 ${OPERATION_RETRY_COUNT}        %{OPERATION_RETRY_COUNT}
 ${RETRY_COUNT_FOR_FIRST_TEST}   250x
 ${OPERATION_RETRY_INTERVAL}     %{OPERATION_RETRY_INTERVAL}
@@ -30,12 +25,14 @@ Library  OperatingSystem
 Library  String
 Library    Collections
 Library    BuiltIn
-Suite Setup  Run Keywords  Setup
+Resource        secrets.robot
+Resource        keywords.robot
+Suite Setup  Run Keywords  Load Integration Test Secrets
+...  AND  Setup
 ...  AND  Create Config
 ...  AND  Create Log Generators
 Suite Teardown  Run Keywords  Delete Log Generators
 ...  AND  Delete Config Map
-Resource        keywords.robot
 
 *** Keywords ***
 Setup

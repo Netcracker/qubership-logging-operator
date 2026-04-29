@@ -107,6 +107,7 @@ type Graylog struct {
 	InitSetupImage                           string                       `json:"initSetupImage"`
 	User                                     string                       `json:"-"`
 	Password                                 string                       `json:"-"`
+	ElasticsearchHost                        string                       `json:"-"`
 	NodeSelectorKey                          string                       `json:"nodeSelectorKey,omitempty"`
 	InitContainerDockerImage                 string                       `json:"initContainerDockerImage,omitempty"`
 	GraylogSecretName                        string                       `json:"graylogSecretName"`

@@ -306,9 +306,7 @@ jobs:
         fi
         echo "VLSINGLE_SERVICE=$service_name" >> $GITHUB_ENV
         echo "VLSINGLE_PORT=$service_port" >> $GITHUB_ENV
-        # split URL to protocol and hostname to avoid sonar issues
-        protocol="http"
-        echo "VICTORIALOGS_URL=${protocol}://${service_name}.${{ env.namespace }}:${service_port}" >> $GITHUB_ENV
+        echo "VICTORIALOGS_URL=http://${service_name}.${{ env.namespace }}:${service_port}" >> $GITHUB_ENV # NOSONAR
       shell: bash
 
     - name: Create values for logging operator installation (Graylog)

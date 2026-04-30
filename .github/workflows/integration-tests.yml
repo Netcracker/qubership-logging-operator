@@ -358,7 +358,8 @@ jobs:
           output:
             http:
               enabled: true
-              host: ${VLSINGLE_SERVICE}.${{ env.namespace }}:${VLSINGLE_PORT}
+              host: ${VLSINGLE_SERVICE}.${{ env.namespace }}
+              port: ${VLSINGLE_PORT}
               auth:
                 credentials:
                   username: admin

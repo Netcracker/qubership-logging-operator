@@ -51,9 +51,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-        - scenario_name: OpenSearch
-          scenario_id: opensearch
-          backend: opensearch
+        - scenario_name: Graylog
+          scenario_id: graylog
+          backend: graylog
         - scenario_name: VictoriaLogs
           scenario_id: victorialogs
           backend: victorialogs
@@ -127,16 +127,16 @@ jobs:
         kubectl apply -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/heads/main/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_servicemonitors.yaml
         kubectl apply -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/heads/main/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_podmonitors.yaml
 
-    - name: Checkout opensearch repo
-      if: matrix.backend == 'opensearch'
+    - name: Checkout OpenSearch repo for Graylog backend
+      if: matrix.backend == 'graylog'
       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       with:
         repository: Netcracker/qubership-opensearch
         ref: ${{ env.opensearch_version }}
         path: qubership-opensearch
 
-    - name: Create values.yaml for opensearch
-      if: matrix.backend == 'opensearch'
+    - name: Create OpenSearch values for Graylog backend
+      if: matrix.backend == 'graylog'
       run: |
         cat <<EOF > opensearch_values.yaml
         operator:
@@ -172,8 +172,8 @@ jobs:
         EOF
       shell: bash
 
-    - name: Install opensearch
-      if: matrix.backend == 'opensearch'
+    - name: Install OpenSearch for Graylog backend
+      if: matrix.backend == 'graylog'
       run: |
         helm upgrade --install opensearch \
           --namespace=${{ env.opensearch_namespace }} \
@@ -181,8 +181,8 @@ jobs:
           ./qubership-opensearch/operator/charts/helm/opensearch-service \
           -f ./opensearch_values.yaml
 
-    - name: Check opensearch deployment status
-      if: matrix.backend == 'opensearch'
+    - name: Check OpenSearch deployment status for Graylog backend
+      if: matrix.backend == 'graylog'
       run: |
         echo "Checking status of opensearch-status-provisioner..."
         attempt=1
@@ -214,23 +214,23 @@ jobs:
         fi
       shell: bash
 
-    - name: Check opensearch cluster health
-      if: matrix.backend == 'opensearch'
+    - name: Check OpenSearch cluster health for Graylog backend
+      if: matrix.backend == 'graylog'
       id: check_opensearch_health
       run: |
         cluster_status=$(kubectl exec -n ${{ env.opensearch_namespace }} opensearch-0 -- curl -s http://localhost:9200/_cluster/health?pretty -u admin:admin)
         if [[ $(jq -r .status <<<"$cluster_status") = "yellow" ]]; then
-          echo "::error::❌ Opensearch cluster status is YELLOW. Check opensearch logs."
+          echo "::error::❌ OpenSearch cluster status is YELLOW. Check Graylog backend logs."
           echo "status=❌failure" >> $GITHUB_OUTPUT
           echo "cluster_status=$(echo "$cluster_status" | jq -c)" >> $GITHUB_OUTPUT && echo -e "Cluster status:\n$cluster_status"
           exit 1
         elif [[ $(jq -r .status <<<"$cluster_status") = "red" ]]; then
-          echo "::error::❌ Opensearch cluster status is RED. Check opensearch logs."
+          echo "::error::❌ OpenSearch cluster status is RED. Check Graylog backend logs."
           echo "status=❌failure" >> $GITHUB_OUTPUT
           echo "cluster_status=$(echo "$cluster_status" | jq -c)" >> $GITHUB_OUTPUT && echo -e "Cluster status:\n$cluster_status"
           exit 1
         else
-          echo "✅ Opensearch cluster status is GREEN."
+          echo "✅ OpenSearch cluster status is GREEN."
           echo "status=✅success" >> $GITHUB_OUTPUT
           echo "cluster_status=$(echo "$cluster_status" | jq -c)" >> $GITHUB_OUTPUT && echo -e "Cluster status:\n$cluster_status"
         fi
@@ -306,11 +306,12 @@ jobs:
         fi
         echo "VLSINGLE_SERVICE=$service_name" >> $GITHUB_ENV
         echo "VLSINGLE_PORT=$service_port" >> $GITHUB_ENV
+        # NOSONAR: VictoriaLogs in this ephemeral kind CI scenario is exposed only as an internal in-cluster HTTP service.
         echo "VICTORIALOGS_URL=http://${service_name}.${{ env.namespace }}:${service_port}" >> $GITHUB_ENV
       shell: bash
 
-    - name: Create values for logging operator installation (OpenSearch)
-      if: matrix.backend == 'opensearch'
+    - name: Create values for logging operator installation (Graylog)
+      if: matrix.backend == 'graylog'
       run: |
         cat <<EOF > logging_values.yaml
         skipMetricsService: false
@@ -446,7 +447,7 @@ jobs:
       shell: bash
 
     - name: Checking graylog status
-      if: matrix.backend == 'opensearch'
+      if: matrix.backend == 'graylog'
       id: check_graylog
       run: |
         echo "Waiting 10 seconds before checking graylog status..."
@@ -678,8 +679,8 @@ jobs:
         echo "status=✅passed" >> $GITHUB_OUTPUT
       shell: bash
 
-    - name: Save opensearch artifacts
-      if: always() && matrix.backend == 'opensearch'
+    - name: Save OpenSearch artifacts for Graylog backend
+      if: always() && matrix.backend == 'graylog'
       id: opensearch_artifacts
       run: |
         mkdir -p "artifacts/${{ env.opensearch_namespace }}"
@@ -800,15 +801,15 @@ jobs:
         echo "## Scenario" >> $GITHUB_STEP_SUMMARY
         echo "Backend: ${{ matrix.scenario_name }}" >> $GITHUB_STEP_SUMMARY
 
-        if [[ "${{ matrix.backend }}" == "opensearch" ]]; then
-          echo "## Install opensearch" >> $GITHUB_STEP_SUMMARY
-          echo "Check opensearch cluster health: ${{ steps.check_opensearch_health.outputs.status || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
-          echo "Opensearch version: ${{ env.opensearch_version }}" >> $GITHUB_STEP_SUMMARY
+        if [[ "${{ matrix.backend }}" == "graylog" ]]; then
+          echo "## Install Graylog backend" >> $GITHUB_STEP_SUMMARY
+          echo "Check OpenSearch cluster health: ${{ steps.check_opensearch_health.outputs.status || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
+          echo "OpenSearch version: ${{ env.opensearch_version }}" >> $GITHUB_STEP_SUMMARY
           echo "Cluster status:" >> $GITHUB_STEP_SUMMARY
           echo '```json' >> $GITHUB_STEP_SUMMARY
           echo '${{ steps.check_opensearch_health.outputs.cluster_status }}' | jq . >> $GITHUB_STEP_SUMMARY || echo '❓unknown' >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
-          echo 'Pods running in opensearch namespace:' >> $GITHUB_STEP_SUMMARY
+          echo 'OpenSearch pods running in backend namespace:' >> $GITHUB_STEP_SUMMARY
           echo '```sh' >> $GITHUB_STEP_SUMMARY
           echo "${{ steps.opensearch_artifacts.outputs.opensearch_pods || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
@@ -824,7 +825,7 @@ jobs:
         fi
 
         echo "## Install logging operator" >> $GITHUB_STEP_SUMMARY
-        if [[ "${{ matrix.backend }}" == "opensearch" ]]; then
+        if [[ "${{ matrix.backend }}" == "graylog" ]]; then
           echo "Check graylog status: ${{ steps.check_graylog.outputs.status || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
           echo "${{ steps.check_graylog.outputs.details || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
         else

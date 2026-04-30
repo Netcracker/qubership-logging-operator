@@ -86,7 +86,17 @@ spec:
         - name: loki-auth-token
           secret:
             secretName: {{ .Values.Fluentbit.Aggregator.Output.Loki.Auth.Token.Name }}
-            defaultMode: 220
+            defaultMode: 256 # 0400: read-only for owner
+{{- end }}
+{{- if and .Values.Fluentbit.Aggregator.Output.Loki.Auth .Values.Fluentbit.Aggregator.Output.Loki.Auth.User .Values.Fluentbit.Aggregator.Output.Loki.Auth.User.Name .Values.Fluentbit.Aggregator.Output.Loki.Auth.User.Key .Values.Fluentbit.Aggregator.Output.Loki.Auth.Password .Values.Fluentbit.Aggregator.Output.Loki.Auth.Password.Name .Values.Fluentbit.Aggregator.Output.Loki.Auth.Password.Key }}
+        - name: loki-auth-user
+          secret:
+            secretName: {{ .Values.Fluentbit.Aggregator.Output.Loki.Auth.User.Name }}
+            defaultMode: 256 # 0400: read-only for owner
+        - name: loki-auth-password
+          secret:
+            secretName: {{ .Values.Fluentbit.Aggregator.Output.Loki.Auth.Password.Name }}
+            defaultMode: 256 # 0400: read-only for owner
 {{- end }}
 {{- if and .Values.Fluentbit.Aggregator.Output.Loki.TLS .Values.Fluentbit.Aggregator.Output.Loki.TLS.Enabled }}
 {{- if and .Values.Fluentbit.Aggregator.Output.Loki.TLS.CA .Values.Fluentbit.Aggregator.Output.Loki.TLS.CA.SecretName .Values.Fluentbit.Aggregator.Output.Loki.TLS.CA.SecretKey }}
@@ -110,6 +120,22 @@ spec:
 {{- end }}
 {{- end }}
 {{- if and .Values.Fluentbit.Aggregator.Output .Values.Fluentbit.Aggregator.Output.Http .Values.Fluentbit.Aggregator.Output.Http.Enabled }}
+{{- if and .Values.Fluentbit.Aggregator.Output.Http.Auth .Values.Fluentbit.Aggregator.Output.Http.Auth.Token .Values.Fluentbit.Aggregator.Output.Http.Auth.Token.Name .Values.Fluentbit.Aggregator.Output.Http.Auth.Token.Key }}
+        - name: http-auth-token
+          secret:
+            secretName: {{ .Values.Fluentbit.Aggregator.Output.Http.Auth.Token.Name }}
+            defaultMode: 256 # 0400: read-only for owner
+{{- end }}
+{{- if and .Values.Fluentbit.Aggregator.Output.Http.Auth .Values.Fluentbit.Aggregator.Output.Http.Auth.User .Values.Fluentbit.Aggregator.Output.Http.Auth.User.Name .Values.Fluentbit.Aggregator.Output.Http.Auth.User.Key .Values.Fluentbit.Aggregator.Output.Http.Auth.Password .Values.Fluentbit.Aggregator.Output.Http.Auth.Password.Name .Values.Fluentbit.Aggregator.Output.Http.Auth.Password.Key }}
+        - name: http-auth-user
+          secret:
+            secretName: {{ .Values.Fluentbit.Aggregator.Output.Http.Auth.User.Name }}
+            defaultMode: 256 # 0400: read-only for owner
+        - name: http-auth-password
+          secret:
+            secretName: {{ .Values.Fluentbit.Aggregator.Output.Http.Auth.Password.Name }}
+            defaultMode: 256 # 0400: read-only for owner
+{{- end }}
 {{- if and .Values.Fluentbit.Aggregator.Output.Http.TLS .Values.Fluentbit.Aggregator.Output.Http.TLS.Enabled }}
 {{- if and .Values.Fluentbit.Aggregator.Output.Http.TLS.CA .Values.Fluentbit.Aggregator.Output.Http.TLS.CA.SecretName .Values.Fluentbit.Aggregator.Output.Http.TLS.CA.SecretKey }}
         - name: http-tls-ca
@@ -132,6 +158,22 @@ spec:
 {{- end }}
 {{- end }}
 {{- if and .Values.Fluentbit.Aggregator.Output .Values.Fluentbit.Aggregator.Output.Otel .Values.Fluentbit.Aggregator.Output.Otel.Enabled }}
+{{- if and .Values.Fluentbit.Aggregator.Output.Otel.Auth .Values.Fluentbit.Aggregator.Output.Otel.Auth.Token .Values.Fluentbit.Aggregator.Output.Otel.Auth.Token.Name .Values.Fluentbit.Aggregator.Output.Otel.Auth.Token.Key }}
+        - name: otel-auth-token
+          secret:
+            secretName: {{ .Values.Fluentbit.Aggregator.Output.Otel.Auth.Token.Name }}
+            defaultMode: 256 # 0400: read-only for owner
+{{- end }}
+{{- if and .Values.Fluentbit.Aggregator.Output.Otel.Auth .Values.Fluentbit.Aggregator.Output.Otel.Auth.User .Values.Fluentbit.Aggregator.Output.Otel.Auth.User.Name .Values.Fluentbit.Aggregator.Output.Otel.Auth.User.Key .Values.Fluentbit.Aggregator.Output.Otel.Auth.Password .Values.Fluentbit.Aggregator.Output.Otel.Auth.Password.Name .Values.Fluentbit.Aggregator.Output.Otel.Auth.Password.Key }}
+        - name: otel-auth-user
+          secret:
+            secretName: {{ .Values.Fluentbit.Aggregator.Output.Otel.Auth.User.Name }}
+            defaultMode: 256 # 0400: read-only for owner
+        - name: otel-auth-password
+          secret:
+            secretName: {{ .Values.Fluentbit.Aggregator.Output.Otel.Auth.Password.Name }}
+            defaultMode: 256 # 0400: read-only for owner
+{{- end }}
 {{- if and .Values.Fluentbit.Aggregator.Output.Otel.TLS .Values.Fluentbit.Aggregator.Output.Otel.TLS.Enabled }}
 {{- if and .Values.Fluentbit.Aggregator.Output.Otel.TLS.CA .Values.Fluentbit.Aggregator.Output.Otel.TLS.CA.SecretName .Values.Fluentbit.Aggregator.Output.Otel.TLS.CA.SecretKey }}
         - name: otel-tls-ca
@@ -193,67 +235,6 @@ spec:
             - containerPort: 24224
               protocol: TCP
               name: "forward"
-          env:
-{{- if and .Values.Fluentbit.Aggregator.Output .Values.Fluentbit.Aggregator.Output.Loki .Values.Fluentbit.Aggregator.Output.Loki.Enabled }}
-{{- if and .Values.Fluentbit.Aggregator.Output.Loki.Auth .Values.Fluentbit.Aggregator.Output.Loki.Auth.User .Values.Fluentbit.Aggregator.Output.Loki.Auth.User.Name .Values.Fluentbit.Aggregator.Output.Loki.Auth.User.Key .Values.Fluentbit.Aggregator.Output.Loki.Auth.Password .Values.Fluentbit.Aggregator.Output.Loki.Auth.Password.Name .Values.Fluentbit.Aggregator.Output.Loki.Auth.Password.Key }}
-            - name: LOKI_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.Fluentbit.Aggregator.Output.Loki.Auth.User.Name }}
-                  key: {{ .Values.Fluentbit.Aggregator.Output.Loki.Auth.User.Key }}
-            - name: LOKI_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.Fluentbit.Aggregator.Output.Loki.Auth.Password.Name }}
-                  key: {{ .Values.Fluentbit.Aggregator.Output.Loki.Auth.Password.Key }}
-{{- else if and .Values.Fluentbit.Aggregator.Output.Loki.Auth .Values.Fluentbit.Aggregator.Output.Loki.Auth.Token .Values.Fluentbit.Aggregator.Output.Loki.Auth.Token.Name .Values.Fluentbit.Aggregator.Output.Loki.Auth.Token.Key }}
-            - name: LOKI_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.Fluentbit.Aggregator.Output.Loki.Auth.Token.Name }}
-                  key: {{ .Values.Fluentbit.Aggregator.Output.Loki.Auth.Token.Key }}
-{{- end }}
-{{- end }}
-{{- if and .Values.Fluentbit.Aggregator.Output .Values.Fluentbit.Aggregator.Output.Http .Values.Fluentbit.Aggregator.Output.Http.Enabled }}
-{{- if and .Values.Fluentbit.Aggregator.Output.Http.Auth .Values.Fluentbit.Aggregator.Output.Http.Auth.User .Values.Fluentbit.Aggregator.Output.Http.Auth.User.Name .Values.Fluentbit.Aggregator.Output.Http.Auth.User.Key .Values.Fluentbit.Aggregator.Output.Http.Auth.Password .Values.Fluentbit.Aggregator.Output.Http.Auth.Password.Name .Values.Fluentbit.Aggregator.Output.Http.Auth.Password.Key }}
-            - name: HTTP_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.Fluentbit.Aggregator.Output.Http.Auth.User.Name }}
-                  key: {{ .Values.Fluentbit.Aggregator.Output.Http.Auth.User.Key }}
-            - name: HTTP_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.Fluentbit.Aggregator.Output.Http.Auth.Password.Name }}
-                  key: {{ .Values.Fluentbit.Aggregator.Output.Http.Auth.Password.Key }}
-{{- else if and .Values.Fluentbit.Aggregator.Output.Http.Auth .Values.Fluentbit.Aggregator.Output.Http.Auth.Token .Values.Fluentbit.Aggregator.Output.Http.Auth.Token.Name .Values.Fluentbit.Aggregator.Output.Http.Auth.Token.Key }}
-            - name: HTTP_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.Fluentbit.Aggregator.Output.Http.Auth.Token.Name }}
-                  key: {{ .Values.Fluentbit.Aggregator.Output.Http.Auth.Token.Key }}
-{{- end }}
-{{- end }}
-{{- if and .Values.Fluentbit.Aggregator.Output .Values.Fluentbit.Aggregator.Output.Otel .Values.Fluentbit.Aggregator.Output.Otel.Enabled }}
-{{- if and .Values.Fluentbit.Aggregator.Output.Otel.Auth .Values.Fluentbit.Aggregator.Output.Otel.Auth.User .Values.Fluentbit.Aggregator.Output.Otel.Auth.User.Name .Values.Fluentbit.Aggregator.Output.Otel.Auth.User.Key .Values.Fluentbit.Aggregator.Output.Otel.Auth.Password .Values.Fluentbit.Aggregator.Output.Otel.Auth.Password.Name .Values.Fluentbit.Aggregator.Output.Otel.Auth.Password.Key }}
-            - name: OTEL_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.Fluentbit.Aggregator.Output.Otel.Auth.User.Name }}
-                  key: {{ .Values.Fluentbit.Aggregator.Output.Otel.Auth.User.Key }}
-            - name: OTEL_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.Fluentbit.Aggregator.Output.Otel.Auth.Password.Name }}
-                  key: {{ .Values.Fluentbit.Aggregator.Output.Otel.Auth.Password.Key }}
-{{- else if and .Values.Fluentbit.Aggregator.Output.Otel.Auth .Values.Fluentbit.Aggregator.Output.Otel.Auth.Token .Values.Fluentbit.Aggregator.Output.Otel.Auth.Token.Name .Values.Fluentbit.Aggregator.Output.Otel.Auth.Token.Key }}
-            - name: OTEL_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.Fluentbit.Aggregator.Output.Otel.Auth.Token.Name }}
-                  key: {{ .Values.Fluentbit.Aggregator.Output.Otel.Auth.Token.Key }}
-{{- end }}
-{{- end }}
           resources:
             limits:
               cpu: {{ resIndex .Values.Fluentbit.Aggregator.Resources.Limits "cpu" }}
@@ -306,6 +287,22 @@ spec:
 {{- end }}
 {{- end }}
 {{- if and .Values.Fluentbit.Aggregator.Output .Values.Fluentbit.Aggregator.Output.Loki .Values.Fluentbit.Aggregator.Output.Loki.Enabled }}
+{{- if and .Values.Fluentbit.Aggregator.Output.Loki.Auth .Values.Fluentbit.Aggregator.Output.Loki.Auth.Token .Values.Fluentbit.Aggregator.Output.Loki.Auth.Token.Name .Values.Fluentbit.Aggregator.Output.Loki.Auth.Token.Key }}
+            - mountPath: /fluent-bit/output/loki/auth/token
+              name: loki-auth-token
+              readOnly: true
+              subPath: {{ .Values.Fluentbit.Aggregator.Output.Loki.Auth.Token.Key }}
+{{- end }}
+{{- if and .Values.Fluentbit.Aggregator.Output.Loki.Auth .Values.Fluentbit.Aggregator.Output.Loki.Auth.User .Values.Fluentbit.Aggregator.Output.Loki.Auth.User.Name .Values.Fluentbit.Aggregator.Output.Loki.Auth.User.Key .Values.Fluentbit.Aggregator.Output.Loki.Auth.Password .Values.Fluentbit.Aggregator.Output.Loki.Auth.Password.Name .Values.Fluentbit.Aggregator.Output.Loki.Auth.Password.Key }}
+            - mountPath: /fluent-bit/output/loki/auth/username
+              name: loki-auth-user
+              readOnly: true
+              subPath: {{ .Values.Fluentbit.Aggregator.Output.Loki.Auth.User.Key }}
+            - mountPath: /fluent-bit/output/loki/auth/password
+              name: loki-auth-password
+              readOnly: true
+              subPath: {{ .Values.Fluentbit.Aggregator.Output.Loki.Auth.Password.Key }}
+{{- end }}
 {{- if and .Values.Fluentbit.Aggregator.Output.Loki.TLS .Values.Fluentbit.Aggregator.Output.Loki.TLS.Enabled }}
 {{- if and .Values.Fluentbit.Aggregator.Output.Loki.TLS.CA .Values.Fluentbit.Aggregator.Output.Loki.TLS.CA.SecretName .Values.Fluentbit.Aggregator.Output.Loki.TLS.CA.SecretKey }}
             - mountPath: /fluent-bit/output/loki/tls/ca.crt
@@ -328,6 +325,22 @@ spec:
 {{- end }}
 {{- end }}
 {{- if and .Values.Fluentbit.Aggregator.Output .Values.Fluentbit.Aggregator.Output.Http .Values.Fluentbit.Aggregator.Output.Http.Enabled }}
+{{- if and .Values.Fluentbit.Aggregator.Output.Http.Auth .Values.Fluentbit.Aggregator.Output.Http.Auth.Token .Values.Fluentbit.Aggregator.Output.Http.Auth.Token.Name .Values.Fluentbit.Aggregator.Output.Http.Auth.Token.Key }}
+            - mountPath: /fluent-bit/output/http/auth/token
+              name: http-auth-token
+              readOnly: true
+              subPath: {{ .Values.Fluentbit.Aggregator.Output.Http.Auth.Token.Key }}
+{{- end }}
+{{- if and .Values.Fluentbit.Aggregator.Output.Http.Auth .Values.Fluentbit.Aggregator.Output.Http.Auth.User .Values.Fluentbit.Aggregator.Output.Http.Auth.User.Name .Values.Fluentbit.Aggregator.Output.Http.Auth.User.Key .Values.Fluentbit.Aggregator.Output.Http.Auth.Password .Values.Fluentbit.Aggregator.Output.Http.Auth.Password.Name .Values.Fluentbit.Aggregator.Output.Http.Auth.Password.Key }}
+            - mountPath: /fluent-bit/output/http/auth/username
+              name: http-auth-user
+              readOnly: true
+              subPath: {{ .Values.Fluentbit.Aggregator.Output.Http.Auth.User.Key }}
+            - mountPath: /fluent-bit/output/http/auth/password
+              name: http-auth-password
+              readOnly: true
+              subPath: {{ .Values.Fluentbit.Aggregator.Output.Http.Auth.Password.Key }}
+{{- end }}
 {{- if and .Values.Fluentbit.Aggregator.Output.Http.TLS .Values.Fluentbit.Aggregator.Output.Http.TLS.Enabled }}
 {{- if and .Values.Fluentbit.Aggregator.Output.Http.TLS.CA .Values.Fluentbit.Aggregator.Output.Http.TLS.CA.SecretName .Values.Fluentbit.Aggregator.Output.Http.TLS.CA.SecretKey }}
             - mountPath: /fluent-bit/output/http/tls/ca.crt
@@ -350,6 +363,22 @@ spec:
 {{- end }}
 {{- end }}
 {{- if and .Values.Fluentbit.Aggregator.Output .Values.Fluentbit.Aggregator.Output.Otel .Values.Fluentbit.Aggregator.Output.Otel.Enabled }}
+{{- if and .Values.Fluentbit.Aggregator.Output.Otel.Auth .Values.Fluentbit.Aggregator.Output.Otel.Auth.Token .Values.Fluentbit.Aggregator.Output.Otel.Auth.Token.Name .Values.Fluentbit.Aggregator.Output.Otel.Auth.Token.Key }}
+            - mountPath: /fluent-bit/output/otel/auth/token
+              name: otel-auth-token
+              readOnly: true
+              subPath: {{ .Values.Fluentbit.Aggregator.Output.Otel.Auth.Token.Key }}
+{{- end }}
+{{- if and .Values.Fluentbit.Aggregator.Output.Otel.Auth .Values.Fluentbit.Aggregator.Output.Otel.Auth.User .Values.Fluentbit.Aggregator.Output.Otel.Auth.User.Name .Values.Fluentbit.Aggregator.Output.Otel.Auth.User.Key .Values.Fluentbit.Aggregator.Output.Otel.Auth.Password .Values.Fluentbit.Aggregator.Output.Otel.Auth.Password.Name .Values.Fluentbit.Aggregator.Output.Otel.Auth.Password.Key }}
+            - mountPath: /fluent-bit/output/otel/auth/username
+              name: otel-auth-user
+              readOnly: true
+              subPath: {{ .Values.Fluentbit.Aggregator.Output.Otel.Auth.User.Key }}
+            - mountPath: /fluent-bit/output/otel/auth/password
+              name: otel-auth-password
+              readOnly: true
+              subPath: {{ .Values.Fluentbit.Aggregator.Output.Otel.Auth.Password.Key }}
+{{- end }}
 {{- if and .Values.Fluentbit.Aggregator.Output.Otel.TLS .Values.Fluentbit.Aggregator.Output.Otel.TLS.Enabled }}
 {{- if and .Values.Fluentbit.Aggregator.Output.Otel.TLS.CA .Values.Fluentbit.Aggregator.Output.Otel.TLS.CA.SecretName .Values.Fluentbit.Aggregator.Output.Otel.TLS.CA.SecretKey }}
             - mountPath: /fluent-bit/output/otel/tls/ca.crt

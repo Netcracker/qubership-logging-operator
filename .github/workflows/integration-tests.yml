@@ -7,7 +7,7 @@ on:
     paths:
     - '**'
     - '!.github/**'
-    # - '.github/workflows/integration-tests.yml'
+    - '.github/workflows/integration-tests.yml'
     - '!docs/**'
     - '!CODE-OF-CONDUCT.md'
     - '!CONTRIBUTING.md'
@@ -306,7 +306,7 @@ jobs:
         fi
         echo "VLSINGLE_SERVICE=$service_name" >> $GITHUB_ENV
         echo "VLSINGLE_PORT=$service_port" >> $GITHUB_ENV
-        echo "VICTORIALOGS_URL=http://${service_name}.${{ env.namespace }}:${service_port}" >> $GITHUB_ENV # NOSONAR
+        echo "VICTORIALOGS_URL=http://${service_name}.${{ env.namespace }}:${service_port}" >> $GITHUB_ENV
       shell: bash
 
     - name: Create values for logging operator installation (Graylog)

@@ -20,7 +20,7 @@ on:
     paths:
     - '**'
     - '!.github/**'
-    # - '.github/workflows/integration-tests.yml'
+    - '.github/workflows/integration-tests.yml'
     - '!docs/**'
     - '!CODE-OF-CONDUCT.md'
     - '!CONTRIBUTING.md'

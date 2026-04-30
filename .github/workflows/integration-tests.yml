@@ -126,7 +126,8 @@ jobs:
         kubectl apply -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/heads/main/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_prometheusrules.yaml
         kubectl apply -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/heads/main/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_servicemonitors.yaml
         kubectl apply -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/heads/main/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_podmonitors.yaml
-
+        kubectl apply -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/heads/main/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_scrapeconfigs.yaml
+        kubectl apply -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/heads/main/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_alertmanagerconfigs.yaml
     - name: Checkout OpenSearch repo for Graylog backend
       if: matrix.backend == 'graylog'
       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -801,7 +802,7 @@ jobs:
         echo "Backend: ${{ matrix.scenario_name }}" >> $GITHUB_STEP_SUMMARY
 
         if [[ "${{ matrix.backend }}" == "graylog" ]]; then
-          echo "## Install Graylog backend" >> $GITHUB_STEP_SUMMARY
+          echo "## Install Opensearch" >> $GITHUB_STEP_SUMMARY
           echo "Check OpenSearch cluster health: ${{ steps.check_opensearch_health.outputs.status || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
           echo "OpenSearch version: ${{ env.opensearch_version }}" >> $GITHUB_STEP_SUMMARY
           echo "Cluster status:" >> $GITHUB_STEP_SUMMARY

@@ -128,7 +128,7 @@ jobs:
         kubectl apply -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/heads/main/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_podmonitors.yaml
         kubectl apply -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/heads/main/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_scrapeconfigs.yaml
         kubectl apply -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/heads/main/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_alertmanagerconfigs.yaml
-    - name: Checkout OpenSearch repo for Graylog backend
+    - name: Checkout OpenSearch repo
       if: matrix.backend == 'graylog'
       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       with:
@@ -136,7 +136,7 @@ jobs:
         ref: ${{ env.opensearch_version }}
         path: qubership-opensearch
 
-    - name: Create OpenSearch values for Graylog backend
+    - name: Create OpenSearch values
       if: matrix.backend == 'graylog'
       run: |
         cat <<EOF > opensearch_values.yaml
@@ -173,7 +173,7 @@ jobs:
         EOF
       shell: bash
 
-    - name: Install OpenSearch for Graylog backend
+    - name: Install OpenSearch
       if: matrix.backend == 'graylog'
       run: |
         helm upgrade --install opensearch \
@@ -182,7 +182,7 @@ jobs:
           ./qubership-opensearch/operator/charts/helm/opensearch-service \
           -f ./opensearch_values.yaml
 
-    - name: Check OpenSearch deployment status for Graylog backend
+    - name: Check OpenSearch deployment status
       if: matrix.backend == 'graylog'
       run: |
         echo "Checking status of opensearch-status-provisioner..."
@@ -215,18 +215,18 @@ jobs:
         fi
       shell: bash
 
-    - name: Check OpenSearch cluster health for Graylog backend
+    - name: Check OpenSearch cluster health
       if: matrix.backend == 'graylog'
       id: check_opensearch_health
       run: |
         cluster_status=$(kubectl exec -n ${{ env.opensearch_namespace }} opensearch-0 -- curl -s http://localhost:9200/_cluster/health?pretty -u admin:admin)
         if [[ $(jq -r .status <<<"$cluster_status") = "yellow" ]]; then
-          echo "::error::❌ OpenSearch cluster status is YELLOW. Check Graylog backend logs."
+          echo "::error::❌ OpenSearch cluster status is YELLOW. Check Opensearch logs."
           echo "status=❌failure" >> $GITHUB_OUTPUT
           echo "cluster_status=$(echo "$cluster_status" | jq -c)" >> $GITHUB_OUTPUT && echo -e "Cluster status:\n$cluster_status"
           exit 1
         elif [[ $(jq -r .status <<<"$cluster_status") = "red" ]]; then
-          echo "::error::❌ OpenSearch cluster status is RED. Check Graylog backend logs."
+          echo "::error::❌ OpenSearch cluster status is RED. Check Opensearch logs."
           echo "status=❌failure" >> $GITHUB_OUTPUT
           echo "cluster_status=$(echo "$cluster_status" | jq -c)" >> $GITHUB_OUTPUT && echo -e "Cluster status:\n$cluster_status"
           exit 1
@@ -679,7 +679,7 @@ jobs:
         echo "status=✅passed" >> $GITHUB_OUTPUT
       shell: bash
 
-    - name: Save OpenSearch artifacts for Graylog backend
+    - name: Save OpenSearch artifacts
       if: always() && matrix.backend == 'graylog'
       id: opensearch_artifacts
       run: |

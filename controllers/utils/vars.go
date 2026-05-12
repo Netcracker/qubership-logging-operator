@@ -6,32 +6,21 @@ import (
 )
 
 var (
-	BasePath = "assets/"
-
 	LoggingServiceStatus = "ReconcileCycleStatus"
 
 	FluentdComponentName      = "logging-fluentd"
 	FluentdStatus             = "ReconcileFluentdStatus"
 	FluentdConfigMapDirectory = "fluentd.configmap/conf.d"
-	FluentdDaemonSet          = path.Join(BasePath, "daemon-set.yaml")
-	FluentdServiceTemplate    = path.Join(BasePath, "service.yaml")
 	FluentdLabels             = map[string]string{"component": "logging-fluentd"}
 
 	FluentbitComponentName = "logging-fluentbit"
 	FluentbitStatus        = "ReconcileFluentbitStatus"
-	FluentbitDaemonSet     = path.Join(BasePath, "daemon-set.yaml")
-	FluentbitService       = path.Join(BasePath, "service.yaml")
 	FluentbitLabels        = map[string]string{"component": "logging-fluentbit"}
 
 	ForwarderFluentbitComponentName  = "logging-fluentbit-forwarder"
 	HAFluentStatus                   = "ReconcileHAFluentStatus"
-	ForwarderFluentbitDaemonSet      = path.Join(BasePath, "flb-forwarder-daemon-set.yaml")
-	ForwarderFluentbitService        = path.Join(BasePath, "flb-forwarder-service.yaml")
 	ForwarderFluentbitLabels         = map[string]string{"component": "logging-fluentbit-forwarder"}
 	AggregatorFluentbitComponentName = "logging-fluentbit-aggregator"
-	AggregatorFluentbitStatefulSet   = path.Join(BasePath, "flb-aggregator-stateful-set.yaml")
-	AggregatorFluentbitService       = path.Join(BasePath, "flb-aggregator-service.yaml")
-	AggregatorFluentbitConfigMap     = path.Join(BasePath, "flb-aggregator-configmap.yaml")
 	AggregatorFluentbitLabels        = map[string]string{"component": "logging-fluentbit-aggregator"}
 
 	ForwarderFluentbitConfigMapDirectory  = "forwarder.configmap/conf.d"
@@ -40,14 +29,9 @@ var (
 
 	EventsReaderComponentName = "events-reader"
 	EventsReaderStatus        = "ReconcileEventsReaderStatus"
-	EventsReaderDeployment    = path.Join(BasePath, "deployment.yaml")
-	EventsReaderService       = path.Join(BasePath, "service.yaml")
 
 	MonitoringAgentComponentName = "monitoring-agent-logging-plugin"
 	MonitoringAgentStatus        = "ReconcileMonitoringAgentLoggingPluginStatus"
-	MonitoringAgentSecret        = path.Join(BasePath, "secret.yaml")
-	MonitoringAgentDeployment    = path.Join(BasePath, "deployment.yaml")
-	MonitoringAgentService       = path.Join(BasePath, "service.yaml")
 
 	GraylogComponentName            = "graylog-service"
 	GraylogServiceAccountName       = "logging-graylog"
@@ -57,9 +41,6 @@ var (
 	MongoClaimName                  = "mongo-claim"
 	GraylogStatus                   = "ReconcileGraylogStatus"
 	GraylogConfig                   = "config/"
-	GraylogServiceAccount           = path.Join(BasePath, "service-account.yaml")
-	GraylogStatefulset              = path.Join(BasePath, "statefulset.yaml")
-	GraylogService                  = path.Join(BasePath, "service.yaml")
 	GraylogConfigMapDirectory       = path.Join(GraylogConfig, "configmap")
 	GraylogGrokPatterns             = path.Join(GraylogConfig, "grok_patterns.json")
 	GraylogDefaultStream            = "Default Stream"
@@ -210,12 +191,6 @@ var (
 		"mongo-upgrade-job-42",
 		"mongo-upgrade-job-44",
 		"mongo-upgrade-job-50",
-	}
-	GraylogMongoUpgradeAssets = map[string]string{
-		"mongo-upgrade-job-40": path.Join(BasePath, "mongo-upgrade-job-40.yaml"),
-		"mongo-upgrade-job-42": path.Join(BasePath, "mongo-upgrade-job-42.yaml"),
-		"mongo-upgrade-job-44": path.Join(BasePath, "mongo-upgrade-job-44.yaml"),
-		"mongo-upgrade-job-50": path.Join(BasePath, "mongo-upgrade-job-50.yaml"),
 	}
 	GraylogMongoUpgradeLabels = map[string]string{"name": "mongo-upgrade-job"}
 

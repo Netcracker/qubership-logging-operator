@@ -1,7 +1,7 @@
 # Qubership Logging Operator
 
 [![Go](https://img.shields.io/github/go-mod/go-version/Netcracker/qubership-logging-operator)](https://golang.org/)
-[![Kubernetes](https://img.shields.io/badge/kubernetes-1.21%2B-blue)](https://kubernetes.io/)
+[![Kubernetes](https://img.shields.io/badge/kubernetes-1.25%2B-blue)](https://kubernetes.io/)
 [![Helm](https://img.shields.io/badge/helm-3.0%2B-blue)](https://helm.sh/)
 [![Documentation](https://img.shields.io/badge/docs-read%20online-blue)](https://netcracker.github.io/qubership-logging-operator)
 
@@ -49,10 +49,10 @@ The main features are as follows:
 
 ### Common Prerequisites
 
-* **Kubernetes**: 1.21+ or OpenShift 4.10+
-* **Command-line Tools**: kubectl 1.21+ or oc 4.10+
+* **Kubernetes**: 1.25+ or OpenShift 4.10+
+* **Command-line Tools**: kubectl 1.25+ or oc 4.10+
 * **Package Manager**: Helm 3.0+
-* **Go**: 1.24+ (for development)
+* **Go**: 1.25+ (for development)
 
 ### Storage Requirements
 
@@ -123,44 +123,44 @@ flowchart TB
             LO[Logging Operator<br/>Controller]
             CR[LoggingService<br/>Custom Resource]
         end
-        
+
         subgraph "Log Collection"
             FB[FluentBit<br/>DaemonSet]
             FD[FluentD<br/>DaemonSet]
             ER[Events Reader<br/>Deployment]
         end
-        
+
         subgraph "Log Processing & Storage"
             GL[Graylog<br/>StatefulSet]
             MG[(MongoDB)]
             ES[(OpenSearch/<br/>Elasticsearch)]
         end
-        
+
         subgraph "Applications"
             APP1[App Pods]
             APP2[App Pods]
             K8S[Kubernetes API]
         end
     end
-    
+
     subgraph "External"
         EXT[External Systems<br/>AWS CloudWatch, Kafka, Splunk]
     end
-    
+
     CR --> LO
     LO --> FB
     LO --> FD
     LO --> GL
     LO --> ER
-    
+
     APP1 --> FB
     APP2 --> FB
     K8S --> ER
-    
+
     FB --> FD
     FD --> GL
     ER --> GL
-    
+
     GL --> MG
     GL --> ES
     GL --> EXT

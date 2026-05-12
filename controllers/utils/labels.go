@@ -86,12 +86,6 @@ type LabelInput struct {
 	ComponentLabels map[string]string
 }
 
-// BaseOnlyLabelInput returns LabelInput with base labels only (no instance, version, technology).
-// Use for ServiceAccount, ClusterRole, Service, ServiceMonitor, etc. per label specification.
-func BaseOnlyLabelInput(name, component string) LabelInput {
-	return LabelInput{Name: name, Component: component}
-}
-
 func (in LabelInput) instanceVersionTechnologyMap() map[string]string {
 	m := make(map[string]string)
 	if in.Instance != "" {

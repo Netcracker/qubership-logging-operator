@@ -24,10 +24,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-const (
-	BufferSize int = 100
-)
-
 type RestClient struct {
 	Client *http.Client
 	Auth   *Creds

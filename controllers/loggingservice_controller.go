@@ -13,6 +13,7 @@ import (
 	"github.com/Netcracker/qubership-logging-operator/controllers/fluentd"
 	"github.com/Netcracker/qubership-logging-operator/controllers/graylog"
 	util "github.com/Netcracker/qubership-logging-operator/controllers/utils"
+	"github.com/Netcracker/qubership-logging-operator/internal/reconciler/config"
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -100,39 +101,40 @@ func (r *LoggingServiceReconciler) ReconcileLoggingServiceCluster(ctx context.Co
 
 	r.updateDynamicParameters(customResourceInstance)
 
+	cfg := config.Get()
 	var isDeployServiceSuccess = true
 	var pendingComponents []util.Component
 
-	graylogReconciler := graylog.NewGraylogReconciler(r.Client, r.Scheme, r.StatusUpdater)
+	graylogReconciler := graylog.NewGraylogReconciler(r.Client, r.Scheme, r.StatusUpdater, cfg)
 	if err := graylogReconciler.Run(ctx, customResourceInstance, clientSet); err != nil {
 		isDeployServiceSuccess = false
 		r.Log.Error(err, "Deploy of Graylog is failed")
 		graylogReconciler.StatusUpdater.UpdateStatus(util.GraylogStatus, util.Failed, false, fmt.Sprintf("Reason: %s", err.Error()))
 	}
 
-	fluentdReconciler := fluentd.NewFluentdReconciler(r.Client, r.Scheme, r.StatusUpdater, &pendingComponents, r.DynamicParameters)
-	if err := fluentdReconciler.Run(customResourceInstance); err != nil {
+	fluentdReconciler := fluentd.NewFluentdReconciler(r.Client, r.Scheme, r.StatusUpdater, &pendingComponents, r.DynamicParameters, cfg)
+	if err := fluentdReconciler.Run(ctx, customResourceInstance); err != nil {
 		isDeployServiceSuccess = false
 		r.Log.Error(err, "Deploy of Fluentd is failed")
 		fluentdReconciler.StatusUpdater.UpdateStatus(util.FluentdStatus, util.Failed, false, fmt.Sprintf("Reason: %s", err.Error()))
 	}
 
-	fluentbitReconciler := fluentbit.NewFluentbitReconciler(r.Client, r.Scheme, r.StatusUpdater, &pendingComponents, r.DynamicParameters)
-	if err := fluentbitReconciler.Run(customResourceInstance); err != nil {
+	fluentbitReconciler := fluentbit.NewFluentbitReconciler(r.Client, r.Scheme, r.StatusUpdater, &pendingComponents, r.DynamicParameters, cfg)
+	if err := fluentbitReconciler.Run(ctx, customResourceInstance); err != nil {
 		isDeployServiceSuccess = false
 		r.Log.Error(err, "Deploy of Fluentbit is failed")
 		fluentbitReconciler.StatusUpdater.UpdateStatus(util.FluentbitStatus, util.Failed, false, fmt.Sprintf("Reason: %s", err.Error()))
 	}
 
-	fluentsReconciler := fluentbit_forwarder_aggregator.NewHAFluentReconciler(r.Client, r.Scheme, r.StatusUpdater, &pendingComponents, r.DynamicParameters)
-	if err := fluentsReconciler.Run(customResourceInstance); err != nil {
+	fluentsReconciler := fluentbit_forwarder_aggregator.NewHAFluentReconciler(r.Client, r.Scheme, r.StatusUpdater, &pendingComponents, r.DynamicParameters, cfg)
+	if err := fluentsReconciler.Run(ctx, customResourceInstance); err != nil {
 		isDeployServiceSuccess = false
 		r.Log.Error(err, "Deploy of Fluentbit forwarder-aggregator is failed")
 		fluentsReconciler.StatusUpdater.UpdateStatus(util.FluentbitStatus, util.Failed, false, fmt.Sprintf("Reason: %s", err.Error()))
 	}
 
-	eventsReaderReconciler := events_reader.NewEventsReaderReconciler(r.Client, r.Scheme, r.StatusUpdater, &pendingComponents)
-	if err := eventsReaderReconciler.Run(customResourceInstance); err != nil {
+	eventsReaderReconciler := events_reader.NewEventsReaderReconciler(r.Client, r.Scheme, r.StatusUpdater, &pendingComponents, cfg)
+	if err := eventsReaderReconciler.Run(ctx, customResourceInstance); err != nil {
 		isDeployServiceSuccess = false
 		r.Log.Error(err, "Deploy of Cloud Events Reader is failed")
 		eventsReaderReconciler.StatusUpdater.UpdateStatus(util.EventsReaderStatus, util.Failed, false, fmt.Sprintf("Reason: %s", err.Error()))

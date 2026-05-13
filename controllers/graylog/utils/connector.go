@@ -5,9 +5,9 @@ import (
 	"context"
 	"crypto/tls"
 	"embed"
+	"fmt"
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
 	"time"
 
@@ -78,20 +78,12 @@ func CreateConnector(ctx context.Context, cr *loggingService.LoggingService, ass
 		Timeout:   time.Duration(util.ConnectionTimeout) * time.Second,
 	}
 
-	if len(cr.Spec.Graylog.User) != 0 && len(cr.Spec.Graylog.Password) != 0 {
-		user = &util.Creds{
-			Name:     cr.Spec.Graylog.User,
-			Password: cr.Spec.Graylog.Password,
-		}
-	} else {
-		name := os.Getenv("GRAYLOG_USERNAME")
-		pwd := os.Getenv("GRAYLOG_PASSWORD")
-		if len(name) != 0 && len(pwd) != 0 {
-			user = &util.Creds{
-				Name:     name,
-				Password: pwd,
-			}
-		}
+	if len(cr.Spec.Graylog.User) == 0 || len(cr.Spec.Graylog.Password) == 0 {
+		return nil, fmt.Errorf("graylog API credentials are empty; expected user and password from Secret %q (reconcile loads them into spec)", cr.Spec.Graylog.GraylogSecretName)
+	}
+	user = &util.Creds{
+		Name:     cr.Spec.Graylog.User,
+		Password: cr.Spec.Graylog.Password,
 	}
 
 	restClient := &util.RestClient{
@@ -124,8 +116,12 @@ func CreateConnector(ctx context.Context, cr *loggingService.LoggingService, ass
 	}
 
 	if len(host) == 0 {
+		esHost := cr.Spec.Graylog.ElasticsearchHost
+		if esHost == "" {
+			return nil, fmt.Errorf("OpenSearch/Elasticsearch host is empty; expected elasticsearchHost in Secret %q (reconcile loads it into spec) or spec.graylog.openSearch", cr.Spec.Graylog.GraylogSecretName)
+		}
 		var u *url.URL
-		u, err = url.Parse(os.Getenv("ELASTICSEARCH_HOST"))
+		u, err = url.Parse(esHost)
 		if err != nil {
 			return nil, err
 		}

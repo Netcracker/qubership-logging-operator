@@ -41,6 +41,9 @@ func (r *GraylogReconciler) Run(ctx context.Context, cr *loggingService.LoggingS
 	r.Log.Info("Start Graylog reconciliation")
 
 	if cr.Spec.Graylog != nil && cr.Spec.Graylog.IsInstall() {
+		if err := r.setCredentials(cr); err != nil {
+			return err
+		}
 		connector, err := utils.CreateConnector(ctx, cr, configs, clientSet)
 		if err != nil {
 			return err
@@ -213,6 +216,18 @@ func (r *GraylogReconciler) setCredentials(cr *loggingService.LoggingService) er
 		return err
 	}
 	cr.Spec.Graylog.Password = pwd
+
+	if secret.Data != nil && len(secret.Data["elasticsearchHost"]) > 0 {
+		cr.Spec.Graylog.ElasticsearchHost = string(secret.Data["elasticsearchHost"])
+	} else {
+		return errors.New("can not find elasticsearchHost for Graylog in the secret " + cr.Spec.Graylog.GraylogSecretName + " in the namespace " + cr.GetNamespace())
+	}
+
+	if utils.EnsureSecretRootPasswordSHA2(secret, pwd) {
+		if err := r.Client.Update(context.TODO(), secret); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

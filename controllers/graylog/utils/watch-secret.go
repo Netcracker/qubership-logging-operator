@@ -148,50 +148,63 @@ func (w *SecretEventWatcher) updatePassword(secret *corev1.Secret, cr *loggingSe
 	}
 	if cr.Spec.Graylog.Password == pwd {
 		w.Log.Info("Password did not change")
-		return nil
-	} else {
-
-		cr.Spec.Graylog.Password = pwd
-
-		cm, err := w.Clientset.CoreV1().ConfigMaps(cr.GetNamespace()).Get(context.TODO(), util.GraylogComponentName, metav1.GetOptions{})
-		if err != nil {
-			return err
-		}
-		config := cm.Data[util.GraylogConfigFileName]
-		if config == "" {
-			w.Log.Info("Config of Graylog is empty in configmap", "configmap", util.GraylogComponentName, "namespace", cr.GetNamespace())
-			return nil
-		}
-		var lines []string
-		scanner := bufio.NewScanner(strings.NewReader(config))
-		for scanner.Scan() {
-			lines = append(lines, scanner.Text())
-		}
-		if err = scanner.Err(); err != nil {
-			return err
-		}
-		var result strings.Builder
-		var changed bool
-		for i := range lines {
-			if strings.HasPrefix(lines[i], util.GraylogPasswordField) {
-				h := sha256.New()
-				h.Write([]byte(pwd))
-				bs := h.Sum(nil)
-				lines[i] = fmt.Sprintf("%s = %s", util.GraylogPasswordField, hex.EncodeToString(bs))
-				changed = true
-			}
-			result.WriteString(lines[i])
-			result.WriteString("\r\n")
-		}
-		if changed {
-			cm.Data[util.GraylogConfigFileName] = result.String()
-			updatedCm, err := w.Clientset.CoreV1().ConfigMaps(cr.GetNamespace()).Update(context.TODO(), cm, metav1.UpdateOptions{})
-			if err != nil {
-				w.Log.Error(err, "Update of config map failed", "configmap", updatedCm.GetName(), "namespace", updatedCm.GetNamespace())
-				return err
-			}
-		}
+		return w.syncRootPasswordSHA2SecretKey(cr, pwd)
 	}
 
+	cr.Spec.Graylog.Password = pwd
+
+	cm, err := w.Clientset.CoreV1().ConfigMaps(cr.GetNamespace()).Get(context.TODO(), util.GraylogComponentName, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+	config := cm.Data[util.GraylogConfigFileName]
+	if config == "" {
+		w.Log.Info("Config of Graylog is empty in configmap", "configmap", util.GraylogComponentName, "namespace", cr.GetNamespace())
+		return w.syncRootPasswordSHA2SecretKey(cr, pwd)
+	}
+	var lines []string
+	scanner := bufio.NewScanner(strings.NewReader(config))
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+	if err = scanner.Err(); err != nil {
+		return err
+	}
+	var result strings.Builder
+	var changed bool
+	for i := range lines {
+		if strings.HasPrefix(lines[i], util.GraylogPasswordField) {
+			h := sha256.New()
+			h.Write([]byte(pwd))
+			bs := h.Sum(nil)
+			lines[i] = fmt.Sprintf("%s = %s", util.GraylogPasswordField, hex.EncodeToString(bs))
+			changed = true
+		}
+		result.WriteString(lines[i])
+		result.WriteString("\r\n")
+	}
+	if changed {
+		cm.Data[util.GraylogConfigFileName] = result.String()
+		updatedCm, err := w.Clientset.CoreV1().ConfigMaps(cr.GetNamespace()).Update(context.TODO(), cm, metav1.UpdateOptions{})
+		if err != nil {
+			w.Log.Error(err, "Update of config map failed", "configmap", updatedCm.GetName(), "namespace", updatedCm.GetNamespace())
+			return err
+		}
+	}
+	return w.syncRootPasswordSHA2SecretKey(cr, pwd)
+}
+
+func (w *SecretEventWatcher) syncRootPasswordSHA2SecretKey(cr *loggingService.LoggingService, plainPassword string) error {
+	sec, err := w.Clientset.CoreV1().Secrets(cr.GetNamespace()).Get(context.TODO(), cr.Spec.Graylog.GraylogSecretName, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+	if !EnsureSecretRootPasswordSHA2(sec, plainPassword) {
+		return nil
+	}
+	if _, err := w.Clientset.CoreV1().Secrets(cr.GetNamespace()).Update(context.TODO(), sec, metav1.UpdateOptions{}); err != nil {
+		w.Log.Error(err, "Update of graylog secret failed", "secret", sec.GetName(), "namespace", sec.GetNamespace())
+		return err
+	}
 	return nil
 }

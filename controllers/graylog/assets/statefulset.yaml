@@ -54,6 +54,17 @@ spec:
               - key: node-id
                 path: node-id
             defaultMode: 0666
+        - name: graylog-credentials-files
+          secret:
+            secretName: {{ .Values.Graylog.GraylogSecretName }}
+            defaultMode: 0440
+            items:
+              - key: elasticsearchHost
+                path: elasticsearchHost
+              - key: user
+                path: user
+              - key: rootPasswordSha2
+                path: rootPasswordSha2
 {{ if .Values.Graylog.AuthProxy }}
 {{ if .Values.Graylog.AuthProxy.Install }}
         - name: graylog-auth-proxy-config
@@ -294,21 +305,12 @@ spec:
 {{ if and .Values.Graylog.TLS .Values.Graylog.TLS.HTTP }}
                 -Djavax.net.ssl.trustStore=/usr/share/graylog/data/ssl/cacerts.jks
 {{ end }}
-            - name: GRAYLOG_ELASTICSEARCH_HOSTS
-              valueFrom:
-                secretKeyRef:
-                  key: elasticsearchHost
-                  name: {{ .Values.Graylog.GraylogSecretName }}
-            - name: GRAYLOG_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  key: user
-                  name: {{ .Values.Graylog.GraylogSecretName }}
-            - name: GRAYLOG_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  key: password
-                  name: {{ .Values.Graylog.GraylogSecretName }}
+            - name: GRAYLOG_ELASTICSEARCH_HOSTS__FILE
+              value: /usr/share/graylog/data/k8s-graylog-secret/elasticsearchHost
+            - name: GRAYLOG_ROOT_USERNAME__FILE
+              value: /usr/share/graylog/data/k8s-graylog-secret/user
+            - name: GRAYLOG_ROOT_PASSWORD_SHA2__FILE
+              value: /usr/share/graylog/data/k8s-graylog-secret/rootPasswordSha2
             - name: GRAYLOG_SNAPSHOT_DIRECTORY
               value: {{ .Values.Graylog.PathRepo }}
 {{- if .Values.Graylog.S3Archive }}
@@ -345,6 +347,9 @@ spec:
             successThreshold: 1
             timeoutSeconds: 5
           volumeMounts:
+            - name: graylog-credentials-files
+              mountPath: /usr/share/graylog/data/k8s-graylog-secret
+              readOnly: true
             - name: data
               mountPath: /usr/share/graylog/data
               readOnly: false

@@ -126,8 +126,8 @@ jobs:
         kubectl apply -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/tags/v0.88.0/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_prometheusrules.yaml
         kubectl apply -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/tags/v0.88.0/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_servicemonitors.yaml
         kubectl apply -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/tags/v0.88.0/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_podmonitors.yaml
-        kubectl apply -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/tags/v0.88.0/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_scrapeconfigs.yaml
-        kubectl apply --server-side -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/tags/v0.88.0/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_alertmanagerconfigs.yaml
+        kubectl apply --server-side -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/tags/v0.88.0/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_scrapeconfigs.yaml
+        kubectl apply -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/tags/v0.88.0/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_alertmanagerconfigs.yaml
     - name: Checkout OpenSearch repo
       if: matrix.backend == 'graylog'
       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2

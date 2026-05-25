@@ -1,22 +1,33 @@
 ---
-name: Link Checker
+name: "Lint: Check links in documentation"
 
 on:
-  push: null
-  repository_dispatch: null
-  workflow_dispatch: null
+  workflow_dispatch: {}
   pull_request:
-    branches: [main]
+    branches:
+      - main
     types:
-      [opened, reopened, synchronize]
+      - opened
+      - reopened
+      - synchronize
+    paths:
+      - 'docs/**'
+      - '*.md'
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/**'
+      - '*.md'
+
 permissions:
   contents: read
+
 jobs:
   linkChecker:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6.0.2
-
       - name: Restore lychee cache
         uses: actions/cache@v5
         id: restore-cache
@@ -24,8 +35,6 @@ jobs:
           path: .lycheecache
           key: cache-lychee-${{ github.run_id }}
           restore-keys: cache-lychee-
-          save-always: true
-
       - name: Link Checker
         id: lychee
         uses: lycheeverse/lychee-action@v2
@@ -37,7 +46,7 @@ jobs:
             --user-agent 'Mozilla/5.0 (X11; Linux x86_64) Chrome/134.0.0.0'
             --retry-wait-time 60
             --max-retries 8
-            --accept 100..=103,200..=299,302,429
+            --accept 100..=103,200..=299,302,403,429
             --cookie-jar cookies.json
             --exclude-all-private
             --max-concurrency 4

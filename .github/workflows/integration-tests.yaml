@@ -30,14 +30,18 @@ on:
       - test/robot-tests/**
 
 env:
+  ## Versions
   # renovate: datasource=github-releases depName=kubernetes-sigs/kind versioning=semver
   kind_version: v0.31.0
-  opensearch_namespace: opensearch
   # renovate: datasource=github-releases depName=Netcracker/qubership-opensearch versioning=semver
   opensearch_version: 2.3.1
   # renovate: datasource=docker depName=ghcr.io/netcracker/qubership-opensearch-operator
   opensearch_image_version: 3.4.0
   opensearch_major_version: 2
+  # renovate: datasource=github-releases depName=Netcracker/qubership-monitoring-operator versioning=semver
+  monitoring_version: v0.88.0
+  ## Other parameters
+  opensearch_namespace: opensearch
   vlsingle_name: k8s
   namespace: logging
   max_attempts: 100
@@ -123,12 +127,13 @@ jobs:
 
     - name: Install required CRDs
       run: |
-        kubectl create -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/heads/main/charts/qubership-monitoring-operator/charts/grafana-operator/crds/integreatly.org_grafanadashboards.yaml
-        kubectl create -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/heads/main/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_prometheusrules.yaml
-        kubectl create -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/heads/main/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_servicemonitors.yaml
-        kubectl create -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/heads/main/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_podmonitors.yaml
-        kubectl create -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/heads/main/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_scrapeconfigs.yaml
-        kubectl create -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/heads/main/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_alertmanagerconfigs.yaml
+        kubectl create -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/tags/${{ env.monitoring_version }}/charts/qubership-monitoring-operator/charts/grafana-operator/crds/integreatly.org_grafanadashboards.yaml
+        kubectl create -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/tags/${{ env.monitoring_version }}/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_prometheusrules.yaml
+        kubectl create -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/tags/${{ env.monitoring_version }}/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_servicemonitors.yaml
+        kubectl create -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/tags/${{ env.monitoring_version }}/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_podmonitors.yaml
+        kubectl create -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/tags/${{ env.monitoring_version }}/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_scrapeconfigs.yaml
+        kubectl create -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/tags/${{ env.monitoring_version }}/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_alertmanagerconfigs.yaml
+
     - name: Checkout OpenSearch repo
       if: matrix.backend == 'graylog'
       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2

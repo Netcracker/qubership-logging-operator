@@ -66,7 +66,7 @@ jobs:
 
     - name: Set up kind
       run: |
-        curl -sLo ./kind https://kind.sigs.k8s.io/dl/${{ env.kind_version }}/kind-linux-amd64
+        curl --proto "=https" --tlsv1.2 -sLo ./kind https://kind.sigs.k8s.io/dl/${{ env.kind_version }}/kind-linux-amd64
         chmod +x ./kind
         sudo mv ./kind /usr/local/bin/
         kind create cluster

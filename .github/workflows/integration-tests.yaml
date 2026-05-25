@@ -1,32 +1,33 @@
 ---
-name: Test Logging Installation
+name: 'Tests: Run logging integration tests'
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+    tags:
+      - v*
     paths:
-    - '**'
-    - '!.github/**'
-    - '.github/workflows/integration-tests.yml'
-    - '!docs/**'
-    - '!CODE-OF-CONDUCT.md'
-    - '!CONTRIBUTING.md'
-    - '!LICENSE'
-    - '!README.md'
-    - '!SECURITY.md'
+      - .github/workflows/integration-tests.yaml
+      - api/**
+      - charts/**
+      - cmd/**
+      - controllers/**
+      - test/robot-tests/**
   pull_request:
-    types: [opened, synchronize, reopened]
-    branches: [main]
+    branches:
+      - '**'
+    types:
+      - opened
+      - synchronize
+      - reopened
     paths:
-    - '**'
-    - '!.github/**'
-    - '.github/workflows/integration-tests.yml'
-    - '!docs/**'
-    - '!CODE-OF-CONDUCT.md'
-    - '!CONTRIBUTING.md'
-    - '!LICENSE'
-    - '!README.md'
-    - '!SECURITY.md'
+      - .github/workflows/integration-tests.yaml
+      - api/**
+      - charts/**
+      - cmd/**
+      - controllers/**
+      - test/robot-tests/**
 
 env:
   # renovate: datasource=github-releases depName=kubernetes-sigs/kind versioning=semver
@@ -65,7 +66,7 @@ jobs:
 
     - name: Set up kind
       run: |
-        curl -sLo ./kind https://kind.sigs.k8s.io/dl/${{ env.kind_version }}/kind-linux-amd64
+        curl --proto "=https" --tlsv1.2 -sLo ./kind https://kind.sigs.k8s.io/dl/${{ env.kind_version }}/kind-linux-amd64
         chmod +x ./kind
         sudo mv ./kind /usr/local/bin/
         kind create cluster
@@ -122,12 +123,12 @@ jobs:
 
     - name: Install required CRDs
       run: |
-        kubectl apply -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/heads/main/charts/qubership-monitoring-operator/charts/grafana-operator/crds/integreatly.org_grafanadashboards.yaml
-        kubectl apply -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/heads/main/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_prometheusrules.yaml
-        kubectl apply -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/heads/main/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_servicemonitors.yaml
-        kubectl apply -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/heads/main/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_podmonitors.yaml
-        kubectl apply -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/heads/main/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_scrapeconfigs.yaml
-        kubectl apply -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/heads/main/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_alertmanagerconfigs.yaml
+        kubectl create -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/heads/main/charts/qubership-monitoring-operator/charts/grafana-operator/crds/integreatly.org_grafanadashboards.yaml
+        kubectl create -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/heads/main/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_prometheusrules.yaml
+        kubectl create -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/heads/main/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_servicemonitors.yaml
+        kubectl create -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/heads/main/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_podmonitors.yaml
+        kubectl create -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/heads/main/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_scrapeconfigs.yaml
+        kubectl create -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/heads/main/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_alertmanagerconfigs.yaml
     - name: Checkout OpenSearch repo
       if: matrix.backend == 'graylog'
       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -253,7 +254,7 @@ jobs:
     - name: Deploy VLSingle instance
       if: matrix.backend == 'victorialogs'
       run: |
-        cat <<EOF | kubectl apply -n ${{ env.namespace }} -f -
+        cat <<EOF | kubectl create -n ${{ env.namespace }} -f -
         apiVersion: operator.victoriametrics.com/v1
         kind: VLSingle
         metadata:

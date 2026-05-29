@@ -1198,8 +1198,8 @@ fluentbit:
 
   # -- Allow creating security resources as PodSecurityPolicy, SecurityContextConstraints
   securityResources:
-    name: logging-fluentbit
     install: false
+    name: logging-fluentbit
 
   # -- Pod monitor for FluentBit
   podMonitor:

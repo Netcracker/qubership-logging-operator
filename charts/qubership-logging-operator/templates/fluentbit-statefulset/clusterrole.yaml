@@ -26,7 +26,7 @@ rules:
       - use
     resourceNames:
       - {{ .Values.fluentbit.aggregator.securityResources.name }}
-  {{- else if or .Values.openshiftDeploy (.Capabilities.APIVersions.Has "security.openshift.io/v1")}}
+  {{- else if or .Values.openshiftDeploy (.Capabilities.APIVersions.Has "security.openshift.io/v1") }}
   - apiGroups:
       - security.openshift.io
     resources:

@@ -1,0 +1,32 @@
+# rca-cases.txt — curated known-problem patterns for logging-l1-outcome.
+# Same line format as the intent skill's signals.txt: one [<case-id>] section per
+# known problem; a bare line is a case-insensitive phrase, an "re:" line is a raw
+# regex. Matched against the ticket text and attachment text. A match is a HINT —
+# the model reads references/rca-cases.md for the matched case's cause and draft
+# reply and confirms the caveat holds before using it.
+
+[ism-config-cosmetic]
+IndexNotFoundException [.opendistro-ism-config]
+re: \bopendistro-ism-config\b
+
+[timestamp-tz-mismatch]
+different times in message and timestamp
+time mismatch between message and timestamp
+log time in message differs from time field
+
+[deflector-exists-as-index]
+Deflector exists as an index and is not an alias
+
+[fields-limit-1000-exceeded]
+re: Limit of total fields \[1000\] in index has been exceeded
+
+[dr-no-vip-cyclic-redirect]
+cyclic redirect
+redirect loop on Graylog UI
+
+[index-read-only-after-disk-cleanup]
+index.blocks.read_only_allow_delete
+re: FORBIDDEN/12/index read-only
+
+[nodes-info-unavailable-tls]
+Nodes info unavailable

@@ -1,0 +1,4 @@
+name: logging-l1-triage
+version: 0.1.0
+description: L1 triage pipeline for Qubership logging-stack support tickets — classify the ticket, then decide the next action (request missing data, flag a suspected known issue, or hand off to L2). Two coordinated skills, read-only against live systems; never mutates or closes the ticket.
+author: Qubership

@@ -13,6 +13,7 @@
 # Python
 venv/
 .mypy_cache/
+__pycache__/
 
 # MkDocs
 site/

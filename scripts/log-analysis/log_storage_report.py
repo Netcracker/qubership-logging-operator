@@ -9,16 +9,21 @@ import math
 import os
 import re
 import sys
-from datetime import UTC, datetime
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 from functools import lru_cache
+from html import write_html_report
 from pathlib import Path
 from typing import Any
 
-from clients import GraylogIndexStatsClient, HttpClient, QueryError, VictoriaLogsClient, VictoriaMetricsClient, field_name
+from clients import (
+    GraylogIndexStatsClient,
+    HttpClient,
+    QueryError,
+    VictoriaLogsClient,
+    VictoriaMetricsClient,
+    field_name,
+)
 from collectors import collect_log_report
-from html import write_html_report
-
 
 DURATION_PATTERN = re.compile(r"^(?:0|[1-9][0-9]*)(?:s|m|h|d|w)$")
 SIZE_PATTERN = re.compile(r"^([1-9][0-9]*)(?:\s*(b|kb|k|mb|m|gb|g))?$", re.IGNORECASE)

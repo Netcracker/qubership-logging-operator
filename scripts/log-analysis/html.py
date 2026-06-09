@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import json
 import re
+from pathlib import Path
 from typing import Any
 from xml.sax.saxutils import escape
-
 
 MARKDOWN_LINK_PATTERN = re.compile(r"\[([^\]]+)]\((https://[^)]+)\)")
 INLINE_CODE_PATTERN = re.compile(r"`([^`]+)`")
@@ -21,7 +21,7 @@ def render_inline_markup(value: str) -> str:
     result = []
     position = 0
     for match in INLINE_CODE_PATTERN.finditer(value):
-        result.append(render_links_and_markdown_links(value[position : match.start()]))
+        result.append(render_links_and_markdown_links(value[position:match.start()]))
         result.append(f"<code>{html_escape(match.group(1))}</code>")
         position = match.end()
     result.append(render_links_and_markdown_links(value[position:]))
@@ -32,7 +32,7 @@ def render_links_and_markdown_links(value: str) -> str:
     result = []
     position = 0
     for match in MARKDOWN_LINK_PATTERN.finditer(value):
-        result.append(render_links(value[position : match.start()]))
+        result.append(render_links(value[position:match.start()]))
         label = html_escape(match.group(1))
         url = html_escape(match.group(2))
         result.append(f'<a href="{url}">{label}</a>')
@@ -46,8 +46,8 @@ def render_links(value: str) -> str:
     position = 0
     for match in URL_PATTERN.finditer(value):
         url = match.group(0).rstrip(".,)")
-        trailing = match.group(0)[len(url) :]
-        result.append(html_escape(value[position : match.start()]))
+        trailing = match.group(0)[len(url):]
+        result.append(html_escape(value[position:match.start()]))
         escaped_url = html_escape(url)
         result.append(f'<a href="{escaped_url}">{escaped_url}</a>')
         result.append(html_escape(trailing))
@@ -294,7 +294,8 @@ def table_description(path: tuple[str, ...]) -> str:
             "Index set level statistics from /api/system/indices/index_sets?stats=true, when Graylog exposes them."
         ),
         ("logs", "graylog_streams"): (
-            "Graylog stream-based storage impact view. Tables show message count and sum(gl2_accounted_message_size) in KB."
+            "Graylog stream-based storage impact view. Tables show message count and "
+            "sum(gl2_accounted_message_size) in KB."
         ),
         ("logs", "graylog_streams", "total_by_stream"): (
             "Total number of records and summed gl2_accounted_message_size in KB for each Graylog stream."
@@ -333,7 +334,8 @@ def table_description(path: tuple[str, ...]) -> str:
             "are shown separately."
         ),
         ("logs", "debug_trace"): (
-            "Debug and trace logs, excluding Kubernetes events. These are usually first candidates for log-level tuning."
+            "Debug and trace logs, excluding Kubernetes events. "
+            "These are usually first candidates for log-level tuning."
         ),
         ("logs", "log_patterns"): (
             "Most frequent normalized `_msg` patterns for namespace/container logs, excluding Kubernetes events. "
@@ -438,7 +440,8 @@ def table_description(path: tuple[str, ...]) -> str:
         ("storage", "victorialogs_block_stats"): (
             "Optional VictoriaLogs physical storage diagnostics from `block_stats`. "
             "VictoriaLogs stores values for every log field in separate compressed data blocks. "
-            "See [VictoriaLogs storage overview](https://docs.victoriametrics.com/victorialogs/faq/#how-does-victorialogs-work) "
+            "See [VictoriaLogs storage overview]"
+            "(https://docs.victoriametrics.com/victorialogs/faq/#how-does-victorialogs-work) "
             "and [block_stats](https://docs.victoriametrics.com/victorialogs/logsql/#block_stats-pipe)."
         ),
         ("storage", "victorialogs_block_stats", "top_streams_by_disk_usage"): (
@@ -569,7 +572,9 @@ def render_value_block(
         return (
             f'<article class="panel skipped"><h3>{title}</h3>'
             '<p>Dry-run mode: query rendered, backend was not called.</p>'
-            f'<details><summary>Queries</summary><pre>{html_escape(json.dumps(value["queries"], ensure_ascii=True, indent=2))}</pre></details>'
+            "<details><summary>Queries</summary><pre>"
+            f'{html_escape(json.dumps(value["queries"], ensure_ascii=True, indent=2))}'
+            "</pre></details>"
             "</article>"
         )
     if isinstance(value, dict):
@@ -670,13 +675,16 @@ def report_notes(report: dict[str, Any], notes: Any) -> list[str]:
 
 
 def render_recommendations_link() -> str:
+    recommendations_url = (
+        "https://github.com/Netcracker/qubership-logging-operator/blob/main/"
+        "docs/log-storage-cleanup-recommendations.md"
+    )
     return (
         '<section class="group recommendations">'
         "<h2>Next Steps</h2>"
         "<p>Use the cleanup recommendations when deciding how to free disk space, reduce noisy logs, "
         "or reject unwanted records before they reach the storage backend.</p>"
-        '<p><a href="https://github.com/Netcracker/qubership-logging-operator/blob/main/docs/log-storage-cleanup-recommendations.md">'
-        "Log Storage Cleanup Recommendations</a></p>"
+        f'<p><a href="{recommendations_url}">Log Storage Cleanup Recommendations</a></p>'
         "</section>"
     )
 
@@ -745,10 +753,20 @@ def render_html_report(report: dict[str, Any]) -> str:
       color: #fffaf0;
       box-shadow: 0 24px 70px rgba(38, 70, 83, .18);
     }}
-    .hero p {{ margin: 0 0 6px; letter-spacing: .12em; text-transform: uppercase; color: #f2c9a8; }}
+    .hero p {{
+      margin: 0 0 6px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: #f2c9a8;
+    }}
     .hero h1 {{ margin: 0; font-size: clamp(32px, 6vw, 58px); line-height: .95; }}
     .subtle {{ display: block; margin-top: 14px; color: rgba(255, 250, 240, .72); word-break: break-all; }}
-    .summary {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; margin: 18px 0; }}
+    .summary {{
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 14px;
+      margin: 18px 0;
+    }}
     .metric, .panel, .group, .raw {{
       border: 1px solid var(--line);
       border-radius: 20px;
@@ -756,7 +774,13 @@ def render_html_report(report: dict[str, Any]) -> str:
       box-shadow: 0 16px 38px rgba(38, 70, 83, .08);
     }}
     .metric {{ padding: 18px; }}
-    .metric span {{ display: block; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; }}
+    .metric span {{
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }}
     .metric strong {{ display: block; margin-top: 8px; font-size: 22px; word-break: break-word; }}
     .group {{ margin-top: 18px; padding: 18px; }}
     .group h2 {{ margin: 0 0 14px; font-size: 24px; color: var(--accent-2); }}
@@ -811,8 +835,19 @@ def render_html_report(report: dict[str, Any]) -> str:
       overflow-wrap: anywhere;
       word-break: break-word;
     }}
-    th, td {{ padding: 9px 10px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }}
-    th {{ color: var(--accent-2); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; background: rgba(38, 70, 83, .06); }}
+    th, td {{
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }}
+    th {{
+      color: var(--accent-2);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      background: rgba(38, 70, 83, .06);
+    }}
     tr:hover td {{ background: rgba(184, 92, 56, .06); }}
     code, pre {{
       font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace;

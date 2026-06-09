@@ -182,10 +182,9 @@ INCLUDE_VL_BLOCK_STATS=true
 
 It adds `storage.victorialogs_block_stats` with:
 
-| Section | Description |
-| --- | --- |
-| `top_streams_by_disk_usage` | Top `_stream` values by `values_bytes + bloom_bytes` |
-| `top_fields_by_disk_usage` | Top fields by `values_bytes + bloom_bytes` |
+- `top_streams_by_disk_usage`: top `_stream` values by
+  `values_bytes + bloom_bytes`.
+- `top_fields_by_disk_usage`: top fields by `values_bytes + bloom_bytes`.
 
 `block_stats` is a diagnostic LogsQL pipe. It is useful for investigating disk
 usage, but the script runs it only when explicitly requested.
@@ -197,19 +196,18 @@ data blocks during queries.
 
 References:
 
-- https://docs.victoriametrics.com/victorialogs/faq/#how-does-victorialogs-work
-- https://docs.victoriametrics.com/victorialogs/logsql/#block_stats-pipe
+- [VictoriaLogs storage overview](https://docs.victoriametrics.com/victorialogs/faq/#how-does-victorialogs-work)
+- [block_stats pipe](https://docs.victoriametrics.com/victorialogs/logsql/#block_stats-pipe)
 
 ## Log Categories
 
 The report uses four logical categories:
 
-| Category | Selection |
-| --- | --- |
-| `system` | `log_category=system` |
-| `audit` | `log_category=audit` or `nc_audit_label=true` |
-| `container` | `log_category=container`, excluding `kind=KubernetesEvent` and `nc_audit_label=true` |
-| `k8s_events` | `kind=KubernetesEvent` |
+- `system`: `log_category=system`.
+- `audit`: `log_category=audit` or `nc_audit_label=true`.
+- `container`: `log_category=container`, excluding `kind=KubernetesEvent` and
+  `nc_audit_label=true`.
+- `k8s_events`: `kind=KubernetesEvent`.
 
 New logs sent through the Fluent Bit output path that populates `log_category`
 are assigned `log_category=k8s_events`. The report intentionally continues to
@@ -312,14 +310,28 @@ empty and no `Too many parsed fields` problem is reported.
 The HTML report starts with a `Detected Problems` section. It is calculated
 from already collected report data and highlights common log storage risks:
 
-| Problem | Default threshold | Configuration |
-| --- | --- | --- |
-| Graylog records with large `gl2_accounted_message_size` | `60 KB` | `--graylog-large-record-threshold-kb` or `GRAYLOG_LARGE_RECORD_THRESHOLD_KB` |
-| VictoriaLogs messages with large `_msg` | `60 KB` | `--vl-large-message-threshold-kb` or `VL_LARGE_MESSAGE_THRESHOLD_KB` |
-| Error-level logs are too large a share of logs with `level` | `10%` | `--error-level-percent-threshold` or `ERROR_LEVEL_PERCENT_THRESHOLD` |
-| Debug/trace logs are present | any matching log | no threshold |
-| One container source produces too many logs | `20%` | `--single-source-percent-threshold` or `SINGLE_SOURCE_PERCENT_THRESHOLD` |
-| Source has too many parsed fields | `20` | `--fields-count-threshold` or `FIELDS_COUNT_THRESHOLD` |
+- Graylog records with large `gl2_accounted_message_size`.
+  Default: `60 KB`.
+  Configure with `--graylog-large-record-threshold-kb` or
+  `GRAYLOG_LARGE_RECORD_THRESHOLD_KB`.
+- VictoriaLogs messages with large `_msg`.
+  Default: `60 KB`.
+  Configure with `--vl-large-message-threshold-kb` or
+  `VL_LARGE_MESSAGE_THRESHOLD_KB`.
+- Error-level logs are too large a share of logs with `level`.
+  Default: `10%`.
+  Configure with `--error-level-percent-threshold` or
+  `ERROR_LEVEL_PERCENT_THRESHOLD`.
+- Debug/trace logs are present.
+  Default: any matching log.
+  There is no threshold.
+- One container source produces too many logs.
+  Default: `20%`.
+  Configure with `--single-source-percent-threshold` or
+  `SINGLE_SOURCE_PERCENT_THRESHOLD`.
+- Source has too many parsed fields.
+  Default: `20`.
+  Configure with `--fields-count-threshold` or `FIELDS_COUNT_THRESHOLD`.
 
 The Graylog large-message check is based on `max(gl2_accounted_message_size)`
 per namespace/container source. The VictoriaLogs large-message check is based
@@ -334,15 +346,17 @@ backend-specific threshold variables are not set.
 
 The report collects:
 
-| Section | What it uses |
-| --- | --- |
-| `namespace_logs` | Total log count and top sources by `namespace` plus `--source-field`, excluding Kubernetes events |
-| `levels` | Actual values found in `level` and top level/source combinations, excluding Kubernetes events |
-| `detailed_levels` | Optional per-level top-source sections when `--include-detailed-levels` is set |
-| `debug_trace` | Top sources using `level=debug` or `level=trace` |
-| `log_patterns` | Top normalized `_msg` patterns by `namespace` plus `--source-field`, calculated with `collapse_nums prettify` at query time |
-| `k8s_events` | Kubernetes events selected by `kind=KubernetesEvent` |
-| `message_size` | VictoriaLogs uses `_msg` length |
-| `categories` | VictoriaLogs log counts grouped by `log_category` |
-| `schema_quality` | Top sources by max `parse_field_count` |
-| `storage.victorialogs_block_stats` | Optional VictoriaLogs-only disk usage diagnostics when `--include-vl-block-stats` is set |
+- `namespace_logs`: total log count and top sources by `namespace` plus
+  `--source-field`.
+- `levels`: actual values found in `level` and top level/source combinations.
+- `detailed_levels`: optional per-level top-source sections when
+  `--include-detailed-levels` is set.
+- `debug_trace`: top sources using `level=debug` or `level=trace`.
+- `log_patterns`: top normalized `_msg` patterns calculated with
+  `collapse_nums prettify`.
+- `k8s_events`: Kubernetes events selected by `kind=KubernetesEvent`.
+- `message_size`: VictoriaLogs uses `_msg` length.
+- `categories`: VictoriaLogs log counts grouped by `log_category`.
+- `schema_quality`: top sources by max `parse_field_count`.
+- `storage.victorialogs_block_stats`: optional VictoriaLogs-only disk usage
+  diagnostics.

@@ -37,7 +37,8 @@ This document lists common actions after running the log storage analysis report
 - Route system, audit, container, and Kubernetes event logs into separate categories or streams.
 - Apply shorter retention to high-volume low-value categories.
 - Keep audit logs according to compliance requirements even if they are noisy.
-- For Kubernetes events, consider separate retention because event bursts can be useful during incident analysis but may not need long storage.
+- For Kubernetes events, consider separate retention because event bursts can be
+  useful during incident analysis but may not need long storage.
 
 ## Validate After Changes
 

@@ -12,8 +12,11 @@ from threading import BoundedSemaphore
 from typing import Any
 from urllib import error, parse, request
 
-from storage import calculate_filesystem_usage, calculate_victorialogs_data_size, calculate_victorialogs_disk_usage
-
+from storage import (
+    calculate_filesystem_usage,
+    calculate_victorialogs_data_size,
+    calculate_victorialogs_disk_usage,
+)
 
 FIELD_PATTERN = re.compile(r"^[A-Za-z_][A-Za-z0-9_./-]*$")
 SIMPLE_FIELD_PATTERN = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
@@ -490,7 +493,7 @@ def infer_logsql_columns(expression: str) -> list[str]:
             if field.strip()
         )
     stats_match = LOGSQL_STATS_PATTERN.search(expression)
-    alias_source = expression[stats_match.start() :] if stats_match else expression
+    alias_source = expression[stats_match.start():] if stats_match else expression
     for alias in LOGSQL_ALIAS_PATTERN.findall(alias_source):
         if alias not in columns:
             columns.append(alias)
@@ -1011,7 +1014,7 @@ def enrich_level_rows(rows: list[Any], columns: list[str] | None) -> tuple[list[
     if not columns or "level" not in columns:
         return rows, columns
     level_index = columns.index("level")
-    enriched_columns = [*columns[: level_index + 1], "level_name", *columns[level_index + 1 :]]
+    enriched_columns = [*columns[:level_index + 1], "level_name", *columns[level_index + 1:]]
     enriched_rows: list[Any] = []
     for row in rows:
         if not isinstance(row, list) or level_index >= len(row):
@@ -1020,9 +1023,9 @@ def enrich_level_rows(rows: list[Any], columns: list[str] | None) -> tuple[list[
         level_value = str(row[level_index])
         enriched_rows.append(
             [
-                *row[: level_index + 1],
+                *row[:level_index + 1],
                 LEVEL_NAMES.get(level_value, level_value),
-                *row[level_index + 1 :],
+                *row[level_index + 1:],
             ]
         )
     return enriched_rows, enriched_columns

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from typing import Any
 
-
 BYTES_IN_GB = 1024**3
 FILESYSTEM_LABELS = ("fstype", "device", "mountpoint")
 VICTORIALOGS_LABELS = ("cluster", "cluster_name", "job", "instance", "path", "namespace", "pod", "service")

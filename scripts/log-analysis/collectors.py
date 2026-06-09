@@ -8,7 +8,6 @@ from typing import Any
 
 from clients import GraylogClient, HttpClient, VictoriaLogsClient, field_name
 
-
 CATEGORIES = {
     "system": {
         "graylog": "log_category:system AND NOT kind:KubernetesEvent",

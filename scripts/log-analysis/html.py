@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 import re
-from pathlib import Path
 from typing import Any
 from xml.sax.saxutils import escape
 
@@ -676,7 +675,7 @@ def render_recommendations_link() -> str:
         "<h2>Next Steps</h2>"
         "<p>Use the cleanup recommendations when deciding how to free disk space, reduce noisy logs, "
         "or reject unwanted records before they reach the storage backend.</p>"
-        '<p><a href="../../docs/log-storage-cleanup-recommendations.md">'
+        '<p><a href="https://github.com/Netcracker/qubership-logging-operator/blob/main/docs/log-storage-cleanup-recommendations.md">'
         "Log Storage Cleanup Recommendations</a></p>"
         "</section>"
     )

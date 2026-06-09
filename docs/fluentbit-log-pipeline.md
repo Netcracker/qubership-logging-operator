@@ -135,8 +135,8 @@ the following fields must always be present in the resulting log output:
    Possible values: success, failed.
 4) parse_format – The detected original log format.
    Possible values: `json`, `logfmt`, `klog`, `qubership`, `java`, `opensearch`, and other third-party formats.
-4) log_category – The source type of the log. Possible values: container, audit, system, k8s_events.
-5) parse_level_unknown – Indicates that the original severity level could not be detected
+5) log_category – The source type of the log. Possible values: container, audit, system, k8s_events.
+6) parse_level_unknown – Indicates that the original severity level could not be detected
    or did not match any known severity levels.
 7) namespace – The namespace of the log source. Present only if the log originates from a Kubernetes container.
 8) pod – The pod of the log source. Present only if the log originates from a Kubernetes container.

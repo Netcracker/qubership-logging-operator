@@ -1,0 +1,25 @@
+{{- if .Values.createClusterAdminEntities }}
+{{- if .Values.fluentbit.install }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ .Release.Namespace }}-fluentbit
+  {{- if .Values.fluentbit.annotations }}
+  annotations:
+    {{- toYaml .Values.fluentbit.annotations | nindent 4 }}
+  {{- end }}
+  labels:
+    {{- include "logging.labels" (dict "ctx" . "name" (printf "%s-fluentbit" .Release.Namespace) "component" "fluentbit") | nindent 4 }}
+    {{- if .Values.fluentbit.labels }}
+    {{- include "logging.extraLabels" (dict "ctx" . "extraLabels" .Values.fluentbit.labels) | nindent 4 }}
+    {{- end }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ ternary "view" (printf "%s-fluentbit" .Release.Namespace) (.Values.openshiftDeploy | default false) }}
+subjects:
+  - kind: ServiceAccount
+    name: logging-fluentbit
+    namespace: {{ .Release.Namespace }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,35 @@
+*** Variables ***
+${NAMESPACE}                    %{LOGGING_PROJECT}
+
+*** Settings ***
+Library  lib/LoggingLibrary.py
+Library  PlatformLibrary  managed_by_operator=true
+Library	 RequestsLibrary
+Library	 Collections
+
+*** Keywords ***
+Check Fluentbit And Fluentd
+    ${fluentbit_exists}=  Check Daemon Set Exists  logging-fluentbit
+    Set Suite Variable  ${fluentbit_exists}
+    ${fluentd_exists}=  Check Daemon Set Exists  logging-fluentd
+    Set Suite Variable  ${fluentd_exists}
+    ${fluentbit_forw_exists}=  Check Daemon Set Exists  logging-fluentbit-forwarder
+    Set Suite Variable  ${fluentbit_forw_exists}
+
+Check Graylog Install
+    ${graylog_install}=  Convert To Boolean  %{GRAYLOG_INSTALL}
+    Set Suite Variable  ${graylog_install}
+    ${external_graylog}=  Convert To Boolean  %{EXTERNAL_GRAYLOG_SERVER}
+    Set Suite Variable  ${external_graylog}
+    ${graylog_available}=  Evaluate    ${graylog_install} or ${external_graylog}
+    Set Suite Variable  ${graylog_available}
+
+Check Daemon Set Exists
+    [Arguments]  ${name}
+    @{daemon_sets}=  Get Daemon Sets  ${NAMESPACE}
+    FOR    ${daemon_set}    IN    @{daemon_sets}
+        ${metadata}=  Set Variable  ${daemon_set.metadata}
+        ${daemon_set_name}=  Set Variable  ${metadata.name}
+        IF  "${name}" == "${daemon_set_name}"  RETURN  True
+    END
+    RETURN  False

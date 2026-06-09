@@ -1,0 +1,29 @@
+{{- if .Values.createClusterAdminEntities }}
+{{- if .Values.fluentd.install }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ .Release.Namespace }}-fluentd
+  {{- if .Values.fluentd.annotations }}
+  annotations:
+    {{- toYaml .Values.fluentd.annotations | nindent 4 }}
+  {{- end }}
+  labels:
+    {{- include "logging.labels" (dict "ctx" . "name" (printf "%s-fluentd" .Release.Namespace) "component" "fluentd") | nindent 4 }}
+    {{- if .Values.fluentd.labels }}
+    {{- include "logging.extraLabels" (dict "ctx" . "extraLabels" .Values.fluentd.labels) | nindent 4 }}
+    {{- end }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole # Must be Role or ClusterRole
+  {{- if .Capabilities.APIVersions.Has "security.openshift.io/v1" }}
+  name: view # The name of the ClusterRole to bind to
+  {{- else }}
+  name: {{ .Release.Namespace }}-fluentd
+  {{- end }}
+subjects:
+  - kind: ServiceAccount
+    name: logging-fluentd
+    namespace: {{ .Release.Namespace }}
+{{- end }}
+{{- end }}

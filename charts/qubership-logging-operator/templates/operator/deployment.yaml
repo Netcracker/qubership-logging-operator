@@ -1,0 +1,113 @@
+{{- $instance := cat "logging-operator-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
+{{- $image := include "logging-operator.image" . }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: logging-operator
+  labels:
+    {{- include "logging.labels" (dict "ctx" . "name" "logging-operator" "component" "operator") | nindent 4 }}
+    app.kubernetes.io/instance: {{ $instance }}
+    app.kubernetes.io/version: {{ splitList ":" $image | last | quote }}
+    app.kubernetes.io/technology: go
+    {{- include "logging.extraLabels" . | nindent 4 }}
+  {{- if .Values.annotations }}
+  annotations:
+    {{- toYaml .Values.annotations | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: logging-operator
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        {{- include "logging.labels" (dict "ctx" . "name" "logging-operator" "component" "operator") | nindent 8 }}
+        app.kubernetes.io/instance: {{ $instance }}
+        app.kubernetes.io/version: {{ splitList ":" $image | last | quote }}
+        app.kubernetes.io/technology: go
+        {{- include "logging.extraLabels" . | nindent 8 }}
+      {{- if .Values.annotations }}
+      annotations:
+        {{ toYaml .Values.annotations | nindent 8 }}
+      {{- end }}
+    spec:
+      serviceAccountName: logging-operator
+      {{- if and .Values.nodeSelectorKey .Values.nodeSelectorValue }}
+      nodeSelector:
+        {{ .Values.nodeSelectorKey | indent 8 }}: {{ .Values.nodeSelectorValue }}
+      {{- end }}
+      {{- if .Values.affinity }}
+      affinity:
+        {{- toYaml .Values.affinity | nindent 8 }}
+      {{- end }}
+      {{- if .Values.priorityClassName }}
+      priorityClassName: {{ .Values.priorityClassName }}
+      {{- end }}
+      containers:
+        - name: operator
+          image: {{ template "logging-operator.image" . }}
+          command: ["/manager"]
+          args:
+            - '--pprof-enable={{ .Values.pprof.install }}'
+            {{- if .Values.pprof.install }}
+            - '--pprof-address=:{{ .Values.pprof.service.port }}'
+            {{- end }}
+          imagePullPolicy: IfNotPresent
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          ports:
+            - containerPort: 8080
+              name: metrics
+              protocol: TCP
+            - containerPort: 8081
+              name: http
+              protocol: TCP
+            {{- if .Values.pprof.install }}
+            - containerPort: {{ .Values.pprof.containerPort }}
+              name: {{ .Values.pprof.service.portName }}
+              protocol: TCP
+            {{- end }}
+          env:
+            - name: WATCH_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            {{- if .Values.skipMetricsService }}
+            - name: SKIP_METRICS_SERVICE
+              value: {{ .Values.skipMetricsService | quote }}
+            {{- end }}
+            - name: SCRAPE_INTERVAL
+              value: {{ .Values.podMonitor.scrapeInterval | default "30s" }}
+            - name: SCRAPE_TIMEOUT
+              value: {{ .Values.podMonitor.scrapeTimeout | default "10s" }}
+            - name: LOG_LEVEL
+              value: {{ .Values.logLevel | default "info" }}
+            {{- if .Values.graylog.install }}
+            - name: GRAYLOG_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  key: user
+                  name: {{ default "graylog-secret" .Values.graylog.graylogSecretName }}
+            - name: GRAYLOG_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: password
+                  name: {{ default "graylog-secret" .Values.graylog.graylogSecretName }}
+            - name: ELASTICSEARCH_HOST
+              valueFrom:
+                secretKeyRef:
+                  key: elasticsearchHost
+                  name: {{ default "graylog-secret" .Values.graylog.graylogSecretName }}
+            {{- end }}
+          livenessProbe:
+            {{- toYaml .Values.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.readinessProbe | nindent 12 }}
+

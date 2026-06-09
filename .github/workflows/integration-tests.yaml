@@ -1,0 +1,884 @@
+---
+name: 'Tests: Run logging integration tests'
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - v*
+    paths:
+      - .github/workflows/integration-tests.yaml
+      - api/**
+      - charts/**
+      - cmd/**
+      - controllers/**
+      - test/robot-tests/**
+  pull_request:
+    branches:
+      - '**'
+    types:
+      - opened
+      - synchronize
+      - reopened
+    paths:
+      - .github/workflows/integration-tests.yaml
+      - api/**
+      - charts/**
+      - cmd/**
+      - controllers/**
+      - test/robot-tests/**
+
+env:
+  ## Versions
+  # renovate: datasource=github-releases depName=kubernetes-sigs/kind versioning=semver
+  kind_version: v0.31.0
+  # renovate: datasource=github-releases depName=Netcracker/qubership-opensearch versioning=semver
+  opensearch_version: 2.3.1
+  # renovate: datasource=docker depName=ghcr.io/netcracker/qubership-opensearch-operator
+  opensearch_image_version: 3.4.0
+  opensearch_major_version: 2
+  # renovate: datasource=github-releases depName=Netcracker/qubership-monitoring-operator versioning=semver
+  monitoring_version: v0.88.0
+  ## Other parameters
+  opensearch_namespace: opensearch
+  vlsingle_name: k8s
+  namespace: logging
+  max_attempts: 100
+  delay: 10
+
+jobs:
+  integration_tests:
+    name: Run Integration Tests (${{ matrix.scenario_name }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - scenario_name: Graylog
+          scenario_id: graylog
+          backend: graylog
+        - scenario_name: VictoriaLogs
+          scenario_id: victorialogs
+          backend: victorialogs
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        path: qubership-logging-operator
+
+    - name: Set up kind
+      run: |
+        curl --proto "=https" --tlsv1.2 -sLo ./kind https://kind.sigs.k8s.io/dl/${{ env.kind_version }}/kind-linux-amd64
+        chmod +x ./kind
+        sudo mv ./kind /usr/local/bin/
+        kind create cluster
+        docker exec kind-control-plane bash -c "mkdir -p /var/log/audit && chown 1000:1000 /var/log/audit && echo 'Created /var/log/audit with the permissions:'; ls -ld /var/log/audit"
+
+    - name: Set tag and repository owner
+      run: |
+        echo "TAG=${GITHUB_SHA:0:11}" >> $GITHUB_ENV
+        echo "REPOSITORY_OWNER=$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@ce360397dd3f832beb865e1373c09c0e9f86d70a # v4.0.0
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4.0.0
+
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4.1.0
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Build qubership-logging-operator
+      uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
+      with:
+        load: true
+        no-cache: true
+        context: ./qubership-logging-operator
+        file: ./qubership-logging-operator/Dockerfile
+        platforms: linux/amd64
+        push: false
+        tags: ghcr.io/${{ env.REPOSITORY_OWNER }}/qubership-logging-operator:${{ env.TAG }}
+
+    - name: Build qubership-logging-integration-tests
+      uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
+      with:
+        load: true
+        no-cache: true
+        context: ./qubership-logging-operator/test/robot-tests
+        file: ./qubership-logging-operator/test/robot-tests/Dockerfile
+        platforms: linux/amd64
+        push: false
+        tags: ghcr.io/${{ env.REPOSITORY_OWNER }}/qubership-logging-integration-tests:${{ env.TAG }}
+
+    - name: Load docker images in kind cluster
+      run: |
+        kind load docker-image ghcr.io/${{ env.REPOSITORY_OWNER }}/qubership-logging-operator:${{ env.TAG }}
+        kind load docker-image ghcr.io/${{ env.REPOSITORY_OWNER }}/qubership-logging-integration-tests:${{ env.TAG }}
+
+    - name: Install helm
+      run: |
+        curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+    - name: Install required CRDs
+      run: |
+        kubectl create -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/tags/${{ env.monitoring_version }}/charts/qubership-monitoring-operator/charts/grafana-operator/crds/integreatly.org_grafanadashboards.yaml
+        kubectl create -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/tags/${{ env.monitoring_version }}/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_prometheusrules.yaml
+        kubectl create -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/tags/${{ env.monitoring_version }}/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_servicemonitors.yaml
+        kubectl create -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/tags/${{ env.monitoring_version }}/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_podmonitors.yaml
+        kubectl create -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/tags/${{ env.monitoring_version }}/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_scrapeconfigs.yaml
+        kubectl create -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/tags/${{ env.monitoring_version }}/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_alertmanagerconfigs.yaml
+
+    - name: Checkout OpenSearch repo
+      if: matrix.backend == 'graylog'
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        repository: Netcracker/qubership-opensearch
+        ref: ${{ env.opensearch_version }}
+        path: qubership-opensearch
+
+    - name: Create OpenSearch values
+      if: matrix.backend == 'graylog'
+      run: |
+        cat <<EOF > opensearch_values.yaml
+        operator:
+          dockerImage: ghcr.io/netcracker/qubership-opensearch-operator:${{ env.opensearch_version }}
+        dashboards:
+          enabled: false
+        opensearch:
+          master:
+            enabled: true
+            replicas: 1
+            persistence:
+              enabled: true
+              storageClass: "standard"
+          securityConfig:
+            authc:
+              basic:
+                username: "admin"
+                password: "admin"
+          tls:
+            enabled: false
+          config:
+            cluster.routing.allocation.disk.threshold_enabled: false
+          dockerImage: ghcr.io/netcracker/qubership-docker-opensearch-${{ env.opensearch_major_version }}:${{ env.opensearch_image_version }}
+          dockerTlsInitImage: ghcr.io/netcracker/qubership-opensearch-tls-init:${{ env.opensearch_image_version }}
+        monitoring:
+          enabled: false
+        dbaasAdapter:
+          enabled: false
+        curator:
+          enabled: false
+          username: "admin"
+          password: "admin"
+        EOF
+      shell: bash
+
+    - name: Install OpenSearch
+      if: matrix.backend == 'graylog'
+      run: |
+        helm upgrade --install opensearch \
+          --namespace=${{ env.opensearch_namespace }} \
+          --create-namespace \
+          ./qubership-opensearch/operator/charts/helm/opensearch-service \
+          -f ./opensearch_values.yaml
+
+    - name: Check OpenSearch deployment status
+      if: matrix.backend == 'graylog'
+      run: |
+        echo "Checking status of opensearch-status-provisioner..."
+        attempt=1
+        max_attempts=${{ env.max_attempts }}
+        while [[ $attempt -le $max_attempts ]]; do
+          problem_pods=$(kubectl get pods -n ${{ env.opensearch_namespace }} --no-headers 2>/dev/null | grep -E "ImagePullBackOff|ErrImagePull|InvalidImageName" || true)
+          if [[ -n "$problem_pods" ]]; then
+            echo -e "::error::❌ Some images cannot be pulled:\n$problem_pods"
+            exit 1
+          fi
+          echo "Attempt $attempt/$max_attempts: Checking opensearch-status-provisioner pod status..."
+          phase=$(kubectl get pod -l name=opensearch-status-provisioner -n ${{ env.opensearch_namespace }} -o jsonpath='{.items[0].status.phase}' 2>/dev/null || echo "NotFound")
+          if [[ "$phase" == "Succeeded" ]]; then
+            echo "✅ Opensearch status provisioner job has succeeded."
+            break
+          elif [[ "$phase" == "Failed" || "$phase" == "Error" ]]; then
+            echo "::error::❌ Opensearch status provisioner job failed with status: $phase"
+            exit 1
+          else
+            echo "Opensearch status provisioner job status: $phase. Retrying in ${{ env.delay }} seconds..."
+            kubectl get pods -n ${{ env.opensearch_namespace }}
+            sleep ${{ env.delay }}
+            ((attempt++))
+          fi
+        done
+        if [[ "$phase" != "Succeeded" ]]; then
+          echo "::error::❌ Maximum attempts reached. Opensearch status provisioner job has not succeeded."
+          exit 1
+        fi
+      shell: bash
+
+    - name: Check OpenSearch cluster health
+      if: matrix.backend == 'graylog'
+      id: check_opensearch_health
+      run: |
+        cluster_status=$(kubectl exec -n ${{ env.opensearch_namespace }} opensearch-0 -- curl -s http://localhost:9200/_cluster/health?pretty -u admin:admin)
+        if [[ $(jq -r .status <<<"$cluster_status") = "yellow" ]]; then
+          echo "::error::❌ OpenSearch cluster status is YELLOW. Check Opensearch logs."
+          echo "status=❌failure" >> $GITHUB_OUTPUT
+          echo "cluster_status=$(echo "$cluster_status" | jq -c)" >> $GITHUB_OUTPUT && echo -e "Cluster status:\n$cluster_status"
+          exit 1
+        elif [[ $(jq -r .status <<<"$cluster_status") = "red" ]]; then
+          echo "::error::❌ OpenSearch cluster status is RED. Check Opensearch logs."
+          echo "status=❌failure" >> $GITHUB_OUTPUT
+          echo "cluster_status=$(echo "$cluster_status" | jq -c)" >> $GITHUB_OUTPUT && echo -e "Cluster status:\n$cluster_status"
+          exit 1
+        else
+          echo "✅ OpenSearch cluster status is GREEN."
+          echo "status=✅success" >> $GITHUB_OUTPUT
+          echo "cluster_status=$(echo "$cluster_status" | jq -c)" >> $GITHUB_OUTPUT && echo -e "Cluster status:\n$cluster_status"
+        fi
+      shell: bash
+
+    - name: Install VictoriaMetrics operator
+      if: matrix.backend == 'victorialogs'
+      run: |
+        helm repo add vm https://victoriametrics.github.io/helm-charts/
+        helm repo update
+        helm upgrade -i vmo vm/victoria-metrics-operator \
+          -n ${{ env.namespace }} \
+          --create-namespace
+        kubectl -n ${{ env.namespace }} rollout status \
+          deployment -l app.kubernetes.io/instance=vmo \
+          --timeout=300s
+      shell: bash
+
+    - name: Deploy VLSingle instance
+      if: matrix.backend == 'victorialogs'
+      run: |
+        cat <<EOF | kubectl create -n ${{ env.namespace }} -f -
+        apiVersion: operator.victoriametrics.com/v1
+        kind: VLSingle
+        metadata:
+          name: ${{ env.vlsingle_name }}
+          namespace: ${{ env.namespace }}
+        spec:
+          resources:
+            limits:
+              cpu: 500m
+              memory: 256Mi
+            requests:
+              cpu: 250m
+              memory: 64Mi
+          retentionPeriod: '1'
+          storage:
+            resources:
+              requests:
+                storage: 5Gi
+            storageClassName: standard
+        EOF
+        kubectl -n ${{ env.namespace }} wait \
+          --for=jsonpath='{.status.updateStatus}'=operational \
+          vlsingle/${{ env.vlsingle_name }} \
+          --timeout=300s
+        deployment_name=$(kubectl get deployment -n ${{ env.namespace }} -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' | grep "^vlsingle-${{ env.vlsingle_name }}$" | head -n1)
+        if [[ -z "$deployment_name" ]]; then
+          echo "::error::❌ Unable to resolve VLSingle deployment name"
+          kubectl get deployment -n ${{ env.namespace }}
+          exit 1
+        fi
+        kubectl -n ${{ env.namespace }} rollout status deployment/"$deployment_name" --timeout=300s
+      shell: bash
+
+    - name: Resolve VictoriaLogs service address
+      if: matrix.backend == 'victorialogs'
+      run: |
+        service_name=$(kubectl get svc -n ${{ env.namespace }} -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' | grep "^vlsingle-${{ env.vlsingle_name }}$" | head -n1)
+        if [[ -z "$service_name" ]]; then
+          echo "::error::❌ Unable to resolve VLSingle service name"
+          kubectl get svc -n ${{ env.namespace }}
+          exit 1
+        fi
+        service_port=$(kubectl get svc "$service_name" -n ${{ env.namespace }} -o jsonpath='{.spec.ports[?(@.name=="http")].port}')
+        if [[ -z "$service_port" ]]; then
+          service_port=$(kubectl get svc "$service_name" -n ${{ env.namespace }} -o jsonpath='{.spec.ports[0].port}')
+        fi
+        if [[ -z "$service_port" ]]; then
+          echo "::error::❌ Unable to resolve VLSingle service port"
+          kubectl get svc "$service_name" -n ${{ env.namespace }} -o yaml
+          exit 1
+        fi
+        echo "VLSINGLE_SERVICE=$service_name" >> $GITHUB_ENV
+        echo "VLSINGLE_PORT=$service_port" >> $GITHUB_ENV
+        echo "VICTORIALOGS_URL=http://${service_name}.${{ env.namespace }}:${service_port}" >> $GITHUB_ENV
+      shell: bash
+
+    - name: Create values for logging operator installation (Graylog)
+      if: matrix.backend == 'graylog'
+      run: |
+        cat <<EOF > logging_values.yaml
+        skipMetricsService: false
+        containerRuntimeType: containerd
+        operatorImage: ghcr.io/${{ env.REPOSITORY_OWNER }}/qubership-logging-operator:${{ env.TAG }}
+        graylog:
+          install: true
+          mongoStorageClassName: standard
+          graylogStorageClassName: standard
+          host: http://graylog.demo.qubership.org
+          initContainerDockerImage: alpine:3.17.2
+          elasticsearchHost: http://admin:admin@opensearch.opensearch:9200
+          indexShards: 1
+          indexReplicas: 0
+        cloudEventsReader:
+          dockerImage: ghcr.io/netcracker/qubership-kube-events-reader:main
+        fluentbit:
+          install: true
+          graylogHost: graylog-service
+          graylogPort: 12201
+        fluentd:
+          install: false
+        integrationTests:
+          install: true
+          tags: smokeORlog-generator
+          image: ghcr.io/${{ env.REPOSITORY_OWNER }}/qubership-logging-integration-tests:${{ env.TAG }}
+          externalGraylogServer: "false"
+          graylogHost: graylog-service
+          graylogPort: 9000
+        EOF
+      shell: bash
+
+    - name: Create values for logging operator installation (VictoriaLogs)
+      if: matrix.backend == 'victorialogs'
+      run: |
+        cat <<EOF > logging_values.yaml
+        operatorImage: ghcr.io/${{ env.REPOSITORY_OWNER }}/qubership-logging-operator:${{ env.TAG }}
+        cloudEventsReader:
+          install: true
+          dockerImage: ghcr.io/netcracker/qubership-kube-events-reader:main
+        fluentbit:
+          install: true
+          containerLogging: true
+          graylogOutput: false
+          output:
+            http:
+              enabled: true
+              host: ${VLSINGLE_SERVICE}.${{ env.namespace }}
+              port: ${VLSINGLE_PORT}
+              auth:
+                credentials:
+                  username: admin
+                  password: admin
+        fluentd:
+          install: false
+        integrationTests:
+          install: true
+          tags: smokeORlog-generator
+          timeoutBeforeStart: 10
+          image: ghcr.io/${{ env.REPOSITORY_OWNER }}/qubership-logging-integration-tests:${{ env.TAG }}
+          externalGraylogServer: "false"
+          victorialogs:
+            url: ${VICTORIALOGS_URL}
+        EOF
+      shell: bash
+
+    - name: Install qubership logging operator
+      run: |
+        helm upgrade --install qubership-logging-operator \
+          --namespace=${{ env.namespace }} \
+          --create-namespace ./qubership-logging-operator/charts/qubership-logging-operator \
+          -f ./logging_values.yaml
+        echo "Delaying ${{ env.delay }} seconds before checking logging-operator status..."
+        sleep ${{ env.delay }}
+      shell: bash
+
+    - name: Checking logging operator status
+      run: |
+        echo "Checking status of logging-operator..."
+        attempt=1
+        max_attempts=${{ env.max_attempts }}
+        while [[ $attempt -le $max_attempts ]]; do
+          problem_pods=$(kubectl get pods -n ${{ env.namespace }} 2>/dev/null | grep -E "ImagePullBackOff|ErrImagePull|InvalidImageName" || true)
+          if [[ -n "$problem_pods" ]]; then
+            echo -e "::error::❌ Some images cannot be pulled:\n$problem_pods"
+            exit 1
+          fi
+          echo "Attempt $attempt/$max_attempts: Checking logging-operator pod status..."
+          pod=$(kubectl get pod -l name=logging-operator -n ${{ env.namespace }} -o jsonpath='{.items[0]}')
+          if [[ -z "$pod" ]]; then
+            echo "Logging operator pod not found yet. Retrying in ${{ env.delay }} seconds..."
+            kubectl get pods -n ${{ env.namespace }}
+            sleep ${{ env.delay }}
+            ((attempt++))
+            continue
+          fi
+          pod_name=$(echo "$pod" | jq -r '.metadata.name')
+          phase=$(echo "$pod" | jq -r '.status.phase')
+          ready=$(echo "$pod" | jq -r '.status.conditions[] | select(.type == "Ready") | .status')
+          scheduled=$(echo "$pod" | jq -r '.status.conditions[] | select(.type == "PodScheduled") | .status')
+          pod_events=$(kubectl events -n ${{ env.namespace }} --for "pod/$pod_name" 2>/dev/null || true)
+          fatal_events=$(echo "$pod_events" | grep -E "FailedMount|FailedAttachVolume|FailedScheduling|CreateContainerError|CreateContainerConfigError|RunContainerError|CrashLoopBackOff|ErrImageNeverPull" || true)
+          if [[ -n "$fatal_events" ]]; then
+            echo "::error::❌ Logging operator pod has fatal events"
+            echo -e "Events for logging operator pod:\n$pod_events"
+            echo -e "Pods status in ${{ env.namespace }} namespace:\n$(kubectl get pods -n ${{ env.namespace }})"
+            exit 1
+          fi
+          if [[ "$ready" == "True" ]]; then
+            echo "✅ Logging operator is ready."
+            break
+          elif [[ "$ready" == "False" && "$phase" == "Running" ]]; then
+            echo "Logging operator is not ready yet. Retrying in ${{ env.delay }} seconds..."
+            kubectl get pods -n ${{ env.namespace }}
+            sleep ${{ env.delay }}
+            ((attempt++))
+          elif [[ "$phase" == "Pending" && "$scheduled" == "True" ]]; then
+            echo "Logging operator status: $phase. Retrying in ${{ env.delay }} seconds..."
+            kubectl get pods -n ${{ env.namespace }}
+            sleep ${{ env.delay }}
+            ((attempt++))
+          else
+            echo "::error::❌ Logging operator pod cannot start"
+            echo -e "Events for logging operator pod:\n$pod_events"
+            echo -e "Pods status in ${{ env.namespace }} namespace:\n$(kubectl get pods -n ${{ env.namespace }})"
+            exit 1
+          fi
+        done
+        if [[ "$ready" != "True" ]]; then
+          echo "::error::❌ Maximum attempts reached. Logging operator is not ready."
+          exit 1
+        fi
+      shell: bash
+
+    - name: Checking graylog status
+      if: matrix.backend == 'graylog'
+      id: check_graylog
+      run: |
+        echo "Waiting 10 seconds before checking graylog status..."
+        sleep ${{ env.delay }}
+        echo "Checking status of graylog..."
+        attempt=1
+        max_attempts=${{ env.max_attempts }}
+        while [[ $attempt -le $max_attempts ]]; do
+          problem_pods=$(kubectl get pods -n ${{ env.namespace }} 2>/dev/null | grep -E "ImagePullBackOff|ErrImagePull|InvalidImageName" || true)
+          if [[ -n "$problem_pods" ]]; then
+            echo -e "::error::❌ Some images cannot be pulled:\n$problem_pods"
+            exit 1
+          fi
+          echo "Attempt $attempt/$max_attempts: Checking graylog pod status..."
+          pod=$(kubectl get pod -l name=graylog -n ${{ env.namespace }} -o jsonpath='{.items[0]}')
+          if [[ -z "$pod" ]]; then
+            echo "Graylog pod not found yet. Retrying in ${{ env.delay }} seconds..."
+            kubectl get pods -n ${{ env.namespace }}
+            sleep ${{ env.delay }}
+            ((attempt++))
+            continue
+          fi
+          pod_name=$(echo "$pod" | jq -r '.metadata.name')
+          phase=$(echo "$pod" | jq -r '.status.phase')
+          ready=$(echo "$pod" | jq -r '.status.conditions[] | select(.type == "Ready") | .status')
+          scheduled=$(echo "$pod" | jq -r '.status.conditions[] | select(.type == "PodScheduled") | .status')
+          pod_events=$(kubectl events -n ${{ env.namespace }} --for "pod/$pod_name" 2>/dev/null || true)
+          fatal_events=$(echo "$pod_events" | grep -E "FailedMount|FailedAttachVolume|FailedScheduling|CreateContainerError|CreateContainerConfigError|RunContainerError|CrashLoopBackOff|ErrImageNeverPull" || true)
+          if [[ -n "$fatal_events" ]]; then
+            echo "::error::❌ Graylog pod has fatal events"
+            echo -e "Events for graylog pod:\n$pod_events"
+            echo -e "Pods status in ${{ env.namespace }} namespace:\n$(kubectl get pods -n ${{ env.namespace }})"
+            exit 1
+          fi
+          if [[ "$ready" == "True" ]]; then
+            echo "✅ Graylog is ready."
+            echo "status=✅success" >> $GITHUB_OUTPUT
+            echo "details=Graylog image: $(echo "$pod" | jq -r '.spec.containers[1].image')" >> $GITHUB_OUTPUT
+            break
+          elif [[ "$ready" == "False" && "$phase" == "Running" ]]; then
+            echo "Graylog is not ready yet. Retrying in ${{ env.delay }} seconds..."
+            kubectl get pods -n ${{ env.namespace }}
+            sleep ${{ env.delay }}
+            ((attempt++))
+          elif [[ "$phase" == "Pending" && "$scheduled" == "True" ]]; then
+            echo "Graylog status: $phase. Retrying in ${{ env.delay }} seconds..."
+            kubectl get pods -n ${{ env.namespace }}
+            sleep ${{ env.delay }}
+            ((attempt++))
+          else
+            echo "::error::❌ Graylog pod cannot start"
+            echo -e "Events for graylog pod:\n$pod_events"
+            echo -e "Pods status in ${{ env.namespace }} namespace:\n$(kubectl get pods -n ${{ env.namespace }})"
+            exit 1
+          fi
+        done
+        if [[ "$ready" != "True" ]]; then
+          echo "::error::❌ Maximum attempts reached. Graylog is not ready."
+          exit 1
+        fi
+      shell: bash
+
+    - name: Check integration tests pod status
+      run: |
+        echo "Checking status of integration tests pod..."
+        attempt=1
+        max_attempts=${{ env.max_attempts }}
+        while [[ $attempt -le $max_attempts ]]; do
+          problem_pods=$(kubectl get pods -n ${{ env.namespace }} 2>/dev/null | grep -E "ImagePullBackOff|ErrImagePull|InvalidImageName" || true)
+          if [[ -n "$problem_pods" ]]; then
+            echo -e "::error::❌ Some images cannot be pulled:\n$problem_pods"
+            exit 1
+          fi
+          echo "Attempt $attempt/$max_attempts: Checking integration-tests pod status..."
+          pod=$(kubectl get pod -l name=logging-integration-tests-runner -n ${{ env.namespace }} -o jsonpath='{.items[0]}')
+          if [[ -z "$pod" ]]; then
+            echo "Integration tests pod not found yet. Retrying in ${{ env.delay }} seconds..."
+            kubectl get pods -n ${{ env.namespace }}
+            sleep ${{ env.delay }}
+            ((attempt++))
+            continue
+          fi
+          pod_name=$(echo "$pod" | jq -r '.metadata.name')
+          phase=$(echo "$pod" | jq -r '.status.phase')
+          ready=$(echo "$pod" | jq -r '.status.conditions[] | select(.type == "Ready") | .status')
+          scheduled=$(echo "$pod" | jq -r '.status.conditions[] | select(.type == "PodScheduled") | .status')
+          pod_events=$(kubectl events -n ${{ env.namespace }} --for "pod/$pod_name" 2>/dev/null || true)
+          fatal_events=$(echo "$pod_events" | grep -E "FailedMount|FailedAttachVolume|FailedScheduling|CreateContainerError|CreateContainerConfigError|RunContainerError|CrashLoopBackOff|ErrImageNeverPull" || true)
+          if [[ -n "$fatal_events" ]]; then
+            echo "::error::❌ Integration tests pod has fatal events"
+            echo -e "Events for integration tests pod:\n$pod_events"
+            echo -e "Pods status in ${{ env.namespace }} namespace:\n$(kubectl get pods -n ${{ env.namespace }})"
+            exit 1
+          fi
+          if [[ "$ready" == "True" ]]; then
+            echo "✅Integration tests pod is ready."
+            break
+          elif [[ "$ready" == "False" && "$phase" == "Running" ]]; then
+            echo "Integration tests pod is not ready yet. Retrying in ${{ env.delay }} seconds..."
+            sleep ${{ env.delay }}
+            ((attempt++))
+          elif [[ "$phase" == "Pending" && "$scheduled" == "True" ]]; then
+            echo "Integration tests pod status: $phase. Retrying in ${{ env.delay }} seconds..."
+            kubectl get pods -n ${{ env.namespace }}
+            sleep ${{ env.delay }}
+            ((attempt++))
+          else
+            kubectl get pods -n ${{ env.namespace }}
+            echo "::error::❌ Integration tests pod cannot start"
+            echo -e "Events for integration tests pod:\n$pod_events"
+            echo -e "Pods status in ${{ env.namespace }} namespace:\n$(kubectl get pods -n ${{ env.namespace }})"
+            exit 1
+          fi
+        done
+        if [[ "$ready" != "True" ]]; then
+          echo "::error::❌ Maximum attempts reached. Integration tests pod is not ready."
+          exit 1
+        fi
+      shell: bash
+
+    - name: Check integration tests results
+      id: check_integration_tests
+      run: |
+        echo "Checking integration tests results..."
+        attempt=1
+        max_attempts=${{ env.max_attempts }}
+
+        smoke_result=""
+        while [[ $attempt -le $max_attempts ]]; do
+          echo "Attempt $attempt/$max_attempts: Running smoke tests..."
+          logs=$(kubectl logs -l name=logging-integration-tests-runner -n ${{ env.namespace }} --tail=-1)
+          smoke_stats=$(awk '/^Tests\.Smoke\s+\|\s+(PASS|FAIL|SKIP)\s+\|$/{flag=1} /^([=]{78,})$/{if(flag){flag=0}} flag && /[0-9]+ tests, [0-9]+ passed, [0-9]+ failed(, [0-9]+ skipped)?/' <<< "$logs")
+          if [[ -n "$smoke_stats" ]]; then
+            read total passed failed skipped <<< $(echo "$smoke_stats" | awk '{gsub(",", "", $0); print $1, $3, $5, $7}')
+            echo "smoke_total=$total" >> $GITHUB_OUTPUT
+            echo "smoke_passed=$passed" >> $GITHUB_OUTPUT
+            echo "smoke_failed=$failed" >> $GITHUB_OUTPUT
+            echo "smoke_skipped=${skipped:-0}" >> $GITHUB_OUTPUT
+          fi
+          if [[ -n $(echo "$logs" | grep -E "Tests\.Smoke\s+\|\s+PASS\s+\|") ]]; then
+            echo "✅ Smoke test passed."
+            echo "smoke_status=✅passed" >> $GITHUB_OUTPUT
+            smoke_result="passed"
+            break
+          elif [[ -n $(echo "$logs" | grep -E "Tests\.Smoke\s+\|\s+FAIL\s+\|") ]]; then
+            echo "smoke_skipped=${skipped:-0}" >> $GITHUB_OUTPUT
+            if [[ -n $(echo "$logs" | grep -E "Keyword 'Check Indexer Cluster Status' failed[[:alnum:][:space:]:\.]+yellow != green") && "$failed" == "1" ]]; then
+              warning=$(echo "$logs" | grep "yellow != green")
+              echo "::group::⚠️Smoke test completed with 1 warning:"
+              echo -e "$warning\n==========================="
+              echo -e "Total: $total\nFailed: $failed\nSkipped: ${skipped:-0}\nPassed: $passed"
+              echo "::endgroup::"
+              echo "smoke_status=⚠️warning" >> $GITHUB_OUTPUT
+              echo "warning=$warning" >> $GITHUB_OUTPUT
+              smoke_result="warning"
+            else
+              echo "Smoke test completed with $failed failures. Check integration tests logs."
+              echo "smoke_status=❌failure" >> $GITHUB_OUTPUT
+              echo "details=Check logs in uploaded artifacts" >> $GITHUB_OUTPUT
+              smoke_result="failure"
+            fi
+            break
+          else
+            echo "Smoke test is not completed yet. Retrying in ${{ env.delay }} seconds..."
+            sleep ${{ env.delay }}
+            ((attempt++))
+          fi
+        done
+        TEST_RESULTS_SMOKE=$(echo "$logs" | awk '/^={78,}$/ && prev ~ /^Tests\.Smoke\s+$/ {flag=1} flag; /^={78,}$/ && prev ~ /^[0-9]+ tests,/ {flag=0} {prev=$0}')
+        cat <<EOF >> $GITHUB_OUTPUT
+        smoke_test_results<<END
+        $TEST_RESULTS_SMOKE
+        END
+        EOF
+        if [[ "$smoke_result" == "failure" ]]; then
+          exit 1
+        fi
+        if [[ -z "$smoke_result" && $attempt -gt $max_attempts ]]; then
+          echo "::error::❌ Smoke test timed out. Check integration tests logs."
+          echo "smoke_status=❌failure" >> $GITHUB_OUTPUT
+          echo "details=Check logs in uploaded artifacts" >> $GITHUB_OUTPUT
+          exit 1
+        fi
+
+        attempt=1
+        log_gen_result=""
+        while [[ $attempt -le $max_attempts ]]; do
+          echo "Attempt $attempt/$max_attempts: Checking logs parsing..."
+          logs=$(kubectl logs -l name=logging-integration-tests-runner -n ${{ env.namespace }} --tail=-1)
+          log_gen_stats=$(awk '/^Tests\.Log Generator\s+\|\s+(PASS|FAIL|SKIP)\s+\|$/{flag=1} /^([=]{78,})$/{if(flag){flag=0}} flag && /[0-9]+ tests, [0-9]+ passed, [0-9]+ failed(, [0-9]+ skipped)?/' <<< "$logs")
+
+          if [[ -n $(echo "$logs" | grep -E "^Tests\.Log Generator\s+\|\s+PASS\s+\|$") ]]; then
+            echo "✅ Logs are successfully parsed and queried from the configured backend."
+            echo "log_gen_status=✅passed" >> $GITHUB_OUTPUT
+            log_gen_result="pass"
+            break
+          elif [[ -n $(echo "$logs" | grep -E "^Tests\.Log Generator\s+\|\s+FAIL\s+\|$") ]]; then
+            echo "::error::❌ Log Generator test failed. Check integration tests logs."
+            echo "log_gen_status=❌failure" >> $GITHUB_OUTPUT
+            echo "details=Check logs in uploaded artifacts" >> $GITHUB_OUTPUT
+            log_gen_result="failure"
+            break
+          else
+            echo "Log Generator test is not completed yet. Retrying in ${{ env.delay }} seconds..."
+            sleep ${{ env.delay }}
+            ((attempt++))
+          fi
+        done
+        LOG_GEN_TEST_RESULTS=$(echo "$logs" | awk '/^={78,}$/ && prev ~ /^Tests\.Log Generator\s+$/ {flag=1} flag; /^={78,}$/ && prev ~ /^[0-9]+ tests,/ {flag=0} {prev=$0}')
+        cat <<EOF >> $GITHUB_OUTPUT
+        log_gen_test_results<<END
+        $LOG_GEN_TEST_RESULTS
+        END
+        EOF
+        if [[ -n "$log_gen_stats" ]]; then
+          read total passed failed skipped <<< $(echo "$log_gen_stats" | awk '{gsub(",", "", $0); print $1, $3, $5, $7}')
+          echo "log_gen_total=$total" >> $GITHUB_OUTPUT
+          echo "log_gen_passed=$passed" >> $GITHUB_OUTPUT
+          echo "log_gen_failed=$failed" >> $GITHUB_OUTPUT
+          echo "log_gen_skipped=${skipped:-0}" >> $GITHUB_OUTPUT
+          if [[ "$log_gen_result" == "failure" ]]; then
+            exit 1
+          fi
+        else
+          echo "Logs parsing test timed out. Check integration tests logs."
+          echo "log_gen_status=❌failure" >> $GITHUB_OUTPUT
+          exit 1
+        fi
+        echo "status=✅passed" >> $GITHUB_OUTPUT
+      shell: bash
+
+    - name: Save OpenSearch artifacts
+      if: always() && matrix.backend == 'graylog'
+      id: opensearch_artifacts
+      run: |
+        mkdir -p "artifacts/${{ env.opensearch_namespace }}"
+        pods=$(kubectl get pods -n ${{ env.opensearch_namespace }} -o wide)
+        echo "$pods" > artifacts/${{ env.opensearch_namespace }}/pods.txt
+        PODS_TABLE=$(kubectl get pods -n ${{ env.opensearch_namespace }} -o wide)
+        cat <<EOF >> $GITHUB_OUTPUT
+        opensearch_pods<<END
+        $PODS_TABLE
+        END
+        EOF
+        kubectl get events -n "${{ env.opensearch_namespace }}" --sort-by=.metadata.creationTimestamp > artifacts/${{ env.opensearch_namespace }}/events.txt
+        kubectl get pods -n "${{ env.opensearch_namespace }}" -o jsonpath='{range .items[*]}{.metadata.name}{" "}{.spec.containers[*].name}{"\n"}{end}' | while read -r pod containers; do
+          for container in $containers; do
+            echo "Fetching logs in ${{ env.opensearch_namespace }} namespace for pod: $pod, container: $container"
+            if logs=$(kubectl logs -n "${{ env.opensearch_namespace }}" "$pod" -c "$container" 2>&1); then
+              echo "$logs" > "artifacts/${{ env.opensearch_namespace }}/$pod-$container.log"
+            else
+              echo "Could not fetch logs for $pod/$container: $logs" >&2
+            fi
+            if logs=$(kubectl logs -n "${{ env.opensearch_namespace }}" "$pod" -c "$container" --previous 2>&1); then
+              echo "$logs" > "artifacts/${{ env.opensearch_namespace }}/$pod-$container-previous.log"
+            else
+              :
+            fi
+          done
+        done
+      shell: bash
+
+    - name: Save VictoriaLogs artifacts
+      if: always() && matrix.backend == 'victorialogs'
+      id: victorialogs_artifacts
+      run: |
+        mkdir -p "artifacts/victorialogs"
+        PODS_TABLE=$(kubectl get pods -n ${{ env.namespace }} -l app.kubernetes.io/instance=vmo -o wide)
+        cat <<EOF >> $GITHUB_OUTPUT
+        victorialogs_pods<<END
+        $PODS_TABLE
+        END
+        EOF
+        kubectl get events -n "${{ env.namespace }}" --sort-by=.metadata.creationTimestamp > artifacts/victorialogs/events.txt
+        kubectl get svc -n "${{ env.namespace }}" -o wide | grep "vlsingle-${{ env.vlsingle_name }}" > artifacts/victorialogs/services.txt || true
+        kubectl get vlsingle -n "${{ env.namespace }}" -o yaml > artifacts/victorialogs/vlsingle.yaml
+        kubectl get pods -n "${{ env.namespace }}" -l app.kubernetes.io/instance=vmo -o jsonpath='{range .items[*]}{.metadata.name}{" "}{.spec.containers[*].name}{"\n"}{end}' | while read -r pod containers; do
+          for container in $containers; do
+            echo "Fetching VictoriaMetrics operator logs for pod: $pod, container: $container"
+            if logs=$(kubectl logs -n "${{ env.namespace }}" "$pod" -c "$container" 2>&1); then
+              echo "$logs" > "artifacts/victorialogs/$pod-$container.log"
+            else
+              echo "Could not fetch logs for $pod/$container: $logs" >&2
+            fi
+            if logs=$(kubectl logs -n "${{ env.namespace }}" "$pod" -c "$container" --previous 2>&1); then
+              echo "$logs" > "artifacts/victorialogs/$pod-$container-previous.log"
+            else
+              :
+            fi
+          done
+        done
+      shell: bash
+
+    - name: Save logging artifacts
+      id: logging_artifacts
+      if: always()
+      run: |
+        mkdir -p "artifacts/${{ env.namespace }}"
+        pods=$(kubectl get pods -n ${{ env.namespace }} -o wide)
+        echo "$pods" > artifacts/${{ env.namespace }}/pods.txt
+        PODS_TABLE=$(kubectl get pods -n ${{ env.namespace }} -o wide)
+        cat <<EOF >> $GITHUB_OUTPUT
+        logging_pods<<END
+        $PODS_TABLE
+        END
+        EOF
+        kubectl get events -n "${{ env.namespace }}" --sort-by=.metadata.creationTimestamp > artifacts/${{ env.namespace }}/events.txt
+        kubectl get configmap logging-fluentbit -n "${{ env.namespace }}" -o yaml > artifacts/${{ env.namespace }}/logging-fluentbit.yaml
+        kubectl get pods -n "${{ env.namespace }}" -o jsonpath='{range .items[*]}{.metadata.name}{" "}{.spec.containers[*].name}{"\n"}{end}' | while read -r pod containers; do
+          for container in $containers; do
+            echo "Fetching logs in ${{ env.namespace }} namespace for pod: $pod, container: $container"
+            if logs=$(kubectl logs -n "${{ env.namespace }}" "$pod" -c "$container" 2>&1); then
+              echo "$logs" > "artifacts/${{ env.namespace }}/$pod-$container.log"
+            else
+              echo "Could not fetch logs for $pod/$container: $logs" >&2
+            fi
+            if logs=$(kubectl logs -n "${{ env.namespace }}" "$pod" -c "$container" --previous 2>&1); then
+              echo "$logs" > "artifacts/${{ env.namespace }}/$pod-$container-previous.log"
+            else
+              :
+            fi
+          done
+        done
+      shell: bash
+
+    - name: Generate artifact name
+      if: always()
+      env:
+        HEAD_REF: ${{ github.head_ref || github.ref_name }}
+      run: |
+        release_name=$(echo "$HEAD_REF" | tr '/' '_' || echo "")
+        ARTIFACT_NAME="${{ github.job }}_${{ matrix.scenario_id }}_${{ env.namespace }}_${release_name}_artifacts_$(date -u +'%Y%m%d%H%M%S')"
+        echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> $GITHUB_ENV
+      shell: bash
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      if: always()
+      with:
+        name: ${{ env.ARTIFACT_NAME }}
+        path: artifacts/
+
+    - name: Cleanup
+      if: always()
+      run: |
+        kind delete cluster
+
+    - name: Generate Status Summary
+      if: always()
+      run: |
+        echo "## Scenario" >> $GITHUB_STEP_SUMMARY
+        echo "Backend: ${{ matrix.scenario_name }}" >> $GITHUB_STEP_SUMMARY
+
+        if [[ "${{ matrix.backend }}" == "graylog" ]]; then
+          echo "## Install Opensearch" >> $GITHUB_STEP_SUMMARY
+          echo "Check OpenSearch cluster health: ${{ steps.check_opensearch_health.outputs.status || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
+          echo "OpenSearch version: ${{ env.opensearch_version }}" >> $GITHUB_STEP_SUMMARY
+          echo "Cluster status:" >> $GITHUB_STEP_SUMMARY
+          echo '```json' >> $GITHUB_STEP_SUMMARY
+          echo '${{ steps.check_opensearch_health.outputs.cluster_status }}' | jq . >> $GITHUB_STEP_SUMMARY || echo '❓unknown' >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo 'OpenSearch pods running in backend namespace:' >> $GITHUB_STEP_SUMMARY
+          echo '```sh' >> $GITHUB_STEP_SUMMARY
+          echo "${{ steps.opensearch_artifacts.outputs.opensearch_pods || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+        else
+          echo "## Install VictoriaLogs" >> $GITHUB_STEP_SUMMARY
+          echo "VictoriaMetrics operator release: vmo" >> $GITHUB_STEP_SUMMARY
+          echo "VictoriaLogs URL: ${VICTORIALOGS_URL:-❓unknown}" >> $GITHUB_STEP_SUMMARY
+          echo "Namespace: ${{ env.namespace }}" >> $GITHUB_STEP_SUMMARY
+          echo 'Pods running in namespace:' >> $GITHUB_STEP_SUMMARY
+          echo '```sh' >> $GITHUB_STEP_SUMMARY
+          echo "${{ steps.victorialogs_artifacts.outputs.victorialogs_pods || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+        fi
+
+        echo "## Install logging operator" >> $GITHUB_STEP_SUMMARY
+        if [[ "${{ matrix.backend }}" == "graylog" ]]; then
+          echo "Check graylog status: ${{ steps.check_graylog.outputs.status || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
+          echo "${{ steps.check_graylog.outputs.details || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "Fluent Bit HTTP output target: ${VLSINGLE_SERVICE:-❓unknown}.${{ env.namespace }}:${VLSINGLE_PORT:-❓unknown}" >> $GITHUB_STEP_SUMMARY
+        fi
+        echo 'Pods running in logging namespace:' >> $GITHUB_STEP_SUMMARY
+        echo '```sh' >> $GITHUB_STEP_SUMMARY
+        echo "${{ steps.logging_artifacts.outputs.logging_pods || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+
+        echo "## Integration tests status" >> $GITHUB_STEP_SUMMARY
+        echo "Overall status: ${{ steps.check_integration_tests.outputs.status || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
+
+        echo "### Smoke test" >> $GITHUB_STEP_SUMMARY
+        echo "status: ${{ steps.check_integration_tests.outputs.smoke_status || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
+        if [ -n "${{ steps.check_integration_tests.outputs.warning }}" ]; then
+          echo "warning: ${{ steps.check_integration_tests.outputs.warning }}" >> $GITHUB_STEP_SUMMARY
+        fi
+        echo '```' >> $GITHUB_STEP_SUMMARY
+        echo "Total tests: ${{ steps.check_integration_tests.outputs.smoke_total || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
+        echo "Failed tests: ${{ steps.check_integration_tests.outputs.smoke_failed || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
+        echo "Skipped tests: ${{ steps.check_integration_tests.outputs.smoke_skipped || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
+        echo "Passed tests: ${{ steps.check_integration_tests.outputs.smoke_passed || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+
+        echo "### Logs parsing test" >> $GITHUB_STEP_SUMMARY
+        echo "status: ${{ steps.check_integration_tests.outputs.log_gen_status || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+        echo "Total tests: ${{ steps.check_integration_tests.outputs.log_gen_total || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
+        echo "Failed tests: ${{ steps.check_integration_tests.outputs.log_gen_failed || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
+        echo "Skipped tests: ${{ steps.check_integration_tests.outputs.log_gen_skipped || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
+        echo "Passed tests: ${{ steps.check_integration_tests.outputs.log_gen_passed || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+
+        echo "<details>" >> $GITHUB_STEP_SUMMARY
+        echo "<summary><b>🔍 See smoke test logs</b></summary>" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo '```sh' >> $GITHUB_STEP_SUMMARY
+        echo "${{ steps.check_integration_tests.outputs.smoke_test_results || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+        echo "</details>" >> $GITHUB_STEP_SUMMARY
+
+        echo "<details>" >> $GITHUB_STEP_SUMMARY
+        echo "<summary><b>🔍 See logs parsing test logs</b></summary>" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo '```sh' >> $GITHUB_STEP_SUMMARY
+        echo "${{ steps.check_integration_tests.outputs.log_gen_test_results || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+        echo "</details>" >> $GITHUB_STEP_SUMMARY
+      shell: bash

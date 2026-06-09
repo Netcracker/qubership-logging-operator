@@ -1,0 +1,31 @@
+{{- if .Values.fluentbit.install }}
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: fluentbit-all-pods
+  labels:
+    {{- include "logging.labels" (dict "ctx" . "name" "fluentbit-all-pods" "component" "monitoring") | nindent 4 }}
+    app.kubernetes.io/processed-by-operator: prometheus-operator
+    {{- if .Values.fluentbit.labels }}
+    {{- include "logging.extraLabels" (dict "ctx" . "extraLabels" .Values.fluentbit.labels) | nindent 4 }}
+    {{- end }}
+  {{- if .Values.fluentbit.annotations }}
+  annotations:
+    {{- toYaml .Values.fluentbit.annotations | nindent 4 }}
+  {{- end }}
+spec:
+  jobLabel: fluentbit
+  podMetricsEndpoints:
+    - interval: 30s
+      path: /metrics
+      port: log-to-metrics
+    - interval: 30s
+      path: /api/v2/metrics/prometheus
+      port: http
+    - interval: 30s
+      path: /metrics
+      port: reload-metrics
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: fluentbit
+{{- end }}

@@ -1,0 +1,102 @@
+name: Build Docker with Matrix Strategy
+run-name: "Image for ${{ github.event.repository.name }}: ${{ github.run_number }} - ${{ github.actor }}"
+on:
+  # pull_request:
+  #   types: [opened, synchronize, reopened]
+  #   branches:
+  #   - main
+  #   paths-ignore:
+  #   - '.github/**'
+  #   - 'docs/**'
+  #   - 'CODE-OF-CONDUCT.md'
+  #   - 'CONTRIBUTING.md'
+  #   - 'LICENSE'
+  #   - 'README.md'
+  #   - 'SECURITY.md'
+  workflow_dispatch:
+    inputs:
+      tags:
+        required: false
+        type: string
+        default: ''
+        description: 'Tags'
+      dry-run:
+        required: true
+        type: boolean
+        default: false
+        description: 'Dry run'
+permissions: {}
+
+jobs:
+  prepare:
+    permissions:
+      contents: read
+    name: "Prepare Images and Metadata"
+    runs-on: ubuntu-latest
+    outputs:
+      components: ${{ steps.load_component.outputs.components }}
+      platforms: ${{ steps.load_component.outputs.platforms }}
+      metadata: "${{ steps.metadata.outputs.result }}"
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+    - name: Load Docker Configuration
+      id: load_component
+      shell: bash
+      run: |
+        verify=$(cat "$GITHUB_WORKSPACE/.github/docker-dev-config.json" | jq '
+          def verify_structure:
+            .components as $components
+            | .platforms as $platforms
+            | ($components | type == "array")
+            and (all($components[]; has("name") and has("file") and has("context")))
+            and ($platforms | type == "string");
+          verify_structure
+          | if . then true else false end
+        ')
+        if [ "${verify}" == "true" ]; then
+          echo "✅ $GITHUB_WORKSPACE/.github/docker-dev-config.json file is valid"
+          components=$(jq -c ".components" "$GITHUB_WORKSPACE/.github/docker-dev-config.json")
+          platforms=$(jq -c ".platforms" "$GITHUB_WORKSPACE/.github/docker-dev-config.json")
+        else
+          echo "❗ $GITHUB_WORKSPACE/.github/docker-dev-config.json file is invalid"
+          echo "❗ $GITHUB_WORKSPACE/.github/docker-dev-config.json file is invalid" >> $GITHUB_STEP_SUMMARY
+          exit 1
+        fi
+        echo "components=${components}" >> "$GITHUB_OUTPUT"
+        echo "platforms=${platforms}" >> "$GITHUB_OUTPUT"
+
+    - name: Create tags for images
+      uses: netcracker/qubership-workflow-hub/actions/metadata-action@6a2de8d62ac5b6998e30f923613c998c263ea9f2 # v2.2.2
+      id: metadata
+      with:
+        short-sha: 11
+        extra-tags: ${{ github.event.inputs.tags }}
+        default-template: "{{ref-name}}-{{timestamp}}, {{ref-name}}-{{short-sha}}, {{ref-name}}, {{short-sha}}"
+        default-tag: "dev"
+        dry-run: ${{ inputs.dry-run }}
+
+  build:
+    name: Build Docker Images
+    needs: [prepare]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        component: ${{ fromJson(needs.prepare.outputs.components) }}
+    steps:
+    - name: Docker
+      uses: netcracker/qubership-workflow-hub/actions/docker-action@6a2de8d62ac5b6998e30f923613c998c263ea9f2 # v2.2.2
+      with:
+        ref: ${{ github.ref }}
+        dry-run: ${{ inputs.dry-run }}
+        download-artifact: false
+        component: ${{ toJson(matrix.component) }}
+        platforms: ${{ needs.prepare.outputs.platforms }}
+        tags: ${{ needs.prepare.outputs.metadata }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,26 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: logging-fluentbit-forwarder
+  namespace: {{ .Release.Namespace }}
+  labels:
+    component: logging-fluentbit-forwarder
+{{- if .Values.OpenshiftDeploy }}
+    provider: openshift
+{{- else }}
+    provider: kubernetes
+{{- end }}
+spec:
+  ports:
+    - name: logging-fluentbit-forwarder
+      protocol: TCP
+      port: 2020
+      targetPort: 2020
+  selector:
+    name: logging-fluentbit-forwarder
+{{- if .Values.OpenshiftDeploy }}
+    provider: openshift
+{{- else }}
+    provider: kubernetes
+{{- end }}
+  type: ClusterIP

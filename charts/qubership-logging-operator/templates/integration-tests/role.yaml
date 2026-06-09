@@ -1,0 +1,51 @@
+{{- if .Values.integrationTests.install }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ .Values.integrationTests.service.name }}
+  labels:
+    {{- include "logging.labels" (dict "ctx" . "name" .Values.integrationTests.service.name "component" "integration-tests") | nindent 4 }}
+    {{- if .Values.integrationTests.labels }}
+    {{- include "logging.extraLabels" (dict "ctx" . "extraLabels" .Values.integrationTests.labels) | nindent 4 }}
+    {{- end }}
+  {{- if .Values.integrationTests.annotations }}
+  annotations:
+    {{- toYaml .Values.integrationTests.annotations | nindent 4 }}
+  {{- end }}
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+      - services
+      - secrets
+      - configmaps
+    verbs:
+      - get
+      - list
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+    verbs:
+      - create
+      - delete
+  - apiGroups:
+      - apps
+    resources:
+      - deployments
+      - statefulsets
+      - statefulsets/scale
+      - deployments/scale
+      - daemonsets
+    verbs:
+      - get
+      - list
+  - apiGroups:
+      - apps
+    resources:
+      - deployments
+    verbs:
+      - create
+      - delete
+{{- end }}

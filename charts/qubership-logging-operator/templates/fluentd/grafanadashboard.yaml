@@ -1,0 +1,19 @@
+{{- if .Values.fluentd.install }}
+apiVersion: integreatly.org/v1alpha1
+kind: GrafanaDashboard
+metadata:
+  name: fluentd-grafana-dashboard
+  labels:
+    {{- include "logging.labels" (dict "ctx" . "name" "fluentd-grafana-dashboard" "component" "monitoring") | nindent 4 }}
+    app.kubernetes.io/processed-by-operator: grafana-operator
+    {{- if .Values.fluentd.labels }}
+    {{- include "logging.extraLabels" (dict "ctx" . "extraLabels" .Values.fluentd.labels) | nindent 4 }}
+    {{- end }}
+  {{- if .Values.fluentd.annotations }}
+  annotations:
+    {{- toYaml .Values.fluentd.annotations | nindent 4 }}
+  {{- end }}
+spec:
+  json: |
+{{ .Files.Get "monitoring/fluentd-dashboard.json" | indent 4 }}
+{{- end }}

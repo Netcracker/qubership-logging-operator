@@ -1,0 +1,15 @@
+{{- if or (include "graylog.http.generateCerts.enabled" . ) (include "graylog.input.generateCerts.enabled" . ) (include "fluentd.generateCerts.enabled" . ) (include "fluentbit.generateCerts.enabled" . ) (include "fluentbit.aggregator.generateCerts.enabled" . ) }}
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: logging-self-signed-issuer
+  labels:
+    {{- include "logging.labels" (dict "ctx" . "name" "logging-self-signed-issuer" "component" "operator") | nindent 4 }}
+    {{- include "logging.extraLabels" . | nindent 4 }}
+  {{- if .Values.annotations }}
+  annotations:
+    {{- toYaml .Values.annotations | nindent 4 }}
+  {{- end }}
+spec:
+  selfSigned: {}
+{{- end }}

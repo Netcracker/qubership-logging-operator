@@ -1,0 +1,19 @@
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ .Release.Namespace }}-graylog
+  labels:
+    name: {{ .Release.Namespace }}-graylog
+    app.kubernetes.io/name: {{ .Release.Namespace }}-graylog
+    app.kubernetes.io/component: graylog
+    app.kubernetes.io/part-of: logging
+    app.kubernetes.io/managed-by: manually
+rules:
+  - apiGroups:
+      - extensions
+    resources:
+      - podsecuritypolicies
+    resourceNames:
+      - logging-graylog
+    verbs:
+      - use

@@ -11,6 +11,7 @@ import re
 import sys
 from datetime import UTC, datetime
 from datetime import timedelta
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
@@ -25,6 +26,22 @@ BYTES_IN_KB = 1024
 BYTE_FIELDS_WITHOUT_SUFFIX = {
     "sum_gl2_accounted_message_size",
     "max_gl2_accounted_message_size",
+}
+SOURCE_COLUMN_IGNORED = {
+    "namespace",
+    "stream",
+    "level",
+    "level_name",
+    "nodename",
+    "count",
+    "messages_count",
+    "sum_gl2_accounted_message_size_kb",
+    "max_gl2_accounted_message_size_kb",
+    "sum_message_size_kb",
+    "max_message_size_kb",
+    "max_parse_field_count",
+    "share_percent",
+    "percent",
 }
 
 
@@ -75,8 +92,9 @@ def env_required(name: str) -> bool:
     return not env_value(name)
 
 
-def env_bool(name: str) -> bool:
-    return env_value(name).lower() in ("1", "true", "yes", "on")
+def env_bool(name: str, default: bool = False) -> bool:
+    default_value = "true" if default else "false"
+    return env_value(name, default_value).lower() in ("1", "true", "yes", "on")
 
 
 def env_positive_int(name: str, default: str) -> int:
@@ -187,7 +205,30 @@ def parser() -> argparse.ArgumentParser:
         "--include-detailed-levels",
         action="store_true",
         default=env_bool("INCLUDE_DETAILED_LEVELS"),
-        help="Add per-level top-source queries. Disabled by default for faster reports. Env: INCLUDE_DETAILED_LEVELS.",
+        help=(
+            "VictoriaLogs only: add per-level top-source queries. "
+            "Disabled by default for faster reports. Env: INCLUDE_DETAILED_LEVELS."
+        ),
+    )
+    result.add_argument(
+        "--parallel-queries",
+        dest="parallel_queries",
+        action=argparse.BooleanOptionalAction,
+        default=env_bool("PARALLEL_QUERIES", True),
+        help=(
+            "Run independent Graylog report queries in parallel. "
+            "Use --no-parallel-queries or PARALLEL_QUERIES=false for conservative backend load. "
+            "Env: PARALLEL_QUERIES."
+        ),
+    )
+    result.add_argument(
+        "--graylog-query-workers",
+        type=positive_int,
+        default=env_positive_int("GRAYLOG_QUERY_WORKERS", "4"),
+        help=(
+            "Maximum concurrent Graylog HTTP requests when parallel queries are enabled. "
+            "Default: 4. Env: GRAYLOG_QUERY_WORKERS."
+        ),
     )
     result.add_argument(
         "--fields-count-threshold",
@@ -296,8 +337,8 @@ def graylog_timerange(range_seconds: int, offset_seconds: int, time_from: str, t
     return {"type": "absolute", "from": time_from, "to": time_to}
 
 
-def victorialogs_time_filter(time_range: str, time_offset: str, offset_seconds: int) -> str:
-    if offset_seconds == 0:
+def victorialogs_time_filter(time_range: str, time_offset: str) -> str:
+    if duration_seconds(time_offset, allow_zero=True) == 0:
         return f"_time:{time_range}"
     return f"_time:{time_range} offset {time_offset}"
 
@@ -421,11 +462,17 @@ def row_value(row: Any, columns: list[str], *names: str) -> Any:
         return None
     if not isinstance(row, list):
         return None
+    index_map = column_index_map(tuple(columns))
     for name in names:
-        if name in columns:
-            index = columns.index(name)
+        index = index_map.get(name)
+        if index is not None:
             return row[index] if index < len(row) else None
     return None
+
+
+@lru_cache(maxsize=128)
+def column_index_map(columns: tuple[str, ...]) -> dict[str, int]:
+    return {column: index for index, column in enumerate(columns)}
 
 
 def number_value(value: Any) -> float:
@@ -435,11 +482,23 @@ def number_value(value: Any) -> float:
         return 0.0
 
 
-def total_level_count(report: dict[str, Any]) -> float:
-    rows, columns = section_rows(report, ("logs", "levels", "total_by_level"))
-    total = sum(number_value(row_value(row, columns, "count", "messages_count")) for row in rows)
-    if total:
-        return total
+def source_column(columns: list[str]) -> str:
+    return next((column for column in columns if column not in SOURCE_COLUMN_IGNORED), "")
+
+
+def source_value(row: Any, columns: list[str]) -> Any:
+    column = source_column(columns)
+    return row_value(row, columns, column) if column else None
+
+
+def total_workload_log_count(report: dict[str, Any]) -> float:
+    if report.get("backend_type") == "graylog":
+        rows, columns = section_rows(report, ("logs", "graylog_streams", "total_by_stream"))
+        return sum(
+            number_value(row_value(row, columns, "count", "messages_count"))
+            for row in rows
+            if row_value(row, columns, "stream") == "Default Stream"
+        )
     rows, columns = section_rows(report, ("logs", "namespace_logs", "total"))
     return sum(number_value(row_value(row, columns, "count", "messages_count")) for row in rows)
 
@@ -455,7 +514,7 @@ def detected_large_graylog_messages(report: dict[str, Any], threshold_kb: int) -
     evidence = [
         {
             "namespace": row_value(row, columns, "namespace"),
-            "source": row_value(row, columns, "container"),
+            "source": source_value(row, columns),
             "max_message_size_kb": row_value(row, columns, "max_gl2_accounted_message_size_kb"),
         }
         for row in oversized[:5]
@@ -482,7 +541,7 @@ def detected_large_victorialogs_messages(report: dict[str, Any], threshold_kb: i
     evidence = [
         {
             "namespace": row_value(row, columns, "namespace"),
-            "source": row_value(row, columns, "container"),
+            "source": source_value(row, columns),
             "max_message_size_kb": row_value(row, columns, "max_message_size_kb"),
         }
         for row in oversized[:5]
@@ -538,7 +597,7 @@ def detected_debug_trace_logs(report: dict[str, Any]) -> dict[str, Any] | None:
     sources = [
         {
             "namespace": row_value(row, source_columns, "namespace"),
-            "source": row_value(row, source_columns, "container"),
+            "source": source_value(row, source_columns),
             "messages_count": int(number_value(row_value(row, source_columns, "count", "messages_count"))),
         }
         for row in source_rows[:5]
@@ -555,7 +614,7 @@ def detected_debug_trace_logs(report: dict[str, Any]) -> dict[str, Any] | None:
 
 
 def detected_noisy_container_source(report: dict[str, Any], threshold_percent: float) -> dict[str, Any] | None:
-    total = total_level_count(report)
+    total = total_workload_log_count(report)
     if not total:
         return None
     if report.get("backend_type") == "graylog":
@@ -570,7 +629,7 @@ def detected_noisy_container_source(report: dict[str, Any], threshold_percent: f
             noisy.append(
                 {
                     "namespace": row_value(row, columns, "namespace"),
-                    "source": row_value(row, columns, "container"),
+                    "source": source_value(row, columns),
                     "messages_count": int(messages_count),
                     "share_percent": share,
                 }
@@ -582,7 +641,7 @@ def detected_noisy_container_source(report: dict[str, Any], threshold_percent: f
         "severity": "warning",
         "description": (
             "At least one container source produces more than "
-            f"{threshold_percent}% of all counted logs."
+            f"{threshold_percent}% of all counted workload logs."
         ),
         "evidence": noisy[:5],
     }
@@ -597,11 +656,10 @@ def detected_too_many_fields(report: dict[str, Any], threshold: int) -> dict[str
     if not suspicious:
         return None
 
-    source_field = next((column for column in columns if column not in {"namespace", "max_parse_field_count"}), "")
     evidence = [
         {
             "namespace": row_value(row, columns, "namespace"),
-            "source": row_value(row, columns, source_field) if source_field else None,
+            "source": source_value(row, columns),
             "max_parse_field_count": int(number_value(row_value(row, columns, "max_parse_field_count"))),
         }
         for row in suspicious[:5]
@@ -633,29 +691,51 @@ def detect_problems(report: dict[str, Any], args: argparse.Namespace) -> list[di
     return [problem for problem in checks if problem]
 
 
-def graylog_index_stats_report(args: argparse.Namespace) -> dict[str, Any] | None:
+def graylog_index_stats_report(args: argparse.Namespace, client: HttpClient | None) -> dict[str, Any] | None:
     if args.backend_type != "graylog":
         return None
-    client = HttpClient(
+    if client is None:
+        raise ValueError("Graylog HTTP client is required")
+    return GraylogIndexStatsClient(client).report(dry_run=args.dry_run)
+
+
+def graylog_http_client(args: argparse.Namespace) -> HttpClient | None:
+    if args.backend_type != "graylog":
+        return None
+    return HttpClient(
         args.backend_url,
         user=args.graylog_user,
         password=args.graylog_pass,
         insecure_skip_verify=args.insecure_skip_verify,
         extra_headers={"X-Requested-By": "log-storage-report"},
     )
-    return GraylogIndexStatsClient(client).report(dry_run=args.dry_run)
 
 
-def victorialogs_block_stats_report(args: argparse.Namespace, time_filter: str) -> dict[str, Any] | None:
+def victorialogs_client(args: argparse.Namespace, time_filter: str) -> VictoriaLogsClient | None:
+    if args.backend_type != "victorialogs":
+        return None
+    return VictoriaLogsClient(
+        HttpClient(
+            args.backend_url,
+            user=args.vl_user,
+            password=args.vl_pass,
+            insecure_skip_verify=args.insecure_skip_verify,
+        ),
+        time_filter,
+        args.source_field,
+        args.top_limit,
+        parallel_queries=args.parallel_queries,
+    )
+
+
+def victorialogs_block_stats_report(
+    args: argparse.Namespace,
+    backend: VictoriaLogsClient | None,
+) -> dict[str, Any] | None:
     if args.backend_type != "victorialogs" or not args.include_vl_block_stats:
         return None
-    client = HttpClient(
-        args.backend_url,
-        user=args.vl_user,
-        password=args.vl_pass,
-        insecure_skip_verify=args.insecure_skip_verify,
-    )
-    backend = VictoriaLogsClient(client, time_filter, args.source_field, args.top_limit)
+    if backend is None:
+        raise ValueError("VictoriaLogs client is required")
     return backend.execute_set(backend.block_stats_queries(), dry_run=args.dry_run)
 
 
@@ -669,9 +749,16 @@ def main() -> int:
     if args.large_message_threshold_kb is not None:
         args.graylog_large_record_threshold_kb = args.large_message_threshold_kb
         args.vl_large_message_threshold_kb = args.large_message_threshold_kb
+    if args.backend_type == "graylog" and args.include_detailed_levels:
+        print(
+            "error: --include-detailed-levels is supported only for VictoriaLogs; "
+            "Graylog reports include the aggregated levels section by default.",
+            file=sys.stderr,
+        )
+        return 1
     try:
         range_seconds, offset_seconds, window_from, window_to = time_window(args.time_range, args.time_offset)
-        vl_time_filter = victorialogs_time_filter(args.time_range, args.time_offset, offset_seconds)
+        vl_time_filter = victorialogs_time_filter(args.time_range, args.time_offset)
         graylog_time = graylog_timerange(range_seconds, offset_seconds, window_from, window_to)
         vm_client = VictoriaMetricsClient(
             HttpClient(
@@ -682,9 +769,12 @@ def main() -> int:
             ),
             args.filesystem_selector,
             window_to,
+            parallel_queries=args.parallel_queries,
         )
+        graylog_client = graylog_http_client(args)
+        vl_client = victorialogs_client(args, vl_time_filter)
         report = {
-            "generated_at": datetime.now(UTC).isoformat(),
+            "generated_at": utc_iso(datetime.now(UTC)),
             "backend_type": args.backend_type,
             "backend_url": args.backend_url,
             "time_range": args.time_range,
@@ -696,16 +786,17 @@ def main() -> int:
                 "vl_large_message_threshold_kb": args.vl_large_message_threshold_kb,
                 "error_level_percent_threshold": args.error_level_percent_threshold,
                 "single_source_percent_threshold": args.single_source_percent_threshold,
+                "fields_count_threshold": args.fields_count_threshold,
             },
             "storage": vm_client.storage_report(args.backend_type, dry_run=args.dry_run),
         }
-        index_stats = graylog_index_stats_report(args)
+        index_stats = graylog_index_stats_report(args, graylog_client)
         if index_stats is not None:
             report["index_stats"] = index_stats
-        block_stats = victorialogs_block_stats_report(args, vl_time_filter)
+        block_stats = victorialogs_block_stats_report(args, vl_client)
         if block_stats is not None:
             report["storage"]["victorialogs_block_stats"] = block_stats
-        report["logs"] = collect_log_report(args, vl_time_filter, graylog_time)
+        report["logs"] = collect_log_report(args, vl_time_filter, graylog_time, graylog_client, vl_client)
         report = convert_byte_fields_to_kb(report)
         report["detected_problems"] = detect_problems(report, args) if not args.dry_run else []
         write_report(report, args.output)

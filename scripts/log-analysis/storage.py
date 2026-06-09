@@ -17,12 +17,14 @@ def bytes_to_gb(value: float | None) -> float | None:
     return round(value / BYTES_IN_GB, 6)
 
 
-def calculate_filesystem_usage(results: dict[str, Any]) -> list[dict[str, Any]]:
+def calculate_filesystem_usage(results: dict[str, Any]) -> list[dict[str, Any]] | dict[str, str]:
     metric_names = (
         "node_filesystem_size_bytes",
         "node_filesystem_avail_bytes",
         "node_filesystem_free_bytes",
     )
+    if error := metric_errors(results, metric_names):
+        return {"error": error}
     indexed: dict[str, dict[tuple[tuple[str, str], ...], dict[str, Any]]] = {}
     for metric_name in metric_names:
         samples = results.get(metric_name)
@@ -65,7 +67,9 @@ def storage_labels(labels: tuple[tuple[str, str], ...]) -> dict[str, str]:
     return selected_labels(labels, FILESYSTEM_LABELS)
 
 
-def calculate_victorialogs_disk_usage(results: dict[str, Any]) -> list[dict[str, Any]]:
+def calculate_victorialogs_disk_usage(results: dict[str, Any]) -> list[dict[str, Any]] | dict[str, str]:
+    if error := metric_errors(results, ("vl_total_disk_space_bytes", "vl_free_disk_space_bytes")):
+        return {"error": error}
     total_samples = index_samples_by_labels(results.get("vl_total_disk_space_bytes"))
     free_samples = index_samples_by_labels(results.get("vl_free_disk_space_bytes"))
     rows: list[dict[str, Any]] = []
@@ -88,7 +92,15 @@ def calculate_victorialogs_disk_usage(results: dict[str, Any]) -> list[dict[str,
     return rows
 
 
-def calculate_victorialogs_data_size(results: dict[str, Any]) -> list[dict[str, Any]]:
+def calculate_victorialogs_data_size(results: dict[str, Any]) -> list[dict[str, Any]] | dict[str, str]:
+    metric_names = (
+        "vl_uncompressed_data_size_total",
+        "vl_compressed_data_size_total",
+        "vl_uncompressed_data_size_by_type",
+        "vl_compressed_data_size_by_type",
+    )
+    if error := metric_errors(results, metric_names):
+        return {"error": error}
     uncompressed_total = sample_value(results.get("vl_uncompressed_data_size_total"))
     compressed_total = sample_value(results.get("vl_compressed_data_size_total"))
     uncompressed_by_type = samples_by_type(results.get("vl_uncompressed_data_size_by_type"))
@@ -109,6 +121,15 @@ def calculate_victorialogs_data_size(results: dict[str, Any]) -> list[dict[str, 
     for data_type in extra_types:
         rows.append(data_size_row(data_type, uncompressed_by_type.get(data_type), compressed_by_type.get(data_type)))
     return rows
+
+
+def metric_errors(results: dict[str, Any], metric_names: tuple[str, ...]) -> str:
+    errors = [
+        f"{metric_name}: {value['error']}"
+        for metric_name in metric_names
+        if isinstance((value := results.get(metric_name)), dict) and "error" in value
+    ]
+    return "\n".join(errors)
 
 
 def data_size_row(data_type: str, uncompressed: float | None, compressed: float | None) -> dict[str, Any]:

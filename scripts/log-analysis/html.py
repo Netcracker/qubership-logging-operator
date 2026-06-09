@@ -150,7 +150,19 @@ def header_tooltip(header: str) -> str:
 def render_header_cell(path: tuple[str, ...], header: str) -> str:
     title = header_tooltip(header)
     title_attr = f' title="{html_escape(title)}"' if title else ""
-    return f"<th{title_attr}>{html_escape(display_header(path, header))}</th>"
+    return f'<th class="{column_class(header)}"{title_attr}>{html_escape(display_header(path, header))}</th>'
+
+
+def column_class(header: str) -> str:
+    safe_header = re.sub(r"[^a-z0-9]+", "-", header.lower()).strip("-")
+    return f"col-{safe_header}" if safe_header else "col-value"
+
+
+def table_class(path: tuple[str, ...]) -> str:
+    classes = ["data-table"]
+    if path[:2] == ("logs", "log_patterns"):
+        classes.append("log-patterns-table")
+    return " ".join(classes)
 
 
 def format_table_cell(value: Any, header: str | None = None, path: tuple[str, ...] = ()) -> str:
@@ -201,7 +213,7 @@ def display_title(path: tuple[str, ...]) -> str:
         ("logs", "graylog_streams", "top_default_stream_sources"): "Top Default Stream Sources",
         ("logs", "graylog_streams", "audit_system_by_stream_and_nodename"): "Audit/System Logs By Node",
         ("logs", "graylog_streams", "audit_system_by_stream_and_source"): "Audit/System Workload Logs",
-        ("logs", "graylog_streams", "k8s_events_by_object"): "Kubernetes Event Objects",
+        ("logs", "graylog_streams", "k8s_events_by_object"): "Kubernetes Events",
         ("logs", "levels", "total_by_level"): "Level Totals",
         ("logs", "levels", "top_namespaces_by_level"): "Top Namespaces By Level",
         ("logs", "levels", "top_sources_by_level"): "Top Sources By Level",
@@ -336,9 +348,6 @@ def table_description(path: tuple[str, ...]) -> str:
             "Top message-size views for non-event logs. Source top lists are limited to namespace/container records. "
             "For VictoriaLogs, message size means the size of `_msg` only, not the whole parsed log record."
         ),
-        ("logs", "levels", "total_by_level"): (
-            "Total records and summed gl2_accounted_message_size in KB for each level."
-        ),
         ("logs", "levels", "top_namespaces_by_level"): (
             "Top namespaces for each level, ranked by number of records."
         ),
@@ -413,10 +422,12 @@ def table_description(path: tuple[str, ...]) -> str:
         ),
         ("logs", "schema_quality"): (
             "Schema quality view based on `parse_field_count`. Use it to find sources that produce records "
-            "with too many parsed fields."
+            "with too many parsed fields. This field is produced by the Fluent Bit pipeline; Fluentd or older "
+            "logging versions may not have it, so this section can be empty even when logs exist."
         ),
         ("logs", "schema_quality", "top_by_max_fields"): (
-            "Sources ranked by the highest observed `parse_field_count` value."
+            "Sources ranked by the highest observed `parse_field_count` value. If the collector does not add "
+            "`parse_field_count`, no rows are expected."
         ),
         ("logs", "large_messages"): (
             "Sources ranked by the largest observed `gl2_accounted_message_size` value."
@@ -496,12 +507,15 @@ def table_from_rows(rows: list[Any], headers: list[str] | None = None, path: tup
                         headers.append(key)
         body = "\n".join(
             "<tr>"
-            + "".join(f"<td>{format_table_cell(row.get(header, ''), header, path)}</td>" for header in headers)
+            + "".join(
+                f'<td class="{column_class(header)}">{format_table_cell(row.get(header, ""), header, path)}</td>'
+                for header in headers
+            )
             + "</tr>"
             for row in rows
         )
         header_html = "".join(render_header_cell(path, header) for header in headers)
-        return f"<table><thead><tr>{header_html}</tr></thead><tbody>{body}</tbody></table>"
+        return f'<table class="{table_class(path)}"><thead><tr>{header_html}</tr></thead><tbody>{body}</tbody></table>'
     if all(isinstance(row, list) for row in rows):
         width = max(len(row) for row in rows)
         if headers is None:
@@ -511,14 +525,15 @@ def table_from_rows(rows: list[Any], headers: list[str] | None = None, path: tup
         body = "\n".join(
             "<tr>"
             + "".join(
-                f"<td>{format_table_cell(row[index], headers[index], path) if index < len(row) else ''}</td>"
+                f'<td class="{column_class(headers[index])}">'
+                f"{format_table_cell(row[index], headers[index], path) if index < len(row) else ''}</td>"
                 for index in range(width)
             )
             + "</tr>"
             for row in rows
         )
         header_html = "".join(render_header_cell(path, header) for header in headers)
-        return f"<table><thead><tr>{header_html}</tr></thead><tbody>{body}</tbody></table>"
+        return f'<table class="{table_class(path)}"><thead><tr>{header_html}</tr></thead><tbody>{body}</tbody></table>'
     return "<pre>" + html_escape(json.dumps(rows, ensure_ascii=True, indent=2)) + "</pre>"
 
 
@@ -787,6 +802,16 @@ def render_html_report(report: dict[str, Any]) -> str:
       text-transform: uppercase;
     }}
     table {{ width: 100%; border-collapse: collapse; min-width: 520px; }}
+    .log-patterns-table {{
+      min-width: 0;
+      table-layout: fixed;
+    }}
+    .log-patterns-table .col-message-pattern {{
+      width: 52%;
+      max-width: 48rem;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }}
     th, td {{ padding: 9px 10px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }}
     th {{ color: var(--accent-2); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; background: rgba(38, 70, 83, .06); }}
     tr:hover td {{ background: rgba(184, 92, 56, .06); }}

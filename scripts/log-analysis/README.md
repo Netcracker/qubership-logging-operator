@@ -71,9 +71,17 @@ For VictoriaLogs, use `--include-vl-block-stats` to add diagnostic LogsQL
 queries based on `block_stats` for top streams and fields by occupied disk
 space. This option is disabled by default.
 
-Use `--include-detailed-levels` only when per-level top-source sections are
-needed. By default, the report uses a faster level overview to avoid many
-sequential Graylog aggregate requests.
+For VictoriaLogs, use `--include-detailed-levels` only when per-level
+top-source sections are needed. By default, the report uses a faster level
+overview. Graylog reports already include an aggregated levels section, so this
+flag is rejected for `--backend-type graylog` to avoid a silent no-op.
+
+For Graylog, independent report sections and per-stream aggregate requests run
+in parallel by default. Use `--no-parallel-queries` or
+`PARALLEL_QUERIES=false` on very large or sensitive environments when reducing
+backend load is more important than report runtime. When parallel queries are
+enabled, `--graylog-query-workers` / `GRAYLOG_QUERY_WORKERS` limits the total
+number of concurrent Graylog HTTP requests. The default is `4`.
 
 If VictoriaMetrics is protected by `vmauth`, pass its Basic Auth credentials
 with `--vm-user` and `--vm-pass`.
@@ -252,8 +260,8 @@ the same follow-up processing-rules task.
 ## Severity Levels
 
 The report retrieves a fast level overview: total counts by actual `level`
-values and top `level`/source combinations. Detailed per-level top-source
-queries are disabled by default and can be enabled with:
+values and top `level`/source combinations. For VictoriaLogs, detailed
+per-level top-source queries are disabled by default and can be enabled with:
 
 ```bash
 --include-detailed-levels
@@ -295,7 +303,9 @@ FIELDS_COUNT_THRESHOLD=30
 ```
 
 This section uses `parse_field_count`, which is produced by the Fluent Bit
-pipeline after parsing/post-processing.
+pipeline after parsing/post-processing. Fluentd and older logging versions may
+not add this field; in that case the `schema_quality` tables are expected to be
+empty and no `Too many parsed fields` problem is reported.
 
 ## Detected Problems
 

@@ -5,7 +5,10 @@ from __future__ import annotations
 import base64
 import json
 import re
+import socket
 import ssl
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from threading import BoundedSemaphore
 from typing import Any
 from urllib import error, parse, request
 
@@ -36,6 +39,7 @@ GRAYLOG_STREAM_TITLES = (
 )
 GRAYLOG_AUDIT_SYSTEM_STREAM_TITLES = ("Audit logs", "System logs")
 GRAYLOG_SIZE_FIELD = "gl2_accounted_message_size"
+GRAYLOG_TOTAL_GROUP_FIELD = "gl2_source_node"
 
 
 class QueryError(RuntimeError):
@@ -96,17 +100,31 @@ class HttpClient:
             raise QueryError(f"{method} {path} returned HTTP {exc.code}: {body}") from exc
         except error.URLError as exc:
             raise QueryError(f"cannot connect to {self.base_url}: {exc.reason}") from exc
+        except (TimeoutError, socket.timeout) as exc:
+            raise QueryError(f"{method} {path} timed out while connecting to {self.base_url}") from exc
         return body
 
 
 class VictoriaMetricsClient:
-    def __init__(self, client: HttpClient, filesystem_selector: str, query_time: str) -> None:
+    def __init__(
+        self,
+        client: HttpClient,
+        filesystem_selector: str,
+        query_time: str,
+        *,
+        parallel_queries: bool = True,
+        max_parallel_queries: int = 4,
+    ) -> None:
         self.client = client
         self.selector = "{" + filesystem_selector + "}" if filesystem_selector else ""
         self.query_time = query_time
+        self.parallel_queries = parallel_queries
+        self.max_parallel_queries = max_parallel_queries if parallel_queries else 1
+        self.query_semaphore = BoundedSemaphore(self.max_parallel_queries)
 
     def query(self, expression: str) -> list[dict[str, Any]]:
-        raw = self.client.call("GET", "/api/v1/query", query={"query": expression, "time": self.query_time})
+        with self.query_semaphore:
+            raw = self.client.call("GET", "/api/v1/query", query={"query": expression, "time": self.query_time})
         response = json.loads(raw)
         if response.get("status") != "success":
             raise QueryError(f"VictoriaMetrics query failed for {expression}: {response}")
@@ -137,12 +155,7 @@ class VictoriaMetricsClient:
             if backend_type == "graylog" and not self.selector:
                 report["filesystem_usage"] = skipped_filesystem_usage()
             return report
-        results: dict[str, Any] = {}
-        for name, expression in expressions.items():
-            try:
-                results[name] = self.query(expression)
-            except QueryError as exc:
-                results[name] = {"error": str(exc)}
+        results = self.query_expressions(expressions)
         report = {}
         if backend_type == "graylog" and self.selector:
             report["filesystem_usage"] = calculate_filesystem_usage(results)
@@ -152,6 +165,25 @@ class VictoriaMetricsClient:
             report["victorialogs_disk_usage"] = calculate_victorialogs_disk_usage(results)
             report["victorialogs_data_size"] = calculate_victorialogs_data_size(results)
         return report
+
+    def query_expressions(self, expressions: dict[str, str]) -> dict[str, Any]:
+        if not expressions:
+            return {}
+        if not self.parallel_queries:
+            return {name: self.safe_query(expression) for name, expression in expressions.items()}
+        max_workers = min(len(expressions), self.max_parallel_queries)
+        results: dict[str, Any] = {}
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = {executor.submit(self.safe_query, expression): name for name, expression in expressions.items()}
+            for future in as_completed(futures):
+                results[futures[future]] = future.result()
+        return results
+
+    def safe_query(self, expression: str) -> Any:
+        try:
+            return self.query(expression)
+        except QueryError as exc:
+            return {"error": str(exc)}
 
 
 def skipped_filesystem_usage() -> dict[str, str]:
@@ -247,14 +279,27 @@ class GraylogIndexStatsClient:
 
 
 class VictoriaLogsClient:
-    def __init__(self, client: HttpClient, time_filter: str, source_field: str, top_limit: int) -> None:
+    def __init__(
+        self,
+        client: HttpClient,
+        time_filter: str,
+        source_field: str,
+        top_limit: int,
+        *,
+        parallel_queries: bool = True,
+        max_parallel_queries: int = 4,
+    ) -> None:
         self.client = client
         self.time_filter = time_filter
         self.source_field = field_name(source_field)
         self.top_limit = top_limit
+        self.parallel_queries = parallel_queries
+        self.max_parallel_queries = max_parallel_queries if parallel_queries else 1
+        self.query_semaphore = BoundedSemaphore(self.max_parallel_queries)
 
     def query(self, expression: str) -> list[dict[str, Any]]:
-        raw = self.client.call("POST", "/select/logsql/query", form_body={"query": expression})
+        with self.query_semaphore:
+            raw = self.client.call("POST", "/select/logsql/query", form_body={"query": expression})
         return [json.loads(line) for line in raw.splitlines() if line.strip()]
 
     def category_queries(self, log_filter: str, source_fields: list[str]) -> dict[str, str]:
@@ -278,15 +323,6 @@ class VictoriaLogsClient:
                 " sum_len(_msg) as sum_message_size_bytes"
                 f" | sort by (messages_count desc) | limit {self.top_limit}"
             ),
-        }
-
-    def level_distribution_queries(self) -> dict[str, str]:
-        prefix = f"{self.time_filter} NOT kind:KubernetesEvent"
-        return {
-            "total_by_level": (
-                f"{prefix} | stats by (level) count() as messages_count"
-                " | sort by (messages_count desc)"
-            )
         }
 
     def levels_overview_queries(self) -> dict[str, str]:
@@ -421,12 +457,27 @@ class VictoriaLogsClient:
         }
         if dry_run:
             return report
-        for name, expression in queries.items():
-            try:
-                report[name] = self.query(expression)
-            except QueryError as exc:
-                report[name] = {"error": str(exc)}
+        report.update(self.query_set(queries))
         return report
+
+    def query_set(self, queries: dict[str, str]) -> dict[str, Any]:
+        if not queries:
+            return {}
+        if not self.parallel_queries:
+            return {name: self.safe_query(expression) for name, expression in queries.items()}
+        max_workers = min(len(queries), self.max_parallel_queries)
+        results: dict[str, Any] = {}
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = {executor.submit(self.safe_query, expression): name for name, expression in queries.items()}
+            for future in as_completed(futures):
+                results[futures[future]] = future.result()
+        return results
+
+    def safe_query(self, expression: str) -> Any:
+        try:
+            return self.query(expression)
+        except QueryError as exc:
+            return {"error": str(exc)}
 
 
 def infer_logsql_columns(expression: str) -> list[str]:
@@ -455,6 +506,13 @@ def unquote_logsql_field(field: str) -> str:
     return field
 
 
+def numeric_metric(value: Any) -> float:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return 0.0
+
+
 class GraylogClient:
     def __init__(
         self,
@@ -462,12 +520,17 @@ class GraylogClient:
         timerange: dict[str, Any],
         source_field: str,
         top_limit: int,
+        parallel_queries: bool = True,
+        max_parallel_queries: int = 4,
     ) -> None:
         self.client = client
         self.timerange = timerange
         self.source_field = source_field
         field_name(source_field)
         self.top_limit = top_limit
+        self.parallel_queries = parallel_queries
+        self.max_parallel_queries = max_parallel_queries if parallel_queries else 1
+        self.query_semaphore = BoundedSemaphore(self.max_parallel_queries)
 
     def count_size_body(
         self,
@@ -476,14 +539,21 @@ class GraylogClient:
         streams: list[str] | None = None,
         *,
         limit: int | None = None,
+        sort_by: str = "count",
     ) -> dict[str, Any]:
+        count_metric = {"function": "count"}
+        sum_metric = {"function": "sum", "field": GRAYLOG_SIZE_FIELD}
+        if sort_by == "count":
+            count_metric["sort"] = "desc"
+        elif sort_by == "size":
+            sum_metric["sort"] = "desc"
         body = {
             "query": query,
             "timerange": self.timerange,
             "group_by": [{"field": field, "limit": limit or self.top_limit} for field in fields],
             "metrics": [
-                {"function": "count"},
-                {"function": "sum", "field": GRAYLOG_SIZE_FIELD, "sort": "desc"},
+                count_metric,
+                sum_metric,
             ],
             "_columns": [*fields, "count", "sum_gl2_accounted_message_size"],
             "_result": "rows",
@@ -494,11 +564,13 @@ class GraylogClient:
 
     def query(self, body: dict[str, Any]) -> list[Any]:
         request_body = {key: value for key, value in body.items() if not key.startswith("_")}
-        raw = self.client.call("POST", "/api/search/aggregate", json_body=request_body)
+        with self.query_semaphore:
+            raw = self.client.call("POST", "/api/search/aggregate", json_body=request_body)
         return json.loads(raw).get("datarows", [])
 
     def streams_by_title(self) -> dict[str, str]:
-        raw = self.client.call("GET", "/api/streams")
+        with self.query_semaphore:
+            raw = self.client.call("GET", "/api/streams")
         streams = json.loads(raw).get("streams", [])
         return {
             stream["title"]: stream["id"]
@@ -509,15 +581,41 @@ class GraylogClient:
     def count_size_rows(self, body: dict[str, Any]) -> list[Any]:
         return self.query(body)
 
+    def count_size_total_body(self, query: str, streams: list[str] | None = None) -> dict[str, Any]:
+        return self.count_size_body(query, [GRAYLOG_TOTAL_GROUP_FIELD], streams, limit=10000)
+
     def count_size_total(self, body: dict[str, Any]) -> list[Any]:
         total_count = 0
         total_size = 0
         for row in self.count_size_rows(body):
             if not isinstance(row, list) or len(row) < 2:
                 continue
-            total_count += int(row[-2])
-            total_size += int(row[-1])
+            total_count += numeric_metric(row[-2])
+            total_size += numeric_metric(row[-1])
         return [total_count, total_size]
+
+    def count_size_rows_by_name(self, bodies: dict[str, dict[str, Any]]) -> dict[str, list[Any]]:
+        return self.parallel_query_by_name(bodies, self.count_size_rows)
+
+    def count_size_totals_by_name(self, bodies: dict[str, dict[str, Any]]) -> dict[str, list[Any]]:
+        return self.parallel_query_by_name(bodies, self.count_size_total)
+
+    def parallel_query_by_name(
+        self,
+        bodies: dict[str, dict[str, Any]],
+        query_function: Any,
+    ) -> dict[str, list[Any]]:
+        if not bodies:
+            return {}
+        if not self.parallel_queries:
+            return {name: query_function(body) for name, body in bodies.items()}
+        max_workers = min(len(bodies), self.max_parallel_queries)
+        results: dict[str, list[Any]] = {}
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = {executor.submit(query_function, body): name for name, body in bodies.items()}
+            for future in as_completed(futures):
+                results[futures[future]] = future.result()
+        return results
 
     def stream_ids_for_report(self, dry_run: bool) -> dict[str, str]:
         if dry_run:
@@ -529,14 +627,19 @@ class GraylogClient:
             if (stream_id := streams_by_title.get(title))
         }
 
-    def sorted_limited_rows(self, rows: list[Any]) -> list[Any]:
-        return sort_metric_rows(rows)[: self.top_limit]
+    def sorted_limited_rows(
+        self,
+        rows: list[Any],
+        columns: list[str] | None = None,
+        sort_by: str | None = None,
+    ) -> list[Any]:
+        return sort_metric_rows(rows, columns, sort_by)[: self.top_limit]
 
     def stream_storage_report(self, *, dry_run: bool) -> dict[str, Any]:
         stream_ids = self.stream_ids_for_report(dry_run)
         queries: dict[str, Any] = {
             "total_by_stream": {
-                title: self.count_size_body("*", ["gl2_source_input"], [stream_id], limit=10000)
+                title: self.count_size_total_body("*", [stream_id])
                 for title, stream_id in stream_ids.items()
             },
             "by_stream_and_namespace": {
@@ -544,7 +647,7 @@ class GraylogClient:
                 for title, stream_id in stream_ids.items()
             },
             "top_default_stream_sources": self.count_size_body(
-                "namespace:* AND container:*",
+                f"namespace:* AND {self.source_field}:*",
                 ["namespace", self.source_field],
                 [stream_ids["Default Stream"]],
             )
@@ -556,7 +659,11 @@ class GraylogClient:
                 if title in GRAYLOG_AUDIT_SYSTEM_STREAM_TITLES
             },
             "audit_system_by_stream_and_source": {
-                title: self.count_size_body("namespace:* AND container:*", ["namespace", self.source_field], [stream_id])
+                title: self.count_size_body(
+                    f"namespace:* AND {self.source_field}:*",
+                    ["namespace", self.source_field],
+                    [stream_id],
+                )
                 for title, stream_id in stream_ids.items()
                 if title in GRAYLOG_AUDIT_SYSTEM_STREAM_TITLES
             },
@@ -607,55 +714,93 @@ class GraylogClient:
             return report
         try:
             total_rows = []
-            for title, body in queries["total_by_stream"].items():
-                count, size = self.count_size_total(body)
+            for title, (count, size) in self.count_size_totals_by_name(queries["total_by_stream"]).items():
                 total_rows.append([title, count, size])
-            report["total_by_stream"] = self.sorted_limited_rows(total_rows)
-
-            namespace_rows = []
-            for title, body in queries["by_stream_and_namespace"].items():
-                namespace_rows.extend([title, *row] for row in self.count_size_rows(body))
-            report["by_stream_and_namespace"] = self.sorted_limited_rows(namespace_rows)
-
-            if queries["top_default_stream_sources"]:
-                report["top_default_stream_sources"] = self.sorted_limited_rows(
-                    ["Default Stream", *row]
-                    for row in self.count_size_rows(queries["top_default_stream_sources"])
-                )
-
-            nodename_rows = []
-            for title, body in queries["audit_system_by_stream_and_nodename"].items():
-                nodename_rows.extend([title, *row] for row in self.count_size_rows(body))
-            if nodename_rows:
-                report["audit_system_by_stream_and_nodename"] = self.sorted_limited_rows(nodename_rows)
-
-            audit_source_rows = []
-            for title, body in queries["audit_system_by_stream_and_source"].items():
-                audit_source_rows.extend([title, *row] for row in self.count_size_rows(body))
-            if audit_source_rows:
-                report["audit_system_by_stream_and_source"] = self.sorted_limited_rows(audit_source_rows)
-
-            if queries["k8s_events_by_object"]:
-                k8s_event_rows = self.sorted_limited_rows(
-                    ["Kubernetes events", *row]
-                    for row in self.count_size_rows(queries["k8s_events_by_object"])
-                )
-                if k8s_event_rows:
-                    report["k8s_events_by_object"] = k8s_event_rows
+            report["total_by_stream"] = self.sorted_limited_rows(
+                total_rows,
+                report["columns"]["total_by_stream"],
+                "count",
+            )
         except (QueryError, json.JSONDecodeError) as exc:
-            report["error"] = str(exc)
+            report["total_by_stream"] = {"error": str(exc)}
+
+        try:
+            namespace_rows = []
+            for title, rows in self.count_size_rows_by_name(queries["by_stream_and_namespace"]).items():
+                namespace_rows.extend([title, *row] for row in rows)
+            report["by_stream_and_namespace"] = self.sorted_limited_rows(
+                namespace_rows,
+                report["columns"]["by_stream_and_namespace"],
+                "count",
+            )
+        except (QueryError, json.JSONDecodeError) as exc:
+            report["by_stream_and_namespace"] = {"error": str(exc)}
+
+        try:
+            if queries["top_default_stream_sources"]:
+                default_stream_rows = [
+                    ["Default Stream", *row] for row in self.count_size_rows(queries["top_default_stream_sources"])
+                ]
+                report["top_default_stream_sources"] = self.sorted_limited_rows(
+                    default_stream_rows,
+                    report["columns"]["top_default_stream_sources"],
+                    "count",
+                )
+        except (QueryError, json.JSONDecodeError) as exc:
+            report["top_default_stream_sources"] = {"error": str(exc)}
+
+        try:
+            nodename_rows = []
+            for title, rows in self.count_size_rows_by_name(queries["audit_system_by_stream_and_nodename"]).items():
+                nodename_rows.extend([title, *row] for row in rows)
+            if nodename_rows:
+                report["audit_system_by_stream_and_nodename"] = self.sorted_limited_rows(
+                    nodename_rows,
+                    report["columns"]["audit_system_by_stream_and_nodename"],
+                    "count",
+                )
+        except (QueryError, json.JSONDecodeError) as exc:
+            report["audit_system_by_stream_and_nodename"] = {"error": str(exc)}
+
+        try:
+            audit_source_rows = []
+            for title, rows in self.count_size_rows_by_name(queries["audit_system_by_stream_and_source"]).items():
+                audit_source_rows.extend([title, *row] for row in rows)
+            if audit_source_rows:
+                report["audit_system_by_stream_and_source"] = self.sorted_limited_rows(
+                    audit_source_rows,
+                    report["columns"]["audit_system_by_stream_and_source"],
+                    "count",
+                )
+        except (QueryError, json.JSONDecodeError) as exc:
+            report["audit_system_by_stream_and_source"] = {"error": str(exc)}
+
+        try:
+            if queries["k8s_events_by_object"]:
+                k8s_event_rows = [
+                    ["Kubernetes events", *row] for row in self.count_size_rows(queries["k8s_events_by_object"])
+                ]
+                if k8s_event_rows:
+                    report["k8s_events_by_object"] = self.sorted_limited_rows(
+                        k8s_event_rows,
+                        report["columns"]["k8s_events_by_object"],
+                        "count",
+                    )
+        except (QueryError, json.JSONDecodeError) as exc:
+            report["k8s_events_by_object"] = {"error": str(exc)}
         return report
 
     def level_storage_report(self, *, dry_run: bool) -> dict[str, Any]:
+        base_query = "NOT kind:KubernetesEvent AND level:*"
         queries = {
-            "total_by_level": self.count_size_body("level:*", ["level"]),
-            "top_namespaces_by_level": self.count_size_body("level:* AND namespace:*", ["level", "namespace"]),
+            "total_by_level": self.count_size_body(base_query, ["level"]),
+            "top_namespaces_by_level": self.count_size_body(f"{base_query} AND namespace:*", ["level", "namespace"]),
             "top_sources_by_level": self.count_size_body(
-                "level:* AND namespace:* AND container:*",
+                f"{base_query} AND namespace:* AND {self.source_field}:*",
                 ["level", "namespace", self.source_field],
             ),
             "top_nodes_without_namespace_source_by_level": self.count_size_body(
-                f"level:* AND NOT namespace:* AND NOT {self.source_field}:* AND nodename:*",
+                f"{base_query} AND NOT namespace:* AND NOT {self.source_field}:* AND nodename:*",
                 ["level", "nodename"],
             ),
         }
@@ -686,15 +831,15 @@ class GraylogClient:
                 rows = self.count_size_rows(body)
                 rows, columns = enrich_level_rows(rows, report["columns"][name])
                 report["columns"][name] = columns or report["columns"][name]
-                report[name] = self.sorted_limited_rows(rows)
+                report[name] = self.sorted_limited_rows(rows, report["columns"][name], "count")
             except (QueryError, json.JSONDecodeError) as exc:
                 report[name] = {"error": str(exc)}
         return report
 
     def debug_trace_report(self, *, dry_run: bool) -> dict[str, Any]:
-        debug_trace_query = "(level:7 OR level:debug OR level:trace)"
+        debug_trace_query = "NOT kind:KubernetesEvent AND (level:7 OR level:debug OR level:trace)"
         queries = {
-            "total": self.count_size_body(debug_trace_query, ["gl2_source_input"], limit=10000),
+            "total": self.count_size_total_body(debug_trace_query),
             "top_by_count": self.count_size_body(
                 f"{debug_trace_query} AND namespace:* AND {self.source_field}:*",
                 ["namespace", self.source_field],
@@ -715,13 +860,17 @@ class GraylogClient:
         except (QueryError, json.JSONDecodeError) as exc:
             report["total"] = {"error": str(exc)}
         try:
-            report["top_by_count"] = self.sorted_limited_rows(self.count_size_rows(queries["top_by_count"]))
+            report["top_by_count"] = self.sorted_limited_rows(
+                self.count_size_rows(queries["top_by_count"]),
+                report["columns"]["top_by_count"],
+                "count",
+            )
         except (QueryError, json.JSONDecodeError) as exc:
             report["top_by_count"] = {"error": str(exc)}
         return report
 
     def large_message_report(self, *, dry_run: bool) -> dict[str, Any]:
-        query = f"namespace:* AND {self.source_field}:* AND {GRAYLOG_SIZE_FIELD}:*"
+        query = f"NOT kind:KubernetesEvent AND namespace:* AND {self.source_field}:* AND {GRAYLOG_SIZE_FIELD}:*"
         body = {
             "query": query,
             "timerange": self.timerange,
@@ -743,7 +892,11 @@ class GraylogClient:
         if dry_run:
             return report
         try:
-            report["top_by_max_message_size"] = self.sorted_limited_rows(self.query(body))
+            report["top_by_max_message_size"] = self.sorted_limited_rows(
+                self.query(body),
+                report["columns"]["top_by_max_message_size"],
+                "max_gl2_accounted_message_size",
+            )
         except (QueryError, json.JSONDecodeError) as exc:
             report["top_by_max_message_size"] = {"error": str(exc)}
         return report
@@ -769,7 +922,11 @@ class GraylogClient:
         if dry_run:
             return report
         try:
-            report["top_by_max_fields"] = self.sorted_limited_rows(self.query(body))
+            report["top_by_max_fields"] = self.sorted_limited_rows(
+                self.query(body),
+                report["columns"]["top_by_max_fields"],
+                "max_parse_field_count",
+            )
         except (QueryError, json.JSONDecodeError) as exc:
             report["top_by_max_fields"] = {"error": str(exc)}
         return report
@@ -784,7 +941,7 @@ class GraylogClient:
         base_query = "NOT namespace:* AND NOT container:*"
         queries: dict[str, Any] = {
             "total_by_stream": {
-                title: self.count_size_body(base_query, ["gl2_source_input"], [stream_id], limit=10000)
+                title: self.count_size_total_body(base_query, [stream_id])
                 for title, stream_id in stream_ids.items()
             },
             "by_stream_and_nodename": {
@@ -808,39 +965,46 @@ class GraylogClient:
             return report
         try:
             total_rows = []
-            for title, body in queries["total_by_stream"].items():
-                count, size = self.count_size_total(body)
+            for title, (count, size) in self.count_size_totals_by_name(queries["total_by_stream"]).items():
                 if count or size:
                     total_rows.append([title, count, size])
             if total_rows:
-                report["total_by_stream"] = self.sorted_limited_rows(total_rows)
+                report["total_by_stream"] = self.sorted_limited_rows(
+                    total_rows,
+                    report["columns"]["total_by_stream"],
+                    "count",
+                )
+        except (QueryError, json.JSONDecodeError) as exc:
+            report["total_by_stream"] = {"error": str(exc)}
 
+        try:
             nodename_rows = []
-            for title, body in queries["by_stream_and_nodename"].items():
-                nodename_rows.extend([title, *row] for row in self.count_size_rows(body))
+            for title, rows in self.count_size_rows_by_name(queries["by_stream_and_nodename"]).items():
+                nodename_rows.extend([title, *row] for row in rows)
             if nodename_rows:
-                report["by_stream_and_nodename"] = self.sorted_limited_rows(nodename_rows)
+                report["by_stream_and_nodename"] = self.sorted_limited_rows(
+                    nodename_rows,
+                    report["columns"]["by_stream_and_nodename"],
+                    "count",
+                )
+        except (QueryError, json.JSONDecodeError) as exc:
+            report["by_stream_and_nodename"] = {"error": str(exc)}
 
+        try:
             level_rows = []
-            for title, body in queries["by_stream_and_level"].items():
-                level_rows.extend([title, *row] for row in self.count_size_rows(body))
+            for title, rows in self.count_size_rows_by_name(queries["by_stream_and_level"]).items():
+                level_rows.extend([title, *row] for row in rows)
             level_rows, columns = enrich_level_rows(level_rows, report["columns"]["by_stream_and_level"])
             report["columns"]["by_stream_and_level"] = columns or report["columns"]["by_stream_and_level"]
             if level_rows:
-                report["by_stream_and_level"] = self.sorted_limited_rows(level_rows)
+                report["by_stream_and_level"] = self.sorted_limited_rows(
+                    level_rows,
+                    report["columns"]["by_stream_and_level"],
+                    "count",
+                )
         except (QueryError, json.JSONDecodeError) as exc:
-            report["error"] = str(exc)
+            report["by_stream_and_level"] = {"error": str(exc)}
         return report
-
-
-def sum_metric_rows(rows: list[Any]) -> dict[str, float | int]:
-    total = 0.0
-    for row in rows:
-        if isinstance(row, list) and row:
-            total += float(row[-1])
-    if total.is_integer():
-        return {"value": int(total)}
-    return {"value": total}
 
 
 def enrich_level_rows(rows: list[Any], columns: list[str] | None) -> tuple[list[Any], list[str] | None]:
@@ -864,12 +1028,15 @@ def enrich_level_rows(rows: list[Any], columns: list[str] | None) -> tuple[list[
     return enriched_rows, enriched_columns
 
 
-def sort_metric_rows(rows: list[Any]) -> list[Any]:
+def sort_metric_rows(rows: list[Any], columns: list[str] | None = None, sort_by: str | None = None) -> list[Any]:
+    sort_index = columns.index(sort_by) if columns and sort_by in columns else None
+
     def metric_value(row: Any) -> float:
         if not isinstance(row, list) or not row:
             return float("-inf")
+        index = sort_index if sort_index is not None else -1
         try:
-            return float(row[-1])
+            return float(row[index])
         except (TypeError, ValueError):
             return float("-inf")
 

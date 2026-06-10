@@ -186,7 +186,7 @@ graylog:
 
   # -- Allow creating security resources as PodSecurityPolicy, SecurityContextConstraints
   securityResources:
-    install: false
+    install: true
     name: logging-graylog
 
   # -- PriorityClassName assigned to the Pods to prevent them from evicting.
@@ -707,7 +707,7 @@ fluentd:
 
   # -- Allow creating security resources as PodSecurityPolicy, SecurityContextConstraints
   securityResources:
-    install: false
+    install: true
     name: logging-fluentd
 
   # -- PriorityClassName assigned to the Pods to prevent them from evicting.
@@ -1198,7 +1198,7 @@ fluentbit:
 
   # -- Allow creating security resources as PodSecurityPolicy, SecurityContextConstraints
   securityResources:
-    install: false
+    install: true
     name: logging-fluentbit
 
   # -- Pod monitor for FluentBit
@@ -1566,7 +1566,7 @@ fluentbit:
 
     # -- Allow creating security resources as PodSecurityPolicy, SecurityContextConstraints
     securityResources:
-      install: false
+      install: true
       name: logging-fluentbit-aggregator
 
     # -- The amount of time the operator waits for Aggregator pod(s) to start, in minutes

@@ -17,7 +17,9 @@ spec:
   openshiftDeploy: {{ .Capabilities.APIVersions.Has "security.openshift.io/v1" }}
   osKind: {{ default "centos" .Values.osKind }}
   ipv6: {{ default false .Values.ipv6 }}
+  {{- if .Values.containerRuntimeType }}
   containerRuntimeType: {{ .Values.containerRuntimeType }}
+  {{- end }}
   {{- if .Values.graylog.install }}
   graylog:
     dockerImage: {{ template "graylog.image" . }}

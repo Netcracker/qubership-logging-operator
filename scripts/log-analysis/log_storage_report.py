@@ -24,6 +24,7 @@ from clients import (
     field_name,
 )
 from collectors import collect_log_report
+from html_report import write_html_report
 
 DURATION_PATTERN = re.compile(r"^(?:0|[1-9][0-9]*)(?:s|m|h|d|w)$")
 SIZE_PATTERN = re.compile(r"^([1-9][0-9]*)(?:\s*(b|kb|k|mb|m|gb|g))?$", re.IGNORECASE)

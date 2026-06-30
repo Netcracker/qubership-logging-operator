@@ -11,7 +11,6 @@ import re
 import sys
 from datetime import UTC, datetime, timedelta
 from functools import lru_cache
-from html_report import write_html_report
 from pathlib import Path
 from typing import Any
 

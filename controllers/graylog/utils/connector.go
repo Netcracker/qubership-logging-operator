@@ -30,6 +30,9 @@ const (
 	pipelineUrl                 = "system/pipelines/pipeline"
 	processingRulesUrl          = "system/pipelines/rule"
 	authHeaderUrl               = "system/authentication/http-header-auth-config"
+)
+
+var (
 	operatorGraylogSecretDir    = "/etc/logging-operator/graylog-secret"
 	operatorGraylogUserFile     = operatorGraylogSecretDir + "/user"
 	operatorGraylogPasswordFile = operatorGraylogSecretDir + "/password"

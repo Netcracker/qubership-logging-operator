@@ -57,6 +57,15 @@ def field_name(value: str) -> str:
     return json.dumps(value)
 
 
+def graylog_field_name(value: str) -> str:
+    if not SIMPLE_FIELD_PATTERN.fullmatch(value):
+        raise ValueError(
+            f"unsupported Graylog field name: {value}. "
+            "Use a simple field name with letters, digits, and underscores."
+        )
+    return value
+
+
 class HttpClient:
     def __init__(
         self,
@@ -529,7 +538,7 @@ class GraylogClient:
         self.client = client
         self.timerange = timerange
         self.source_field = source_field
-        field_name(source_field)
+        graylog_field_name(source_field)
         self.top_limit = top_limit
         self.parallel_queries = parallel_queries
         self.max_parallel_queries = max_parallel_queries if parallel_queries else 1

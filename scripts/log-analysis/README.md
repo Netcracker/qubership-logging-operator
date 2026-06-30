@@ -221,6 +221,9 @@ rather than repeated in every top-list row.
 
 For `container` category, top sources are grouped by `namespace` and the
 configured `--source-field` value. The default source field is `container`.
+For Graylog reports this value must be a simple field name containing only
+letters, digits, and underscores because it is also used in Graylog query
+predicates. VictoriaLogs reports additionally support dotted field names.
 
 For `system` and `audit` categories, top sources use dedicated comma-separated
 field lists:

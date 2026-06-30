@@ -176,13 +176,18 @@ image:
 ###########
 
 .PHONY: test
-test: unit-test
+test: unit-test python-test
 
 # Run unit tests in all packages
 .PHONY: unit-test
 unit-test:
 	echo "=> Run Golang unit-tests ..."
 	go test -race -cover $(TEST_RUN_ARGS) $(pkgs) -count=1 -v
+
+.PHONY: python-test
+python-test:
+	echo "=> Run Python unit-tests ..."
+	python3 -m unittest discover -s scripts/log-analysis/tests
 
 #################
 # Documentation #

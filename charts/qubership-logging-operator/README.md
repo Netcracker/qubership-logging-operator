@@ -2770,7 +2770,7 @@ false
 ""
 </pre>
 </td>
-			<td>The parameter specifies the ssh key for login to VM.</td>
+			<td>The SSH key for login to the external Graylog VM. Used only by archiving-plugin integration tests.</td>
 		</tr>
 		<tr>
 			<td>integrationTests.tags</td>
@@ -2809,7 +2809,7 @@ false
 {}
 </pre>
 </td>
-			<td>Authentication for VictoriaLogs.</td>
+			<td>Authentication for VictoriaLogs. The referenced Kubernetes Secret is mounted as files in the test container.</td>
 		</tr>
 		<tr>
 			<td>integrationTests.victorialogs.url</td>
@@ -2827,7 +2827,7 @@ false
 ""
 </pre>
 </td>
-			<td>The parameter specifies the user for ssh login to VM. Example: ubuntu</td>
+			<td>The user for SSH login to the external Graylog VM. Used only by archiving-plugin integration tests. Example: ubuntu</td>
 		</tr>
 		<tr>
 			<td>ipv6</td>
@@ -3003,4 +3003,3 @@ true
 		</tr>
 	</tbody>
 </table>
-

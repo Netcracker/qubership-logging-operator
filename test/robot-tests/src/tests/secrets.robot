@@ -19,8 +19,8 @@ Load Integration Test Secrets
     ...  INTEGRATION_TESTS_SECRETS_DIR must be set to the mounted secret directory (sensitive values are not read from process environment)
     ${gu}=  Get Required Secret From Dir  ${dir}  graylog-user
     ${gp}=  Get Required Secret From Dir  ${dir}  graylog-password
-    ${vu}=  Get Required Secret From Dir  ${dir}  vm-user
-    ${sk}=  Get Required Secret From Dir  ${dir}  ssh-key
+    ${vu}=  Get Optional Secret From Dir  ${dir}  vm-user
+    ${sk}=  Get Optional Secret From Dir  ${dir}  ssh-key
     ${vlt}=  Get Optional Secret From Path File Env  VL_TOKEN_FILE
     ${vlu}=  Get Optional Secret From Path File Env  VL_USER_FILE
     ${vlp}=  Get Optional Secret From Path File Env  VL_PASSWORD_FILE
@@ -41,6 +41,17 @@ Get Required Secret From Dir
     ${stripped}=  Strip String  ${content}
     Return From Keyword  ${stripped}
 
+Get Optional Secret From Dir
+    [Arguments]  ${secrets_dir}  ${filename}
+    ${fullpath}=  Catenate  SEPARATOR=/  ${secrets_dir}  ${filename}
+    ${exists}=  Run Keyword And Return Status  OperatingSystem.File Should Exist  ${fullpath}
+    IF  not ${exists}
+        Return From Keyword  ${EMPTY}
+    END
+    ${content}=  OperatingSystem.Get File  ${fullpath}
+    ${stripped}=  Strip String  ${content}
+    Return From Keyword  ${stripped}
+
 Get Optional Secret From Path File Env
     [Arguments]  ${path_env_name}
     ${filepath}=  Get Environment Variable  ${path_env_name}  ${EMPTY}
@@ -52,3 +63,9 @@ Get Optional Secret From Path File Env
     ${content}=  OperatingSystem.Get File  ${filepath}
     ${stripped}=  Strip String  ${content}
     Return From Keyword  ${stripped}
+
+Require Archiving Plugin Secrets
+    Should Not Be Empty  ${VM_USER}
+    ...  The archiving-plugin tests require vm-user in the mounted integration test Secret.
+    Should Not Be Empty  ${SSH_KEY}
+    ...  The archiving-plugin tests require ssh-key in the mounted integration test Secret.

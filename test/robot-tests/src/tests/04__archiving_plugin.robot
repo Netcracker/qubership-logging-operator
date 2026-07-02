@@ -7,6 +7,7 @@ Library         OperatingSystem
 Library         lib/LoggingLibrary.py
 Resource        secrets.robot
 Suite Setup     Run Keywords  Load Integration Test Secrets
+...  AND  Require Archiving Plugin Secrets
 ...  AND  Setup
 
 *** Variables ***

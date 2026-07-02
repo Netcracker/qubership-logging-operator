@@ -143,7 +143,6 @@ spec:
         - name: vl-token
           secret:
             secretName: {{ .Values.integrationTests.victorialogs.auth.token.secretName | default "victorialogs-auth-secret" }}
-            optional: true
             items:
               - key: {{ .Values.integrationTests.victorialogs.auth.token.key | default "token" }}
                 path: vl_token
@@ -152,14 +151,12 @@ spec:
         - name: vl-http-user
           secret:
             secretName: {{ .Values.integrationTests.victorialogs.auth.user.secretName | default "victorialogs-http-secret" }}
-            optional: true
             items:
               - key: {{ .Values.integrationTests.victorialogs.auth.user.key | default "username" }}
                 path: vl_user
         - name: vl-http-password
           secret:
             secretName: {{ .Values.integrationTests.victorialogs.auth.password.secretName | default "victorialogs-http-secret" }}
-            optional: true
             items:
               - key: {{ .Values.integrationTests.victorialogs.auth.password.key | default "password" }}
                 path: vl_password

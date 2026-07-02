@@ -2031,10 +2031,9 @@ integrationTests:
 
 <!-- markdownlint-enable line-length -->
 
-Integration test credentials are stored in a Kubernetes Secret and mounted to the test container as files. The test
-container reads `graylog-user`, `graylog-password`, `vm-user`, and `ssh-key` from the mounted Secret instead of reading
-the sensitive values from environment variables. `vm-user` and `ssh-key` are required only when the `archiving-plugin`
-tests run against an external Graylog VM.
+Integration test credentials are stored in a Kubernetes Secret and mounted to the test container as files. The Secret
+must contain the `graylog-user`, `graylog-password`, `vm-user`, and `ssh-key` keys. `vm-user` and `ssh-key` are required
+only when the `archiving-plugin` tests run against an external Graylog VM.
 
 The chart creates the integration test Secret from the values above. If `graylog.password` is not set, the chart uses
 the default Graylog password from `values.yaml`.

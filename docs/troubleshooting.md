@@ -564,10 +564,10 @@ There are some issues in FluentBit and FluentD that could lead to parse parts of
 For example, from the log:
 
 ```bash
-[2024-09-30T04:59:40.498] [DEBUG] [request_id=1a04d001-37e6-418b-bc7f-4904d4dfc753] [tenant_id=-] [thread=main-8e36d] 
-[class=mongo:storage.go:236] [traceId=0000000000000000176d565380a60f8b] [spanId=04546e4d3320dc9b] try to delete objects 
-from certificates by filter map[$and:[map[meta.status:map[$ne:trusted]] map[$or:[map[meta.deactivatedAt:map[$lte:2024-08-31 
-04:59:40.498507159 +0000 UTC m=+6199354.549415617]] map[details.validTo:map[$lte:2024-08-31 04:59:40.498507159 +0000 UTC 
+[2024-09-30T04:59:40.498] [DEBUG] [request_id=1a04d001-37e6-418b-bc7f-4904d4dfc753] [tenant_id=-] [thread=main-8e36d]
+[class=mongo:storage.go:236] [traceId=0000000000000000176d565380a60f8b] [spanId=04546e4d3320dc9b] try to delete objects
+from certificates by filter map[$and:[map[meta.status:map[$ne:trusted]] map[$or:[map[meta.deactivatedAt:map[$lte:2024-08-31
+04:59:40.498507159 +0000 UTC m=+6199354.549415617]] map[details.validTo:map[$lte:2024-08-31 04:59:40.498507159 +0000 UTC
 m=+6199354.549415617]]]]]]
 ```
 
@@ -935,10 +935,10 @@ We highly recommend to use TCP connection from FluentD/FluentBit to Graylog.
 If you need to use UDP connection for some reasons, you can try to set smaller value in Graylog buffer section
 in FluentD configuration. To do that you need to:
 
-1. Scale logging-service-operator to 0 replicas (because it can rewrite your changes in Fluentd Configuration).
+1. Scal to 0 replicas (because it can rewrite your changes in Fluentd Configuration).
 
     ```bash
-    kubectl scale -n <namespace> deployment logging-service-operator --replicas=0
+    kubectl scale -n <namespace> deployment logging-operator --replicas=0
     ```
 
 2. Edit configmap `logging-fluentd`.
@@ -1014,11 +1014,11 @@ FluentBit stuck and do not send any logs.
 First of all, check that you upgraded to the latest version of Logging.
 If you want to solve problem manually, follow steps below (it is temporary solution):
 
-1. Make sure that you are connected to the Cloud. Scale `logging-service-operator` deployment to 0 replicas with the
+1. Make sure that you are connected to the Cloud. Scale `logging-operator` deployment to 0 replicas with the
    command:
 
    ```bash
-   kubectl scale -n logging deployment logging-service-operator --replicas=1
+   kubectl scale -n logging deployment logging-operator --replicas=1
    ```
 
 2. Modify ConfigMap `logging-fluentbit`:

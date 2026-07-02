@@ -1,0 +1,19 @@
+# This is a YAML-formatted file.
+# All parameters specify only as example
+
+fluentd:
+  install: true
+
+  graylogOutput: false
+
+  output:
+    http:
+      enabled: true
+      host: 1.2.3.4
+      compress: gzip
+      auth:
+        # This is a inline credentials for HTTP output
+        # The Helm chart will automatically save them in a secret and reference it in the logging operator configuration
+        credentials:
+          username: username
+          password: password

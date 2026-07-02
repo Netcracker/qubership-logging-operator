@@ -21,7 +21,7 @@ ipv6: false
 # @default -- "containerd"
 # containerRuntimeType: containerd
 
-# -- Image of qubership-logging-operator
+# -- Image of logging-operator
 # operatorImage: ghcr.io/netcracker/qubership-logging-operator:main
 
 # -- The log level of operator logs.
@@ -45,9 +45,9 @@ annotations: {}
 # Ref: https://kubernetes.io/docs/user-guide/labels
 labels: {}
 
-# -- qubership-logging-operator pprof
+# -- logging-operator pprof
 pprof:
-  # -- Indicates if qubership-logging-operator has pprof enabled.
+  # -- Indicates if logging-operator has pprof enabled.
   install: true
   # -- Port of pprof which use in container
   containerPort: 9180
@@ -69,12 +69,41 @@ pprof:
 # -- Allow disabling create MetricsService during deploy
 # skipMetricsService: false
 
-# -- Pod monitor for qubership-logging-operator
+# -- Resources for logging-operator
+resources:
+  requests:
+    cpu: 25m
+    memory: 50Mi
+  limits:
+    cpu: 150m
+    memory: 100Mi
+
+# -- Pod monitor for logging-operator
 podMonitor:
   # -- Allow change metrics scrape timeout
   scrapeTimeout: 10s
   # -- Allow change metrics scrape interval
   scrapeInterval: 30s
+
+# -- Liveness probe for logging-operator
+livenessProbe:
+  httpGet:
+    path: /health
+    port: 8081
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+# -- Readiness probe for logging-operator
+readinessProbe:
+  httpGet:
+    path: /ready
+    port: 8081
+  initialDelaySeconds: 3
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
 
 # -- Mandatory values for Graylog.
 # @default -- {}
@@ -157,7 +186,7 @@ graylog:
 
   # -- Allow creating security resources as PodSecurityPolicy, SecurityContextConstraints
   securityResources:
-    install: false
+    install: true
     name: logging-graylog
 
   # -- PriorityClassName assigned to the Pods to prevent them from evicting.
@@ -633,7 +662,7 @@ fluentd:
 
   # -- A docker image to use for fluent daemon set.
   # renovate: datasource=github-releases depName=Netcracker/qubership-fluentd versioning=loose
-  # dockerImage: ghcr.io/netcracker/qubership-fluentd:1.19.2-1
+  # dockerImage: ghcr.io/netcracker/qubership-fluentd:1.19.2-2
 
   # -- If specified, the pod's scheduling constraints. Ref: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
   affinity: {}
@@ -678,7 +707,7 @@ fluentd:
 
   # -- Allow creating security resources as PodSecurityPolicy, SecurityContextConstraints
   securityResources:
-    install: false
+    install: true
     name: logging-fluentd
 
   # -- PriorityClassName assigned to the Pods to prevent them from evicting.
@@ -861,7 +890,15 @@ fluentd:
       # tenant:
 
       # -- Authentication for Loki.
+      # Inline credentials can be specified via `credentials` (chart creates the Secret automatically).
+      # Alternatively, reference pre-created secrets via `token`, `user`, `password`.
+      # If both are specified, secret references take priority.
       auth: {}
+        # credentials:
+        #   username: ""
+        #   password: ""
+        #   token: ""
+        #   secretName: ""
         # token:
         #   name: loki-secret
         #   key: token
@@ -950,8 +987,15 @@ fluentd:
       # path: /insert/jsonline
 
       # -- Authentication for HTTP output.
-      # Secret name and key in the secret storing the parameter should be provided. Username/password or token can be stored in different secrets.
+      # Inline credentials can be specified via `credentials` (chart creates the Secret automatically).
+      # Alternatively, reference pre-created secrets via `token`, `user`, `password`.
+      # If both are specified, secret references take priority.
       auth: {}
+        # credentials:
+        #   username: ""
+        #   password: ""
+        #   token: ""
+        #   secretName: ""
         # token:
         #   name: vl-write-token
         #   key: token
@@ -1154,8 +1198,8 @@ fluentbit:
 
   # -- Allow creating security resources as PodSecurityPolicy, SecurityContextConstraints
   securityResources:
+    install: true
     name: logging-fluentbit
-    install: false
 
   # -- Pod monitor for FluentBit
   podMonitor:
@@ -1254,7 +1298,15 @@ fluentbit:
       # tenant:
 
       # -- Authentication for Loki.
+      # Inline credentials can be specified via `credentials` (chart creates the Secret automatically).
+      # Alternatively, reference pre-created secrets via `token`, `user`, `password`.
+      # If both are specified, secret references take priority.
       auth: {}
+        # credentials:
+        #   username: ""
+        #   password: ""
+        #   token: ""
+        #   secretName: ""
         # token:
         #   name: loki-secret
         #   key: token
@@ -1342,7 +1394,15 @@ fluentbit:
       # extraParams: |
 
       # -- Authentication for Http.
+      # Inline credentials can be specified via `credentials` (chart creates the Secret automatically).
+      # Alternatively, reference pre-created secrets via `token`, `user`, `password`.
+      # If both are specified, secret references take priority.
       auth: {}
+        # credentials:
+        #   username: ""
+        #   password: ""
+        #   token: ""
+        #   secretName: ""
         # user:
         #   name: http-secret
         #   key: user
@@ -1419,8 +1479,15 @@ fluentbit:
       # extraParams: |
 
       # -- Authentication for Otel.
-      # Secret name and key in the secret storing the parameter should be provided. Username/password or token can be stored in different secrets.
+      # Inline credentials can be specified via `credentials` (chart creates the Secret automatically).
+      # Alternatively, reference pre-created secrets via `token`, `user`, `password`.
+      # If both are specified, secret references take priority.
       auth: {}
+        # credentials:
+        #   username: ""
+        #   password: ""
+        #   token: ""
+        #   secretName: ""
         # user:
         #   name: otel-secret
         #   key: user
@@ -1499,7 +1566,7 @@ fluentbit:
 
     # -- Allow creating security resources as PodSecurityPolicy, SecurityContextConstraints
     securityResources:
-      install: false
+      install: true
       name: logging-fluentbit-aggregator
 
     # -- The amount of time the operator waits for Aggregator pod(s) to start, in minutes
@@ -1644,7 +1711,15 @@ fluentbit:
         # host: loki-write.loki.svc
 
         # -- Authentication for Loki.
+        # Inline credentials can be specified via `credentials` (chart creates the Secret automatically).
+        # Alternatively, reference pre-created secrets via `token`, `user`, `password`.
+        # If both are specified, secret references take priority.
         auth: {}
+          # credentials:
+          #   username: ""
+          #   password: ""
+          #   token: ""
+          #   secretName: ""
           # token:
           #   name: loki-secret
           #   key: token
@@ -1728,9 +1803,15 @@ fluentbit:
         # compress: gzip
 
         # -- Authentication for Http.
-        # Secret name and key in the secret storing the parameter should be provided. Username/password or token can be stored in different secrets.
-        #
+        # Inline credentials can be specified via `credentials` (chart creates the Secret automatically).
+        # Alternatively, reference pre-created secrets via `token`, `user`, `password`.
+        # If both are specified, secret references take priority.
         auth: {}
+          # credentials:
+          #   username: ""
+          #   password: ""
+          #   token: ""
+          #   secretName: ""
           # user:
           #   name: http-secret
           #   key: user
@@ -1812,8 +1893,15 @@ fluentbit:
         # extraParams: |
 
         # -- Authentication for Otel.
-        # Secret name and key in the secret storing the parameter should be provided. Username/password or token can be stored in different secrets.
+        # Inline credentials can be specified via `credentials` (chart creates the Secret automatically).
+        # Alternatively, reference pre-created secrets via `token`, `user`, `password`.
+        # If both are specified, secret references take priority.
         auth: {}
+          # credentials:
+          #   username: ""
+          #   password: ""
+          #   token: ""
+          #   secretName: ""
           # user:
           #   name: otel-secret
           #   key: user

@@ -189,8 +189,8 @@ func TestRemoveTemporaryStatuses_Integration(t *testing.T) {
 		// - ComponentPendingStatus/Failed (keep)
 		conditions := []loggingService.LoggingServiceCondition{
 			{Reason: LoggingServiceStatus, Type: InProgress},
-			{Reason: GraylogStatus, Type: Success},           // Should be removed (not Failed, not LoggingServiceStatus)
-			{Reason: ComponentPendingStatus, Type: Failed},    // Should be kept
+			{Reason: GraylogStatus, Type: Success},         // Should be removed (not Failed, not LoggingServiceStatus)
+			{Reason: ComponentPendingStatus, Type: Failed}, // Should be kept
 		}
 		updater, cr := newTestStatusUpdaterWithPatch(conditions, loggingService.LoggingServiceSpec{})
 		updater.RemoveTemporaryStatuses()

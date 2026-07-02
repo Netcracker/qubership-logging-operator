@@ -14,7 +14,7 @@ const (
 	// ManagedByOperator is the value for app.kubernetes.io/managed-by on resources created by the operator.
 	ManagedByOperator = "logging-operator"
 	// OperatorDeploymentName is the name of the logging-operator Deployment; used for app.kubernetes.io/managed-by-operator.
-	OperatorDeploymentName = "logging-service-operator"
+	OperatorDeploymentName = "logging-operator"
 )
 
 // CommonLabels returns the labels applied to all resources (part-of, managed-by, managed-by-operator).

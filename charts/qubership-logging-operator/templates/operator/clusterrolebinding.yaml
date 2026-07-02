@@ -8,11 +8,11 @@ metadata:
     {{- toYaml .Values.annotations | nindent 4 }}
   {{- end }}
   labels:
-    {{- include "logging.labels" (dict "ctx" . "name" (printf "%s-logging-operator" .Release.Namespace) "component" "logging-operator") | nindent 4 }}
+    {{- include "logging.labels" (dict "ctx" . "name" (printf "%s-logging-operator" .Release.Namespace) "component" "operator") | nindent 4 }}
     {{- include "logging.extraLabels" . | nindent 4 }}
 subjects:
   - kind: ServiceAccount
-    name: logging-service-operator
+    name: logging-operator
     namespace: {{ .Release.Namespace }}
 roleRef:
   kind: ClusterRole

@@ -68,7 +68,7 @@ flowchart LR
         FNL["filter-nonsupported-levels.conf<br/>Lua script converting level to FluentBit supported values"] --> FULC
         FNL["filter-nonsupported-levels.conf<br/>Lua script converting level to FluentBit supported values"] --> OGRAY
         OGRAY["output-graylog.conf<br/>Sends data to graylog host in GELF format"]
-        FULC["filter-unparsed-log-counter.conf<br/>Match_regex (pods|klog).*<br/>Generates metric parse_error_total"] --> OPLTM
+        FULC["filter-unparsed-log-counter.conf<br/>Match_regex (pods|klog).*<br/>Generates metric fluentbit_parse_error_total"] --> OPLTM
         OPLTM["output-prometheus-log-to-metric.conf</br>Exposes the metric in prometheus format on port 2021"]
     end
 ```
@@ -111,9 +111,9 @@ flowchart LR
 | 31  | filters/filter-post-generic.conf              | FILTER record_modifier (Record hostname ${HOSTNAME})                                  | Match *                                   | Adds the `hostname` field, sourced from a FluentBit pod's environment variable, required for the GELF format                                                                                                            |
 | 32  | filters/filter-post-generic.conf              | FILTER record_modifier (Record nodename ${NODE_NAME})                                 | Match *                                   | Adds the `nodename` field, sourced from a FluentBit pod's environment variable, required for the GELF format                                                                                                            |
 | 33  | filters/filter-nonsupported-levels.conf       | FILTER lua (Script /fluent-bit/etc/update_level_syslog.lua)                           | Match *                                   | Converts the value of the `level` field to FluentBit supported severity levels                                                                                                                                          |
-| 34  | filters/filter-unparsed-log-counter.conf      | FILTER log_to_metrics (Regex parsed ^false$)                                          | Match_regex (pods\|klog).*                | Generates the prometheus metric `parse_error_total`                                                                                                                                                                     |
+| 34  | filters/filter-unparsed-log-counter.conf      | FILTER log_to_metrics (Regex parsed ^false$)                                          | Match_regex (pods\|klog).*                | Generates the prometheus metric `fluentbit_parse_error_total`                                                                                                                                                           |
 | 35  | outputs/output-graylog.conf                   | OUTPUT gelf                                                                           | Match_regex (audit\|system\|pods\|klog).* | Sends data in GELF format to graylog host defined in the output config                                                                                                                                                  |
-| 36  | outputs/output-prometheus-log-to-metrics.conf | OUTPUT prometheus_exporter                                                            | Match parse_error_metrics                 | Exposes the metric `parse_error_total` to the `2021` port                                                                                                                                                               |
+| 36  | outputs/output-prometheus-log-to-metrics.conf | OUTPUT prometheus_exporter                                                            | Match parse_error_metrics                 | Exposes the metric `fluentbit_parse_error_total` to the `2021` port                                                                                                                                                     |
 | 37  | outputs/output-http.cond                      | OUTPUT http                                                                           | Match *                                   | Sends data in json_lines format to HTTP storage backend (VictoriaLogs)                                                                                                                                                  |
 <!-- textlint-enable -->
 
@@ -125,19 +125,22 @@ identify its format, and detect its severity level.
 If the log structure matches any of the supported log formats,
 the following fields must always be present in the resulting log output:
 
-1) level – The severity level of the log.
+1) level – The GELF/syslog-compatible severity level of the log.
    Must be one of: `debug`, `info`, `notice`, `warning`, `err`, `crit`, `alert`, `emerg`.
    If the original severity level cannot be detected, the level is set to info.
-2) parse_status – Indicates whether the log was successfully parsed.
+2) detected_level – The Grafana-friendly severity level derived from the same source value.
+   Possible values: `trace`, `debug`, `info`, `warn`, `error`, `critical`.
+   This field is intended for HTTP-based backends such as VictoriaLogs and for adapters that emulate Loki responses.
+3) parse_status – Indicates whether the log was successfully parsed.
    Possible values: success, failed.
-3) parse_format – The detected original log format.
+4) parse_format – The detected original log format.
    Possible values: `json`, `logfmt`, `klog`, `qubership`, `java`, `opensearch`, and other third-party formats.
-4) log_category – The source type of the log. Possible values: container, audit, system.
-5) parse_level_unknown – Indicates that the original severity level could not be detected
+5) log_category – The source type of the log. Possible values: container, audit, system.
+6) parse_level_unknown – Indicates that the original severity level could not be detected
    or did not match any known severity levels.
-6) namespace – The namespace of the log source. Present only if the log originates from a Kubernetes container.
-7) pod – The pod of the log source. Present only if the log originates from a Kubernetes container.
-8) container – The container of the log source. Present only if the log originates from a Kubernetes container.
-9) nodename – The Kubernetes node where the log source is located.
-10) hostname – The FluentBit pod that processed and sent the log.
-11) labels - The set of labels from the pod originated the log.
+7) namespace – The namespace of the log source. Present only if the log originates from a Kubernetes container.
+8) pod – The pod of the log source. Present only if the log originates from a Kubernetes container.
+9) container – The container of the log source. Present only if the log originates from a Kubernetes container.
+10) nodename – The Kubernetes node where the log source is located.
+11) hostname – The FluentBit pod that processed and sent the log.
+12) labels - The set of labels from the pod originated the log.

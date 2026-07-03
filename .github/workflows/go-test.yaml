@@ -65,8 +65,8 @@ jobs:
 
       - name: Render FluentBit resources
         env:
-          FLUENTBIT_RENDER_OUTPUT_DIR: rendered/fluentbit
-          FLUENTBIT_AGGREGATOR_RENDER_OUTPUT_DIR: rendered/fluentbit-aggregator
+          FLUENTBIT_RENDER_OUTPUT_DIR: ${{ github.workspace }}/rendered/fluentbit
+          FLUENTBIT_AGGREGATOR_RENDER_OUTPUT_DIR: ${{ github.workspace }}/rendered/fluentbit-aggregator
         run: |
           go test -count=1 ./controllers/fluentbit ./controllers/fluentbit-forwarder-aggregator
 

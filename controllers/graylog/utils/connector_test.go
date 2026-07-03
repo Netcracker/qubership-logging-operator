@@ -58,6 +58,14 @@ func TestCreateConnectorRequiresGraylogCredentials(t *testing.T) {
 	}
 }
 
+func TestCreateConnectorRequiresOpenSearchHost(t *testing.T) {
+	cr := newGraylogConnectorTestCR()
+
+	if _, err := CreateConnector(context.Background(), cr, embed.FS{}, fake.NewSimpleClientset()); err == nil {
+		t.Fatal("CreateConnector() error = nil, want error")
+	}
+}
+
 func TestGetOpenSearchHost(t *testing.T) {
 	cr := newGraylogConnectorTestCR()
 	cr.Spec.Graylog.ElasticsearchHost = "http://legacy-opensearch:9200"
@@ -70,6 +78,11 @@ func TestGetOpenSearchHost(t *testing.T) {
 
 	cr.Spec.Graylog.ElasticsearchHost = ""
 	if got := getOpenSearchHost(cr); got != "http://opensearch:9200" {
+		t.Fatalf("getOpenSearchHost() = %q", got)
+	}
+
+	cr.Spec.Graylog.OpenSearch = nil
+	if got := getOpenSearchHost(cr); got != "" {
 		t.Fatalf("getOpenSearchHost() = %q", got)
 	}
 }

@@ -20,7 +20,7 @@ import (
 )
 
 type SecretEventWatcher struct {
-	Clientset *kubernetes.Clientset
+	Clientset kubernetes.Interface
 	Selector  string
 	Log       logr.Logger
 }

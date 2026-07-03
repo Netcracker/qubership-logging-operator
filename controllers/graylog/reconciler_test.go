@@ -133,6 +133,40 @@ func TestSetCredentialsRequiresElasticsearchHostWithoutOpenSearch(t *testing.T) 
 	}
 }
 
+func TestSetCredentialsRequiresUser(t *testing.T) {
+	r, cr := newGraylogTestReconciler(t, &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "graylog-secret",
+			Namespace: "logging",
+		},
+		Data: map[string][]byte{
+			"password":          []byte("admin"),
+			"elasticsearchHost": []byte("http://admin:admin@opensearch:9200"),
+		},
+	})
+
+	if err := r.setCredentials(cr); err == nil {
+		t.Fatal("setCredentials() error = nil, want error")
+	}
+}
+
+func TestSetCredentialsRequiresPassword(t *testing.T) {
+	r, cr := newGraylogTestReconciler(t, &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "graylog-secret",
+			Namespace: "logging",
+		},
+		Data: map[string][]byte{
+			"user":              []byte("admin"),
+			"elasticsearchHost": []byte("http://admin:admin@opensearch:9200"),
+		},
+	})
+
+	if err := r.setCredentials(cr); err == nil {
+		t.Fatal("setCredentials() error = nil, want error")
+	}
+}
+
 func newGraylogTestReconciler(t *testing.T, objects ...client.Object) (*GraylogReconciler, *loggingService.LoggingService) {
 	t.Helper()
 

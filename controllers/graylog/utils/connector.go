@@ -96,6 +96,7 @@ func CreateConnector(ctx context.Context, cr *loggingService.LoggingService, ass
 
 	var host string
 	if cr.Spec.Graylog.OpenSearch != nil {
+		host = cr.Spec.Graylog.OpenSearch.Host
 		if cr.Spec.Graylog.OpenSearch.HTTPConfig != nil {
 			var name, pwd, token string
 			name, pwd, token, tlsConfig, err = cr.Spec.Graylog.OpenSearch.HTTPConfig.GetCredentialsAndCertificates(ctx, clientSet, cr.GetNamespace())
@@ -111,7 +112,6 @@ func CreateConnector(ctx context.Context, cr *loggingService.LoggingService, ass
 				}
 			}
 
-			host = cr.Spec.Graylog.OpenSearch.Host
 		}
 	}
 

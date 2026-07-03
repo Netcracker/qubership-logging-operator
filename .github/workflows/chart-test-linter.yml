@@ -8,22 +8,43 @@ on:
     branches:
       - 'main'
     paths:
+      - '.github/workflows/chart-test-linter.yml'
+      - 'api/**'
       - 'charts/**'
+      - 'controllers/fluentd/**'
+      - 'controllers/utils/**'
+      - 'go.mod'
+      - 'go.sum'
+      - 'go.work'
   push:
     branches:
       - main
     paths:
+      - '.github/workflows/chart-test-linter.yml'
+      - 'api/**'
       - 'charts/**'
+      - 'controllers/fluentd/**'
+      - 'controllers/utils/**'
+      - 'go.mod'
+      - 'go.sum'
+      - 'go.work'
   workflow_dispatch: null
+
+concurrency:
+  group: chart-test-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   lint-test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Set up Chart Testing
         uses: helm/chart-testing-action@6ec842c01de15ebb84c8627d2744a0c2f2755c9f # v2.8.0
@@ -39,3 +60,53 @@ jobs:
 
       - name: Run chart-testing (lint)
         run: ct lint --check-version-increment=false --validate-maintainers=false --target-branch=main --chart-dirs=charts
+
+  render-fluentd-config:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Set up Go
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+        with:
+          go-version-file: go.work
+          check-latest: true
+
+      - name: Render FluentD configuration
+        env:
+          FLUENTD_RENDER_OUTPUT_DIR: rendered/fluentd
+        run: |
+          go test ./controllers/fluentd -run TestFluentdSecretFileAuthRendering -count=1
+
+      - name: Add rendered configuration to summary
+        run: |
+          {
+            echo "## Rendered FluentD configuration"
+            echo
+            echo "<details>"
+            echo "<summary>fluentd-daemonset.yaml</summary>"
+            echo
+            echo '```yaml'
+            cat rendered/fluentd/fluentd-daemonset.yaml
+            echo '```'
+            echo "</details>"
+            echo
+            echo "<details>"
+            echo "<summary>fluentd-configmap.yaml</summary>"
+            echo
+            echo '```yaml'
+            cat rendered/fluentd/fluentd-configmap.yaml
+            echo '```'
+            echo "</details>"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload rendered configuration
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: fluentd-rendered-configuration
+          path: rendered/fluentd/

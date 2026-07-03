@@ -79,7 +79,7 @@ jobs:
 
       - name: Render FluentD configuration
         env:
-          FLUENTD_RENDER_OUTPUT_DIR: rendered/fluentd
+          FLUENTD_RENDER_OUTPUT_DIR: ${{ github.workspace }}/rendered/fluentd
         run: |
           go test ./controllers/fluentd -run TestFluentdSecretFileAuthRendering -count=1
 

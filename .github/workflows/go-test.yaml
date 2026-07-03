@@ -68,12 +68,17 @@ jobs:
           FLUENTBIT_RENDER_OUTPUT_DIR: rendered/fluentbit
           FLUENTBIT_AGGREGATOR_RENDER_OUTPUT_DIR: rendered/fluentbit-aggregator
         run: |
-          go test ./controllers/fluentbit ./controllers/fluentbit-forwarder-aggregator
+          go test -count=1 ./controllers/fluentbit ./controllers/fluentbit-forwarder-aggregator
 
       - name: Add rendered configs to summary
         run: |
           echo "## Rendered FluentBit resources" >> "$GITHUB_STEP_SUMMARY"
-          for file in rendered/fluentbit/*.yaml rendered/fluentbit-aggregator/*.yaml; do
+          files=(rendered/fluentbit/*.yaml rendered/fluentbit-aggregator/*.yaml)
+          if [ ! -e "${files[0]}" ]; then
+            echo "No rendered FluentBit resources found" >&2
+            exit 1
+          fi
+          for file in "${files[@]}"; do
             echo "### ${file}" >> "$GITHUB_STEP_SUMMARY"
             echo '```yaml' >> "$GITHUB_STEP_SUMMARY"
             cat "$file" >> "$GITHUB_STEP_SUMMARY"

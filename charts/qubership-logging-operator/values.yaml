@@ -1317,6 +1317,11 @@ fluentbit:
         #   name: loki-secret
         #   key: password
 
+      # -- Secret key that contains the complete Fluent Bit Loki [OUTPUT] section. Use it for authenticated output.
+      # configSecret:
+      #   secretName: loki-output-config
+      #   secretKey: output-loki.conf
+
       # -- Static labels that added as stream labels.
       staticLabels: job=fluentbit
 
@@ -1413,6 +1418,11 @@ fluentbit:
         #   name: http-secret
         #   key: token
 
+      # -- Secret key that contains the complete Fluent Bit HTTP [OUTPUT] section. Use it for authenticated output.
+      # configSecret:
+      #   secretName: http-output-config
+      #   secretKey: output-http.conf
+
       # -- TLS configuration for Http output.
       tls:
         # -- Allows enabling TLS for Http output.
@@ -1497,6 +1507,11 @@ fluentbit:
         # token:
         #   name: otel-secret
         #   key: token
+
+      # -- Secret key that contains the complete Fluent Bit OpenTelemetry [OUTPUT] section. Use it for authenticated output.
+      # configSecret:
+      #   secretName: otel-output-config
+      #   secretKey: output-opentelemetry.conf
 
       # -- TLS configuration for otel output.
       tls:
@@ -1730,6 +1745,11 @@ fluentbit:
           #   name: loki-secret
           #   key: password
 
+        # -- Secret key that contains the complete Fluent Bit Loki [OUTPUT] section. Use it for authenticated output.
+        # configSecret:
+        #   secretName: loki-output-config
+        #   secretKey: output-loki.conf
+
         # -- Static labels that added as stream labels.
         staticLabels: job=fluentbit
 
@@ -1822,6 +1842,11 @@ fluentbit:
           #   name: http-secret
           #   key: token
 
+        # -- Secret key that contains the complete Fluent Bit HTTP [OUTPUT] section. Use it for authenticated output.
+        # configSecret:
+        #   secretName: http-output-config
+        #   secretKey: output-http.conf
+
         # -- Additional configuration parameters for Http output. Bearer token can be set here as well.
         # See docs: https://docs.fluentbit.io/manual/data-pipeline/outputs/http#configuration-parameters
         #
@@ -1911,6 +1936,11 @@ fluentbit:
           # token:
           #   name: otel-secret
           #   key: token
+
+        # -- Secret key that contains the complete Fluent Bit OpenTelemetry [OUTPUT] section. Use it for authenticated output.
+        # configSecret:
+        #   secretName: otel-output-config
+        #   secretKey: output-opentelemetry.conf
 
         # -- TLS configuration for otel output.
         tls:

@@ -1,5 +1,4 @@
-<!-- markdownlint-disable line-length -->
-<!-- markdownlint-disable reference-links-images -->
+<!-- markdownlint-disable -->
 > This page is automatically generated with `gen-crd-api-reference-docs`.
 <p>Packages:</p>
 <ul>
@@ -3335,6 +3334,19 @@ Auth
 </tr>
 <tr>
 <td>
+<code>configSecret</code><br/>
+<em>
+<a href="#logging.netcracker.com/v1.OutputConfigSecret">
+OutputConfigSecret
+</a>
+</em>
+</td>
+<td>
+<p>ConfigSecret references a Secret key with the complete Fluent Bit HTTP [OUTPUT] section.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>compress</code><br/>
 <em>
 string
@@ -4122,6 +4134,19 @@ Auth
 </tr>
 <tr>
 <td>
+<code>configSecret</code><br/>
+<em>
+<a href="#logging.netcracker.com/v1.OutputConfigSecret">
+OutputConfigSecret
+</a>
+</em>
+</td>
+<td>
+<p>ConfigSecret references a Secret key with the complete Fluent Bit Loki [OUTPUT] section.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>staticLabels</code><br/>
 <em>
 string
@@ -4601,6 +4626,19 @@ Auth
 </tr>
 <tr>
 <td>
+<code>configSecret</code><br/>
+<em>
+<a href="#logging.netcracker.com/v1.OutputConfigSecret">
+OutputConfigSecret
+</a>
+</em>
+</td>
+<td>
+<p>ConfigSecret references a Secret key with the complete Fluent Bit OpenTelemetry [OUTPUT] section.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>compress</code><br/>
 <em>
 string
@@ -4629,6 +4667,46 @@ string
 </em>
 </td>
 <td>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="logging.netcracker.com/v1.OutputConfigSecret">OutputConfigSecret
+</h3>
+<p>
+(<em>Appears on:</em><a href="#logging.netcracker.com/v1.HttpFluentbit">HttpFluentbit</a>, <a href="#logging.netcracker.com/v1.LokiFluentbit">LokiFluentbit</a>, <a href="#logging.netcracker.com/v1.OtelFluentbit">OtelFluentbit</a>)
+</p>
+<div>
+<p>OutputConfigSecret references a Secret key with the complete Fluent Bit output configuration.</p>
+</div>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>secretName</code><br/>
+<em>
+string
+</em>
+</td>
+<td>
+<p>SecretName is the name of the Secret with the Fluent Bit output configuration.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>secretKey</code><br/>
+<em>
+string
+</em>
+</td>
+<td>
+<p>SecretKey is the key that contains the complete Fluent Bit [OUTPUT] section.</p>
 </td>
 </tr>
 </tbody>

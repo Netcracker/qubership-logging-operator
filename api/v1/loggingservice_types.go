@@ -477,41 +477,55 @@ type OutputFluentbit struct {
 }
 
 type LokiFluentbit struct {
-	Enabled       bool              `json:"enabled,omitempty"`
-	Host          string            `json:"host,omitempty"`
-	Tenant        string            `json:"tenant,omitempty"`
-	Auth          *Auth             `json:"auth,omitempty"`
-	StaticLabels  string            `json:"staticLabels,omitempty"`
-	LabelsMapping string            `json:"labelsMapping,omitempty"`
-	TLS           *FluentbitLokiTLS `json:"tls,omitempty"`
-	ExtraParams   string            `json:"extraParams,omitempty"`
+	Enabled bool   `json:"enabled,omitempty"`
+	Host    string `json:"host,omitempty"`
+	Tenant  string `json:"tenant,omitempty"`
+	Auth    *Auth  `json:"auth,omitempty"`
+	// ConfigSecret references a Secret key with the complete Fluent Bit Loki [OUTPUT] section.
+	ConfigSecret  *OutputConfigSecret `json:"configSecret,omitempty"`
+	StaticLabels  string              `json:"staticLabels,omitempty"`
+	LabelsMapping string              `json:"labelsMapping,omitempty"`
+	TLS           *FluentbitLokiTLS   `json:"tls,omitempty"`
+	ExtraParams   string              `json:"extraParams,omitempty"`
 }
 
 type HttpFluentbit struct {
-	Enabled        bool                  `json:"enabled,omitempty"`
-	Routing        *FluentbitHTTPRouting `json:"routing,omitempty"`
-	Host           string                `json:"host,omitempty"`
-	Port           int                   `json:"port,omitempty"`
-	Uri            string                `json:"uri,omitempty"`
-	Auth           *Auth                 `json:"auth,omitempty"`
-	Compress       string                `json:"compress,omitempty"`
-	TLS            *FluentbitHttpTLS     `json:"tls,omitempty"`
-	JsonDateFormat string                `json:"jsonDateFormat,omitempty"`
-	Format         string                `json:"format,omitempty"`
-	ExtraParams    string                `json:"extraParams,omitempty"`
+	Enabled bool                  `json:"enabled,omitempty"`
+	Routing *FluentbitHTTPRouting `json:"routing,omitempty"`
+	Host    string                `json:"host,omitempty"`
+	Port    int                   `json:"port,omitempty"`
+	Uri     string                `json:"uri,omitempty"`
+	Auth    *Auth                 `json:"auth,omitempty"`
+	// ConfigSecret references a Secret key with the complete Fluent Bit HTTP [OUTPUT] section.
+	ConfigSecret   *OutputConfigSecret `json:"configSecret,omitempty"`
+	Compress       string              `json:"compress,omitempty"`
+	TLS            *FluentbitHttpTLS   `json:"tls,omitempty"`
+	JsonDateFormat string              `json:"jsonDateFormat,omitempty"`
+	Format         string              `json:"format,omitempty"`
+	ExtraParams    string              `json:"extraParams,omitempty"`
 }
 
 type OtelFluentbit struct {
-	Enabled             bool              `json:"enabled,omitempty"`
-	Host                string            `json:"host,omitempty"`
-	Port                int               `json:"port,omitempty"`
-	LogsUri             string            `json:"logsUri,omitempty"`
-	Target              string            `json:"target,omitempty"`
-	LogSuppressInterval int               `json:"logSuppressInterval,omitempty"`
-	Auth                *Auth             `json:"auth,omitempty"`
-	Compress            string            `json:"compress,omitempty"`
-	TLS                 *FluentbitHttpTLS `json:"tls,omitempty"`
-	ExtraParams         string            `json:"extraParams,omitempty"`
+	Enabled             bool   `json:"enabled,omitempty"`
+	Host                string `json:"host,omitempty"`
+	Port                int    `json:"port,omitempty"`
+	LogsUri             string `json:"logsUri,omitempty"`
+	Target              string `json:"target,omitempty"`
+	LogSuppressInterval int    `json:"logSuppressInterval,omitempty"`
+	Auth                *Auth  `json:"auth,omitempty"`
+	// ConfigSecret references a Secret key with the complete Fluent Bit OpenTelemetry [OUTPUT] section.
+	ConfigSecret *OutputConfigSecret `json:"configSecret,omitempty"`
+	Compress     string              `json:"compress,omitempty"`
+	TLS          *FluentbitHttpTLS   `json:"tls,omitempty"`
+	ExtraParams  string              `json:"extraParams,omitempty"`
+}
+
+// OutputConfigSecret references a Secret key with the complete Fluent Bit output configuration.
+type OutputConfigSecret struct {
+	// SecretName is the name of the Secret with the Fluent Bit output configuration.
+	SecretName string `json:"secretName,omitempty"`
+	// SecretKey is the key that contains the complete Fluent Bit [OUTPUT] section.
+	SecretKey string `json:"secretKey,omitempty"`
 }
 
 type Auth struct {

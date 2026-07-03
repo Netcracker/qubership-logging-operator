@@ -130,6 +130,17 @@ func fluentbitConfigMap(cr *loggingService.LoggingService, dynamicParameters uti
 		cr.Spec.Fluentbit.Output.Loki.Enabled && cr.Spec.Fluentbit.Output.Loki.LabelsMapping != "" {
 		configMapData["loki-labels.json"] = cr.Spec.Fluentbit.Output.Loki.LabelsMapping
 	}
+	if cr.Spec.Fluentbit.Output != nil {
+		if hasLokiOutputConfigSecret(cr.Spec.Fluentbit.Output.Loki) {
+			delete(configMapData, "output-loki.conf")
+		}
+		if hasHTTPOutputConfigSecret(cr.Spec.Fluentbit.Output.Http) {
+			delete(configMapData, "output-http.conf")
+		}
+		if hasOtelOutputConfigSecret(cr.Spec.Fluentbit.Output.Otel) {
+			delete(configMapData, "output-opentelemetry.conf")
+		}
+	}
 
 	configMap := corev1.ConfigMap{
 		TypeMeta: metav1.TypeMeta{
@@ -148,4 +159,20 @@ func fluentbitConfigMap(cr *loggingService.LoggingService, dynamicParameters uti
 		ComponentLabels: cr.Spec.Fluentbit.Labels,
 	}, map[string]string{"k8s-app": "fluent-bit"})
 	return &configMap, nil
+}
+
+func hasLokiOutputConfigSecret(output *loggingService.LokiFluentbit) bool {
+	return output != nil && hasOutputConfigSecret(output.ConfigSecret)
+}
+
+func hasHTTPOutputConfigSecret(output *loggingService.HttpFluentbit) bool {
+	return output != nil && hasOutputConfigSecret(output.ConfigSecret)
+}
+
+func hasOtelOutputConfigSecret(output *loggingService.OtelFluentbit) bool {
+	return output != nil && hasOutputConfigSecret(output.ConfigSecret)
+}
+
+func hasOutputConfigSecret(configSecret *loggingService.OutputConfigSecret) bool {
+	return configSecret != nil && configSecret.SecretName != "" && configSecret.SecretKey != ""
 }

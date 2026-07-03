@@ -148,6 +148,17 @@ func aggregatorConfigMap(cr *loggingService.LoggingService, dynamicParameters ut
 		cr.Spec.Fluentbit.Aggregator.Output.Loki.Enabled && cr.Spec.Fluentbit.Aggregator.Output.Loki.LabelsMapping != "" {
 		configMapData["loki-labels.json"] = cr.Spec.Fluentbit.Aggregator.Output.Loki.LabelsMapping
 	}
+	if cr.Spec.Fluentbit.Aggregator.Output != nil {
+		if hasLokiOutputConfigSecret(cr.Spec.Fluentbit.Aggregator.Output.Loki) {
+			delete(configMapData, "output-loki.conf")
+		}
+		if hasHTTPOutputConfigSecret(cr.Spec.Fluentbit.Aggregator.Output.Http) {
+			delete(configMapData, "output-http.conf")
+		}
+		if hasOtelOutputConfigSecret(cr.Spec.Fluentbit.Aggregator.Output.Otel) {
+			delete(configMapData, "output-opentelemetry.conf")
+		}
+	}
 
 	// Set custom filters from parameters
 	if cr.Spec.Fluentbit.Aggregator.CustomFilterConf != "" {
@@ -239,4 +250,20 @@ func aggregatorService(cr *loggingService.LoggingService) (*corev1.Service, erro
 		ComponentLabels: cr.Spec.Fluentbit.Aggregator.Labels,
 	}, nil)
 	return &service, nil
+}
+
+func hasLokiOutputConfigSecret(output *loggingService.LokiFluentbit) bool {
+	return output != nil && hasOutputConfigSecret(output.ConfigSecret)
+}
+
+func hasHTTPOutputConfigSecret(output *loggingService.HttpFluentbit) bool {
+	return output != nil && hasOutputConfigSecret(output.ConfigSecret)
+}
+
+func hasOtelOutputConfigSecret(output *loggingService.OtelFluentbit) bool {
+	return output != nil && hasOutputConfigSecret(output.ConfigSecret)
+}
+
+func hasOutputConfigSecret(configSecret *loggingService.OutputConfigSecret) bool {
+	return configSecret != nil && configSecret.SecretName != "" && configSecret.SecretKey != ""
 }

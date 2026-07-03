@@ -1,21 +1,10 @@
-
+<!-- markdownlint-disable -->
 
 # qubership-logging-operator
-
-
 
 ![Version: 2.5.0](https://img.shields.io/badge/Version-2.5.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 14.31.0](https://img.shields.io/badge/AppVersion-14.31.0-informational?style=flat-square)
 
 A Helm chart for qubership-logging-operator
-
-
-
-
-
-
-
-
-
 
 ## Values
 
@@ -352,7 +341,7 @@ null
 {}
 </pre>
 </td>
-			<td>Authentication for Http. Secret name and key in the secret storing the parameter should be provided. Username/password or token can be stored in different secrets. </td>
+			<td>Authentication for Http. Inline credentials can be specified via `credentials` (chart creates the Secret automatically). Alternatively, reference pre-created secrets via `token`, `user`, `password`. If both are specified, secret references take priority.</td>
 		</tr>
 		<tr>
 			<td>fluentbit.aggregator.output.http.enabled</td>
@@ -427,7 +416,7 @@ true
 {}
 </pre>
 </td>
-			<td>Authentication for Loki.</td>
+			<td>Authentication for Loki. Inline credentials can be specified via `credentials` (chart creates the Secret automatically). Alternatively, reference pre-created secrets via `token`, `user`, `password`. If both are specified, secret references take priority.</td>
 		</tr>
 		<tr>
 			<td>fluentbit.aggregator.output.loki.enabled</td>
@@ -510,7 +499,7 @@ false
 {}
 </pre>
 </td>
-			<td>Authentication for Otel. Secret name and key in the secret storing the parameter should be provided. Username/password or token can be stored in different secrets.</td>
+			<td>Authentication for Otel. Inline credentials can be specified via `credentials` (chart creates the Secret automatically). Alternatively, reference pre-created secrets via `token`, `user`, `password`. If both are specified, secret references take priority.</td>
 		</tr>
 		<tr>
 			<td>fluentbit.aggregator.output.otel.compress</td>
@@ -907,7 +896,7 @@ null
 {}
 </pre>
 </td>
-			<td>Authentication for Http.</td>
+			<td>Authentication for Http. Inline credentials can be specified via `credentials` (chart creates the Secret automatically). Alternatively, reference pre-created secrets via `token`, `user`, `password`. If both are specified, secret references take priority.</td>
 		</tr>
 		<tr>
 			<td>fluentbit.output.http.compress</td>
@@ -991,7 +980,7 @@ false
 {}
 </pre>
 </td>
-			<td>Authentication for Loki.</td>
+			<td>Authentication for Loki. Inline credentials can be specified via `credentials` (chart creates the Secret automatically). Alternatively, reference pre-created secrets via `token`, `user`, `password`. If both are specified, secret references take priority.</td>
 		</tr>
 		<tr>
 			<td>fluentbit.output.loki.enabled</td>
@@ -1084,7 +1073,7 @@ true
 {}
 </pre>
 </td>
-			<td>Authentication for Otel. Secret name and key in the secret storing the parameter should be provided. Username/password or token can be stored in different secrets.</td>
+			<td>Authentication for Otel. Inline credentials can be specified via `credentials` (chart creates the Secret automatically). Alternatively, reference pre-created secrets via `token`, `user`, `password`. If both are specified, secret references take priority.</td>
 		</tr>
 		<tr>
 			<td>fluentbit.output.otel.compress</td>
@@ -1534,7 +1523,7 @@ true
 {}
 </pre>
 </td>
-			<td>Authentication for HTTP output. Secret name and key in the secret storing the parameter should be provided. Username/password or token can be stored in different secrets.</td>
+			<td>Authentication for HTTP output. Inline credentials can be specified via `credentials` (chart creates the Secret automatically). Alternatively, reference pre-created secrets via `token`, `user`, `password`. If both are specified, secret references take priority.</td>
 		</tr>
 		<tr>
 			<td>fluentd.output.http.compress</td>
@@ -1618,7 +1607,7 @@ false
 {}
 </pre>
 </td>
-			<td>Authentication for Loki.</td>
+			<td>Authentication for Loki. Inline credentials can be specified via `credentials` (chart creates the Secret automatically). Alternatively, reference pre-created secrets via `token`, `user`, `password`. If both are specified, secret references take priority.</td>
 		</tr>
 		<tr>
 			<td>fluentd.output.loki.enabled</td>
@@ -3100,8 +3089,3 @@ true
 		</tr>
 	</tbody>
 </table>
-
-
-
-
-

@@ -680,6 +680,11 @@ spec:
         {{- if .Values.fluentbit.output.loki.auth }}
         {{- include "logging.output.auth" (dict "auth" .Values.fluentbit.output.loki.auth "default" (printf "%s-fluentbit-loki-auth" .Release.Name)) | nindent 8 }}
         {{- end }}
+        {{- if .Values.fluentbit.output.loki.configSecret }}
+        configSecret:
+          secretName: {{ .Values.fluentbit.output.loki.configSecret.secretName }}
+          secretKey: {{ .Values.fluentbit.output.loki.configSecret.secretKey }}
+        {{- end }}
         {{- if .Values.fluentbit.output.loki.staticLabels }}
         staticLabels: {{ .Values.fluentbit.output.loki.staticLabels }}
         {{- end }}
@@ -894,6 +899,11 @@ spec:
           {{- end }}
           {{- if .Values.fluentbit.aggregator.output.loki.auth }}
           {{- include "logging.output.auth" (dict "auth" .Values.fluentbit.aggregator.output.loki.auth "default" (printf "%s-fluentbit-aggregator-loki-auth" .Release.Name)) | nindent 10 }}
+          {{- end }}
+          {{- if .Values.fluentbit.aggregator.output.loki.configSecret }}
+          configSecret:
+            secretName: {{ .Values.fluentbit.aggregator.output.loki.configSecret.secretName }}
+            secretKey: {{ .Values.fluentbit.aggregator.output.loki.configSecret.secretKey }}
           {{- end }}
           {{- if .Values.fluentbit.aggregator.output.loki.staticLabels }}
           staticLabels: {{ .Values.fluentbit.aggregator.output.loki.staticLabels }}

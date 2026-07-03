@@ -3,7 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.20.1
+    controller-gen.kubebuilder.io/version: v0.21.0
     logging-operator.logging.netcracker.com/version: 14.31.0
   labels:
     app.kubernetes.io/component: qubership-logging-operator
@@ -5070,6 +5070,19 @@ spec:
                                 type: object
                               compress:
                                 type: string
+                              configSecret:
+                                description: ConfigSecret references a Secret key
+                                  with the complete Fluent Bit HTTP [OUTPUT] section.
+                                properties:
+                                  secretKey:
+                                    description: SecretKey is the key that contains
+                                      the complete Fluent Bit [OUTPUT] section.
+                                    type: string
+                                  secretName:
+                                    description: SecretName is the name of the Secret
+                                      with the Fluent Bit output configuration.
+                                    type: string
+                                type: object
                               enabled:
                                 type: boolean
                               extraParams:
@@ -5202,6 +5215,19 @@ spec:
                                     type: object
                                     x-kubernetes-map-type: atomic
                                 type: object
+                              configSecret:
+                                description: ConfigSecret references a Secret key
+                                  with the complete Fluent Bit Loki [OUTPUT] section.
+                                properties:
+                                  secretKey:
+                                    description: SecretKey is the key that contains
+                                      the complete Fluent Bit [OUTPUT] section.
+                                    type: string
+                                  secretName:
+                                    description: SecretName is the name of the Secret
+                                      with the Fluent Bit output configuration.
+                                    type: string
+                                type: object
                               enabled:
                                 type: boolean
                               extraParams:
@@ -5327,6 +5353,20 @@ spec:
                                 type: object
                               compress:
                                 type: string
+                              configSecret:
+                                description: ConfigSecret references a Secret key
+                                  with the complete Fluent Bit OpenTelemetry [OUTPUT]
+                                  section.
+                                properties:
+                                  secretKey:
+                                    description: SecretKey is the key that contains
+                                      the complete Fluent Bit [OUTPUT] section.
+                                    type: string
+                                  secretName:
+                                    description: SecretName is the name of the Secret
+                                      with the Fluent Bit output configuration.
+                                    type: string
+                                type: object
                               enabled:
                                 type: boolean
                               extraParams:
@@ -5744,6 +5784,19 @@ spec:
                             type: object
                           compress:
                             type: string
+                          configSecret:
+                            description: ConfigSecret references a Secret key with
+                              the complete Fluent Bit HTTP [OUTPUT] section.
+                            properties:
+                              secretKey:
+                                description: SecretKey is the key that contains the
+                                  complete Fluent Bit [OUTPUT] section.
+                                type: string
+                              secretName:
+                                description: SecretName is the name of the Secret
+                                  with the Fluent Bit output configuration.
+                                type: string
+                            type: object
                           enabled:
                             type: boolean
                           extraParams:
@@ -5876,6 +5929,19 @@ spec:
                                 type: object
                                 x-kubernetes-map-type: atomic
                             type: object
+                          configSecret:
+                            description: ConfigSecret references a Secret key with
+                              the complete Fluent Bit Loki [OUTPUT] section.
+                            properties:
+                              secretKey:
+                                description: SecretKey is the key that contains the
+                                  complete Fluent Bit [OUTPUT] section.
+                                type: string
+                              secretName:
+                                description: SecretName is the name of the Secret
+                                  with the Fluent Bit output configuration.
+                                type: string
+                            type: object
                           enabled:
                             type: boolean
                           extraParams:
@@ -6001,6 +6067,19 @@ spec:
                             type: object
                           compress:
                             type: string
+                          configSecret:
+                            description: ConfigSecret references a Secret key with
+                              the complete Fluent Bit OpenTelemetry [OUTPUT] section.
+                            properties:
+                              secretKey:
+                                description: SecretKey is the key that contains the
+                                  complete Fluent Bit [OUTPUT] section.
+                                type: string
+                              secretName:
+                                description: SecretName is the name of the Secret
+                                  with the Fluent Bit output configuration.
+                                type: string
+                            type: object
                           enabled:
                             type: boolean
                           extraParams:

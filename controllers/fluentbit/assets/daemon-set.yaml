@@ -141,6 +141,21 @@ spec:
             - mountPath: /fluent-bit/etc
               name: config
               readOnly: true
+{{- if and .Values.Fluentbit.Output .Values.Fluentbit.Output.Loki .Values.Fluentbit.Output.Loki.Enabled .Values.Fluentbit.Output.Loki.ConfigSecret .Values.Fluentbit.Output.Loki.ConfigSecret.SecretName .Values.Fluentbit.Output.Loki.ConfigSecret.SecretKey }}
+            - mountPath: /fluent-bit/secret-outputs/loki
+              name: loki-output-config
+              readOnly: true
+{{- end }}
+{{- if and .Values.Fluentbit.Output .Values.Fluentbit.Output.Http .Values.Fluentbit.Output.Http.Enabled .Values.Fluentbit.Output.Http.ConfigSecret .Values.Fluentbit.Output.Http.ConfigSecret.SecretName .Values.Fluentbit.Output.Http.ConfigSecret.SecretKey }}
+            - mountPath: /fluent-bit/secret-outputs/http
+              name: http-output-config
+              readOnly: true
+{{- end }}
+{{- if and .Values.Fluentbit.Output .Values.Fluentbit.Output.Otel .Values.Fluentbit.Output.Otel.Enabled .Values.Fluentbit.Output.Otel.ConfigSecret .Values.Fluentbit.Output.Otel.ConfigSecret.SecretName .Values.Fluentbit.Output.Otel.ConfigSecret.SecretKey }}
+            - mountPath: /fluent-bit/secret-outputs/otel
+              name: otel-output-config
+              readOnly: true
+{{- end }}
 {{ if .Values.Fluentbit.TLS }}
 {{ if and .Values.Fluentbit.TLS.GenerateCerts .Values.Fluentbit.TLS.GenerateCerts.Enabled }}
             - mountPath: /fluent-bit/tls/ca.crt
@@ -321,6 +336,33 @@ spec:
           configMap:
             name: "logging-fluentbit"
             defaultMode: 420 # RW grants for config map files
+{{- if and .Values.Fluentbit.Output .Values.Fluentbit.Output.Loki .Values.Fluentbit.Output.Loki.Enabled .Values.Fluentbit.Output.Loki.ConfigSecret .Values.Fluentbit.Output.Loki.ConfigSecret.SecretName .Values.Fluentbit.Output.Loki.ConfigSecret.SecretKey }}
+        - name: loki-output-config
+          secret:
+            secretName: {{ .Values.Fluentbit.Output.Loki.ConfigSecret.SecretName }}
+            defaultMode: 256 # 0400: read-only for owner
+            items:
+              - key: {{ .Values.Fluentbit.Output.Loki.ConfigSecret.SecretKey }}
+                path: output-loki.conf
+{{- end }}
+{{- if and .Values.Fluentbit.Output .Values.Fluentbit.Output.Http .Values.Fluentbit.Output.Http.Enabled .Values.Fluentbit.Output.Http.ConfigSecret .Values.Fluentbit.Output.Http.ConfigSecret.SecretName .Values.Fluentbit.Output.Http.ConfigSecret.SecretKey }}
+        - name: http-output-config
+          secret:
+            secretName: {{ .Values.Fluentbit.Output.Http.ConfigSecret.SecretName }}
+            defaultMode: 256 # 0400: read-only for owner
+            items:
+              - key: {{ .Values.Fluentbit.Output.Http.ConfigSecret.SecretKey }}
+                path: output-http.conf
+{{- end }}
+{{- if and .Values.Fluentbit.Output .Values.Fluentbit.Output.Otel .Values.Fluentbit.Output.Otel.Enabled .Values.Fluentbit.Output.Otel.ConfigSecret .Values.Fluentbit.Output.Otel.ConfigSecret.SecretName .Values.Fluentbit.Output.Otel.ConfigSecret.SecretKey }}
+        - name: otel-output-config
+          secret:
+            secretName: {{ .Values.Fluentbit.Output.Otel.ConfigSecret.SecretName }}
+            defaultMode: 256 # 0400: read-only for owner
+            items:
+              - key: {{ .Values.Fluentbit.Output.Otel.ConfigSecret.SecretKey }}
+                path: output-opentelemetry.conf
+{{- end }}
 {{ if .Values.Fluentbit.TLS }}
 {{ if and .Values.Fluentbit.TLS.GenerateCerts .Values.Fluentbit.TLS.GenerateCerts.Enabled }}
         - name: tls-ca

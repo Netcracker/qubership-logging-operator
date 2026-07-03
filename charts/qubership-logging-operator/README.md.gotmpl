@@ -1,11 +1,13 @@
-{{/*
+{{- /*
 This chart uses helm-docs to generate README.md.
 
 Key goals for our generated values table:
 - Show only Key / Default / Description columns (no Type / Mandatory)
 - Strip legacy "Type:" and "Mandatory:" fragments from descriptions
 - If the default is not present (empty), try to reuse the "Default:" snippet from the legacy description
-*/}}
+*/ -}}
+
+<!-- markdownlint-disable -->
 
 {{ template "chart.header" . }}
 {{ template "chart.deprecationWarning" . }}
@@ -25,4 +27,3 @@ Key goals for our generated values table:
 {{ template "chart.valuesSectionHtml" . }}
 
 {{ template "helm-docs.versionFooter" . }}
-

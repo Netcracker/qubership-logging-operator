@@ -46,6 +46,33 @@ spec:
           configMap:
             name: logging-fluentbit-aggregator
             defaultMode: 420
+{{- if and .Values.Fluentbit.Aggregator.Output .Values.Fluentbit.Aggregator.Output.Loki .Values.Fluentbit.Aggregator.Output.Loki.Enabled .Values.Fluentbit.Aggregator.Output.Loki.ConfigSecret .Values.Fluentbit.Aggregator.Output.Loki.ConfigSecret.SecretName .Values.Fluentbit.Aggregator.Output.Loki.ConfigSecret.SecretKey }}
+        - name: loki-output-config
+          secret:
+            secretName: {{ .Values.Fluentbit.Aggregator.Output.Loki.ConfigSecret.SecretName }}
+            defaultMode: 256 # 0400: read-only for owner
+            items:
+              - key: {{ .Values.Fluentbit.Aggregator.Output.Loki.ConfigSecret.SecretKey }}
+                path: output-loki.conf
+{{- end }}
+{{- if and .Values.Fluentbit.Aggregator.Output .Values.Fluentbit.Aggregator.Output.Http .Values.Fluentbit.Aggregator.Output.Http.Enabled .Values.Fluentbit.Aggregator.Output.Http.ConfigSecret .Values.Fluentbit.Aggregator.Output.Http.ConfigSecret.SecretName .Values.Fluentbit.Aggregator.Output.Http.ConfigSecret.SecretKey }}
+        - name: http-output-config
+          secret:
+            secretName: {{ .Values.Fluentbit.Aggregator.Output.Http.ConfigSecret.SecretName }}
+            defaultMode: 256 # 0400: read-only for owner
+            items:
+              - key: {{ .Values.Fluentbit.Aggregator.Output.Http.ConfigSecret.SecretKey }}
+                path: output-http.conf
+{{- end }}
+{{- if and .Values.Fluentbit.Aggregator.Output .Values.Fluentbit.Aggregator.Output.Otel .Values.Fluentbit.Aggregator.Output.Otel.Enabled .Values.Fluentbit.Aggregator.Output.Otel.ConfigSecret .Values.Fluentbit.Aggregator.Output.Otel.ConfigSecret.SecretName .Values.Fluentbit.Aggregator.Output.Otel.ConfigSecret.SecretKey }}
+        - name: otel-output-config
+          secret:
+            secretName: {{ .Values.Fluentbit.Aggregator.Output.Otel.ConfigSecret.SecretName }}
+            defaultMode: 256 # 0400: read-only for owner
+            items:
+              - key: {{ .Values.Fluentbit.Aggregator.Output.Otel.ConfigSecret.SecretKey }}
+                path: output-opentelemetry.conf
+{{- end }}
 {{- if .Values.Fluentbit.Aggregator.TLS }}
 {{- if and .Values.Fluentbit.Aggregator.TLS.GenerateCerts .Values.Fluentbit.Aggregator.TLS.GenerateCerts.Enabled }}
         - name: tls-ca
@@ -251,6 +278,21 @@ spec:
             - name: config
               readOnly: true
               mountPath: /fluent-bit/etc
+{{- if and .Values.Fluentbit.Aggregator.Output .Values.Fluentbit.Aggregator.Output.Loki .Values.Fluentbit.Aggregator.Output.Loki.Enabled .Values.Fluentbit.Aggregator.Output.Loki.ConfigSecret .Values.Fluentbit.Aggregator.Output.Loki.ConfigSecret.SecretName .Values.Fluentbit.Aggregator.Output.Loki.ConfigSecret.SecretKey }}
+            - mountPath: /fluent-bit/secret-outputs/loki
+              name: loki-output-config
+              readOnly: true
+{{- end }}
+{{- if and .Values.Fluentbit.Aggregator.Output .Values.Fluentbit.Aggregator.Output.Http .Values.Fluentbit.Aggregator.Output.Http.Enabled .Values.Fluentbit.Aggregator.Output.Http.ConfigSecret .Values.Fluentbit.Aggregator.Output.Http.ConfigSecret.SecretName .Values.Fluentbit.Aggregator.Output.Http.ConfigSecret.SecretKey }}
+            - mountPath: /fluent-bit/secret-outputs/http
+              name: http-output-config
+              readOnly: true
+{{- end }}
+{{- if and .Values.Fluentbit.Aggregator.Output .Values.Fluentbit.Aggregator.Output.Otel .Values.Fluentbit.Aggregator.Output.Otel.Enabled .Values.Fluentbit.Aggregator.Output.Otel.ConfigSecret .Values.Fluentbit.Aggregator.Output.Otel.ConfigSecret.SecretName .Values.Fluentbit.Aggregator.Output.Otel.ConfigSecret.SecretKey }}
+            - mountPath: /fluent-bit/secret-outputs/otel
+              name: otel-output-config
+              readOnly: true
+{{- end }}
 {{- if .Values.Fluentbit.Aggregator.TLS }}
 {{- if and .Values.Fluentbit.Aggregator.TLS.GenerateCerts .Values.Fluentbit.Aggregator.TLS.GenerateCerts.Enabled }}
             - mountPath: /fluent-bit/tls/ca.crt

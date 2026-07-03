@@ -321,7 +321,7 @@ Image can be found from:
     {{- printf "%s" .Values.fluentd.dockerImage -}}
   {{- else -}}
     {{- /* # renovate: datasource=github-releases depName=Netcracker/qubership-fluentd versioning=loose */ -}}
-    {{- print "ghcr.io/netcracker/qubership-fluentd:1.19.2-1" -}}
+    {{- print "ghcr.io/netcracker/qubership-fluentd:1.19.2-2" -}}
   {{- end -}}
 {{- end -}}
 
@@ -381,7 +381,7 @@ Image can be found from:
     {{- printf "%s" .Values.cloudEventsReader.dockerImage -}}
   {{- else -}}
     {{- /* # renovate: datasource=github-releases depName=Netcracker/qubership-kube-events-reader versioning=semver */ -}}
-    {{- print "ghcr.io/netcracker/qubership-kube-events-reader:2.8.0" -}}
+    {{- print "ghcr.io/netcracker/qubership-kube-events-reader:2.9.1" -}}
   {{- end -}}
 {{- end -}}
 
@@ -425,7 +425,7 @@ Image can be found from:
     {{- printf "%s" .Values.graylog.mongodbImage -}}
   {{- else -}}
     {{- /* # renovate: datasource=docker depName=mongo */ -}}
-    {{- print "docker.io/mongo:5.0.32" -}}
+    {{- print "docker.io/mongo:5.0.33" -}}
   {{- end -}}
 {{- end -}}
 
@@ -455,7 +455,7 @@ Image can be found from:
     {{- printf "%s" .Values.graylog.initSetupImage -}}
   {{- else -}}
     {{- /* # renovate: datasource=docker depName=alpine */ -}}
-    {{- print "docker.io/alpine:3.23.3" -}}
+    {{- print "docker.io/alpine:3.23.4" -}}
   {{- end -}}
 {{- end -}}
 

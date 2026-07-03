@@ -4,6 +4,8 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.20.1
+    helm.sh/hook: crd-install
+    helm.sh/hook-weight: "-5"
     logging-operator.logging.netcracker.com/version: 14.31.0
   labels:
     app.kubernetes.io/component: qubership-logging-operator

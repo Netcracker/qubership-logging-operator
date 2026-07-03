@@ -12,8 +12,8 @@ For logging cases, Splunk can collect logs from a lot of sources, and store and 
 
 * Address of Splunk that you will use to send logs (host and port)
 * Token to auth in Splunk and that will use to send logs
-  * Splunk CloudPlatform - [Use authentication tokens](https://docs.splunk.com/Documentation/SplunkCloud/latest/Security/UseAuthTokens)
-  * Splunk Enterprise - [Use authentication tokens](https://docs.splunk.com/Documentation/Splunk/9.0.4/Security/UseAuthTokens)
+  * Splunk CloudPlatform - [Use authentication tokens][splunk-cloud-auth-tokens]
+  * Splunk Enterprise - [Use authentication tokens][splunk-enterprise-auth-tokens]
 
 ## Integration FluentD with Splunk
 
@@ -114,7 +114,12 @@ fluentbit:
 
 ## Links
 
-* [Use authentication tokens](https://docs.splunk.com/Documentation/SplunkCloud/latest/Security/UseAuthTokens)
-* [Use authentication tokens](https://docs.splunk.com/Documentation/Splunk/9.0.4/Security/UseAuthTokens)
+* [Splunk CloudPlatform: Use authentication tokens][splunk-cloud-auth-tokens]
+* [Splunk Enterprise: Use authentication tokens][splunk-enterprise-auth-tokens]
 * [FluentD Splunk plugin: fluent-plugin-splunk-hec](https://github.com/splunk/fluent-plugin-splunk-hec)
 * [FluentBit output configuration for Splunk](https://docs.fluentbit.io/manual/pipeline/outputs/splunk/)
+
+<!-- markdownlint-disable line-length -->
+[splunk-cloud-auth-tokens]: https://help.splunk.com/en/splunk-cloud-platform/administer/manage-users-and-security/10.5.2605/authenticate-into-the-splunk-platform-with-tokens/use-authentication-tokens
+[splunk-enterprise-auth-tokens]: https://help.splunk.com/en/splunk-enterprise/administer/manage-users-and-security/9.0/authenticate-into-the-splunk-platform-with-tokens/use-authentication-tokens
+<!-- markdownlint-enable line-length -->

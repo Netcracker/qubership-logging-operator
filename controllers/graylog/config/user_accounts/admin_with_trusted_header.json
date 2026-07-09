@@ -1,7 +1,7 @@
 {
   "username": "graylog_api_th_user",
   "password": "graylog_api_th_user",
-  "email": "apith@apith.th",
+  "email": "graylog-api-trusted-header@example.com",
   "first_name":"graylog_api_th_user",
   "last_name":"graylog_api_th_user",
   "permissions": [

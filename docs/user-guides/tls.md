@@ -46,7 +46,7 @@ L                      = Test L
 O                      = Qubership
 OU                     = Operations Platform
 CN                     = graylog
-emailAddress           = test@email.address
+emailAddress           = test@example.com
 
 [ v3_req ]
 basicConstraints = critical, CA:FALSE

@@ -20,8 +20,8 @@ function second_count_fields(tag, timestamp, record)
         if record["logfmt_candidate"] ~= nil then
             count = count - 1 -- Subtracting logfmt_candidate
         end
-        if record["field_count"] ~= nil then
-            count = count - 1 -- Subtracting field_count
+        if record["parse_field_count"] ~= nil then
+            count = count - 1 -- Subtracting parse_field_count
         end
         if record["parse_status"] == "success" then
             return 0, timestamp, record
@@ -39,7 +39,7 @@ function second_count_fields(tag, timestamp, record)
         else
             record["parse_status"] = "failed"
         end
-        record["field_count"] = count
+        record["parse_field_count"] = count
         return 2, timestamp, record
     end
 end

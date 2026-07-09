@@ -1,6 +1,7 @@
 module github.com/Netcracker/qubership-logging-operator
 
-go 1.25.0
+go 1.26.0
+
 toolchain go1.26.5
 
 require (
@@ -10,9 +11,9 @@ require (
 	github.com/google/go-cmp v0.7.0
 	go.uber.org/zap v1.27.1
 	golang.org/x/crypto v0.52.0 // indirect
-	k8s.io/api v0.35.3
-	k8s.io/apimachinery v0.35.3
-	k8s.io/client-go v0.35.3
+	k8s.io/api v0.36.2
+	k8s.io/apimachinery v0.36.2
+	k8s.io/client-go v0.36.2
 	sigs.k8s.io/controller-runtime v0.23.3
 )
 
@@ -52,7 +53,7 @@ require (
 	golang.org/x/text v0.37.0 // indirect
 	golang.org/x/time v0.15.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.5.0 // indirect
-	google.golang.org/protobuf v1.36.11 // indirect
+	google.golang.org/protobuf v1.36.12-0.20260120151049-f2248ac996af // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	k8s.io/apiextensions-apiserver v0.35.3 // indirect
 	k8s.io/klog/v2 v2.140.0 // indirect

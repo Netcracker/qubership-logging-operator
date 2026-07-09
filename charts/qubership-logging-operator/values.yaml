@@ -2031,10 +2031,10 @@ integrationTests:
   # -- PriorityClassName assigned to the Pods to prevent them from evicting.
   # priorityClassName: "priorityClassName"
 
-  # -- The parameter specifies the user for ssh login to VM. Example: ubuntu
+  # -- The user for SSH login to the external Graylog VM. Used only by archiving-plugin integration tests.
   vmUser: ""
 
-  # -- The parameter specifies the ssh key for login to VM.
+  # -- The SSH key for login to the external Graylog VM. Used only by archiving-plugin integration tests.
   sshKey: ""
 
   # -- VictoriaLogs connection settings
@@ -2042,7 +2042,7 @@ integrationTests:
     # -- The parameter specifies the url for VictoriaLogs. Example : https://vlsingle-example.victorialogs:9428
     url: ""
 
-    # -- Authentication for VictoriaLogs.
+    # -- Authentication for VictoriaLogs. The referenced Kubernetes Secret is mounted as files in the test container.
     auth: {}
       # user:
       #   secretName: ""

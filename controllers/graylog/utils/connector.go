@@ -5,9 +5,9 @@ import (
 	"context"
 	"crypto/tls"
 	"embed"
-	"fmt"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 
@@ -30,6 +30,13 @@ const (
 	pipelineUrl                 = "system/pipelines/pipeline"
 	processingRulesUrl          = "system/pipelines/rule"
 	authHeaderUrl               = "system/authentication/http-header-auth-config"
+)
+
+var (
+	operatorGraylogSecretDir    = "/etc/logging-operator/graylog-secret"
+	operatorGraylogUserFile     = operatorGraylogSecretDir + "/user"
+	operatorGraylogPasswordFile = operatorGraylogSecretDir + "/password"
+	operatorElasticHostFile     = operatorGraylogSecretDir + "/elasticsearchHost"
 )
 
 type GraylogConnector struct {
@@ -78,12 +85,16 @@ func CreateConnector(ctx context.Context, cr *loggingService.LoggingService, ass
 		Timeout:   time.Duration(util.ConnectionTimeout) * time.Second,
 	}
 
-	if len(cr.Spec.Graylog.User) == 0 || len(cr.Spec.Graylog.Password) == 0 {
-		return nil, fmt.Errorf("graylog API credentials are empty; expected user and password from Secret %q (reconcile loads them into spec)", cr.Spec.Graylog.GraylogSecretName)
-	}
-	user = &util.Creds{
-		Name:     cr.Spec.Graylog.User,
-		Password: cr.Spec.Graylog.Password,
+	if len(cr.Spec.Graylog.User) != 0 && len(cr.Spec.Graylog.Password) != 0 {
+		user = &util.Creds{
+			Name:     cr.Spec.Graylog.User,
+			Password: cr.Spec.Graylog.Password,
+		}
+	} else {
+		user, err = readOperatorGraylogCreds()
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	restClient := &util.RestClient{
@@ -96,7 +107,6 @@ func CreateConnector(ctx context.Context, cr *loggingService.LoggingService, ass
 
 	var host string
 	if cr.Spec.Graylog.OpenSearch != nil {
-		host = cr.Spec.Graylog.OpenSearch.Host
 		if cr.Spec.Graylog.OpenSearch.HTTPConfig != nil {
 			var name, pwd, token string
 			name, pwd, token, tlsConfig, err = cr.Spec.Graylog.OpenSearch.HTTPConfig.GetCredentialsAndCertificates(ctx, clientSet, cr.GetNamespace())
@@ -112,16 +122,17 @@ func CreateConnector(ctx context.Context, cr *loggingService.LoggingService, ass
 				}
 			}
 
+			host = cr.Spec.Graylog.OpenSearch.Host
 		}
 	}
 
 	if len(host) == 0 {
-		esHost := cr.Spec.Graylog.ElasticsearchHost
-		if esHost == "" {
-			return nil, fmt.Errorf("OpenSearch/Elasticsearch host is empty; expected elasticsearchHost in Secret %q (reconcile loads it into spec) or spec.graylog.openSearch", cr.Spec.Graylog.GraylogSecretName)
-		}
 		var u *url.URL
-		u, err = url.Parse(esHost)
+		elasticSearchHost, err := readSecretFileValue(operatorElasticHostFile)
+		if err != nil {
+			return nil, err
+		}
+		u, err = url.Parse(elasticSearchHost)
 		if err != nil {
 			return nil, err
 		}
@@ -168,6 +179,32 @@ func CreateConnector(ctx context.Context, cr *loggingService.LoggingService, ass
 		Assets:               assets,
 		EnabledStreams:       enabledStreams,
 		TLSEnabled:           cr.Spec.Graylog.TLS.HTTP.Enabled,
+	}, nil
+}
+
+func readSecretFileValue(path string) (string, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return "", err
+	}
+
+	return strings.TrimSpace(string(data)), nil
+}
+
+func readOperatorGraylogCreds() (*util.Creds, error) {
+	name, err := readSecretFileValue(operatorGraylogUserFile)
+	if err != nil {
+		return nil, err
+	}
+
+	password, err := readSecretFileValue(operatorGraylogPasswordFile)
+	if err != nil {
+		return nil, err
+	}
+
+	return &util.Creds{
+		Name:     name,
+		Password: password,
 	}, nil
 }
 

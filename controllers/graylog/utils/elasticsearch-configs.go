@@ -128,7 +128,17 @@ func (connector *GraylogConnector) ManageOpensearchConfigs(cr *loggingService.Lo
 }
 
 func (connector *GraylogConnector) ManageArchivesDirectory(cr *loggingService.LoggingService) error {
-	elasticsearchHost := getOpenSearchHost(cr)
+	elasticsearchHost := ""
+	if cr.Spec.Graylog.OpenSearch != nil {
+		elasticsearchHost = cr.Spec.Graylog.OpenSearch.Host
+	}
+	if elasticsearchHost == "" {
+		host, err := readSecretFileValue(operatorElasticHostFile)
+		if err != nil {
+			return err
+		}
+		elasticsearchHost = host
+	}
 	data, err := util.ParseTemplate(util.MustAssetReader(connector.Assets, util.GraylogArchivesDirectory), util.GraylogArchivesDirectory, cr.ToParams())
 	if err != nil {
 		return err
@@ -140,14 +150,4 @@ func (connector *GraylogConnector) ManageArchivesDirectory(cr *loggingService.Lo
 		return err
 	}
 	return nil
-}
-
-func getOpenSearchHost(cr *loggingService.LoggingService) string {
-	if cr.Spec.Graylog.ElasticsearchHost != "" {
-		return cr.Spec.Graylog.ElasticsearchHost
-	}
-	if cr.Spec.Graylog.OpenSearch != nil {
-		return cr.Spec.Graylog.OpenSearch.Host
-	}
-	return ""
 }

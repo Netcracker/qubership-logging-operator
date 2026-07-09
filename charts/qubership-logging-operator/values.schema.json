@@ -3884,7 +3884,7 @@
                     "type": "object"
                 },
                 "sshKey": {
-                    "description": "The parameter specifies the ssh key for login to VM.",
+                    "description": "The SSH key for login to the external Graylog VM. Used only by archiving-plugin integration tests.",
                     "type": "string"
                 },
                 "statusWriting": {
@@ -3922,7 +3922,7 @@
                     "description": "VictoriaLogs connection settings",
                     "properties": {
                         "auth": {
-                            "description": "Authentication for VictoriaLogs.",
+                            "description": "Authentication for VictoriaLogs. The referenced Kubernetes Secret is mounted as files in the test container.",
                             "properties": {
                                 "password": {
                                     "properties": {
@@ -3977,7 +3977,7 @@
                     "type": "object"
                 },
                 "vmUser": {
-                    "description": "The parameter specifies the user for ssh login to VM. Example: ubuntu",
+                    "description": "The user for SSH login to the external Graylog VM. Used only by archiving-plugin integration tests. Example: ubuntu",
                     "type": "string"
                 }
             },

@@ -1,7 +1,7 @@
 {
   "username": "operator",
   "password": "operator",
-  "email": "o@o.o",
+  "email": "operator@example.com",
   "first_name": "operator",
   "last_name": "operator",
   "permissions": [

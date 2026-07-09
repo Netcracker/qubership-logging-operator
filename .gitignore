@@ -14,9 +14,13 @@
 venv/
 .mypy_cache/
 __pycache__/
+*.py[cod]
 
 # MkDocs
 site/
 
 # Claude Code local settings
 .claude/
+
+# Local deploy env files
+deploy/**/.env

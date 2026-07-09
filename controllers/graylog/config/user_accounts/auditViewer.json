@@ -1,7 +1,7 @@
 {
   "username": "auditViewer",
   "password": "auditViewer",
-  "email": "av@av.av",
+  "email": "audit-viewer@example.com",
   "first_name": "auditViewer",
   "last_name": "auditViewer",
   "permissions": [

@@ -1,0 +1,329 @@
+# signals.txt — single signal dictionary for logging-l1-classification.
+# One phrase per line: case-insensitive, whitespace-flexible, word boundaries
+# at word-char edges. Prefix a line with "re:" for a raw regex. "#" at the
+# start of a line is a comment; no inline trailing comments.
+# Namespaces:
+#   [problem|consultation|feature_request|security]  intent
+#   [component.<name>]                               where in the stack
+#   [platform.<name>]                                where it runs (vm / kubernetes)
+#   [phase.<name>]                                   where in lifecycle (deploy)
+#   [symptom.<name> | .<component>.<spec> | .deploy.<spec>]  problem "what"
+#   [topic.<name>]                                   consultation/feature/security "what"
+# Section hits are HINTS only; the model decides every label.
+
+[problem]
+re: \bfail(?:ed|s|ing)?\b
+re: \bfailure\b
+re: \berror(?:s)?\b
+exception
+re: \bcrash(?:ed|es|ing|loop(?:backoff)?)?\b
+re: \boom(?:killed)?\b
+re: \brestart(?:s|ed|ing)?\b
+stuck
+re: \bhang(?:s|ed|ing)?\b
+re: \b(?:is|are|went|going)\s+down\b
+broken
+re: \btime(?:d)?\s*out|\btimeout\b
+re: \b(?:connection\s+)?refused\b
+unable to
+re: \bcannot\b|\bcan(?:\x27|')?t\b
+re: \bdoes\s*n(?:\x27|')?t\b|\bdoesn[\x27']?t\b
+re: \bdo\s*n(?:\x27|')?t\s+work\b|\bdon[\x27']?t\s+work\b
+re: \bis\s+not\s+working\b|\bnot\s+work(?:ing)?\b
+re: \bnot\s+(?:processing|responding|respond|visible|shown|showing|passed|available|installing|installed|starting|started|written|received|reflect(?:ed|ing)?|created|generated)\b
+re: \bdid(?:\x27|')?n[\x27']?t\s+start\b
+not started
+re: \bstop(?:s|ped|ping)?\s+(?:processing|working|sending|receiving|writing)\b
+re: \bno\s+(?:logs?|data|messages?|stream|output)\b
+empty stream
+empty index
+empty file
+empty response
+unprocessed
+re: \b(?:0|zero)[\s-]*byte\b
+re: \bdelay(?:ed|s|ing)?\b
+slow
+re: \blag(?:s|ged|ging)?\b
+missing
+re: \bhigh\s+(?:cpu|memory|load|amount|disk)\b
+re: \bgrow(?:n|s|ing)?\s+\d+\s*x\b|\b\d+\s*x\s+(?:larger|bigger|more|growth)\b
+re: \bspend(?:s|ing)?\s+(?:more\s+than\s+|over\s+)?\d+\s*(?:sec|second|min|minute|hour)s?\b
+re: \balways\s+yellow\b|\bcluster\s+is\s+(?:yellow|red)\b
+re: (?m)^\s+at\s+[\w$.]+\(
+traceback
+stacktrace
+stack trace
+re: \b[A-Z][\w.]*Exception\b
+
+[consultation]
+re: \bhow\s+(?:to|do|can|should|would)\b
+is it possible
+re: \bcan\s+(?:we|i|you)\b
+re: \bwhere\s+(?:is|can|do|to|should)\b
+re: \bwhat\s+is\b|\bwhich\b
+re: \bwould\s+like\s+to\s+(?:know|understand|learn)\b
+re: \bwant(?:ed)?\s+to\s+(?:know|understand)\b
+re: \bcould\s+you\s+(?:please\s+)?(?:help|advise|explain|share|clarify)\b
+re: \bkindly\s+(?:share|provide|advise|confirm)\b
+re: \bplease\s+(?:advise|confirm|explain|clarify)\b|\badvise\b
+re: \bdon(?:\x27|')?t\s+know\s+(?:where|how|what)\b
+re: \bneed\s+(?:info|information|to\s+know|help\s+understanding|guidance)\b
+re: \bclarif(?:y|ication)\b
+question
+documentation
+re: \bdocs?\b
+re: \brecommend(?:ed|ation)?\b|\bbest\s+practice\b
+
+[feature_request]
+please add
+re: \badd\s+(?:support|ability|an?\s+option|a\s+(?:chapter|section|paragraph))\b
+ability to
+support for
+re: \bwould\s+(?:be|it\s+be)\s+(?:nice|good|great|useful|possible)\b
+feature request
+enhancement
+implement
+re: \bprovide\s+an?\b
+re: \badd\s+.{0,40}\bto\s+(?:the\s+)?logging[-\s]?operator\b
+re: \bdefine\s+(?:the\s+)?contract\b
+re: \bmake\s+.{0,30}\brequirements?\b
+re: \bremov(?:e|al)\s+of\b
+
+[security]
+re: \bvulnerabilit(?:y|ies)\b
+re: \bcve[-\s]?\d|\bcve\b
+re: \bcwe[-\s]?\d|\bcwe\b
+re: \bsecurity\s+(?:scan|scanning|finding|issue|defect|fix|patch)\b
+re: \bsca\b|\bxray\b|\bsnyk\b|\bnessus\b
+re: \bpen(?:etration)?[-\s]?test\b
+re: \bupdate\s+(?:the\s+)?image(?:s)?\b
+re: \bupgrade\s+(?:os\s+)?(?:packages?|libraries|dependenc(?:y|ies))\b
+re: \bpatch\s+(?:the\s+)?(?:image|version|vulnerab\w*)\b
+re: \bfix(?:ing)?\s+(?:the\s+)?(?:cve|vulnerab\w*)\b
+
+[component.graylog]
+graylog
+gl
+
+[component.fluentd]
+re: \bfluent\.?d\b|\btd-agent\b
+re: \bfluent::|\bbufferqueuelimiterror\b|\.rb\b
+
+[component.fluentbit]
+re: \bfluent\s*-?\s*bit\b
+
+[component.opensearch]
+re: \bopensearch\b|\belastic(?:search)?\b|\bes\b
+
+[component.mongodb]
+re: \bmongo(?:db)?\b
+
+[component.events-reader]
+re: \bevents?[-\s]?reader\b|\bcloudeventsreader\b
+
+[component.operator]
+re: \blogging[-\s]?operator\b
+re: \boperator\s+(?:pod|reconcil\w*|controller|crd|cr)\b
+
+[platform.vm]
+re: \bexternal[-\s]?logging[-\s]?installer\b
+re: /srv/docker/graylog\b
+re: \bdocker\s+(?:ps|stats|run|start|container|compose)\b
+re: \blsblk\b|\bdf\s+-h\b
+re: \[(?:root|centos|ubuntu)@
+re: \bgraylog[-\s]?install\b
+re: \bvirtual\s+machine\b|\bon\s+vm\b
+re: \bcreaterepo\b|\byum\s+install\b
+
+[platform.kubernetes]
+re: \bkubernetes\b|\bk8s\b|\bopenshift\b|\bocp\b|\beks\b|\baks\b|\bgke\b
+re: \bkubectl\b|\boc\s+(?:get|logs|describe|adm|project)\b
+re: \bnamespace\b|\bdaemonset\b|\bstatefulset\b
+re: \bhelm(?:file)?\b
+re: \bpods?\b
+re: \bcrashloopbackoff\b
+re: \.openshift\.
+
+[phase.deploy]
+re: \bTASK\s*\[
+re: \bansible\b|\bplaybook\b
+re: \bgraylog[-\s]?install\b|\bgraylog[-\s]?configuration\b|\bprepare[-\s]?env\b
+re: \bdeploy[-\s]?logging[-\s]?service\b
+re: \bdeploy[-\s]?logging[-\s]?application[-\s]?yaml\b
+re: \bexternal[-\s]?logging[-\s]?installer\b
+re: \binstall(?:ation)?\s+(?:of\s+logging\s+)?fail(?:ed|s|ing)?\b
+re: \b(?:up\s*grade|update)\s+(?:of\s+)?logging\b
+re: \bduring\s+(?:install\w*|deploy\w*|upgrad\w*)\b
+
+[symptom.not_running]
+re: \bwo?n[\x27']?t\s+start\b
+not starting
+did not start
+re: \bfail(?:s|ed|ing)?\s+to\s+start\b
+not running
+re: \b(?:is|are)\s+down\b
+crashloop
+re: \bcrash\s*loop(?:backoff)?\b
+keeps restarting
+not coming up
+re: \bpod\s+not\s+ready\b
+
+[symptom.no_data]
+re: \bno\s+(?:logs?|data|messages?|events?)\b
+not forwarded
+not forwarding
+re: \bnot\s+(?:sent|received|delivered|reaching|arriving)\b
+empty stream
+empty index
+logs missing
+re: \blost\s+(?:logs?|messages?|data)\b
+
+[symptom.performance]
+slow
+re: \bslow(?:ness|ly)?\b
+re: \blag(?:s|ging|gy)?\b
+re: \bdelay(?:ed|s|ing)?\b
+high latency
+re: \btimeouts?\b
+
+[symptom.disk_space]
+re: \bdisk\s+(?:full|space|usage)\b
+out of disk
+re: \bno\s+space\s+left\b
+re: \bstorage\s+full\b
+re: \b(?:pvc|volume)\s+full\b
+
+[symptom.oom_memory]
+re: \boom(?:killed)?\b
+out of memory
+re: \bmemory\s+(?:leak|pressure|limit)\b
+high memory
+
+[symptom.data_correctness]
+re: \bparse\s+(?:error|fail\w*)\b
+parsing error
+re: \bmissing\s+fields?\b
+wrong format
+re: \bgarbled\b|\bcorrupt(?:ed)?\b
+re: \bmalformed\b
+
+[symptom.auth_cert]
+re: \bunauthor(?:ized|ised)\b
+re: \bauthentication\s+(?:fail\w*|error)\b
+re: \b40[13]\b
+re: \bcert(?:ificate)?\s+(?:expired|error|invalid)\b
+re: \bcertificate\b
+re: \bx509\b
+re: \btls\s+(?:error|handshake)\b
+permission denied
+re: \bforbidden\b
+re: \brbac\b|\bauthoriz\w*\b
+
+[symptom.config_error]
+re: \binvalid\s+config(?:uration)?\b
+configuration error
+re: \bwrong\s+(?:setting|parameter|value)\b
+bad config
+
+[symptom.graylog.stream_index]
+re: \bstream\b
+re: \bindex\s+(?:set|rotation)\b
+re: \bindices\b
+
+[symptom.graylog.archive]
+re: \barchiv(?:e|ed|ing)\b
+
+[symptom.opensearch.cluster_red_yellow]
+re: \bcluster\s+(?:is\s+)?(?:red|yellow)\b
+re: \b(?:red|yellow)\s+status\b
+
+[symptom.opensearch.shard]
+re: \bunassigned\s+shards?\b
+re: \bshards?\b
+
+[symptom.fluentd.buffer_overflow]
+re: \bbuffer\s+(?:overflow|full|queue)\b
+backpressure
+re: \bchunk\b
+re: \bbufferqueuelimiterror\b
+re: \bqueue\s*size\s*exceeds\b
+re: \bslow\s*flush\b
+
+[symptom.fluentbit.buffer_overflow]
+re: \bbuffer\s+(?:overflow|full)\b
+backpressure
+
+[symptom.mongodb.replica]
+re: \breplica\s*set\b
+re: \bprimary\s+(?:election|stepdown)\b
+
+[symptom.operator.reconcile]
+re: \bcontroller[-\s]*runtime\b
+re: \breconcil(?:e|er|iation|ing)\b
+
+[symptom.deploy.prereq_check]
+re: \bnot\s+enough?\s+hdd\b
+re: \bhdd\s+size\b
+re: \bprerequisites?\b|\bprereq\b
+re: \brequired\s+\d+\s*gb\b
+
+[symptom.deploy.image_unavailable]
+re: \bimage\s+\S+\s+not\s+found\b
+re: \bimagepullbackoff\b|\berrimagepull\b
+re: \bmanifest\s+unknown\b
+
+[symptom.deploy.artifact_fetch]
+re: \bhttp\s+error\s+404\b|\b404\s+not\s+found\b
+re: \bcopy\s+plugins?\b
+re: \bchecksum\b
+
+[symptom.deploy.artifact_corrupt]
+re: \bzipfile\s+is\s+empty\b
+re: \bunzip\b
+re: \bempty\s+archive\b
+
+[symptom.deploy.task_error]
+re: \bmissingproperty\w*\b
+re: \bnullpointerexception\b
+re: \bno\s+such\s+property\b
+re: \bworking\s+directory\b
+
+[symptom.deploy.config_validation]
+re: \bvalidationapierror\b
+re: \binvalid\s+output\s+type\b
+re: \bcannot\s+deserialize\b
+re: \bvalidation\s+failed\b
+
+[symptom.deploy.package_missing]
+re: \bdid(?:n[\x27']?t)?\s+install\b
+re: \bnot\s+install(?:ed)?\s+automatically\b
+
+[symptom.deploy.dependency]
+re: \bcould\s+not\s+find\s+gem\b|\bgems?\s+(?:were\s+)?not\s+found\b
+re: \bno\s+td-agent\b
+
+[topic.backup_restore]
+backup
+re: \brestore\b|\bsnapshot\b
+
+[topic.retention]
+retention
+re: \bhow\s+long\s+.{0,20}\b(?:kept|stored|retained)\b
+
+[topic.output_target]
+re: \bloki\b|\bsplunk\b|\bkafka\b|\bcloudwatch\b
+re: \bsend\s+(?:logs?|data)\s+to\b
+re: \boutput\s+(?:plugin|target|destination)\b
+
+[topic.rbac_auth]
+re: \brbac\b|\baccess\s+control\b
+re: \brole\b|\bpermission\b
+
+[topic.sizing_resources]
+sizing
+re: \bresource\s+(?:request|limit)s?\b
+re: \b(?:cpu|memory)\s+(?:request|limit)s?\b
+
+[topic.integration]
+re: \bintegrat(?:e|ion)\b
+connect to

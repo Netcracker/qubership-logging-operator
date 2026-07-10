@@ -185,7 +185,7 @@ func (r *FluentbitReconciler) deleteService(cr *loggingService.LoggingService) e
 	return nil
 }
 
-func (r *FluentbitReconciler) Equal(source *corev1.Secret, target *corev1.Secret) bool {
+func (r *FluentbitReconciler) Equal(source, target *corev1.Secret) bool {
 	return cmp.Equal(source.Data, target.Data)
 }
 

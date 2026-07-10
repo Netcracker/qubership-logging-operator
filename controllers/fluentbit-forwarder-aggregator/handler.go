@@ -97,7 +97,7 @@ func (r *HAFluentReconciler) handleForwarderService(cr *loggingService.LoggingSe
 	return nil
 }
 
-func (r *HAFluentReconciler) Equal(source *corev1.ConfigMap, target *corev1.ConfigMap) bool {
+func (r *HAFluentReconciler) Equal(source, target *corev1.ConfigMap) bool {
 	return cmp.Equal(source.Data, target.Data) &&
 		cmp.Equal(source.BinaryData, target.BinaryData) &&
 		cmp.Equal(source.GetLabels(), target.GetLabels())
@@ -364,7 +364,7 @@ func (r *HAFluentReconciler) updateConfigMap(cr *loggingService.LoggingService, 
 	return true, nil
 }
 
-func (r *HAFluentReconciler) equalSecret(source *corev1.Secret, target *corev1.Secret) bool {
+func (r *HAFluentReconciler) equalSecret(source, target *corev1.Secret) bool {
 	return cmp.Equal(source.Data, target.Data) &&
 		cmp.Equal(source.GetLabels(), target.GetLabels())
 }

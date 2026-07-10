@@ -152,7 +152,7 @@ func (r *FluentdReconciler) deleteService(cr *loggingService.LoggingService) err
 	return nil
 }
 
-func (r *FluentdReconciler) Equal(source *corev1.ConfigMap, target *corev1.ConfigMap) bool {
+func (r *FluentdReconciler) Equal(source, target *corev1.ConfigMap) bool {
 	return cmp.Equal(source.Data, target.Data) &&
 		cmp.Equal(source.BinaryData, target.BinaryData) &&
 		cmp.Equal(source.GetLabels(), target.GetLabels())

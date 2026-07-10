@@ -8,7 +8,6 @@ The **published skill** has no bundled scripts — completion gates are manual (
 
 - `evals/evals.json` — prompts + human-readable `expectations` (process + outcome)
 - `evals/objective_checks.json` — programmatic supplements (workspace scripts + grep)
-- `evals/files/` — fixture inputs
 
 ## Per iteration (skill-creator Steps 1–5)
 

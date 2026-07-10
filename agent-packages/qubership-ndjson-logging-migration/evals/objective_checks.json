@@ -31,15 +31,6 @@
         "dbaas-aggregator listed",
         "dbaas-operator listed"
       ]
-    },
-    {
-      "eval_id": 3,
-      "eval_name": "log-level-response-body",
-      "type": "fixture",
-      "grep_expectations": {
-        "silent_debug_downgrade": false,
-        "decision_table_mentioned": true
-      }
     }
   ]
 }

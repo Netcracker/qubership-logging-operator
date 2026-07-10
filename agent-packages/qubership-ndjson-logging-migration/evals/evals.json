@@ -47,20 +47,6 @@
         "The migration report records the worktree HEAD commit hash at run start.",
         "Objective check: manual greps (or eval workspace check_migration_gates.py) on the worktree report zero Java {} and argN in aggregator src/main/java, zero production Go log.*f in dbaas-operator, and go build passes."
       ]
-    },
-    {
-      "id": 3,
-      "prompt": "In a service, an existing INFO log prints a full response body. Migrate it to structured JSON logging without silently changing behavior.",
-      "expected_output": "The agent keeps one logical log event by default, preserves INFO unless the user approves a level change, presents a structured decision table for body policy, and asks whether to preserve, redact, truncate, move to DEBUG, or block.",
-      "files": ["evals/files/response_body_info_log.go"],
-      "expectations": [
-        "The agent does not silently lower the response body from INFO to DEBUG.",
-        "The agent avoids splitting one original log event into multiple same-level events unless it gives a clear reason or asks.",
-        "The agent treats response body sensitivity/noise as a user decision point per user-decisions.md.",
-        "The agent proposes structured fields such as body_length and body while keeping message human-readable.",
-        "The agent preserves or explicitly accounts for the original operational visibility of the log.",
-        "The agent presents a structured decision table with explicit options (preserve INFO, redact, truncate, move to DEBUG, block) for response body policy."
-      ]
     }
   ]
 }

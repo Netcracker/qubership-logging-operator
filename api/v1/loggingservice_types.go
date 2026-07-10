@@ -518,6 +518,15 @@ type Auth struct {
 	Token    *v1.SecretKeySelector `yaml:"token" json:"token,omitempty"`
 	User     *v1.SecretKeySelector `yaml:"username" json:"user,omitempty"`
 	Password *v1.SecretKeySelector `yaml:"password" json:"password,omitempty"`
+
+	// TokenValue, UserValue and PasswordValue hold the sensitive values resolved
+	// by the controller from the referenced Secrets at render time. They are never
+	// persisted to the CRD (json:"-") and are used only to inline credentials into
+	// the generated Fluent Bit configuration Secret, so that sensitive data is not
+	// exposed through environment variables.
+	TokenValue    string `json:"-" yaml:"-"`
+	UserValue     string `json:"-" yaml:"-"`
+	PasswordValue string `json:"-" yaml:"-"`
 }
 
 type FluentbitHTTPRouting struct {

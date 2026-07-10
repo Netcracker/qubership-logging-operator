@@ -1,0 +1,45 @@
+{
+  "description": "Programmatic supplements for skill-creator grading — run against worktree after migration. Scripts live in the eval workspace, not the published skill.",
+  "workspace_scripts": "../qubership-ndjson-logging-migration-workspace/scripts",
+  "checks": [
+    {
+      "eval_id": 1,
+      "eval_name": "go-log-exporter",
+      "worktree_subpath": "",
+      "script": "../qubership-ndjson-logging-migration-workspace/scripts/check_migration_gates.py",
+      "args": ["{worktree}", "--go-path", "."],
+      "grep_expectations": {
+        "active_logf_production": 0
+      }
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "java-dbaas-monorepo",
+      "components": [
+        {
+          "name": "dbaas-aggregator",
+          "script": "../qubership-ndjson-logging-migration-workspace/scripts/check_migration_gates.py",
+          "args": ["{worktree}", "--java-path", "dbaas/dbaas-aggregator", "--go-path", "dbaas-operator"]
+        }
+      ],
+      "grep_expectations": {
+        "java_brace_interpolation": 0,
+        "java_argn_keys": 0,
+        "go_active_logf_production": 0
+      },
+      "ledger_expectations": [
+        "dbaas-aggregator listed",
+        "dbaas-operator listed"
+      ]
+    },
+    {
+      "eval_id": 3,
+      "eval_name": "log-level-response-body",
+      "type": "fixture",
+      "grep_expectations": {
+        "silent_debug_downgrade": false,
+        "decision_table_mentioned": true
+      }
+    }
+  ]
+}

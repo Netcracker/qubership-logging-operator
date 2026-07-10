@@ -1,0 +1,5 @@
+name: qubership-ndjson-logging-migration
+version: 0.1.0
+description: Two-stage Qubership NDJSON logging — enable JSON envelope (stage 1) and migrate call sites (stage 2).
+author: Netcracker
+

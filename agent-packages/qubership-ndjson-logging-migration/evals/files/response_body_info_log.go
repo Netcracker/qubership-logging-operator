@@ -1,3 +1,6 @@
+//go:build ignore
+
+// Eval fixture — not part of the operator module build (see evals/evals.json).
 package handler
 
 import (

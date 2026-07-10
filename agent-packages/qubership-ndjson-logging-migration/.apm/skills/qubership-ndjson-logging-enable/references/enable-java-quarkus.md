@@ -2,6 +2,8 @@
 
 Config and Helm only.
 
+**Local build:** If `mvn compile` fails with **401** from `maven.pkg.github.com`, configure Maven GitHub Packages auth first — see [maven-github-packages.md](maven-github-packages.md).
+
 ## Quarkus
 
 - Add or confirm `quarkus-logging-json` dependency.

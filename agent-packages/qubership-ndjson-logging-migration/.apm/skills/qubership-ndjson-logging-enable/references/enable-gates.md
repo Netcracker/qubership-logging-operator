@@ -20,7 +20,9 @@ Discover from README, `dev/`, `bootstrap/`, `Makefile`, chart notes, and `.githu
 - When docs assume prerequisites (Maven `settings.xml`, kind cluster, VPN), note them; ask the user or cite **CI evidence** on the PR when the agent environment lacks them.
 - Mark **blocked** only when neither the documented local path nor CI can validate — include the error and missing prerequisite.
 
-Private Maven packages (401): record the error; stage 1 can still be **partial** on components that build. A documented local deploy path may still need Maven auth to build images — same prerequisite, not a reason to skip repo docs.
+**Maven 401 (GitHub Packages):** Usually missing or mismatched `~/.m2/settings.xml` `<server>` id vs POM — see [maven-github-packages.md](maven-github-packages.md). Ask the user to fix auth before treating Java build as permanently blocked.
+
+Private Maven packages (401): after auth setup, re-run compile. Stage 1 can still be **partial** on components that build while others remain blocked. A documented local deploy path may still need Maven auth to build images — same prerequisite, not a reason to skip repo docs.
 
 ## Config checklist
 

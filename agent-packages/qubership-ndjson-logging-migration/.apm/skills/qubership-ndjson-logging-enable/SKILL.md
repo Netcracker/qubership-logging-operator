@@ -20,6 +20,7 @@ description: >
 | Envelope schema | [schema.md](references/schema.md) |
 | Stack → config only | [enable-java-quarkus.md](references/enable-java-quarkus.md), [enable-go.md](references/enable-go.md), or [enable-nginx-envoy.md](references/enable-nginx-envoy.md) |
 | Before claiming stage 1 done | [enable-gates.md](references/enable-gates.md) |
+| Maven 401 / GitHub Packages | [maven-github-packages.md](references/maven-github-packages.md) |
 | Smoke | [smoke-validation.md](references/smoke-validation.md) |
 | Report | [migration-report-template.md](references/migration-report-template.md) |
 | Pitfalls | [corner-cases.md](references/corner-cases.md) |

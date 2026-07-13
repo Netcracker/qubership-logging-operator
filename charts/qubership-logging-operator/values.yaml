@@ -2000,6 +2000,12 @@ integrationTests:
   # -- The parameter specifies the timeout before the start of integration tests.
   timeoutBeforeStart: 100
 
+  # -- Robot Framework retry count for integration test operations (e.g. 60x).
+  operationRetryCount: 60x
+
+  # -- Robot Framework retry interval for integration test operations (e.g. 5s).
+  operationRetryInterval: 5s
+
   # -- Flag for specify kind of Graylog (internal in cloud or external on VM).
   externalGraylogServer: "true"
 

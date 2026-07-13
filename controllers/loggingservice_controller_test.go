@@ -1,13 +1,16 @@
 package controllers
 
 import (
+	"context"
 	"testing"
 
 	loggingService "github.com/Netcracker/qubership-logging-operator/api/v1"
+	util "github.com/Netcracker/qubership-logging-operator/controllers/utils"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+	"sigs.k8s.io/controller-runtime/pkg/event"
 )
 
 var containerRuntimeTests = []struct {
@@ -187,5 +190,83 @@ func Test_updateDynamicParameters(t *testing.T) {
 				t.Errorf("expected %q, got %q", tt.containerRuntimeType, reconciler.DynamicParameters.ContainerRuntimeType)
 			}
 		})
+	}
+}
+
+func TestMapSecretToLoggingServices(t *testing.T) {
+	testScheme := runtime.NewScheme()
+	if err := loggingService.AddToScheme(testScheme); err != nil {
+		t.Fatal(err)
+	}
+	if err := corev1.AddToScheme(testScheme); err != nil {
+		t.Fatal(err)
+	}
+
+	referenced := &loggingService.LoggingService{
+		ObjectMeta: metav1.ObjectMeta{Name: "referenced", Namespace: "logging"},
+		Spec: loggingService.LoggingServiceSpec{
+			Fluentd: &loggingService.Fluentd{
+				Output: &loggingService.OutputFluentd{
+					Http: &loggingService.HttpFluentd{
+						Enabled: true,
+						Auth: &loggingService.Auth{
+							Password: &corev1.SecretKeySelector{
+								LocalObjectReference: corev1.LocalObjectReference{Name: "output-auth"},
+								Key:                  "password",
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	unrelated := &loggingService.LoggingService{
+		ObjectMeta: metav1.ObjectMeta{Name: "unrelated", Namespace: "logging"},
+		Spec: loggingService.LoggingServiceSpec{
+			Fluentd: &loggingService.Fluentd{
+				Output: &loggingService.OutputFluentd{
+					Loki: &loggingService.LokiFluentd{
+						Enabled: true,
+						Auth: &loggingService.Auth{
+							Token: &corev1.SecretKeySelector{
+								LocalObjectReference: corev1.LocalObjectReference{Name: "another-secret"},
+								Key:                  "token",
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	reconciler := &LoggingServiceReconciler{
+		Client: fake.NewClientBuilder().WithScheme(testScheme).WithObjects(referenced, unrelated).Build(),
+		Log:    util.Logger("test-logging-service"),
+	}
+
+	requests := reconciler.mapSecretToLoggingServices(context.Background(), &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{Name: "output-auth", Namespace: "logging"},
+	})
+	if len(requests) != 1 || requests[0].Name != "referenced" || requests[0].Namespace != "logging" {
+		t.Fatalf("unexpected reconcile requests: %#v", requests)
+	}
+}
+
+func TestCredentialSecretChangedPredicate(t *testing.T) {
+	predicate := credentialSecretChangedPredicate()
+	oldSecret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{Name: "output-auth", Namespace: "logging"},
+		Data:       map[string][]byte{"password": []byte("old")},
+	}
+
+	metadataOnly := oldSecret.DeepCopy()
+	metadataOnly.Labels = map[string]string{"updated": "true"}
+	if predicate.Update(event.UpdateEvent{ObjectOld: oldSecret, ObjectNew: metadataOnly}) {
+		t.Fatal("metadata-only Secret update must not trigger reconciliation")
+	}
+
+	dataChanged := oldSecret.DeepCopy()
+	dataChanged.Data["password"] = []byte("new")
+	if !predicate.Update(event.UpdateEvent{ObjectOld: oldSecret, ObjectNew: dataChanged}) {
+		t.Fatal("Secret data update must trigger reconciliation")
 	}
 }

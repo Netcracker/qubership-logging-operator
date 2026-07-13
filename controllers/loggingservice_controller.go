@@ -3,6 +3,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"strings"
 	"time"
 
@@ -20,8 +21,10 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/event"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
@@ -191,9 +194,61 @@ func (r *LoggingServiceReconciler) updateDynamicParameters(customResourceInstanc
 // SetupWithManager sets up the controller with the Manager.
 func (r *LoggingServiceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&loggingService.LoggingService{}).
-		WithEventFilter(ignoreDeletionPredicate()).
+		For(&loggingService.LoggingService{}, builder.WithPredicates(ignoreDeletionPredicate())).
+		Watches(
+			&corev1.Secret{},
+			handler.EnqueueRequestsFromMapFunc(r.mapSecretToLoggingServices),
+			builder.WithPredicates(credentialSecretChangedPredicate()),
+		).
 		Complete(r)
+}
+
+func (r *LoggingServiceReconciler) mapSecretToLoggingServices(ctx context.Context, object client.Object) []reconcile.Request {
+	loggingServices := &loggingService.LoggingServiceList{}
+	if err := r.Client.List(ctx, loggingServices, client.InNamespace(object.GetNamespace())); err != nil {
+		r.Log.Error(err, "Cannot list Logging Services for changed Secret", "namespace", object.GetNamespace())
+		return nil
+	}
+
+	requests := make([]reconcile.Request, 0, len(loggingServices.Items))
+	for i := range loggingServices.Items {
+		loggingServiceInstance := &loggingServices.Items[i]
+		if fluentdReferencesSecret(loggingServiceInstance, object.GetName()) {
+			requests = append(requests, reconcile.Request{
+				NamespacedName: client.ObjectKeyFromObject(loggingServiceInstance),
+			})
+		}
+	}
+	return requests
+}
+
+func fluentdReferencesSecret(cr *loggingService.LoggingService, secretName string) bool {
+	if cr.Spec.Fluentd == nil || cr.Spec.Fluentd.Output == nil {
+		return false
+	}
+
+	output := cr.Spec.Fluentd.Output
+	return (output.Loki != nil && output.Loki.Enabled && authReferencesSecret(output.Loki.Auth, secretName)) ||
+		(output.Http != nil && output.Http.Enabled && authReferencesSecret(output.Http.Auth, secretName))
+}
+
+func authReferencesSecret(auth *loggingService.Auth, secretName string) bool {
+	if auth == nil {
+		return false
+	}
+	return (auth.Token != nil && auth.Token.Name == secretName) ||
+		(auth.User != nil && auth.User.Name == secretName) ||
+		(auth.Password != nil && auth.Password.Name == secretName)
+}
+
+func credentialSecretChangedPredicate() predicate.Predicate {
+	return predicate.Funcs{
+		UpdateFunc: func(e event.UpdateEvent) bool {
+			oldSecret, oldOK := e.ObjectOld.(*corev1.Secret)
+			newSecret, newOK := e.ObjectNew.(*corev1.Secret)
+			return oldOK && newOK && !reflect.DeepEqual(oldSecret.Data, newSecret.Data)
+		},
+	}
 }
 
 func ignoreDeletionPredicate() predicate.Predicate {

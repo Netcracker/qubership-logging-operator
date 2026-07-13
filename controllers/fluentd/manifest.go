@@ -9,7 +9,7 @@ import (
 	util "github.com/Netcracker/qubership-logging-operator/controllers/utils"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/runtime/schema"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
 
@@ -19,13 +19,26 @@ var assets embed.FS
 //go:embed  fluentd.configmap/conf.d/*
 var configs embed.FS
 
-func fluentdConfigMap(cr *loggingService.LoggingService, dynamicParameters util.DynamicParameters) (*corev1.ConfigMap, error) {
+type outputCredentials struct {
+	Loki util.AuthValues
+	Http util.AuthValues
+}
+
+type fluentdTemplateParameters struct {
+	loggingService.LoggingServiceParameters
+	OutputCredentials outputCredentials
+}
+
+func fluentdConfigSecret(cr *loggingService.LoggingService, dynamicParameters util.DynamicParameters, credentials outputCredentials) (*corev1.Secret, error) {
 	if cr.Spec.Fluentd == nil {
 		return nil, fmt.Errorf("fluentd configuration in Logging Service %s is nil in the namespace %s", cr.GetName(), cr.GetNamespace())
 	}
-	configMap := corev1.ConfigMap{}
 	cr.Spec.ContainerRuntimeType = dynamicParameters.ContainerRuntimeType
-	data, err := util.DataFromDirectory(configs, util.FluentdConfigMapDirectory, cr.ToParams())
+	parameters := fluentdTemplateParameters{
+		LoggingServiceParameters: cr.ToParams(),
+		OutputCredentials:        credentials,
+	}
+	data, err := util.DataFromDirectory(configs, util.FluentdConfigMapDirectory, parameters)
 	if err != nil {
 		return nil, err
 	}
@@ -34,18 +47,29 @@ func fluentdConfigMap(cr *loggingService.LoggingService, dynamicParameters util.
 	data["filter-custom.conf"] = cr.Spec.Fluentd.CustomFilterConf
 	data["output-custom.conf"] = cr.Spec.Fluentd.CustomOutputConf
 
-	//Set parameters
-	configMap.SetGroupVersionKind(schema.GroupVersionKind{Group: "", Version: "v1", Kind: "ConfigMap"})
-	configMap.SetName(util.FluentdComponentName)
-	configMap.SetNamespace(cr.GetNamespace())
-	configMap.Data = data
+	if output := cr.Spec.Fluentd.Output; output != nil && output.Loki != nil &&
+		output.Loki.Enabled && output.Loki.Auth != nil && output.Loki.Auth.Token != nil {
+		data["loki-auth-token"] = credentials.Loki.Token
+	}
 
-	util.SetLabelsForResource(&configMap, util.LabelInput{
+	secret := corev1.Secret{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "v1",
+			Kind:       "Secret",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      util.FluentdComponentName,
+			Namespace: cr.GetNamespace(),
+		},
+		Type: corev1.SecretTypeOpaque,
+		Data: util.StringMapToByteMap(data),
+	}
+	util.SetLabelsForResource(&secret, util.LabelInput{
 		Name:            util.FluentdComponentName,
 		Component:       "fluentd",
 		ComponentLabels: cr.Spec.Fluentd.Labels,
 	}, nil)
-	return &configMap, nil
+	return &secret, nil
 }
 
 func fluentdDaemonSet(cr *loggingService.LoggingService, dynamicParameters util.DynamicParameters) (*appsv1.DaemonSet, error) {

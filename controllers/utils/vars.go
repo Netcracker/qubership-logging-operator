@@ -202,6 +202,7 @@ var (
 	GraylogMongoUpgradeJobTimeout   = time.Minute * 2
 	GraylogLabels                   = map[string]string{"name": "graylog"}
 	GraylogSecretSelector           = "graylog=secret"
+	GraylogSecretKeyRootPasswordSHA2 = "rootPasswordSha2"
 	GraylogConfigFileName           = "graylog.conf"
 	GraylogPasswordField            = "root_password_sha2"
 	GraylogUserField                = "root_username"

@@ -2,7 +2,7 @@ package graylog
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"regexp"
 	"strings"
 
@@ -20,6 +20,8 @@ import (
 type GraylogReconciler struct {
 	*util.ComponentReconciler
 }
+
+const graylogSecretMissingValueError = "can not find %s for Graylog in the secret %s in the namespace %s"
 
 func NewGraylogReconciler(client client.Client, scheme *runtime.Scheme, updater util.StatusUpdater) GraylogReconciler {
 	return GraylogReconciler{
@@ -41,6 +43,9 @@ func (r *GraylogReconciler) Run(ctx context.Context, cr *loggingService.LoggingS
 	r.Log.Info("Start Graylog reconciliation")
 
 	if cr.Spec.Graylog != nil && cr.Spec.Graylog.IsInstall() {
+		if err := r.setCredentials(cr); err != nil {
+			return err
+		}
 		connector, err := utils.CreateConnector(ctx, cr, configs, clientSet)
 		if err != nil {
 			return err
@@ -200,8 +205,7 @@ func (r *GraylogReconciler) setCredentials(cr *loggingService.LoggingService) er
 	if secret.Data != nil && secret.Data["user"] != nil && len(secret.Data["user"]) > 0 {
 		usr = string(secret.Data["user"])
 	} else {
-		err := errors.New("can not find user for Graylog in the secret " + cr.Spec.Graylog.GraylogSecretName + " in the namespace " + cr.GetNamespace())
-		return err
+		return fmt.Errorf(graylogSecretMissingValueError, "user", cr.Spec.Graylog.GraylogSecretName, cr.GetNamespace())
 	}
 	cr.Spec.Graylog.User = usr
 
@@ -209,10 +213,21 @@ func (r *GraylogReconciler) setCredentials(cr *loggingService.LoggingService) er
 	if secret.Data != nil && secret.Data["password"] != nil && len(secret.Data["password"]) > 0 {
 		pwd = string(secret.Data["password"])
 	} else {
-		err := errors.New("can not find password for Graylog in the secret " + cr.Spec.Graylog.GraylogSecretName + " in the namespace " + cr.GetNamespace())
-		return err
+		return fmt.Errorf(graylogSecretMissingValueError, "password", cr.Spec.Graylog.GraylogSecretName, cr.GetNamespace())
 	}
 	cr.Spec.Graylog.Password = pwd
+
+	if secret.Data != nil && len(secret.Data["elasticsearchHost"]) > 0 {
+		cr.Spec.Graylog.ElasticsearchHost = string(secret.Data["elasticsearchHost"])
+	} else if cr.Spec.Graylog.OpenSearch == nil || cr.Spec.Graylog.OpenSearch.Host == "" {
+		return fmt.Errorf(graylogSecretMissingValueError, "elasticsearchHost", cr.Spec.Graylog.GraylogSecretName, cr.GetNamespace())
+	}
+
+	if utils.EnsureSecretRootPasswordSHA2(secret, pwd) {
+		if err := r.Client.Update(context.TODO(), secret); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

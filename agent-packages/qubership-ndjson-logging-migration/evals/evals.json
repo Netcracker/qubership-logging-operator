@@ -1,52 +1,22 @@
 {
-  "skill_name": "qubership-ndjson-logging-migration",
-  "evals": [
+  "package": "qubership-ndjson-logging-migration",
+  "description": "Two-stage eval definitions — one skill_name per stage file (skill-creator alignment).",
+  "stages": [
     {
-      "id": 1,
-      "prompt": "Apply the Qubership NDJSON logging migration to qubership-log-exporter.",
-      "expected_output": "The agent uses the existing Go/logrus logging stack where possible, inventories log sources, migrates structured values out of formatted messages, preserves log levels, validates JSON output, passes objective completion gates, and reports coverage.",
-      "files": [],
-      "expectations": [
-        "The agent inventories logger configuration and Go log call sites before claiming completion.",
-        "The agent moves useful variable data from formatted messages into structured fields rather than leaving it only in message.",
-        "The agent rewrites message text after extracting fields so no dangling placeholders, empty ranges, or incomplete fragments remain.",
-        "The agent uses stable semantic field names instead of leaking short local variable names such as i_1 or sbe.",
-        "If the agent uses scripts for candidate rewrites, it reviews changed log records semantically and does not leave temporary rewrite scripts as part of the runtime change.",
-        "The agent inventories preformatted diagnostics such as fmt.Errorf return strings and either structures their fields at the logging boundary or marks them as user-decision/blocked items with concrete counts.",
-        "The agent inventories logged preformatted-message sites such as log.error(msg) or log.warn(message) separately from returned fmt.Errorf strings, lists them with counts in the report, and asks the user how to handle them or marks them blocked.",
-        "The agent preserves original log levels unless it asks for or documents an explicit level-change decision.",
-        "The agent validates with Go tests and at least one realistic runtime or startup smoke path.",
-        "The agent reports coverage, including migrated, static/no-action, user-decision, and blocked items.",
-        "The completion gate reports zero remaining active log.*f formatted calls in production Go packages with before and after counts in the report.",
-        "The agent records evidence of a startup smoke command with valid NDJSON output (parsed JSON line with time, level, message), not only unit tests.",
-        "The migration report follows migration-report-template.md and records the worktree HEAD commit hash at run start.",
-        "Objective check: manual greps (or eval workspace check_migration_gates.py) report zero production log.*f and go build passes (or documents a concrete blocker)."
-      ]
+      "stage": "enable",
+      "skill_name": "qubership-ndjson-logging-enable",
+      "skill_path": ".apm/skills/qubership-ndjson-logging-enable",
+      "evals_file": "evals-enable.json",
+      "objective_checks_file": "objective_checks-enable.json",
+      "workspace_iteration": "../qubership-ndjson-logging-migration-workspace/iteration-7-enable"
     },
     {
-      "id": 2,
-      "prompt": "Apply the NDJSON logging migration to qubership-dbaas.",
-      "expected_output": "The agent treats qubership-dbaas as a monorepo, performs repo-root component discovery, lists both dbaas-aggregator and dbaas-operator in the coverage ledger, migrates each runtime component with passing build/semantic gates, and asks only for real decision points.",
-      "files": [],
-      "expectations": [
-        "The agent scans the repository root for runtime markers such as go.mod, pom.xml, and helm-templates before editing.",
-        "The agent identifies deployable/runtime components before editing and lists both dbaas-aggregator and dbaas-operator in the coverage ledger.",
-        "The agent creates or updates a coverage ledger following migration-report-template.md.",
-        "The agent processes coherent components in batches instead of making an untracked sample edit across the monorepo.",
-        "The agent does not mark the monorepo migrated after finishing only dbaas-aggregator.",
-        "The agent does not mark work blocked merely because the repository is large, repetitive, or noisy.",
-        "The agent inventories logged preformatted-message call sites separately from returned fmt.Errorf, lists counts and example files in the migration report, and asks the user how to handle them.",
-        "The agent does not mark the migration complete while logged preformatted-message sites remain unlisted or silently left as prose-only message without an explicit user choice.",
-        "The logged preformatted-message inventory names at least one example file path per pattern, not only aggregate counts.",
-        "The agent runs or documents Java build gates (mvn compile) and does not mark the Java component complete when compile fails without an explicit blocked-credentials reason.",
-        "The agent reports zero argN placeholder field keys in production Java or fixes them to semantic names.",
-        "The agent preserves throwables when converting SLF4J log.error/warn calls that passed an exception to structured helpers.",
-        "The agent reviews bulk codemod output for integrity (no deleted endpoints/methods, no illegal text blocks) before claiming done.",
-        "The agent follows coding-approaches and stack playbook guidance: semantic field names, throwable overloads, distinct MDC keys, preserved exception-mapper buildResponse behavior.",
-        "The migration report records the completion gate table with before/after counts.",
-        "The migration report records the worktree HEAD commit hash at run start.",
-        "Objective check: manual greps (or eval workspace check_migration_gates.py) on the worktree report zero Java {} and argN in aggregator src/main/java, zero production Go log.*f in dbaas-operator, and go build passes."
-      ]
+      "stage": "migrate",
+      "skill_name": "qubership-ndjson-logging-migrate",
+      "skill_path": ".apm/skills/qubership-ndjson-logging-migrate",
+      "evals_file": "evals-migrate.json",
+      "objective_checks_file": "objective_checks-migrate.json",
+      "workspace_iteration": "../qubership-ndjson-logging-migration-workspace/iteration-8-migrate"
     }
   ]
 }

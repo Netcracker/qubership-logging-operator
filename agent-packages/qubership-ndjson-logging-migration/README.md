@@ -9,6 +9,16 @@ Two-stage NDJSON rollout for Qubership services.
 
 Run stage 1 before stage 2. Stage 2 assumes NDJSON output already works (or documents blockers).
 
+## Evals (skill-creator)
+
+| Stage | Skill | Eval definitions | Objective checks |
+| ----- | ----- | ---------------- | ---------------- |
+| Enable | `qubership-ndjson-logging-enable` | `evals/evals-enable.json` | `evals/objective_checks-enable.json` |
+| Migrate | `qubership-ndjson-logging-migrate` | `evals/evals-migrate.json` | `evals/objective_checks-migrate.json` |
+
+Index: `evals/evals.json`. Protocol: [EVAL_PROTOCOL.md](EVAL_PROTOCOL.md). Workspace:
+`../qubership-ndjson-logging-migration-workspace/` (`iteration-7-enable`, `iteration-8-migrate`).
+
 Install:
 
 ```yaml

@@ -1,0 +1,43 @@
+{
+  "skill_name": "qubership-ndjson-logging-enable",
+  "stage": "enable",
+  "evals": [
+    {
+      "id": 1,
+      "name": "go-log-exporter",
+      "prompt": "Enable JSON logging for qubership-log-exporter — config and deployment defaults only; do not rewrite log call sites.",
+      "expected_output": "Single Go service: JSON formatter wired, Helm/chart exposes format selection, smoke JSON line documented.",
+      "files": [],
+      "expectations": [
+        "The agent scans the repository root for runtime markers (go.mod, pom.xml, charts) before editing.",
+        "The agent identifies the Go binary and Helm chart as the deployable component before editing.",
+        "The agent limits production code edits to logger bootstrap and config — no bulk call-site refactors.",
+        "Helm or deployment config exposes JSON format selection (LOG_FORMAT, LME_LOG_FORMAT, or documented equivalent).",
+        "The agent uses repo-documented build and smoke commands and records doc reference plus exact command in the report.",
+        "The agent captures or documents one app log line with time, level, and message fields.",
+        "The report uses stage enable, records run-start HEAD, and includes a gates table.",
+        "The agent documents blocked validation with concrete error and missing prerequisite when local validation fails.",
+        "Objective check: check_enable_gates.py passes on the worktree (or blocked items are documented in the report)."
+      ]
+    },
+    {
+      "id": 2,
+      "name": "java-dbaas-monorepo",
+      "prompt": "Enable JSON logging for qubership-dbaas — both dbaas-aggregator and dbaas-operator; config/Helm only, no call-site migration.",
+      "expected_output": "Monorepo: both aggregator and operator in ledger; JSON config and Helm per component; smoke or blocked per component.",
+      "files": [],
+      "expectations": [
+        "The agent scans the repository root for runtime markers such as go.mod, pom.xml, and helm-templates before editing.",
+        "The agent lists both dbaas-aggregator and dbaas-operator in the component ledger before claiming done.",
+        "The agent produces a component ledger with stack, LOG_FORMAT/encoder status, and enabled/blocked/pending per component.",
+        "The agent wires Quarkus/Logback JSON encoder config and Helm for the Java aggregator, or marks Java blocked with Maven/auth evidence.",
+        "The agent wires Go JSON format path and Helm LOG_FORMAT for dbaas-operator.",
+        "The agent does not mark the monorepo fully enabled while a buildable component was skipped without a blocked reason.",
+        "The agent follows repo docs for operator local path (e.g. dev/kind) or bootstrap/CI when smoking logs.",
+        "The agent documents smoke JSON evidence per enabled component (not unit tests alone).",
+        "The report uses stage enable, records run-start HEAD, and includes a gates table.",
+        "Objective check: check_enable_gates.py passes on the worktree (partial blocked for Java is acceptable when documented)."
+      ]
+    }
+  ]
+}

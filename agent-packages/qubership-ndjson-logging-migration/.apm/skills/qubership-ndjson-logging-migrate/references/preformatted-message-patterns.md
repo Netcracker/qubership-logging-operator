@@ -1,6 +1,8 @@
 # Logged Preformatted Message Patterns
 
-Use these searches during inventory (workflow step 5–6) and again at the **completion gate**. They find logger calls that pass a variable or prebuilt string instead of a string literal — separate from returned `fmt.Errorf` / wrapped exceptions.
+Use these searches during inventory (workflow step 5–6) and again at the **completion gate**. They find logger calls that
+pass a variable or prebuilt string instead of a string literal — separate from returned `fmt.Errorf` / wrapped
+exceptions.
 
 ## Go
 
@@ -40,13 +42,14 @@ grep -rnE 'logger\.(debug|info|warning|error|critical)\(f"' --include='*.py' .
 
 ## Common patterns
 
-| Pattern | Typical locations |
-|---------|-------------------|
-| `log.warn(message)` / `log.error(msg)` | Service classes passing a variable built earlier |
-| `log.error(aggregatedError)` | Controllers aggregating validation errors |
-| Text-block summary logged as one string | Backup/restore or batch job services |
+| Pattern                                 | Typical locations                                |
+| --------------------------------------- | ------------------------------------------------ |
+| `log.warn(message)` / `log.error(msg)`  | Service classes passing a variable built earlier |
+| `log.error(aggregatedError)`            | Controllers aggregating validation errors        |
+| Text-block summary logged as one string | Backup/restore or batch job services             |
 
-List every hit under `User decision — logged preformatted messages` with file, count, and one example line. Do not classify as `static/no-action` without an explicit user choice.
+List every hit under `User decision — logged preformatted messages` with file, count, and one example line. Do not
+classify as `static/no-action` without an explicit user choice.
 
 ## Report template
 
@@ -73,4 +76,5 @@ grep -rn '""" [^"]' --include='*.java' src/main/java | grep -i StructuredLog
 grep -rn 'WARNING_MESSAGE\|String.*=.*"\{}"' --include='*.java' src/main/java
 ```
 
-Manually verify: throwable overload when original SLF4J call passed an exception; no duplicate MDC key in one `StructuredLog` call.
+Manually verify: throwable overload when original SLF4J call passed an exception; no duplicate MDC key in one
+`StructuredLog` call.

@@ -18,7 +18,8 @@ Avoid encoding structured data only in the message string when a first-class API
 
 ## logrus pattern
 
-Migrate `log.*f(` to literal message + `WithFields` / `WithField`. Production scope must reach **zero active `log.*f`** (exclude `_test.go`, `dev/`, commented lines).
+Migrate `log.*f(` to literal message + `WithFields` / `WithField`. Production scope must reach **zero active `log.*f`**
+(exclude `_test.go`, `dev/`, commented lines).
 
 ## core-lib-go + message suffix
 
@@ -29,7 +30,7 @@ log.InfoC(ctx, "%s", logfields.Format("database provisioned",
     "microserviceName", name, "trackingId", id))
 ```
 
-A custom formatter regex-parses trailing ` key=value` into JSON fields. Safeguards required:
+A custom formatter regex-parses trailing `key=value` into JSON fields. Safeguards required:
 
 - Quote values containing whitespace
 - Never let parsed keys overwrite reserved fields (`time`, `level`, `message`, `class`, `request_id`, …)

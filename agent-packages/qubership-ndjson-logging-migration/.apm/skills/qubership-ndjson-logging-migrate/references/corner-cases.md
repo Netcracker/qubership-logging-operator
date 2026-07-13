@@ -50,7 +50,8 @@ Keep this file short. Add lessons from real pilot migrations as one or two lines
 - **Go logfields.Format:** Regex re-parse of `key=value` suffixes is fragile; quote whitespace values and protect reserved
   keys (`time`, `level`, `message`, `class`, `request_id`).
 - **Skill source:** edit the APM skill package source; reinstall/sync to update deployed `.agents/skills` copies.
-- **Migration report:** `.ndjson-migration-report.md` is a worktree ledger — exclude from product PRs unless explicitly requested.
+- **Migration report:** `.ndjson-migration-report.md` is a worktree ledger — exclude from product PRs unless explicitly
+  requested.
 - Validate Envoy JSON access log field mapping.
 - Validate Nginx JSON access log support versus existing FluentBit parser path.
 - Validate zerolog canonical field names in a Qubership service.

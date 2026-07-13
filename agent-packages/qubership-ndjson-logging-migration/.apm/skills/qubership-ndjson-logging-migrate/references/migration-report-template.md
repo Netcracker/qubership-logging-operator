@@ -1,16 +1,19 @@
 # Migration Report Template
 
-ALWAYS create or update `.ndjson-migration-report.md` at the **root of the target worktree** during the migration run. Use this structure; leave N/A rows explicit rather than omitting them.
+ALWAYS create or update `.ndjson-migration-report.md` at the **root of the target worktree** during the migration run.
+Use this structure; leave N/A rows explicit rather than omitting them.
 
 ## Lifecycle (not part of the product PR)
 
-| Phase | Report in worktree? | Commit / upstream PR? |
-|-------|---------------------|------------------------|
-| Migration run | **Yes** — coverage ledger and gate evidence | No — working artifact |
-| Resume across sessions | Yes — update in place | Untracked is fine |
-| Final product PR | — | **Exclude** `.ndjson-migration-report.md` unless the team explicitly wants an audit file in-repo |
+| Phase                  | Report in worktree?                         | Commit / upstream PR?                                                                            |
+| ---------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Migration run          | **Yes** — coverage ledger and gate evidence | No — working artifact                                                                            |
+| Resume across sessions | Yes — update in place                       | Untracked is fine                                                                                |
+| Final product PR       | —                                           | **Exclude** `.ndjson-migration-report.md` unless the team explicitly wants an audit file in-repo |
 
-Before opening or updating a product PR, drop the report from the commit (`git restore --staged` / omit from `git add`). Copy it to the eval workspace or keep a local copy if you need an audit trail. Summarize completion gates and coverage in the PR description instead.
+Before opening or updating a product PR, drop the report from the commit (`git restore --staged` / omit from `git add`).
+Copy it to the eval workspace or keep a local copy if you need an audit trail. Summarize completion gates and coverage in
+the PR description instead.
 
 ```markdown
 # NDJSON Logging Migration Report — <repo-name>
@@ -73,4 +76,5 @@ Run manual greps and builds from [completion-gates.md](completion-gates.md) per 
 1. ...
 ```
 
-Record **blocked** with the exact error when Maven or private registry auth prevents compile — do not mark the Java component migrated-complete.
+Record **blocked** with the exact error when Maven or private registry auth prevents compile — do not mark the Java
+component migrated-complete.

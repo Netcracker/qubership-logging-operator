@@ -1,8 +1,10 @@
 # Smoke Validation Checklist
 
-Run at least one realistic startup or config-check path **after** call-site migration, not only unit tests. Record the exact command and result in the coverage ledger.
+Run at least one realistic startup or config-check path **after** call-site migration, not only unit tests. Record the
+exact command and result in the coverage ledger.
 
-**Build before smoke:** For Java, `mvn compile` must pass (or be explicitly blocked) before claiming the component migrated. Smoke on non-compiling code is invalid.
+**Build before smoke:** For Java, `mvn compile` must pass (or be explicitly blocked) before claiming the component
+migrated. Smoke on non-compiling code is invalid.
 
 ## Go / logrus
 
@@ -11,7 +13,8 @@ GOWORK=off go test ./...
 LOG_FORMAT=json go run . -check-config -config-path examples/config.yaml -log-level error 2>&1 | head -1
 ```
 
-Confirm the captured line parses as JSON and includes `time`, `level`, and `message`. If the binary has no `-check-config`, use the closest documented startup path that emits logs.
+Confirm the captured line parses as JSON and includes `time`, `level`, and `message`. If the binary has no
+`-check-config`, use the closest documented startup path that emits logs.
 
 When the repo lives inside a parent `go.work`, prefix tests and smoke with `GOWORK=off`.
 
@@ -32,9 +35,11 @@ mvn -pl <module> quarkus:dev   # or documented integration smoke
 # Capture one stdout JSON line; confirm time/level/message fields
 ```
 
-If Maven compile is blocked (private packages, 401), record under **Blocked validation** with the exact error — **do not mark the Java component migrated-complete** and do not claim JVM smoke passed.
+If Maven compile is blocked (private packages, 401), record under **Blocked validation** with the exact error — **do not
+mark the Java component migrated-complete** and do not claim JVM smoke passed.
 
-After bulk edits, also run semantic quality greps from [completion-gates.md](completion-gates.md) (`argN` keys, illegal text blocks).
+After bulk edits, also run semantic quality greps from [completion-gates.md](completion-gates.md) (`argN` keys, illegal
+text blocks).
 
 ## Python
 
@@ -45,14 +50,15 @@ LOG_FORMAT=json python -m <app.module> --help   # or documented entrypoint
 
 ## Fixture-only edits (eval / single-file scope)
 
-Build a representative logrus/zap JSON line from the migrated `WithFields` call and confirm it parses with `time`, `level`, `message`. Note in the report that full runtime smoke was out of scope.
+Build a representative logrus/zap JSON line from the migrated `WithFields` call and confirm it parses with `time`,
+`level`, `message`. Note in the report that full runtime smoke was out of scope.
 
 ## What to record in the migration report
 
-| Field | Example |
-|-------|---------|
-| Command | `LOG_FORMAT=json go run . -check-config ...` |
-| Result | PASS — single-line JSON with time/level/message |
-| Validator | manual JSON parse — OK |
+| Field     | Example                                              |
+| --------- | ---------------------------------------------------- |
+| Command   | `LOG_FORMAT=json go run . -check-config ...`         |
+| Result    | PASS — single-line JSON with time/level/message      |
+| Validator | manual JSON parse — OK                               |
 
 Unit tests alone do not satisfy the smoke requirement for full-repo migrations.

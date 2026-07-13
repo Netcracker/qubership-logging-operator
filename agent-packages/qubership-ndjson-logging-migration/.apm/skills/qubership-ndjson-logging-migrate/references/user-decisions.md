@@ -17,7 +17,8 @@ Example: `fmt.Errorf("error opening config file %v : %+v", path, err)` — do no
 
 Search patterns: [preformatted-message-patterns.md](preformatted-message-patterns.md).
 
-Examples: `log.warn(message)`, `log.error(aggregatedError)`, `log.debug(e.getMessage())`, Java text-block summaries logged as one string.
+Examples: `log.warn(message)`, `log.error(aggregatedError)`, `log.debug(e.getMessage())`, Java text-block summaries
+logged as one string.
 
 For each pattern:
 
@@ -33,22 +34,25 @@ If the session cannot wait for an answer, stop with the question list in the rep
 
 ## One error record per failure
 
-When an error is returned to a caller, log it at the handling boundary **or** return/wrap without logging — not both unless layers emit distinct lifecycle events. If both layers currently log, ask which layer owns the error log.
+When an error is returned to a caller, log it at the handling boundary **or** return/wrap without logging — not both
+unless layers emit distinct lifecycle events. If both layers currently log, ask which layer owns the error log.
 
 ## Response body / sensitive INFO logs
 
-When an existing INFO log prints a full response body and migration would split or redact it, present this table and wait for a choice:
+When an existing INFO log prints a full response body and migration would split or redact it, present this table and wait
+for a choice:
 
-| Option | Description |
-|--------|-------------|
-| **Preserve INFO** | Keep full `body` at INFO with `body_length` (behavior-equivalent). |
-| **Redact** | Mask sensitive portions at INFO; keep `body_length` and status. |
-| **Truncate** | Prefix/suffix at INFO with `body_truncated=true` and full `body_length`. |
-| **Move to DEBUG** | Status/size at INFO; full `body` only at DEBUG (explicit level change). |
-| **Block** | Defer until security/ops review. |
+| Option            | Description                                                              |
+| ----------------- | ------------------------------------------------------------------------ |
+| **Preserve INFO** | Keep full `body` at INFO with `body_length` (behavior-equivalent).       |
+| **Redact**        | Mask sensitive portions at INFO; keep `body_length` and status.          |
+| **Truncate**      | Prefix/suffix at INFO with `body_truncated=true` and full `body_length`. |
+| **Move to DEBUG** | Status/size at INFO; full `body` only at DEBUG (explicit level change).  |
+| **Block**         | Defer until security/ops review.                                         |
 
 Mark affected sites `needs user decision` until answered.
 
 ## Semantic field names
 
-Rename short local names (`i`, `i_1`, `sbe`, `qName`) to consumer-friendly `snake_case` (`reason_index`, `query_name`). For validation loops, prefer one aggregate record or meaningful per-item records — not placeholder messages like `.`.
+Rename short local names (`i`, `i_1`, `sbe`, `qName`) to consumer-friendly `snake_case` (`reason_index`, `query_name`).
+For validation loops, prefer one aggregate record or meaningful per-item records — not placeholder messages like `.`.

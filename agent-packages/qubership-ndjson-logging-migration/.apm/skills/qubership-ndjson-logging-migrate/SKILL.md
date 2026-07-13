@@ -11,22 +11,23 @@ description: >
 
 Extract structured data from log **messages** into JSON **fields** while NDJSON output is already enabled (stage 1).
 
-**Prerequisite:** JSON envelope on stdout — from `qubership-ndjson-logging-enable` or existing repo config. If not, run stage 1 first or record config gaps in the report.
+**Prerequisite:** JSON envelope on stdout — from `qubership-ndjson-logging-enable` or existing repo config. If not, run
+stage 1 first or record config gaps in the report.
 
 ## Reference map
 
-| When | Read |
-|------|------|
-| Full field schema | [schema.md](references/schema.md) |
+| When                 | Read                                                                                                   |
+| -------------------- | ------------------------------------------------------------------------------------------------------ |
+| Full field schema    | [schema.md](references/schema.md)                                                                      |
 | Stack implementation | [java-quarkus.md](references/java-quarkus.md) or [go-qubership-lib.md](references/go-qubership-lib.md) |
-| Cross-cutting rules | [coding-approaches.md](references/coding-approaches.md) |
-| Before claiming done | [completion-gates.md](references/completion-gates.md) |
-| Report | [migration-report-template.md](references/migration-report-template.md) |
-| User choice | [user-decisions.md](references/user-decisions.md) |
-| Inventory patterns | [preformatted-message-patterns.md](references/preformatted-message-patterns.md) |
-| Smoke | [smoke-validation.md](references/smoke-validation.md) |
-| Pitfalls | [corner-cases.md](references/corner-cases.md) |
-| Background | [evidence.md](references/evidence.md) |
+| Cross-cutting rules  | [coding-approaches.md](references/coding-approaches.md)                                                |
+| Before claiming done | [completion-gates.md](references/completion-gates.md)                                                  |
+| Report               | [migration-report-template.md](references/migration-report-template.md)                                |
+| User choice          | [user-decisions.md](references/user-decisions.md)                                                      |
+| Inventory patterns   | [preformatted-message-patterns.md](references/preformatted-message-patterns.md)                        |
+| Smoke                | [smoke-validation.md](references/smoke-validation.md)                                                  |
+| Pitfalls             | [corner-cases.md](references/corner-cases.md)                                                          |
+| Background           | [evidence.md](references/evidence.md)                                                                  |
 
 ## Required outcome
 

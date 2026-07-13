@@ -1,6 +1,7 @@
 # Stage 1 schema (JSON envelope)
 
-Use the Qubership logging guide (*log-formats.md*) as the source of truth. **Stage 1** satisfies the **pipeline** contract only.
+Use the Qubership logging guide (*log-formats.md*) as the source of truth. **Stage 1** satisfies the **pipeline**
+contract only.
 
 ## NDJSON envelope (required)
 
@@ -20,7 +21,8 @@ Promote via encoder/MDC/additional-field when already available:
 
 ## Access logs (Nginx / Envoy)
 
-Proxy access logs are **one JSON object per line** but use the **access-log field set** from the logging guide — not the app envelope (`time`, `level`, `message`).
+Proxy access logs are **one JSON object per line** but use the **access-log field set** from the logging guide — not
+the app envelope (`time`, `level`, `message`).
 
 Typical fields (names per repo / guide):
 

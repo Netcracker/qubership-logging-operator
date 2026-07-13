@@ -2,9 +2,12 @@
 
 **Prerequisite:** Stage 1 JSON envelope (`qubership-ndjson-logging-enable`) or equivalent repo config.
 
-Pattern-count gates alone are **not sufficient**. A migration is complete only when **build gates**, **integrity gates**, **pattern gates**, and **semantic quality gates** all pass (or each failure is explicitly `blocked` with a concrete reason).
+Pattern-count gates alone are **not sufficient**. A migration is complete only when **build gates**, **integrity gates**,
+**pattern gates**, and **semantic quality gates** all pass (or each failure is explicitly `blocked` with a concrete
+reason).
 
-Lessons from pilot migrations: bulk Java codemods can hit `632→0 {}` while leaving **non-compiling** code, **deleted endpoints**, and **unusable `arg0` field keys**.
+Lessons from pilot migrations: bulk Java codemods can hit `632→0 {}` while leaving **non-compiling** code, **deleted
+endpoints**, and **unusable `arg0` field keys**.
 
 ## Gate order (run in this sequence)
 
@@ -14,19 +17,22 @@ Lessons from pilot migrations: bulk Java codemods can hit `632→0 {}` while lea
 4. **Semantic quality** — field names, throwables, messages, duplicate keys
 5. **Smoke** — realistic startup emits valid NDJSON (see [smoke-validation.md](smoke-validation.md))
 
-Do not claim completion if an earlier gate failed unless the failure is recorded as `blocked` and unrelated work is still valid.
+Do not claim completion if an earlier gate failed unless the failure is recorded as `blocked` and unrelated work is still
+valid.
 
 ---
 
 ## 1. Build gates (blocking)
 
-| Stack | Required command | Pass criterion |
-|-------|------------------|----------------|
-| **Java / Maven** | `mvn -pl <module> -am compile` (or repo-documented equivalent) | **Exit 0** |
-| **Java / Quarkus** | Same; optionally `mvn -pl <module> test` when CI credentials exist | Compile **must** pass before merge |
-| **Go** | `GOWORK=off go build ./...` and `GOWORK=off go test ./...` for touched packages | **Exit 0** for build; test failures documented |
+| Stack              | Required command                                                                | Pass criterion                                 |
+| ------------------ | ------------------------------------------------------------------------------- | ---------------------------------------------- |
+| **Java / Maven**   | `mvn -pl <module> -am compile` (or repo-documented equivalent)                  | **Exit 0**                                     |
+| **Java / Quarkus** | Same; optionally `mvn -pl <module> test` when CI credentials exist              | Compile **must** pass before merge             |
+| **Go**             | `GOWORK=off go build ./...` and `GOWORK=off go test ./...` for touched packages | **Exit 0** for build; test failures documented |
 
-**If Maven compile is blocked locally** (e.g. GitHub Packages 401): record under `Blocked validation` with the exact error. **Do not mark the Java component migrated-complete.** Continue only on components that build, or stop with the blocker named.
+**If Maven compile is blocked locally** (e.g. GitHub Packages 401): record under `Blocked validation` with the exact
+error. **Do not mark the Java component migrated-complete.** Continue only on components that build, or stop with the
+blocker named.
 
 **After every bulk codemod batch:** re-run the build gate for that component before the next batch.
 
@@ -44,8 +50,10 @@ git diff --stat HEAD
 git diff HEAD -- '*.java' | grep '^-.*\(public \|private \|@GET\|@POST\)' 
 ```
 
-- Restore any **removed endpoint handlers**, service methods, or mapper logic that was not an intentional logging-only change.
-- If a file's only change would be an unused import, **remove the import** — do not leave `StructuredLog` imported unused.
+- Restore any **removed endpoint handlers**, service methods, or mapper logic that was not an intentional logging-only
+  change.
+- If a file's only change would be an unused import, **remove the import** — do not leave `StructuredLog` imported
+  unused.
 
 ### 2.2 Java syntax sanity (post-codemod)
 
@@ -75,13 +83,14 @@ grep -rn 'StructuredLog\.\w\+([^)]*""" [^"]' --include='*.java' src/main/java
 
 Record **before/after counts** in the migration report.
 
-| Stack | Production scope check | Target |
-|-------|------------------------|--------|
-| Go/logrus | Active `log.*f(` in non-test `.go` (exclude `//` comments, `dev/`, `_test.go`) | **0** |
-| Java/SLF4J | `log.(info\|debug\|warn\|error).*` with `{}` in `src/main/java` | **0** inline `{}` |
-| Logged preformatted | Patterns in [preformatted-message-patterns.md](preformatted-message-patterns.md) | **0** unreviewed |
+| Stack               | Production scope check                                                           | Target            |
+| ------------------- | -------------------------------------------------------------------------------- | ----------------- |
+| Go/logrus           | Active `log.*f(` in non-test `.go` (exclude `//` comments, `dev/`, `_test.go`)   | **0**             |
+| Java/SLF4J          | `log.(info\|debug\|warn\|error).*` with `{}` in `src/main/java`                  | **0** inline `{}` |
+| Logged preformatted | Patterns in [preformatted-message-patterns.md](preformatted-message-patterns.md) | **0** unreviewed  |
 
-**Misleading zero:** `{}` in a **shared constant** (e.g. `WARNING_MESSAGE`) still templates at runtime — list those sites under user decision; do not treat as fully structured.
+**Misleading zero:** `{}` in a **shared constant** (e.g. `WARNING_MESSAGE`) still templates at runtime — list those sites
+under user decision; do not treat as fully structured.
 
 ---
 
@@ -99,16 +108,19 @@ Same rule for Go: no `arg0`-style keys in `logfields.Format` calls.
 
 ### 4.2 No duplicate keys in one log call
 
-`StructuredLog` / MDC: repeating the same key in one call **overwrites** earlier values. Review every multi-argument migration manually or with a linter script.
+`StructuredLog` / MDC: repeating the same key in one call **overwrites** earlier values. Review every multi-argument
+migration manually or with a linter script.
 
 **Bad:** `"backup", COMPLETED, "backup", FAILED, "backup", DELETED`  
 **Good:** `"completed_status", COMPLETED, "failed_status", FAILED, "deleted_status", DELETED`
 
 ### 4.3 Throwables preserved
 
-When the original call passed an exception as the final SLF4J argument (`log.error("...", a, b, throwable)`), use the **throwable overload** of your structured helper (e.g. `StructuredLog.error(log, msg, t, fields...)`).
+When the original call passed an exception as the final SLF4J argument (`log.error("...", a, b, throwable)`), use the
+**throwable overload** of your structured helper (e.g. `StructuredLog.error(log, msg, t, fields...)`).
 
-Sweep: count removed `error`/`warn` calls that had a throwable vs conversions using the throwable overload — gaps must be fixed or listed.
+Sweep: count removed `error`/`warn` calls that had a throwable vs conversions using the throwable overload — gaps must be
+fixed or listed.
 
 ### 4.4 Human-readable messages
 
@@ -120,7 +132,8 @@ After extracting fields, `message` must not contain:
 
 ### 4.5 Java MDC → JSON field promotion (Quarkus)
 
-Arbitrary MDC keys appear under `mdc.*` unless declared in `quarkus.log.console.json.fields.*` / `application.properties`. After migration:
+Arbitrary MDC keys appear under `mdc.*` unless declared in `quarkus.log.console.json.fields.*` / `application.properties`.
+After migration:
 
 - Declare promoted keys in Quarkus JSON config, **or**
 - Capture one runtime JSON line and verify fields appear at the expected top level.
@@ -138,7 +151,8 @@ See [go-qubership-lib.md](go-qubership-lib.md) (core-lib-go + message suffix). M
 ## 5. Automation boundaries (reinforced)
 
 - Scripts produce **candidates** only; **build + semantic review** is mandatory.
-- **Multi-line** Java log calls and **text blocks** (`"""`) require hand review or an AST-based tool — regex codemods often break them.
+- **Multi-line** Java log calls and **text blocks** (`"""`) require hand review or an AST-based tool — regex codemods often
+  break them.
 - Remove temporary `migrate_*.py` from the PR unless the user explicitly wants them; never leave them in runtime packages.
 
 ---

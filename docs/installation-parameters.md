@@ -1679,6 +1679,10 @@ fluentd:
 
 <!-- markdownlint-enable line-length -->
 
+FluentD output authentication values are read from the referenced Kubernetes Secrets and written only to the generated
+FluentD configuration Secret. The operator watches these credential Secrets and regenerates the configuration after
+their data changes.
+
 Examples:
 
 **Note:** This is only an example of the parameters format, not a recommended value.

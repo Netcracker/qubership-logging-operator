@@ -9,6 +9,13 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
+// AuthValues contains credentials resolved for configuration rendering.
+type AuthValues struct {
+	Token    string
+	User     string
+	Password string
+}
+
 // StringMapToByteMap converts a map of strings to Secret data.
 func StringMapToByteMap(in map[string]string) map[string][]byte {
 	out := make(map[string][]byte, len(in))
@@ -34,31 +41,32 @@ func (r *ComponentReconciler) ResolveSecretKeyValue(namespace string, selector *
 	return string(value), nil
 }
 
-// ResolveAuthValues resolves Secret references into transient Auth fields.
-func (r *ComponentReconciler) ResolveAuthValues(namespace string, auth *loggingService.Auth) error {
+// ResolveAuthValues resolves output authentication Secret references.
+func (r *ComponentReconciler) ResolveAuthValues(namespace string, auth *loggingService.Auth) (AuthValues, error) {
 	if auth == nil {
-		return nil
+		return AuthValues{}, nil
 	}
+
+	values := AuthValues{}
+	var err error
+
 	if auth.Token != nil {
-		value, err := r.ResolveSecretKeyValue(namespace, auth.Token)
+		values.Token, err = r.ResolveSecretKeyValue(namespace, auth.Token)
 		if err != nil {
-			return err
+			return AuthValues{}, err
 		}
-		auth.TokenValue = value
 	}
 	if auth.User != nil {
-		value, err := r.ResolveSecretKeyValue(namespace, auth.User)
+		values.User, err = r.ResolveSecretKeyValue(namespace, auth.User)
 		if err != nil {
-			return err
+			return AuthValues{}, err
 		}
-		auth.UserValue = value
 	}
 	if auth.Password != nil {
-		value, err := r.ResolveSecretKeyValue(namespace, auth.Password)
+		values.Password, err = r.ResolveSecretKeyValue(namespace, auth.Password)
 		if err != nil {
-			return err
+			return AuthValues{}, err
 		}
-		auth.PasswordValue = value
 	}
-	return nil
+	return values, nil
 }

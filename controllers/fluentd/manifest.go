@@ -19,12 +19,26 @@ var assets embed.FS
 //go:embed  fluentd.configmap/conf.d/*
 var configs embed.FS
 
-func fluentdConfigSecret(cr *loggingService.LoggingService, dynamicParameters util.DynamicParameters) (*corev1.Secret, error) {
+type outputCredentials struct {
+	Loki util.AuthValues
+	Http util.AuthValues
+}
+
+type fluentdTemplateParameters struct {
+	loggingService.LoggingServiceParameters
+	OutputCredentials outputCredentials
+}
+
+func fluentdConfigSecret(cr *loggingService.LoggingService, dynamicParameters util.DynamicParameters, credentials outputCredentials) (*corev1.Secret, error) {
 	if cr.Spec.Fluentd == nil {
 		return nil, fmt.Errorf("fluentd configuration in Logging Service %s is nil in the namespace %s", cr.GetName(), cr.GetNamespace())
 	}
 	cr.Spec.ContainerRuntimeType = dynamicParameters.ContainerRuntimeType
-	data, err := util.DataFromDirectory(configs, util.FluentdConfigMapDirectory, cr.ToParams())
+	parameters := fluentdTemplateParameters{
+		LoggingServiceParameters: cr.ToParams(),
+		OutputCredentials:        credentials,
+	}
+	data, err := util.DataFromDirectory(configs, util.FluentdConfigMapDirectory, parameters)
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +49,7 @@ func fluentdConfigSecret(cr *loggingService.LoggingService, dynamicParameters ut
 
 	if output := cr.Spec.Fluentd.Output; output != nil && output.Loki != nil &&
 		output.Loki.Enabled && output.Loki.Auth != nil && output.Loki.Auth.Token != nil {
-		data["loki-auth-token"] = output.Loki.Auth.TokenValue
+		data["loki-auth-token"] = credentials.Loki.Token
 	}
 
 	secret := corev1.Secret{

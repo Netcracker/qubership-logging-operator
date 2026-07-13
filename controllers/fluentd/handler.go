@@ -14,12 +14,13 @@ import (
 )
 
 func (r *FluentdReconciler) handleConfigSecret(cr *loggingService.LoggingService) error {
-	if err := r.resolveOutputCredentials(cr); err != nil {
+	credentials, err := r.resolveOutputCredentials(cr)
+	if err != nil {
 		r.Log.Error(err, "Failed to resolve Fluentd output credentials")
 		return err
 	}
 
-	secret, err := fluentdConfigSecret(cr, r.DynamicParameters)
+	secret, err := fluentdConfigSecret(cr, r.DynamicParameters, credentials)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Secret manifest")
 		return err
@@ -34,23 +35,28 @@ func (r *FluentdReconciler) handleConfigSecret(cr *loggingService.LoggingService
 	return nil
 }
 
-func (r *FluentdReconciler) resolveOutputCredentials(cr *loggingService.LoggingService) error {
+func (r *FluentdReconciler) resolveOutputCredentials(cr *loggingService.LoggingService) (outputCredentials, error) {
+	credentials := outputCredentials{}
 	if cr.Spec.Fluentd == nil || cr.Spec.Fluentd.Output == nil {
-		return nil
+		return credentials, nil
 	}
 	namespace := cr.GetNamespace()
 	output := cr.Spec.Fluentd.Output
-	if output.Loki != nil && output.Loki.Enabled {
-		if err := r.ResolveAuthValues(namespace, output.Loki.Auth); err != nil {
-			return err
+	if output.Loki != nil && output.Loki.Enabled && output.Loki.Auth != nil {
+		values, err := r.ResolveAuthValues(namespace, output.Loki.Auth)
+		if err != nil {
+			return outputCredentials{}, err
 		}
+		credentials.Loki = values
 	}
-	if output.Http != nil && output.Http.Enabled {
-		if err := r.ResolveAuthValues(namespace, output.Http.Auth); err != nil {
-			return err
+	if output.Http != nil && output.Http.Enabled && output.Http.Auth != nil {
+		values, err := r.ResolveAuthValues(namespace, output.Http.Auth)
+		if err != nil {
+			return outputCredentials{}, err
 		}
+		credentials.Http = values
 	}
-	return nil
+	return credentials, nil
 }
 
 func (r *FluentdReconciler) handleDaemonSet(cr *loggingService.LoggingService) error {
@@ -190,6 +196,7 @@ func (r *FluentdReconciler) createOrUpdateConfigSecret(cr *loggingService.Loggin
 			}
 
 			if !r.Equal(existedSecret, secret) {
+				secret.SetResourceVersion(existedSecret.GetResourceVersion())
 				if err = r.UpdateResource(secret); err != nil {
 					return false, err
 				}

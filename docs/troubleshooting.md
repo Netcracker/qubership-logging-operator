@@ -941,10 +941,11 @@ in FluentD configuration. To do that you need to:
     kubectl scale -n <namespace> deployment logging-operator --replicas=0
     ```
 
-2. Edit configmap `logging-fluentd`.
+2. Edit Secret `logging-fluentd`. Configuration files are stored in the `data`
+   section as Base64-encoded values.
 
     ```bash
-    kubectl edit cm logging-fluentd -n <namespace>
+    kubectl edit secret logging-fluentd -n <namespace>
     ```
 
 3. Find part of configuration `output-graylog.conf`, in section `<buffer>` set the value:

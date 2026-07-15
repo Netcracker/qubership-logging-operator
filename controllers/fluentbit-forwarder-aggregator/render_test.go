@@ -156,36 +156,40 @@ func newAggregatorRenderTestLoggingService() *loggingService.LoggingService {
 	}
 }
 
-func renderAggregator(t *testing.T, cr *loggingService.LoggingService) (*appsv1.StatefulSet, *corev1.ConfigMap) {
+func renderAggregator(t *testing.T, cr *loggingService.LoggingService) (*appsv1.StatefulSet, *corev1.Secret) {
 	t.Helper()
 
 	ss, err := aggregatorStatefulSet(cr)
 	if err != nil {
 		t.Fatal(err)
 	}
-	cm, err := aggregatorConfigMap(cr, util.DynamicParameters{})
+	credentials, err := (&HAFluentReconciler{ComponentReconciler: &util.ComponentReconciler{}}).resolveAggregatorOutputCredentials(cr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	secret, err := aggregatorConfigSecret(cr, util.DynamicParameters{}, credentials)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	return ss, cm
+	return ss, secret
 }
 
-func assertAggregatorConfigContains(t *testing.T, cm *corev1.ConfigMap, name, want string) {
+func assertAggregatorConfigContains(t *testing.T, cm *corev1.Secret, name, want string) {
 	t.Helper()
-	if !strings.Contains(cm.Data[name], want) {
+	if !strings.Contains(string(cm.Data[name]), want) {
 		t.Fatalf("missing %q in %s:\n%s", want, name, cm.Data[name])
 	}
 }
 
-func assertAggregatorConfigAbsent(t *testing.T, cm *corev1.ConfigMap, name string) {
+func assertAggregatorConfigAbsent(t *testing.T, cm *corev1.Secret, name string) {
 	t.Helper()
 	if _, ok := cm.Data[name]; ok {
 		t.Fatalf("unexpected config %s", name)
 	}
 }
 
-func assertAggregatorConfigPresent(t *testing.T, cm *corev1.ConfigMap, name string) {
+func assertAggregatorConfigPresent(t *testing.T, cm *corev1.Secret, name string) {
 	t.Helper()
 	if _, ok := cm.Data[name]; !ok {
 		t.Fatalf("missing config %s", name)

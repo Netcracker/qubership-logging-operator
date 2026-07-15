@@ -144,36 +144,40 @@ func newRenderTestLoggingService() *loggingService.LoggingService {
 	}
 }
 
-func renderFluentbit(t *testing.T, cr *loggingService.LoggingService) (*appsv1.DaemonSet, *corev1.ConfigMap) {
+func renderFluentbit(t *testing.T, cr *loggingService.LoggingService) (*appsv1.DaemonSet, *corev1.Secret) {
 	t.Helper()
 
 	ds, err := fluentbitDaemonSet(cr, util.DynamicParameters{})
 	if err != nil {
 		t.Fatal(err)
 	}
-	cm, err := fluentbitConfigMap(cr, util.DynamicParameters{})
+	credentials, err := (&FluentbitReconciler{ComponentReconciler: &util.ComponentReconciler{}}).resolveOutputCredentials(cr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	secret, err := fluentbitConfigSecret(cr, util.DynamicParameters{}, credentials)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	return ds, cm
+	return ds, secret
 }
 
-func assertFluentbitConfigContains(t *testing.T, cm *corev1.ConfigMap, name, want string) {
+func assertFluentbitConfigContains(t *testing.T, cm *corev1.Secret, name, want string) {
 	t.Helper()
-	if !strings.Contains(cm.Data[name], want) {
+	if !strings.Contains(string(cm.Data[name]), want) {
 		t.Fatalf("missing %q in %s:\n%s", want, name, cm.Data[name])
 	}
 }
 
-func assertFluentbitConfigAbsent(t *testing.T, cm *corev1.ConfigMap, name string) {
+func assertFluentbitConfigAbsent(t *testing.T, cm *corev1.Secret, name string) {
 	t.Helper()
 	if _, ok := cm.Data[name]; ok {
 		t.Fatalf("unexpected config %s", name)
 	}
 }
 
-func assertFluentbitConfigPresent(t *testing.T, cm *corev1.ConfigMap, name string) {
+func assertFluentbitConfigPresent(t *testing.T, cm *corev1.Secret, name string) {
 	t.Helper()
 	if _, ok := cm.Data[name]; !ok {
 		t.Fatalf("missing config %s", name)

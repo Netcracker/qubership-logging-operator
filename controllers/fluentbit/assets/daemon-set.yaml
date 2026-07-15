@@ -285,8 +285,8 @@ spec:
             path: "/var/log"
             type: ""
         - name: config
-          configMap:
-            name: "logging-fluentbit"
+          secret:
+            secretName: "logging-fluentbit"
             defaultMode: 420 # RW grants for config map files
 {{- if and .Values.Fluentbit.Output .Values.Fluentbit.Output.Loki .Values.Fluentbit.Output.Loki.Enabled .Values.Fluentbit.Output.Loki.ConfigSecret .Values.Fluentbit.Output.Loki.ConfigSecret.SecretName .Values.Fluentbit.Output.Loki.ConfigSecret.SecretKey }}
         - name: loki-output-config

@@ -20,6 +20,17 @@ var assets embed.FS
 //go:embed  fluentbit.configmap/conf.d/*
 var fluentbitConfigs embed.FS
 
+type outputCredentials struct {
+	Loki util.AuthValues
+	Http util.AuthValues
+	Otel util.AuthValues
+}
+
+type fluentbitTemplateParameters struct {
+	loggingService.LoggingServiceParameters
+	OutputCredentials outputCredentials
+}
+
 func fluentbitDaemonSet(cr *loggingService.LoggingService, dynamicParameters util.DynamicParameters) (*appsv1.DaemonSet, error) {
 	if cr.Spec.Fluentbit != nil {
 		daemonSet := appsv1.DaemonSet{}
@@ -93,14 +104,18 @@ func fluentbitService(cr *loggingService.LoggingService, dynamicParameters util.
 	return &service, nil
 }
 
-func fluentbitConfigMap(cr *loggingService.LoggingService, dynamicParameters util.DynamicParameters) (*corev1.ConfigMap, error) {
+func fluentbitConfigSecret(cr *loggingService.LoggingService, dynamicParameters util.DynamicParameters, credentials outputCredentials) (*corev1.Secret, error) {
 	if cr.Spec.Fluentbit == nil {
 		return nil, fmt.Errorf("fluentbit configuration in Logging Service %s is nil in the namespace %s", cr.GetName(), cr.GetNamespace())
 	}
 	cr.Spec.ContainerRuntimeType = dynamicParameters.ContainerRuntimeType
+	parameters := fluentbitTemplateParameters{
+		LoggingServiceParameters: cr.ToParams(),
+		OutputCredentials:        credentials,
+	}
 
 	// Get Fluent-bit config from fluentbit.configmap/conf.d files
-	configMapData, err := util.DataFromDirectory(fluentbitConfigs, util.FluentbitConfigMapDirectory, cr.ToParams())
+	configMapData, err := util.DataFromDirectory(fluentbitConfigs, util.FluentbitConfigMapDirectory, parameters)
 
 	if err != nil {
 		return nil, err
@@ -142,23 +157,24 @@ func fluentbitConfigMap(cr *loggingService.LoggingService, dynamicParameters uti
 		}
 	}
 
-	configMap := corev1.ConfigMap{
+	secret := corev1.Secret{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "v1",
-			Kind:       "ConfigMap",
+			Kind:       "Secret",
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      util.FluentbitComponentName,
 			Namespace: cr.GetNamespace(),
 		},
-		Data: configMapData,
+		Type: corev1.SecretTypeOpaque,
+		Data: util.StringMapToByteMap(configMapData),
 	}
-	util.SetLabelsForResource(&configMap, util.LabelInput{
+	util.SetLabelsForResource(&secret, util.LabelInput{
 		Name:            util.FluentbitComponentName,
 		Component:       "fluentbit",
 		ComponentLabels: cr.Spec.Fluentbit.Labels,
 	}, map[string]string{"k8s-app": "fluent-bit"})
-	return &configMap, nil
+	return &secret, nil
 }
 
 func hasLokiOutputConfigSecret(output *loggingService.LokiFluentbit) bool {

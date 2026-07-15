@@ -43,8 +43,8 @@ spec:
           emptyDir: {}
 {{- end }}
         - name: config
-          configMap:
-            name: logging-fluentbit-aggregator
+          secret:
+            secretName: logging-fluentbit-aggregator
             defaultMode: 420
 {{- if and .Values.Fluentbit.Aggregator.Output .Values.Fluentbit.Aggregator.Output.Loki .Values.Fluentbit.Aggregator.Output.Loki.Enabled .Values.Fluentbit.Aggregator.Output.Loki.ConfigSecret .Values.Fluentbit.Aggregator.Output.Loki.ConfigSecret.SecretName .Values.Fluentbit.Aggregator.Output.Loki.ConfigSecret.SecretKey }}
         - name: loki-output-config

@@ -79,20 +79,57 @@ func (r *FluentbitReconciler) handleService(cr *loggingService.LoggingService) e
 	return nil
 }
 
-func (r *FluentbitReconciler) handleConfigMap(cr *loggingService.LoggingService) error {
-	cm, err := fluentbitConfigMap(cr, r.DynamicParameters)
+func (r *FluentbitReconciler) handleConfigSecret(cr *loggingService.LoggingService) error {
+	credentials, err := r.resolveOutputCredentials(cr)
 	if err != nil {
-		r.Log.Error(err, "Failed creating ConfigMap manifest")
+		r.Log.Error(err, "Failed to resolve Fluent Bit output credentials")
 		return err
 	}
 
-	_, err = r.CreateOrUpdate(cr, cm)
+	secret, err := fluentbitConfigSecret(cr, r.DynamicParameters, credentials)
 	if err != nil {
-		r.Log.Error(err, fmt.Sprintf("Cannot create or update config map %s", cm.Name))
+		r.Log.Error(err, "Failed creating Secret manifest")
+		return err
+	}
+
+	_, err = r.CreateOrUpdate(cr, secret)
+	if err != nil {
+		r.Log.Error(err, fmt.Sprintf("Cannot create or update config secret %s", secret.Name))
 		return err
 	}
 
 	return nil
+}
+
+func (r *FluentbitReconciler) resolveOutputCredentials(cr *loggingService.LoggingService) (outputCredentials, error) {
+	credentials := outputCredentials{}
+	if cr.Spec.Fluentbit == nil || cr.Spec.Fluentbit.Output == nil {
+		return credentials, nil
+	}
+	namespace := cr.GetNamespace()
+	output := cr.Spec.Fluentbit.Output
+	if output.Loki != nil && output.Loki.Enabled && output.Loki.Auth != nil {
+		values, err := r.ResolveAuthValues(namespace, output.Loki.Auth)
+		if err != nil {
+			return outputCredentials{}, err
+		}
+		credentials.Loki = values
+	}
+	if output.Http != nil && output.Http.Enabled && output.Http.Auth != nil {
+		values, err := r.ResolveAuthValues(namespace, output.Http.Auth)
+		if err != nil {
+			return outputCredentials{}, err
+		}
+		credentials.Http = values
+	}
+	if output.Otel != nil && output.Otel.Enabled && output.Otel.Auth != nil {
+		values, err := r.ResolveAuthValues(namespace, output.Otel.Auth)
+		if err != nil {
+			return outputCredentials{}, err
+		}
+		credentials.Otel = values
+	}
+	return credentials, nil
 }
 
 func (r *FluentbitReconciler) deleteDaemonSet(cr *loggingService.LoggingService) error {
@@ -114,8 +151,8 @@ func (r *FluentbitReconciler) deleteDaemonSet(cr *loggingService.LoggingService)
 	return nil
 }
 
-func (r *FluentbitReconciler) deleteConfigMap(cr *loggingService.LoggingService) error {
-	e := &corev1.ConfigMap{
+func (r *FluentbitReconciler) deleteConfigSecret(cr *loggingService.LoggingService) error {
+	e := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      util.FluentbitComponentName,
 			Namespace: cr.GetNamespace(),
@@ -152,27 +189,28 @@ func (r *FluentbitReconciler) deleteService(cr *loggingService.LoggingService) e
 	return nil
 }
 
-func (r *FluentbitReconciler) Equal(source *corev1.ConfigMap, target *corev1.ConfigMap) bool {
-	return cmp.Equal(source.Data, target.Data) && cmp.Equal(source.BinaryData, target.BinaryData)
+func (r *FluentbitReconciler) Equal(source *corev1.Secret, target *corev1.Secret) bool {
+	return cmp.Equal(source.Data, target.Data) && cmp.Equal(source.GetLabels(), target.GetLabels())
 }
 
-func (r *FluentbitReconciler) CreateOrUpdate(cr *loggingService.LoggingService, configMap *corev1.ConfigMap) (created bool, err error) {
-	if err = r.CreateResource(cr, configMap); err != nil {
+func (r *FluentbitReconciler) CreateOrUpdate(cr *loggingService.LoggingService, secret *corev1.Secret) (created bool, err error) {
+	if err = r.CreateResource(cr, secret); err != nil {
 		if errors.IsAlreadyExists(err) {
-			existedConfigMap := &corev1.ConfigMap{ObjectMeta: configMap.ObjectMeta}
-			if err = r.GetResource(existedConfigMap); err != nil {
+			existedSecret := &corev1.Secret{ObjectMeta: secret.ObjectMeta}
+			if err = r.GetResource(existedSecret); err != nil {
 				return false, err
 			}
 
-			if !r.Equal(existedConfigMap, configMap) {
-				if err = r.UpdateResource(configMap); err != nil {
+			if !r.Equal(existedSecret, secret) {
+				secret.SetResourceVersion(existedSecret.GetResourceVersion())
+				if err = r.UpdateResource(secret); err != nil {
 					return false, err
 				}
 
 				return true, nil
 			}
 
-			r.Log.Info("The config map is not changed")
+			r.Log.Info("The config secret is not changed")
 			return false, nil
 		}
 

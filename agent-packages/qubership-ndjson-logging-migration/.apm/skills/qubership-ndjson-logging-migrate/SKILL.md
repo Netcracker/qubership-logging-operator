@@ -34,6 +34,8 @@ stage 1 first or record config gaps in the report.
 - Useful diagnostic data in **structured fields**, not only inside `message`.
 - `message` human-readable; correlation fields preserved (`request_id`, `tenant_id`, trace/span, `logType`).
 - Every remaining formatted / variable-message call site inventoried or migrated.
+- **Java:** per-log fields via SLF4J 2.x fluent API (`addKeyValue`) — not per-call MDC wrappers. MDC only for
+  request-scoped correlation already wired in filters/config.
 
 ## Workflow
 
@@ -44,7 +46,7 @@ stage 1 first or record config gaps in the report.
 5. **Inventory** log sources and preformatted diagnostics — [preformatted-message-patterns.md](references/preformatted-message-patterns.md).
 6. **Classify** sites: `migrate`, `static/no action`, `needs user decision`, `blocked`.
 7. **User decisions** — [user-decisions.md](references/user-decisions.md).
-8. **Map fields** — semantic names; preserve qualifiers in field names.
+8. **Map fields** — stack playbook (step 4) and [coding-approaches.md](references/coding-approaches.md) per-call checklist.
 9. **Implement** in small batches — [coding-approaches.md](references/coding-approaches.md); build after each batch.
 10. **Re-inventory** — no unaccounted formatted calls.
 11. **Run gates** — [completion-gates.md](references/completion-gates.md).

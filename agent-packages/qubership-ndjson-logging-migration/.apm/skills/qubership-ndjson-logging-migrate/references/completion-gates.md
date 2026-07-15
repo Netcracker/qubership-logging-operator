@@ -52,8 +52,7 @@ git diff HEAD -- '*.java' | grep '^-.*\(public \|private \|@GET\|@POST\)'
 
 - Restore any **removed endpoint handlers**, service methods, or mapper logic that was not an intentional logging-only
   change.
-- If a file's only change would be an unused import, **remove the import** — do not leave `StructuredLog` imported
-  unused.
+- If a file's only change would be an unused import, **remove the import**.
 
 ### 2.2 Java syntax sanity (post-codemod)
 
@@ -61,7 +60,8 @@ These patterns must be **zero** in `src/main/java`:
 
 ```bash
 # Illegal single-line text block (opening """ must be followed by newline)
-grep -rn 'StructuredLog\.\w\+([^)]*""" [^"]' --include='*.java' src/main/java
+grep -rn 'log\.at\w\+([^)]*""" [^"]' --include='*.java' src/main/java
+grep -rn '""" [^"]' --include='*.java' src/main/java | grep -E 'log\.(at|info|debug|warn|error)'
 
 # Orphan annotations / broken method stubs (manual review)
 # e.g. @APIResponses without following @GET method body
@@ -89,38 +89,58 @@ Record **before/after counts** in the migration report.
 | Java/SLF4J          | `log.(info\|debug\|warn\|error).*` with `{}` in `src/main/java`                  | **0** inline `{}` |
 | Logged preformatted | Patterns in [preformatted-message-patterns.md](preformatted-message-patterns.md) | **0** unreviewed  |
 
-**Misleading zero:** `{}` in a **shared constant** (e.g. `WARNING_MESSAGE`) still templates at runtime — list those sites
-under user decision; do not treat as fully structured.
+**Misleading zero:** `{}` in a **shared constant** (e.g. `WARNING_MESSAGE`) still templates at runtime — **stop and ask
+the user immediately** per [user-decisions.md](user-decisions.md); do not treat grep zero as fully structured.
 
 ---
 
 ## 4. Semantic quality gates (blocking for merge-quality)
 
-### 4.1 No placeholder field keys
+### 4.1 Semantic field names (primary gate)
+
+Every structured field must use consumer-friendly **`snake_case` derived from message semantics** (`backup_id`,
+`namespace`, `status`) — not positional placeholders or leaked local variable names.
+
+**Reject (non-exhaustive):**
+
+| Category | Examples |
+| -------- | -------- |
+| Positional / generic | `arg0`, `argument1`, `param2`, `value0`, `field1` |
+| Leaked locals / abbreviations | `i`, `ns`, `err`, `sbe`, `qName`, `lbName` |
+
+**How to verify (required — greps alone are not enough):**
+
+1. **Spot-check** 5–10 migrated call sites per batch: read the original `{}` message and confirm each key matches the
+   semantic label (e.g. `backup_id`, not `id` or `arg0`).
+2. **Review the diff** for `addKeyValue`, `WithField`, `StructuredArguments.kv`, `logfields.Format` — catch generic
+   numbered keys and short locals by sight.
+
+**Optional sanity grep (codemod artifact — not exhaustive):** baseline is usually **0 before migration**. Bulk codemods
+in pilots emitted literal `"arg0"`, `"arg1"` keys; this grep catches that one failure mode only — not `argument0`,
+`param1`, or other lazy names.
 
 ```bash
 grep -rn '"arg[0-9]\+"' --include='*.java' src/main/java
 ```
 
-**Target: 0** in production Java. Use semantic `snake_case` names (`backup_id`, `namespace`, `status`, `portion_number`).
-
-Same rule for Go: no `arg0`-style keys in `logfields.Format` calls.
+Same rule for Go: semantic names + spot-check; optional grep does not replace review. See
+[user-decisions.md](user-decisions.md) § Semantic field names.
 
 ### 4.2 No duplicate keys in one log call
 
-`StructuredLog` / MDC: repeating the same key in one call **overwrites** earlier values. Review every multi-argument
-migration manually or with a linter script.
+Fluent API: repeating `addKeyValue("backup", …)` twice in one chain **overwrites** the earlier value. Review every
+multi-field migration manually.
 
-**Bad:** `"backup", COMPLETED, "backup", FAILED, "backup", DELETED`  
-**Good:** `"completed_status", COMPLETED, "failed_status", FAILED, "deleted_status", DELETED`
+**Bad:** `.addKeyValue("backup", COMPLETED).addKeyValue("backup", FAILED)`  
+**Good:** `.addKeyValue("completed_status", COMPLETED).addKeyValue("failed_status", FAILED)`
 
 ### 4.3 Throwables preserved
 
-When the original call passed an exception as the final SLF4J argument (`log.error("...", a, b, throwable)`), use the
-**throwable overload** of your structured helper (e.g. `StructuredLog.error(log, msg, t, fields...)`).
+When the original call passed an exception as the final SLF4J argument (`log.error("...", a, b, throwable)`), use
+`setCause(throwable)` on the fluent builder (or the repo's equivalent throwable-aware helper).
 
-Sweep: count removed `error`/`warn` calls that had a throwable vs conversions using the throwable overload — gaps must be
-fixed or listed.
+Sweep: count removed `error`/`warn` calls that had a throwable vs conversions with `setCause` — gaps must be fixed or
+listed.
 
 ### 4.4 Human-readable messages
 
@@ -130,13 +150,18 @@ After extracting fields, `message` must not contain:
 - Empty placeholder holes (`logicalBackup=, error=`)
 - Placeholder-only text (`.`)
 
-### 4.5 Java MDC → JSON field promotion (Quarkus)
+### 4.5 Java event fields in JSON (Quarkus / Logback)
 
-Arbitrary MDC keys appear under `mdc.*` unless declared in `quarkus.log.console.json.fields.*` / `application.properties`.
-After migration:
+Per-log fields must use the SLF4J 2.x fluent API (`addKeyValue`) or encoder structured args — see
+[java-quarkus.md](java-quarkus.md). After migration:
 
-- Declare promoted keys in Quarkus JSON config, **or**
-- Capture one runtime JSON line and verify fields appear at the expected top level.
+- Capture one runtime JSON line and verify `addKeyValue` fields appear at the **top level**.
+- Correlation fields (`request_id`, `tenant_id`) may still use request-scoped MDC + `%X{...}` in config — that is
+  expected.
+- **Manual review (diff):** no new `StructuredLog`-style helper and no new per-call `MDC.put` for event fields.
+  Request-scoped MDC in filters/interceptors is OK.
+
+If diagnostic fields appear only under `mdc.*`, the call sites are still MDC-shaped — rework to fluent API.
 
 ### 4.6 Go `logfields` / regex formatters
 
@@ -167,7 +192,8 @@ See [go-qubership-lib.md](go-qubership-lib.md) (core-lib-go + message suffix). M
 | Java compile | `mvn -pl ... compile` | — | exit 0 | |
 | Go build | `GOWORK=off go build ./cmd/` | — | exit 0 | |
 | Java `{}` inline | grep src/main/java | N | 0 | |
-| Java `argN` keys | grep `"arg[0-9]"` | N | 0 | |
+| Java field names | semantic review + spot-check; optional `"arg[0-9]"` grep | — | OK | |
+| Java event fields | manual: fluent API + JSON top-level; no new MDC wrapper | — | OK | |
 | Go `log.*f` | grep production .go | N | 0 | |
 | Throwables | manual sweep | N dropped | N fixed | |
 | Integrity | git diff review | — | no stray deletions | |

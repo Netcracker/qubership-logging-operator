@@ -3,7 +3,7 @@
   "package": "qubership-ndjson-logging-migration",
   "current_best": {
     "enable": "iteration-7-enable",
-    "migrate": "iteration-8-migrate"
+    "migrate": "iteration-9-migrate"
   },
   "iterations": [
     {
@@ -69,9 +69,20 @@
       "stage": "migrate",
       "parent": "v7-enable",
       "skill_name": "qubership-ndjson-logging-migrate",
-      "skill_snapshot": "Stage 2 migrate skill — post-enable worktrees",
+      "skill_snapshot": "Stage 2 migrate — MDC wrapper playbook",
       "expectation_pass_rate": null,
-      "notes": "Scaffolded — pending post-enable worktree reset and 4-arm run",
+      "notes": "4-arm run done; dbaas discriminates; with_skill used StructuredLog MDC",
+      "is_current_best": false
+    },
+    {
+      "version": "v9-migrate",
+      "label": "iteration-9-migrate",
+      "stage": "migrate",
+      "parent": "v8-migrate",
+      "skill_name": "qubership-ndjson-logging-migrate",
+      "skill_snapshot": "Fluent API, semantic fields, immediate user-decision stops",
+      "expectation_pass_rate": null,
+      "notes": "Pending 4-arm run on iteration-7 enable baseline",
       "is_current_best": true
     }
   ]

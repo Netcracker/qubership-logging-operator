@@ -41,12 +41,16 @@ Keep this file short. Add lessons from real pilot migrations as one or two lines
   are not static/no-action. Inventory count, list in the report, and ask whether to structure at the logging boundary or
   keep prose-only `message`.
 - **Bulk Java codemod:** `632→0 {}` with failing `mvn compile` is not done. Regex codemods can delete REST handlers,
-  break `"""` text blocks, drop `@Slf4j` imports, use `arg0`/`arg1` MDC keys, duplicate keys in one call, and drop
-  throwables. Require build + integrity + semantic gates from [completion-gates.md](completion-gates.md).
-- **Java WARNING_MESSAGE constants:** Moving `{}` into a shared string constant does not structure runtime values; list
-  under user decision or migrate call sites to pass fields explicitly.
-- **Quarkus MDC promotion:** MDC keys may appear only under `mdc.*` unless declared in `quarkus.log.console.json.fields.*`;
-  verify one runtime JSON line after migration.
+  break `"""` text blocks, drop `@Slf4j` imports, emit generic positional field keys (`arg0`, `argument1`, …), duplicate
+  keys in one call, and drop throwables. Require build + integrity + semantic gates from [completion-gates.md](completion-gates.md).
+- **Java per-call MDC / StructuredLog helpers:** Do not introduce new wrappers that `MDC.put` diagnostic fields at each
+  log site. Use SLF4J 2.x fluent API (`addKeyValue`) for event fields; keep MDC for request-scoped correlation only. If a
+  legacy helper already exists, replace call sites with fluent API and remove the helper when unused.
+- **Java WARNING_MESSAGE / shared `{}` constants:** Moving `{}` into a string constant does not structure runtime values.
+  **Stop and ask the user immediately** when found — see [user-decisions.md](user-decisions.md).
+- **Java JSON field placement:** `addKeyValue` fields should appear at the top level in captured NDJSON — not only under
+  `mdc.*`. If they land under `mdc.*`, the call site is still MDC-shaped; fix with fluent API, not bulk
+  `additional-field` promotion.
 - **Go logfields.Format:** Regex re-parse of `key=value` suffixes is fragile; quote whitespace values and protect reserved
   keys (`time`, `level`, `message`, `class`, `request_id`).
 - **Skill source:** edit the APM skill package source; reinstall/sync to update deployed `.agents/skills` copies.

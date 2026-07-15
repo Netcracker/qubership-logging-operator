@@ -41,7 +41,7 @@ Run manual greps and builds from [completion-gates.md](completion-gates.md) per 
 | Java compile | `mvn -pl <module> compile` | | exit 0 / BLOCKED | |
 | Go build | `GOWORK=off go build ./...` | | exit 0 | |
 | Java `{}` inline | grep `src/main/java` | | 0 | |
-| Java `argN` keys | grep `"arg[0-9]"` | | 0 | |
+| Java field names | semantic review + spot-check; optional `"arg[0-9]"` grep | | OK | |
 | Go `log.*f` (production) | grep non-test `.go` | | 0 | |
 | Throwables | manual sweep | | fixed | |
 | Integrity | git diff review | | no stray deletions | |

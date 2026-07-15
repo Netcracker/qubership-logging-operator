@@ -10,7 +10,7 @@ This workspace keeps eval-only helpers under `scripts/`.
 | Stage | Skill | Workspace iteration | Package evals |
 | ----- | ----- | ------------------- | ------------- |
 | 1 — Enable | `qubership-ndjson-logging-enable` | `iteration-7-enable/` | `evals/evals-enable.json` |
-| 2 — Migrate | `qubership-ndjson-logging-migrate` | `iteration-8-migrate/` | `evals/evals-migrate.json` |
+| 2 — Migrate | `qubership-ndjson-logging-migrate` | `iteration-9-migrate/` | `evals/evals-migrate.json` |
 
 Run enable before migrate. Migrate worktrees must be post-enable.
 
@@ -36,7 +36,8 @@ See `history.json` for iteration lineage and current best snapshot per stage.
 | `iteration-5` | Natural blind — C/D cancelled (executor contamination) |
 | `iteration-6` | **Superseded** — monolithic migrate scaffold |
 | **`iteration-7-enable`** | **Stage 1** — enable skill, `check_enable_gates.py`, 4-arm run done |
-| **`iteration-8-migrate`** | **Stage 2** — migrate skill, post-enable worktrees (pending runs) |
+| **`iteration-8-migrate`** | Stage 2 — MDC wrapper skill; dbaas discriminates |
+| **`iteration-9-migrate`** | **Stage 2 current** — fluent API skill; pending runs |
 
 ## Eval-only scripts
 

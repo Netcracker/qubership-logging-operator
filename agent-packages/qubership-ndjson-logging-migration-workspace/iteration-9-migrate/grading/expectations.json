@@ -1,13 +1,22 @@
 {
-  "skill_name": "qubership-ndjson-logging-migrate",
+  "iteration": 9,
   "stage": "migrate",
+  "skill_name": "qubership-ndjson-logging-migrate",
+  "description": "Process expectations for graders only. Executors must NOT receive this file.",
+  "universal": [
+    "The agent confirms JSON envelope is already enabled and limits scope to call-site field extraction unless config is broken.",
+    "The agent inventories log sources and creates or updates a coverage ledger before claiming completion.",
+    "The agent uses stable semantic field names and preserves log levels unless documenting an explicit decision.",
+    "The agent reports migrated, static/no-action, user-decision, and blocked items with counts.",
+    "The migration report follows migration-report-template.md and records run-start HEAD.",
+    "The agent documents blocked validation with concrete error when local gates cannot run."
+  ],
   "evals": [
     {
       "id": 1,
       "name": "go-log-exporter",
-      "prompt": "Apply stage-2 NDJSON call-site migration to qubership-log-exporter. JSON envelope is already enabled — migrate structured fields out of formatted messages.",
-      "expected_output": "The agent uses the existing Go/logrus logging stack where possible, inventories log sources, migrates structured values out of formatted messages, preserves log levels, validates JSON output, passes objective completion gates, and reports coverage.",
-      "files": [],
+      "prompt_file": "prompts/migrate-go-log-exporter.md",
+      "expected_output": "Go service: zero production log.*f, structured fields, smoke NDJSON evidence, completion gate table.",
       "expectations": [
         "The agent inventories logger configuration and Go log call sites before claiming completion.",
         "The agent moves useful variable data from formatted messages into structured fields rather than leaving it only in message.",
@@ -21,16 +30,14 @@
         "The agent reports coverage, including migrated, static/no-action, user-decision, and blocked items.",
         "The completion gate reports zero remaining active log.*f formatted calls in production Go packages with before and after counts in the report.",
         "The agent records evidence of a startup smoke command with valid NDJSON output (parsed JSON line with time, level, message), not only unit tests.",
-        "The migration report follows migration-report-template.md and records the worktree HEAD commit hash at run start.",
-        "Objective check: manual greps (or eval workspace check_migration_gates.py) report zero production log.*f and go build passes (or documents a concrete blocker)."
+        "Objective check: check_migration_gates.py passes on the worktree (or documents a concrete blocker)."
       ]
     },
     {
       "id": 2,
       "name": "java-dbaas-monorepo",
-      "prompt": "Apply stage-2 NDJSON call-site migration to qubership-dbaas. JSON envelope is already enabled — migrate both dbaas-aggregator and dbaas-operator call sites.",
-      "expected_output": "The agent treats qubership-dbaas as a monorepo, performs repo-root component discovery, lists both dbaas-aggregator and dbaas-operator in the coverage ledger, migrates each runtime component with passing build/semantic gates, and asks only for real decision points.",
-      "files": [],
+      "prompt_file": "prompts/migrate-java-dbaas-monorepo.md",
+      "expected_output": "Monorepo: both components migrated, zero Java {} and Go log.*f in production, ledger complete.",
       "expectations": [
         "The agent scans the repository root for runtime markers such as go.mod, pom.xml, and helm-templates before editing.",
         "The agent identifies deployable/runtime components before editing and lists both dbaas-aggregator and dbaas-operator in the coverage ledger.",
@@ -47,8 +54,7 @@
         "The agent reviews bulk codemod output for integrity (no deleted endpoints/methods, no illegal text blocks) before claiming done.",
         "The agent follows coding-approaches and java-quarkus playbook: semantic field names via SLF4J fluent API (`addKeyValue`), no new per-call MDC wrappers, preserved exception-mapper buildResponse behavior.",
         "The migration report records the completion gate table with before/after counts.",
-        "The migration report records the worktree HEAD commit hash at run start.",
-        "Objective check: manual greps (or eval workspace check_migration_gates.py) on the worktree report zero Java {} in aggregator src/main/java, zero production Go log.*f in dbaas-operator, and go build passes (argN grep in the script is an optional codemod-artifact heuristic only)."
+        "Objective check: check_migration_gates.py passes on the worktree (or documents explicit blocked items)."
       ]
     }
   ]

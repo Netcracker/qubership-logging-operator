@@ -31,6 +31,9 @@ grep -rnE 'log\.(info|debug|warn|error|trace)\(\s*[^"'\''{]' --include='*.java' 
 # Common preformatted patterns
 grep -rnE 'log\.(warn|error)\((message|msg|errorMsg|aggregatedError)' --include='*.java' .
 grep -rnE '\.getMessage\(\)' --include='*.java' src/main/java | grep -E 'log\.(info|debug|warn|error)'
+
+# Shared {} template constants ({} hidden in constant — ask user immediately; see user-decisions.md)
+grep -rn 'WARNING_MESSAGE\|String.*=.*"\{}"' --include='*.java' src/main/java
 ```
 
 ## Python
@@ -61,20 +64,5 @@ classify as `static/no-action` without an explicit user choice.
 | log.warn(message) | 3 | path/File.java:142 | structure at boundary / prose-only / blocked |
 ```
 
-## Semantic quality (completion gate — not optional)
-
-Run after pattern gate; see [completion-gates.md](completion-gates.md).
-
-```bash
-# Placeholder field keys (must be 0 in src/main/java)
-grep -rn '"arg[0-9]\+"' --include='*.java' src/main/java
-
-# Illegal single-line Java text blocks after codemod
-grep -rn '""" [^"]' --include='*.java' src/main/java | grep -i StructuredLog
-
-# Shared template constants still using {} at runtime (review, not auto-zero)
-grep -rn 'WARNING_MESSAGE\|String.*=.*"\{}"' --include='*.java' src/main/java
-```
-
-Manually verify: throwable overload when original SLF4J call passed an exception; no duplicate MDC key in one
-`StructuredLog` call.
+Field-name quality and codemod sanity checks: [completion-gates.md](completion-gates.md) §4.1 — semantic review is
+primary; `"arg[0-9]"` grep is optional and not exhaustive.

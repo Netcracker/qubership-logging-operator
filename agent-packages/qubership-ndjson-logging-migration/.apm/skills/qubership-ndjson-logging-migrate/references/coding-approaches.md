@@ -21,7 +21,15 @@ changed call site still gets semantic review.
 | Script + review | Large homogeneous one-line `log.info("...", a, b)` in services                |
 | Script-only     | Never — if the diff could delete methods or break annotations, review by hand |
 
-After each batch: `mvn compile` or `go build` → `git diff --stat` → grep `argN` / throwables → spot-check 5–10 files.
+After each batch: `mvn compile` or `go build` → **review diff field names** → spot-check 5–10 call sites → optional
+`"arg[0-9]"` grep (codemod artifact only) → throwables sweep.
+
+## Java event fields (do not use per-call MDC)
+
+- **Per-log diagnostics:** SLF4J 2.x fluent API — `log.atError().setMessage(...).addKeyValue(...).setCause(t).log()`.
+- **Request correlation:** existing filter/interceptor MDC + Quarkus `%X{requestId}` — do not change that pattern for
+  migration.
+- **Do not** add `StructuredLog`-style helpers or per-call `MDC.put` for event data. See [java-quarkus.md](java-quarkus.md).
 
 ## Migration process (done right)
 
@@ -40,9 +48,11 @@ After each batch: `mvn compile` or `go build` → `git diff --stat` → grep `ar
 
 ## Per call site checklist
 
-- [ ] Semantic `snake_case` field names
-- [ ] Throwable preserved when original had one
-- [ ] No duplicate key in one call
+- [ ] Semantic `snake_case` field names from **message semantics** — not `arg0`, `argument1`, `param2`, or leaked locals
+  (`i`, `ns`, `sbe`); see completion-gates §4.1
+- [ ] Throwable preserved (`setCause`) when original had one
+- [ ] No duplicate `addKeyValue` key in one fluent chain (Java)
+- [ ] No new per-call MDC / `StructuredLog` helper for event fields (Java)
 - [ ] `message` reads naturally without fields
 - [ ] Level unchanged unless user approved
 - [ ] Non-logging code unchanged (`buildResponse`, endpoints, imports)

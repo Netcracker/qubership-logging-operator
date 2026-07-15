@@ -2,25 +2,26 @@
 
 Read when the target component uses Maven/Quarkus, SLF4J, or Logback-style logging.
 
-## Infrastructure
+## Two roles — do not conflate
 
-- Add or enable Quarkus JSON console (`quarkus-logging-json`) or existing Logback JSON encoder.
-- Wire `LOG_FORMAT=text|json` in Helm; use `%text` profile or equivalent for legacy bracket format when needed.
-- Declare promoted MDC keys in `quarkus.log.console.json.fields.*` so they appear as top-level JSON fields — verify with
-  one captured stdout line.
+| Role | What | How |
+| ---- | ---- | --- |
+| **Correlation** (thread/request scope) | `request_id`, `tenant_id`, trace/span | Set once in a filter/interceptor; Quarkus JSON `additional-field` with `%X{...}` is OK |
+| **Event fields** (this log line only) | `backup_id`, `namespace`, `status`, … | **SLF4J 2.x fluent API** — not per-call `MDC.put` |
 
-## Structured helper pattern
+**Do not** add new `StructuredLog`-style wrappers or per-call MDC for diagnostic fields. MDC is not a structured-logging
+API.
 
-If the repo already has a thin MDC wrapper (put → log → clear in `finally`), **extend it** — do not add a parallel
-stack. If none exists, use short-lived `MDC.put` / `MDC.remove` around the log call (same lifecycle).
+## Infrastructure (stage 1 — usually done)
 
-**Level guards:** for `debug`/`trace`, check `isDebugEnabled()` / `isTraceEnabled()` before MDC work — original `{}`
-calls were lazy.
+- Quarkus JSON console (`quarkus-logging-json`) or Logback JSON encoder enabled.
+- `LOG_FORMAT=text|json` in Helm; `%text` profile for legacy bracket format when needed.
+- Correlation fields promoted via `quarkus.log.console.json.additional-field.*` (e.g. `%X{requestId}`).
 
-**Quarkus JSON:** MDC keys often land under `mdc.*` unless promoted via `quarkus.log.console.json.additional-field.*`
-(or equivalent in the target repo). After migrating a field, capture one runtime JSON line and confirm where it appears.
+## Preferred: SLF4J 2.x fluent API (event fields)
 
-## Converting call sites
+Verify the target uses SLF4J 2.x (`org.slf4j.Logger` with `atInfo()` / `addKeyValue()`). Quarkus 3 + JBoss Logging
+typically supports this through the SLF4J bridge.
 
 **Before:**
 
@@ -28,38 +29,69 @@ calls were lazy.
 log.error("Logical backup failed: id={}, error={}", id, msg, throwable);
 ```
 
-**After** (repo helper with throwable overload — adjust class/method names to match the target):
+**After:**
 
 ```java
-StructuredLogging.error(log, "Logical backup failed", throwable,
-        "backup_id", id, "error_message", msg);
+log.atError()
+    .setMessage("Logical backup failed")
+    .addKeyValue("backup_id", id)
+    .addKeyValue("error_message", msg)
+    .setCause(throwable)
+    .log();
 ```
 
-- Pass the **exception via the throwable overload** (`log.error(message, throwable)` inside the helper) — do **not**
-  put a `Throwable` in MDC as a field value (stringifies without stack trace).
-- Field names from **message semantics** (`backup_id`, `namespace`, `status`) — never `arg0`, never duplicate keys in one
-  call (later pair overwrites earlier MDC put).
-- Equivalent manual pattern when no helper exists:
+**Practices:**
 
-```java
-MDC.put("backup_id", String.valueOf(id));
-MDC.put("error_message", msg);
-try {
-    log.error("Logical backup failed", throwable);
-} finally {
-    MDC.remove("backup_id");
-    MDC.remove("error_message");
-}
-```
+- **`setMessage()`** — short **what happened** summary (action/outcome); no `{}` placeholders after migration. Put
+  identifiers and diagnostics in `addKeyValue`, not duplicated in the message. The line should still make sense when
+  someone reads only `message` in a dashboard — not `"."`, label stubs (`backup_id=`), or empty holes after extraction
+  (see [completion-gates.md](completion-gates.md) §4.4).
+- Field names from **message semantics** (`backup_id`, `namespace`, `status`) — not positional or generic keys
+  (`arg0`, `argument1`, `param2`, `value0`) and not leaked locals (`i`, `ns`, `sbe`). Greps cannot catch every bad
+  name; spot-check migrated sites per [completion-gates.md](completion-gates.md) §4.1.
+- Use `setCause(throwable)` when the original SLF4J call passed an exception — do not put `Throwable` in a field value.
+- `atDebug()` / `atTrace()` are lazy — prefer them over guarded `log.debug(...)` when using the fluent API.
+- Chain multiple `addKeyValue` calls; do not repeat the same key in one event.
+
+**Levels:** `atTrace`, `atDebug`, `atInfo`, `atWarn`, `atError` — match the original level unless user approved a change.
+
+## Verify JSON output
+
+After migrating a batch, capture one runtime stdout JSON line and confirm:
+
+- `time`, `level`, `message` present
+- `addKeyValue` fields appear at the **top level** (not only under `mdc.*`)
+- Correlation fields (`request_id`, `tenant_id`) still populate from request-scoped MDC / `%X{...}` config
+
+If fields land under `mdc.*`, the implementation is wrong for event data — fix the call site (fluent API), not by
+promoting hundreds of keys in `application.properties`.
+
+## Logback / Spring (non-Quarkus)
+
+When the stack is Logback + SLF4J 2.x, use the same fluent API. If the repo already ships **logstash-logback-encoder**,
+`StructuredArguments.kv("field", value)` is acceptable — still not per-call MDC. Extend what the repo already uses; do
+not introduce a parallel pattern.
 
 ## Exception mappers
 
-Replace `log.warn(WARNING_MESSAGE, class, path, msg)` with structured fields + throwable overload, or centralize in
-`Utils.logRequestWarning(...)`. A shared `{}` constant still templates at runtime — migrate to explicit fields or list
-under user decision until done.
+Sites such as `log.warn(WARNING_MESSAGE, class, path, msg)` use a **shared `{}` template constant** — grep hits zero
+inline `{}` while values still interpolate at runtime.
 
-**Only change logging lines** — preserve `buildResponse(status, supplier)` overloads and response builders. Remove unused
-imports if a file no longer calls the structured helper.
+**Stop and ask the user before editing these call sites** — do not pick an approach silently and do not defer the
+question to the end of the migration. See [user-decisions.md](user-decisions.md) § Java shared `{}` template constants.
+
+**Only change logging lines** — preserve `buildResponse(status, supplier)` overloads and response builders.
+
+## Anti-patterns (do not introduce)
+
+| Anti-pattern | Why |
+| ------------ | --- |
+| New `StructuredLog` / per-call `MDC.put` helper | Wrong abstraction; fields hide under `mdc.*`; PR #551-class bugs |
+| `MDC.put` at every call site (manual or wrapped) | Leak risk, duplicate keys, not event-scoped |
+| Bulk regex codemod to any helper without `mvn compile` | Deleted endpoints, illegal text blocks, generic field keys |
+
+If the repo **already** has a legacy per-call MDC helper from an earlier migration, prefer **replacing call sites with
+fluent API** over extending the helper. Remove the helper when no callers remain.
 
 ## Hand-migrate (do not bulk-codemod)
 

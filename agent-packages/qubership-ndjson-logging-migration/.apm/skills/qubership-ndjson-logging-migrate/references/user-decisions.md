@@ -52,7 +52,30 @@ for a choice:
 
 Mark affected sites `needs user decision` until answered.
 
+## Java shared `{}` template constants
+
+When inventory finds `log.warn(WARNING_MESSAGE, …)`, `log.error(SOME_TEMPLATE, …)`, or string constants still
+containing `{}` used as SLF4J message templates (common in exception mappers):
+
+1. **Stop implementation on that component** and ask the user **immediately** — before bulk edits, helper extraction, or
+   claiming `{}` grep is zero.
+2. In the question, name the constant, caller count, and one example file (e.g. `Utils.java:WARNING_MESSAGE`, 12 mappers).
+3. Offer these choices (unless the user already stated a repo-wide policy in this session):
+   - **Inline fluent API** — replace each call with `log.atWarn().setMessage("…").addKeyValue(...).log()`; constant
+     becomes a fixed message or is removed.
+   - **Centralized helper** — one `Utils.logRequestWarning(...)` (or similar) using fluent API internally; mappers call
+     the helper only.
+   - **Prose-only constant** — constant holds fixed text with no `{}`; fields only via fluent API at call sites (confirm
+     this matches mapper semantics).
+   - **Blocked** — defer that mapper/pattern until reviewed.
+
+Do not move `{}` into another constant, leave templating in place, or mark the Java component migrated-complete while
+these sites await an answer. If the session cannot wait, stop with the question in the report — do not guess.
+
 ## Semantic field names
 
 Rename short local names (`i`, `i_1`, `sbe`, `qName`) to consumer-friendly `snake_case` (`reason_index`, `query_name`).
+Derive keys from the original log message text — not argument position (`arg0`, `argument1`, `param2`, `value0`).
 For validation loops, prefer one aggregate record or meaningful per-item records — not placeholder messages like `.`.
+
+No grep list proves names are good; spot-check migrated call sites per [completion-gates.md](completion-gates.md) §4.1.

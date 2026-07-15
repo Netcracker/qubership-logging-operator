@@ -17,7 +17,7 @@ Run **stage 1 (enable)** before **stage 2 (migrate)**. Migrate evals assume JSON
 | Stage | Skill | Package evals | Objective checks | Workspace iteration |
 | ----- | ----- | ------------- | ---------------- | ------------------- |
 | Enable | `qubership-ndjson-logging-enable` | `evals/evals-enable.json` | `evals/objective_checks-enable.json` | `iteration-7-enable/` |
-| Migrate | `qubership-ndjson-logging-migrate` | `evals/evals-migrate.json` | `evals/objective_checks-migrate.json` | `iteration-8-migrate/` |
+| Migrate | `qubership-ndjson-logging-migrate` | `evals/evals-migrate.json` | `evals/objective_checks-migrate.json` | `iteration-9-migrate/` |
 
 Index: `evals/evals.json` lists both stages and skill paths.
 
@@ -46,7 +46,7 @@ Each stage file follows skill-creator shape: top-level `skill_name` + `evals[]` 
    # Stage 2 migrate
    python3 "$WS/scripts/check_migration_gates.py" <worktree> [--java-path ...] [--go-path ...]
    python3 "$WS/scripts/validate_ndjson_line.py" sample.log
-   python3 "$WS/iteration-8-migrate/scripts/grade_objective.py" with_skill java-dbaas-monorepo
+   python3 "$WS/iteration-9-migrate/scripts/grade_objective.py" with_skill java-dbaas-monorepo
    ```
 
 5. **Aggregate** — prefer skill-creator `scripts/aggregate_benchmark.py` when available (pass the **stage skill name**):
@@ -57,7 +57,7 @@ Each stage file follows skill-creator shape: top-level `skill_name` + `evals[]` 
      --skill-name qubership-ndjson-logging-enable
 
    python -m scripts.aggregate_benchmark \
-     <workspace>/iteration-8-migrate \
+     <workspace>/iteration-9-migrate \
      --skill-name qubership-ndjson-logging-migrate
    ```
 
@@ -69,8 +69,9 @@ Each stage file follows skill-creator shape: top-level `skill_name` + `evals[]` 
 **Enable:** baseline should fail `check_enable_gates.py` (no JSON config / Helm format / smoke evidence). With-skill should
 pass or document explicit `blocked` credentials.
 
-**Migrate:** baseline on a post-enable worktree should **fail** objective checks on dbaas (hundreds of `{}`, no operator
-migration) even when process expectations pass. With-skill should pass gates or document explicit `blocked` items.
+**Migrate:** both arms reset to the **stage-1 with-skill commit** (`enable_with_skill_commit` in
+`iteration-9-migrate/config.json`). Baseline should still fail migration gates (hundreds of `{}`, etc.); with-skill
+should pass or document explicit `blocked` items.
 
 ## History
 

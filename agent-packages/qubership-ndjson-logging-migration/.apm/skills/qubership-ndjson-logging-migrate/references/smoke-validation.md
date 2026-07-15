@@ -38,8 +38,8 @@ mvn -pl <module> quarkus:dev   # or documented integration smoke
 If Maven compile is blocked (private packages, 401), record under **Blocked validation** with the exact error — **do not
 mark the Java component migrated-complete** and do not claim JVM smoke passed.
 
-After bulk edits, also run semantic quality greps from [completion-gates.md](completion-gates.md) (`argN` keys, illegal
-text blocks).
+After bulk edits, also run [completion-gates.md](completion-gates.md) §4.1 (semantic field-name review + spot-check;
+optional `"arg[0-9]"` grep) and §2.2 (illegal text blocks).
 
 ## Python
 

@@ -194,8 +194,7 @@ func (r *LoggingServiceReconciler) updateDynamicParameters(customResourceInstanc
 // SetupWithManager sets up the controller with the Manager.
 func (r *LoggingServiceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&loggingService.LoggingService{}).
-		WithEventFilter(ignoreDeletionPredicate()).
+		For(&loggingService.LoggingService{}, builder.WithPredicates(ignoreDeletionPredicate())).
 		Watches(
 			&corev1.Secret{},
 			handler.EnqueueRequestsFromMapFunc(r.mapSecretToLoggingServices),

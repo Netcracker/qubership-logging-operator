@@ -19,6 +19,8 @@ jobs:
         id: config
         env:
           ACTOR: ${{ github.actor }}
+          EVENT_NAME: ${{ github.event_name }}
+          REF: ${{ github.ref }}
         run: |
           restricted=$(python3 -c "
           import yaml, os
@@ -28,6 +30,8 @@ jobs:
           print('true' if os.environ['ACTOR'] in actors else 'false')
           ")
           if [ "$restricted" = "true" ]; then
+            echo "sonar-project-key=" >> "$GITHUB_OUTPUT"
+          elif [ "$EVENT_NAME" = "push" ] && [ "$REF" != "refs/heads/main" ]; then
             echo "sonar-project-key=" >> "$GITHUB_OUTPUT"
           else
             echo "sonar-project-key=${{ vars.SONAR_PROJECT_KEY }}" >> "$GITHUB_OUTPUT"

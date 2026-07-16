@@ -35,7 +35,7 @@ func (r *FluentbitReconciler) Run(cr *loggingService.LoggingService) error {
 	r.Log.Info("Start Fluentbit reconciliation")
 
 	if cr.Spec.Fluentbit != nil && cr.Spec.Fluentbit.IsInstall() && (cr.Spec.Fluentbit.Aggregator == nil || !cr.Spec.Fluentbit.Aggregator.Install) {
-		if err := r.handleConfigMap(cr); err != nil {
+		if err := r.handleConfigSecret(cr); err != nil {
 			return err
 		}
 		if err := r.handleDaemonSet(cr); err != nil {
@@ -66,8 +66,8 @@ func (r *FluentbitReconciler) uninstall(cr *loggingService.LoggingService) {
 	if err := r.deleteDaemonSet(cr); err != nil {
 		r.Log.Error(err, "Can not delete DaemonSet")
 	}
-	if err := r.deleteConfigMap(cr); err != nil {
-		r.Log.Error(err, "Can not delete ConfigMap")
+	if err := r.deleteConfigSecret(cr); err != nil {
+		r.Log.Error(err, "Can not delete config Secret")
 	}
 	if err := r.deleteService(cr); err != nil {
 		r.Log.Error(err, "Can not delete Service")

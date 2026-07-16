@@ -23,6 +23,17 @@ var aggregatorConfigs embed.FS
 //go:embed  forwarder.configmap/conf.d/*
 var forwarderConfigs embed.FS
 
+type aggregatorOutputCredentials struct {
+	Loki util.AuthValues
+	Http util.AuthValues
+	Otel util.AuthValues
+}
+
+type aggregatorTemplateParameters struct {
+	loggingService.LoggingServiceParameters
+	OutputCredentials aggregatorOutputCredentials
+}
+
 func forwarderConfigMap(cr *loggingService.LoggingService, dynamicParameters util.DynamicParameters) (*corev1.ConfigMap, error) {
 	if cr.Spec.Fluentbit == nil {
 		return nil, fmt.Errorf("fluentbit configuration in Logging Service %s is nil in the namespace %s", cr.GetName(), cr.GetNamespace())
@@ -133,12 +144,22 @@ func forwarderService(cr *loggingService.LoggingService, dynamicParameters util.
 	return &service, nil
 }
 
-func aggregatorConfigMap(cr *loggingService.LoggingService, dynamicParameters util.DynamicParameters) (*corev1.ConfigMap, error) {
+// aggregatorConfigSecret renders the whole Fluent Bit aggregator configuration
+// into a single Secret instead of a ConfigMap. Sensitive output credentials are
+// resolved by the controller and passed in explicitly via credentials, so that
+// no sensitive data is exposed through environment variables or persisted on
+// the Logging Service CR.
+func aggregatorConfigSecret(cr *loggingService.LoggingService, dynamicParameters util.DynamicParameters, credentials aggregatorOutputCredentials) (*corev1.Secret, error) {
 	if cr.Spec.Fluentbit == nil || cr.Spec.Fluentbit.Aggregator == nil {
 		return nil, fmt.Errorf("fluentbit or aggregator configuration in Logging Service %s is nil in the namespace %s", cr.GetName(), cr.GetNamespace())
 	}
-	// Get Fluent-bit forwarder config from forwarder.configmap/conf.d files
-	configMapData, err := util.DataFromDirectory(aggregatorConfigs, util.AggregatorFluentbitConfigMapDirectory, cr.ToParams())
+	cr.Spec.ContainerRuntimeType = dynamicParameters.ContainerRuntimeType
+	parameters := aggregatorTemplateParameters{
+		LoggingServiceParameters: cr.ToParams(),
+		OutputCredentials:        credentials,
+	}
+	// Get Fluent-bit aggregator config from aggregator.configmap/conf.d files
+	configData, err := util.DataFromDirectory(aggregatorConfigs, util.AggregatorFluentbitConfigMapDirectory, parameters)
 
 	if err != nil {
 		return nil, err
@@ -146,41 +167,42 @@ func aggregatorConfigMap(cr *loggingService.LoggingService, dynamicParameters ut
 
 	if cr.Spec.Fluentbit.Aggregator.Output != nil && cr.Spec.Fluentbit.Aggregator.Output.Loki != nil &&
 		cr.Spec.Fluentbit.Aggregator.Output.Loki.Enabled && cr.Spec.Fluentbit.Aggregator.Output.Loki.LabelsMapping != "" {
-		configMapData["loki-labels.json"] = cr.Spec.Fluentbit.Aggregator.Output.Loki.LabelsMapping
+		configData["loki-labels.json"] = cr.Spec.Fluentbit.Aggregator.Output.Loki.LabelsMapping
 	}
 
 	// Set custom filters from parameters
 	if cr.Spec.Fluentbit.Aggregator.CustomFilterConf != "" {
-		configMapData["filter-custom.conf"] = cr.Spec.Fluentbit.Aggregator.CustomFilterConf
+		configData["filter-custom.conf"] = cr.Spec.Fluentbit.Aggregator.CustomFilterConf
 	}
 
 	// Set custom output from parameters
 	if cr.Spec.Fluentbit.Aggregator.CustomOutputConf != "" {
-		configMapData["output-custom.conf"] = cr.Spec.Fluentbit.Aggregator.CustomOutputConf
+		configData["output-custom.conf"] = cr.Spec.Fluentbit.Aggregator.CustomOutputConf
 	}
 
 	// Set custom scripts from parameters
 	if cr.Spec.Fluentbit.Aggregator.CustomLuaScriptConf != nil {
-		maps.Copy(configMapData, cr.Spec.Fluentbit.Aggregator.CustomLuaScriptConf)
+		maps.Copy(configData, cr.Spec.Fluentbit.Aggregator.CustomLuaScriptConf)
 	}
 
-	configMap := corev1.ConfigMap{
+	secret := corev1.Secret{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "v1",
-			Kind:       "ConfigMap",
+			Kind:       "Secret",
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      util.AggregatorFluentbitComponentName,
 			Namespace: cr.GetNamespace(),
 		},
-		Data: configMapData,
+		Type: corev1.SecretTypeOpaque,
+		Data: util.StringMapToByteMap(configData),
 	}
-	util.SetLabelsForResource(&configMap, util.LabelInput{
+	util.SetLabelsForResource(&secret, util.LabelInput{
 		Name:            util.AggregatorFluentbitComponentName,
 		Component:       "fluentbit",
 		ComponentLabels: cr.Spec.Fluentbit.Aggregator.Labels,
 	}, map[string]string{"k8s-app": "fluent-bit"})
-	return &configMap, nil
+	return &secret, nil
 }
 
 func aggregatorStatefulSet(cr *loggingService.LoggingService) (*appsv1.StatefulSet, error) {

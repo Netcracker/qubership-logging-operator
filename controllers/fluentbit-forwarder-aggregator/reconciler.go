@@ -42,8 +42,8 @@ func (r *HAFluentReconciler) Run(cr *loggingService.LoggingService) error {
 			r.Log.Error(err, "configuration of fluentbit aggregator is incorrect")
 			return err
 		}
-		if err := r.handleAggregatorConfigMap(cr); err != nil {
-			r.Log.Error(err, "error occurred in handleAggregatorConfigMap")
+		if err := r.handleAggregatorConfigSecret(cr); err != nil {
+			r.Log.Error(err, "error occurred in handleAggregatorConfigSecret")
 			return err
 		}
 		if err := r.handleAggregatorStatefulSet(cr); err != nil {
@@ -98,8 +98,8 @@ func (r *HAFluentReconciler) uninstall(cr *loggingService.LoggingService) {
 	if err := r.deleteStatefulSet(cr, util.AggregatorFluentbitComponentName); err != nil {
 		r.Log.Error(err, "Can not delete Stateful Set")
 	}
-	if err := r.deleteConfigMap(cr, util.AggregatorFluentbitComponentName); err != nil {
-		r.Log.Error(err, "Can not delete Config Map")
+	if err := r.deleteSecret(cr, util.AggregatorFluentbitComponentName); err != nil {
+		r.Log.Error(err, "Can not delete config Secret")
 	}
 	if err := r.deleteService(cr, util.AggregatorFluentbitComponentName); err != nil {
 		r.Log.Error(err, "Can not delete Service")

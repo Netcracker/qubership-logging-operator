@@ -80,12 +80,13 @@ func (r *FluentbitReconciler) handleService(cr *loggingService.LoggingService) e
 }
 
 func (r *FluentbitReconciler) handleConfigSecret(cr *loggingService.LoggingService) error {
-	if err := r.resolveOutputCredentials(cr); err != nil {
+	credentials, err := r.resolveOutputCredentials(cr)
+	if err != nil {
 		r.Log.Error(err, "Failed to resolve Fluentbit output credentials")
 		return err
 	}
 
-	secret, err := fluentbitConfigSecret(cr, r.DynamicParameters)
+	secret, err := fluentbitConfigSecret(cr, r.DynamicParameters, credentials)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Secret manifest")
 		return err
@@ -100,32 +101,38 @@ func (r *FluentbitReconciler) handleConfigSecret(cr *loggingService.LoggingServi
 	return nil
 }
 
-// resolveOutputCredentials reads the Secrets referenced by the enabled outputs
-// and stores their values in the transient Auth fields, so that they can be
-// inlined into the configuration Secret instead of being exposed as environment
-// variables.
-func (r *FluentbitReconciler) resolveOutputCredentials(cr *loggingService.LoggingService) error {
+// resolveOutputCredentials reads the Secrets referenced by the enabled outputs and
+// returns their values so that they can be inlined into the configuration Secret
+// instead of being exposed as environment variables or persisted on the CR.
+func (r *FluentbitReconciler) resolveOutputCredentials(cr *loggingService.LoggingService) (outputCredentials, error) {
+	credentials := outputCredentials{}
 	if cr.Spec.Fluentbit == nil || cr.Spec.Fluentbit.Output == nil {
-		return nil
+		return credentials, nil
 	}
 	namespace := cr.GetNamespace()
 	output := cr.Spec.Fluentbit.Output
-	if output.Loki != nil && output.Loki.Enabled {
-		if err := r.ResolveAuthValues(namespace, output.Loki.Auth); err != nil {
-			return err
+	if output.Loki != nil && output.Loki.Enabled && output.Loki.Auth != nil {
+		values, err := r.ResolveAuthValues(namespace, output.Loki.Auth)
+		if err != nil {
+			return outputCredentials{}, err
 		}
+		credentials.Loki = values
 	}
-	if output.Http != nil && output.Http.Enabled {
-		if err := r.ResolveAuthValues(namespace, output.Http.Auth); err != nil {
-			return err
+	if output.Http != nil && output.Http.Enabled && output.Http.Auth != nil {
+		values, err := r.ResolveAuthValues(namespace, output.Http.Auth)
+		if err != nil {
+			return outputCredentials{}, err
 		}
+		credentials.Http = values
 	}
-	if output.Otel != nil && output.Otel.Enabled {
-		if err := r.ResolveAuthValues(namespace, output.Otel.Auth); err != nil {
-			return err
+	if output.Otel != nil && output.Otel.Enabled && output.Otel.Auth != nil {
+		values, err := r.ResolveAuthValues(namespace, output.Otel.Auth)
+		if err != nil {
+			return outputCredentials{}, err
 		}
+		credentials.Otel = values
 	}
-	return nil
+	return credentials, nil
 }
 
 func (r *FluentbitReconciler) deleteDaemonSet(cr *loggingService.LoggingService) error {
@@ -198,6 +205,7 @@ func (r *FluentbitReconciler) CreateOrUpdate(cr *loggingService.LoggingService, 
 			}
 
 			if !r.Equal(existedSecret, secret) {
+				secret.SetResourceVersion(existedSecret.GetResourceVersion())
 				if err = r.UpdateResource(secret); err != nil {
 					return false, err
 				}

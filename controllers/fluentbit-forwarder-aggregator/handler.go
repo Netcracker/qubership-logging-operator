@@ -130,12 +130,13 @@ func (r *HAFluentReconciler) CreateOrUpdate(cr *loggingService.LoggingService, c
 }
 
 func (r *HAFluentReconciler) handleAggregatorConfigSecret(cr *loggingService.LoggingService) error {
-	if err := r.resolveAggregatorOutputCredentials(cr); err != nil {
+	credentials, err := r.resolveAggregatorOutputCredentials(cr)
+	if err != nil {
 		r.Log.Error(err, "Failed to resolve aggregator output credentials")
 		return err
 	}
 
-	m, err := aggregatorConfigSecret(cr, r.DynamicParameters)
+	m, err := aggregatorConfigSecret(cr, r.DynamicParameters, credentials)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Secret manifest")
 		return err
@@ -151,31 +152,38 @@ func (r *HAFluentReconciler) handleAggregatorConfigSecret(cr *loggingService.Log
 }
 
 // resolveAggregatorOutputCredentials reads the Secrets referenced by the enabled
-// aggregator outputs and stores their values in the transient Auth fields, so
-// that they can be inlined into the configuration Secret instead of being exposed
-// as environment variables.
-func (r *HAFluentReconciler) resolveAggregatorOutputCredentials(cr *loggingService.LoggingService) error {
+// aggregator outputs and returns their values so that they can be inlined into the
+// configuration Secret instead of being exposed as environment variables or
+// persisted on the CR.
+func (r *HAFluentReconciler) resolveAggregatorOutputCredentials(cr *loggingService.LoggingService) (aggregatorOutputCredentials, error) {
+	credentials := aggregatorOutputCredentials{}
 	if cr.Spec.Fluentbit == nil || cr.Spec.Fluentbit.Aggregator == nil || cr.Spec.Fluentbit.Aggregator.Output == nil {
-		return nil
+		return credentials, nil
 	}
 	namespace := cr.GetNamespace()
 	output := cr.Spec.Fluentbit.Aggregator.Output
-	if output.Loki != nil && output.Loki.Enabled {
-		if err := r.ResolveAuthValues(namespace, output.Loki.Auth); err != nil {
-			return err
+	if output.Loki != nil && output.Loki.Enabled && output.Loki.Auth != nil {
+		values, err := r.ResolveAuthValues(namespace, output.Loki.Auth)
+		if err != nil {
+			return aggregatorOutputCredentials{}, err
 		}
+		credentials.Loki = values
 	}
-	if output.Http != nil && output.Http.Enabled {
-		if err := r.ResolveAuthValues(namespace, output.Http.Auth); err != nil {
-			return err
+	if output.Http != nil && output.Http.Enabled && output.Http.Auth != nil {
+		values, err := r.ResolveAuthValues(namespace, output.Http.Auth)
+		if err != nil {
+			return aggregatorOutputCredentials{}, err
 		}
+		credentials.Http = values
 	}
-	if output.Otel != nil && output.Otel.Enabled {
-		if err := r.ResolveAuthValues(namespace, output.Otel.Auth); err != nil {
-			return err
+	if output.Otel != nil && output.Otel.Enabled && output.Otel.Auth != nil {
+		values, err := r.ResolveAuthValues(namespace, output.Otel.Auth)
+		if err != nil {
+			return aggregatorOutputCredentials{}, err
 		}
+		credentials.Otel = values
 	}
-	return nil
+	return credentials, nil
 }
 
 func (r *HAFluentReconciler) handleAggregatorStatefulSet(cr *loggingService.LoggingService) error {
@@ -378,6 +386,7 @@ func (r *HAFluentReconciler) updateSecret(cr *loggingService.LoggingService, sec
 			}
 
 			if !r.equalSecret(existedSecret, secret) {
+				secret.SetResourceVersion(existedSecret.GetResourceVersion())
 				if err = r.UpdateResource(secret); err != nil {
 					return false, err
 				}

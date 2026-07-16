@@ -20,6 +20,17 @@ var assets embed.FS
 //go:embed  fluentbit.configmap/conf.d/*
 var fluentbitConfigs embed.FS
 
+type outputCredentials struct {
+	Loki util.AuthValues
+	Http util.AuthValues
+	Otel util.AuthValues
+}
+
+type fluentbitTemplateParameters struct {
+	loggingService.LoggingServiceParameters
+	OutputCredentials outputCredentials
+}
+
 func fluentbitDaemonSet(cr *loggingService.LoggingService, dynamicParameters util.DynamicParameters) (*appsv1.DaemonSet, error) {
 	if cr.Spec.Fluentbit != nil {
 		daemonSet := appsv1.DaemonSet{}
@@ -94,17 +105,21 @@ func fluentbitService(cr *loggingService.LoggingService, dynamicParameters util.
 }
 
 // fluentbitConfigSecret renders the whole Fluent Bit configuration into a single
-// Secret instead of a ConfigMap. Sensitive output credentials are inlined into
-// the configuration from the transient Auth *Value fields (resolved by the
-// controller), so that no sensitive data is exposed through environment variables.
-func fluentbitConfigSecret(cr *loggingService.LoggingService, dynamicParameters util.DynamicParameters) (*corev1.Secret, error) {
+// Secret instead of a ConfigMap. Sensitive output credentials are resolved by the
+// controller and passed in explicitly via credentials, so that no sensitive data
+// is exposed through environment variables or persisted on the Logging Service CR.
+func fluentbitConfigSecret(cr *loggingService.LoggingService, dynamicParameters util.DynamicParameters, credentials outputCredentials) (*corev1.Secret, error) {
 	if cr.Spec.Fluentbit == nil {
 		return nil, fmt.Errorf("fluentbit configuration in Logging Service %s is nil in the namespace %s", cr.GetName(), cr.GetNamespace())
 	}
 	cr.Spec.ContainerRuntimeType = dynamicParameters.ContainerRuntimeType
+	parameters := fluentbitTemplateParameters{
+		LoggingServiceParameters: cr.ToParams(),
+		OutputCredentials:        credentials,
+	}
 
 	// Get Fluent-bit config from fluentbit.configmap/conf.d files
-	configData, err := util.DataFromDirectory(fluentbitConfigs, util.FluentbitConfigMapDirectory, cr.ToParams())
+	configData, err := util.DataFromDirectory(fluentbitConfigs, util.FluentbitConfigMapDirectory, parameters)
 
 	if err != nil {
 		return nil, err

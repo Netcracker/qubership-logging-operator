@@ -9,6 +9,13 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
+// AuthValues contains credentials resolved for configuration rendering.
+type AuthValues struct {
+	Token    string
+	User     string
+	Password string
+}
+
 // StringMapToByteMap converts a map of string values into a map of byte slices,
 // suitable for the Data field of a corev1.Secret.
 func StringMapToByteMap(in map[string]string) map[string][]byte {
@@ -38,34 +45,35 @@ func (r *ComponentReconciler) ResolveSecretKeyValue(namespace string, selector *
 	return string(value), nil
 }
 
-// ResolveAuthValues resolves the Secrets referenced by an Auth block and stores
-// the plain values in the transient *Value fields so they can be inlined into
-// the generated Fluent Bit configuration Secret. Nil auth or nil selectors are
-// skipped. The resolved values are never logged.
-func (r *ComponentReconciler) ResolveAuthValues(namespace string, auth *loggingService.Auth) error {
+// ResolveAuthValues resolves the Secrets referenced by an Auth block and returns
+// their plain values so they can be inlined into the generated Fluent Bit
+// configuration Secret instead of being exposed as environment variables. Nil
+// auth or nil selectors are skipped. The resolved values are never logged.
+func (r *ComponentReconciler) ResolveAuthValues(namespace string, auth *loggingService.Auth) (AuthValues, error) {
 	if auth == nil {
-		return nil
+		return AuthValues{}, nil
 	}
+
+	values := AuthValues{}
+	var err error
+
 	if auth.Token != nil {
-		value, err := r.ResolveSecretKeyValue(namespace, auth.Token)
+		values.Token, err = r.ResolveSecretKeyValue(namespace, auth.Token)
 		if err != nil {
-			return err
+			return AuthValues{}, err
 		}
-		auth.TokenValue = value
 	}
 	if auth.User != nil {
-		value, err := r.ResolveSecretKeyValue(namespace, auth.User)
+		values.User, err = r.ResolveSecretKeyValue(namespace, auth.User)
 		if err != nil {
-			return err
+			return AuthValues{}, err
 		}
-		auth.UserValue = value
 	}
 	if auth.Password != nil {
-		value, err := r.ResolveSecretKeyValue(namespace, auth.Password)
+		values.Password, err = r.ResolveSecretKeyValue(namespace, auth.Password)
 		if err != nil {
-			return err
+			return AuthValues{}, err
 		}
-		auth.PasswordValue = value
 	}
-	return nil
+	return values, nil
 }

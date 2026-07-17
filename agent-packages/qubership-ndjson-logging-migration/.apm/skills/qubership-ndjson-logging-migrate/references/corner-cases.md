@@ -39,7 +39,11 @@ Keep this file short. Add lessons from real pilot migrations as one or two lines
   zero active `log.*f` in production packages.
 - **Logged preformatted messages:** Sites such as `log.warn(message)`, `log.error(aggregatedError)`, and `log.error(msg)`
   are not static/no-action. Inventory count, list in the report, and ask whether to structure at the logging boundary or
-  keep prose-only `message`.
+  keep prose-only `message`. When user confirms **structure at boundary**, see [pattern-recipes.md](pattern-recipes.md)
+  — keep API/DTO/exception strings unchanged; use `.setMessage(sameVariable)` when message is conditionally built.
+- **Conditional message + log:** If `message` uses ternary/`String.format` branches, `setMessage` must use the same built
+  string — not a shorter fixed summary; add `error_message` field only when non-empty.
+- **log.*(e.getMessage()) only:** No fields in scope — prose-only / no code change; stage 1 JSON envelope is sufficient.
 - **Bulk Java codemod:** `632→0 {}` with failing `mvn compile` is not done. Regex codemods can delete REST handlers,
   break `"""` text blocks, drop `@Slf4j` imports, emit generic positional field keys (`arg0`, `argument1`, …), duplicate
   keys in one call, and drop throwables. Require build + integrity + semantic gates from [completion-gates.md](completion-gates.md).

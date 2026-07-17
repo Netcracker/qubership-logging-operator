@@ -52,7 +52,8 @@ grep -rnE 'logger\.(debug|info|warning|error|critical)\(f"' --include='*.py' .
 | Text-block summary logged as one string | Backup/restore or batch job services             |
 
 List every hit under `User decision — logged preformatted messages` with file, count, and one example line. Do not
-classify as `static/no-action` without an explicit user choice.
+classify as `static/no-action` without an explicit user choice. After user confirms **structure at logging boundary**,
+follow [pattern-recipes.md](pattern-recipes.md).
 
 ## Report template
 

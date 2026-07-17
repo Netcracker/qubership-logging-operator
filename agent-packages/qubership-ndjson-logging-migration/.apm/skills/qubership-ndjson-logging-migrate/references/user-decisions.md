@@ -24,11 +24,30 @@ For each pattern:
 
 1. Count and list in the report under `User decision — logged preformatted messages` (file, count, one example).
 2. Ask unless the user already gave a repo-wide policy:
-   - structure at the logging boundary;
+   - **structure at the logging boundary** — see [pattern-recipes.md](pattern-recipes.md) § Split log vs API text; **confirm
+     with user before implementing**;
    - refactor string builder to expose fields;
-   - accept prose-only `message` for that category;
+   - accept prose-only `message` for that category (no code change when only `e.getMessage()` at site — see
+     pattern-recipes § `e.getMessage()` only);
    - mark site/pattern `blocked`.
 3. Do not classify as `static/no-action` without an explicit choice.
+
+### Structure at logging boundary (user-confirmed)
+
+Apply only after the user selects this option (or a repo-wide policy). Full recipe:
+[pattern-recipes.md](pattern-recipes.md).
+
+**Summary:**
+
+- Keep `msg` / `message` / exception `detail` / `Response.entity(...)` **unchanged**.
+- Replace `log.error(msg)` with fluent API: **`.setMessage(msg)`** (same variable), plus `addKeyValue` for fields
+  already in scope.
+- If `message` is built with conditionals (ternary, `if`), use the **same built string** for `setMessage` — do not
+  substitute a shorter fixed log summary.
+- Add optional fields (e.g. `error_message`) only when the original logic includes that detail; omit when empty.
+- Do not log again before `throw` when the exception mapper already logs the failure.
+
+Record in the report: `structure at boundary — API text unchanged; setMessage(same variable); fields added`.
 
 If the session cannot wait for an answer, stop with the question list in the report — do not mark complete.
 
@@ -63,11 +82,15 @@ containing `{}` used as SLF4J message templates (common in exception mappers):
 3. Offer these choices (unless the user already stated a repo-wide policy in this session):
    - **Inline fluent API** — replace each call with `log.atWarn().setMessage("…").addKeyValue(...).log()`; constant
      becomes a fixed message or is removed.
-   - **Centralized helper** — one `Utils.logRequestWarning(...)` (or similar) using fluent API internally; mappers call
-     the helper only.
+   - **Partial fluent helper** — shared method that only adds the repeated field block to a `LoggingEventBuilder`;
+     callers still own `.atWarn()` / `.atError()`, `.setCause`, and site-specific fields. See
+     [pattern-recipes.md](pattern-recipes.md) § Partial fluent helper. Prefer this over a helper that logs for the
+     caller.
    - **Prose-only constant** — constant holds fixed text with no `{}`; fields only via fluent API at call sites (confirm
      this matches mapper semantics).
    - **Blocked** — defer that mapper/pattern until reviewed.
+
+   Do **not** offer or introduce a new per-call MDC / `StructuredLog`-style wrapper as the “centralized helper.”
 
 Do not move `{}` into another constant, leave templating in place, or mark the Java component migrated-complete while
 these sites await an answer. If the session cannot wait, stop with the question in the report — do not guess.

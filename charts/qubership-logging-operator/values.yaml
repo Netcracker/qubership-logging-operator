@@ -1383,8 +1383,8 @@ fluentbit:
       # port: 9428
 
       # -- Http uri to ingest logs.
-      # @default -- '/insert/jsonline?_stream_fields=stream&_msg_field=short_message&_time_field=time'
-      # uri: '/insert/jsonline?_stream_fields=stream&_msg_field=short_message&_time_field=time'
+      # @default -- '/insert/jsonline?_stream_fields=stream&_msg_field=short_message&_time_field=date'
+      # uri: '/insert/jsonline?_stream_fields=stream&_msg_field=short_message&_time_field=date'
 
       # -- Payload compression mechanism for Http output. Allowed values: gzip, snappy, zstd.
       compress: gzip
@@ -1796,8 +1796,8 @@ fluentbit:
         # port: 9428
 
         # -- Uri for Http output.
-        # @default -- '/insert/jsonline?_stream_fields=stream&_msg_field=short_message&_time_field=time'
-        # uri: '/insert/jsonline?_stream_fields=stream&_msg_field=short_message&_time_field=time'
+        # @default -- '/insert/jsonline?_stream_fields=stream&_msg_field=short_message&_time_field=date'
+        # uri: '/insert/jsonline?_stream_fields=stream&_msg_field=short_message&_time_field=date'
 
         # -- Payload compression mechanism for Http output. Allowed values: gzip, snappy, zstd.
         # compress: gzip

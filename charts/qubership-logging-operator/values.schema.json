@@ -501,7 +501,7 @@
                                             "type": "object"
                                         },
                                         "uri": {
-                                            "default": "/insert/jsonline?_stream_fields=stream&_msg_field=short_message&_time_field=time",
+                                            "default": "/insert/jsonline?_stream_fields=stream&_msg_field=short_message&_time_field=date",
                                             "description": "Http uri to ingest logs.",
                                             "type": "string"
                                         }
@@ -1414,7 +1414,7 @@
                                     "type": "object"
                                 },
                                 "uri": {
-                                    "default": "/insert/jsonline?_stream_fields=stream&_msg_field=short_message&_time_field=time",
+                                    "default": "/insert/jsonline?_stream_fields=stream&_msg_field=short_message&_time_field=date",
                                     "description": "Http uri to ingest logs.",
                                     "type": "string"
                                 }

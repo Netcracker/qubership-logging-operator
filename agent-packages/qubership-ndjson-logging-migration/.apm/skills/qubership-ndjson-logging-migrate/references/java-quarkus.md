@@ -42,13 +42,10 @@ log.atError()
 
 **Practices:**
 
-- **`setMessage()`** — short **what happened** summary (action/outcome); no `{}` placeholders after migration. Put
-  identifiers and diagnostics in `addKeyValue`, not duplicated in the message. The line should still make sense when
-  someone reads only `message` in a dashboard — not `"."`, label stubs (`backup_id=`), or empty holes after extraction
-  (see [completion-gates.md](completion-gates.md) §4.4).
-- Field names from **message semantics** (`backup_id`, `namespace`, `status`) — not positional or generic keys
-  (`arg0`, `argument1`, `param2`, `value0`) and not leaked locals (`i`, `ns`, `sbe`). Greps cannot catch every bad
-  name; spot-check migrated sites per [completion-gates.md](completion-gates.md) §4.1.
+- **`setMessage()`** — short **what happened** summary when migrating `{}` templates; see §4.4 in
+  [completion-gates.md](completion-gates.md). When the same string is also an API/DTO/exception consumer, keep that
+  string — [pattern-recipes.md](pattern-recipes.md).
+- Field names from **message semantics** — [completion-gates.md](completion-gates.md) §4.1.
 - Use `setCause(throwable)` when the original SLF4J call passed an exception — do not put `Throwable` in a field value.
 - `atDebug()` / `atTrace()` are lazy — prefer them over guarded `log.debug(...)` when using the fluent API.
 - Chain multiple `addKeyValue` calls; do not repeat the same key in one event.

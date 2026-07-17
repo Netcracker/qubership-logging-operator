@@ -34,18 +34,8 @@ For each pattern:
 
 ### Structure at logging boundary (user-confirmed)
 
-Apply only after the user selects this option (or a repo-wide policy). Full recipe:
-[pattern-recipes.md](pattern-recipes.md).
-
-**Summary:**
-
-- Keep `msg` / `message` / exception `detail` / `Response.entity(...)` **unchanged**.
-- Replace `log.error(msg)` with fluent API: **`.setMessage(msg)`** (same variable), plus `addKeyValue` for fields
-  already in scope.
-- If `message` is built with conditionals (ternary, `if`), use the **same built string** for `setMessage` — do not
-  substitute a shorter fixed log summary.
-- Add optional fields (e.g. `error_message`) only when the original logic includes that detail; omit when empty.
-- Do not log again before `throw` when the exception mapper already logs the failure.
+Apply only after the user selects this option (or a repo-wide policy). Full shapes and pitfalls:
+[pattern-recipes.md](pattern-recipes.md) § Split log vs API text and § Conditional message building.
 
 Record in the report: `structure at boundary — API text unchanged; setMessage(same variable); fields added`.
 
@@ -97,8 +87,5 @@ these sites await an answer. If the session cannot wait, stop with the question 
 
 ## Semantic field names
 
-Rename short local names (`i`, `i_1`, `sbe`, `qName`) to consumer-friendly `snake_case` (`reason_index`, `query_name`).
-Derive keys from the original log message text — not argument position (`arg0`, `argument1`, `param2`, `value0`).
-For validation loops, prefer one aggregate record or meaningful per-item records — not placeholder messages like `.`.
-
-No grep list proves names are good; spot-check migrated call sites per [completion-gates.md](completion-gates.md) §4.1.
+Consumer-friendly `snake_case` from message semantics — not positional keys or leaked locals. Validation:
+[completion-gates.md](completion-gates.md) §4.1 (spot-check required; greps are optional heuristics only).

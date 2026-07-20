@@ -209,6 +209,28 @@ Search Messages In Victorialogs By Query
 
     RETURN    @{messages}
 
+Search Raw Message In Victorialogs By Query
+    [Arguments]  ${query}
+    ${logsql}=    Set Variable    ${query} | sort by (_time) desc | limit 50
+    ${body}=    Create Dictionary    query=${logsql}
+    ${resp}=    POST On Session    vl_session    /select/logsql/query
+    ...    data=${body}
+    @{lines}=    Split To Lines    ${resp.text}
+    FOR    ${line}    IN    @{lines}
+        ${line}=    Strip String    ${line}
+        Continue For Loop If    '${line}' == ''
+        ${parse_result}=    Run Keyword And Ignore Error
+        ...    Evaluate    __import__('json').loads($line)    modules=json
+        Continue For Loop If    '${parse_result[0]}' == 'FAIL'
+        ${record}=    Set Variable    ${parse_result[1]}
+        ${is_dict}=    Run Keyword And Return Status
+        ...    Evaluate    isinstance($record, dict)
+        IF    ${is_dict}
+            RETURN    ${record}
+        END
+    END
+    Fail    No VictoriaLogs record found for query: ${query}
+
 Check Message Parsing
     [Arguments]  ${log_type}  ${expected_level}  ${pod_name}  ${multiline}=${False}
     ${child_suffix}=  Set Variable If  ${multiline}  _child  ${EMPTY}
@@ -313,6 +335,55 @@ Check Parsing Json Info Logs
     Log To Console  ${\n}Config for json log does not match format from documentation. Level is not parsed. Default level = 6
     ${log_type}=  Set Variable  json_error_log
     Check Message Parsing  ${log_type}  6  ${json_generator_pod_name}
+
+Check Json Payload Metadata Collisions And Date Variants
+    [Tags]  log-generator
+    Skip If    not ${victorialogs_enabled}
+    ${query}=    Set Variable    pod:${json_generator_pod_name} AND collision_case:date-invalid
+    ${record}=    Wait Until Keyword Succeeds
+    ...    ${OPERATION_RETRY_COUNT}
+    ...    ${OPERATION_RETRY_INTERVAL}
+    ...    Search Raw Message In Victorialogs By Query    ${query}
+    Dictionary Should Contain Item    ${record}    namespace    ${NAMESPACE}
+    Dictionary Should Contain Item    ${record}    container    json-log-generator
+    ${pod}=    Get From Dictionary    ${record}    pod
+    Should Be Equal As Strings    ${pod}    ${json_generator_pod_name}
+    Dictionary Should Contain Item    ${record}    parse_namespace    payload-namespace
+    Dictionary Should Contain Item    ${record}    parse_parse_namespace    payload-parse-namespace
+    Dictionary Should Contain Item    ${record}    parse_container    payload-container
+    Dictionary Should Contain Item    ${record}    parse_pod    payload-pod
+    Dictionary Should Contain Item    ${record}    parse_labels    payload-labels
+    Dictionary Should Contain Item    ${record}    parse_time    2026-07-17T07:45:14,937Z
+    Dictionary Should Contain Item    ${record}    date    not-a-timestamp
+    ${time}=    Get From Dictionary    ${record}    _time
+    Should Match Regexp    ${time}    ${DATE_TIME_REGEXP}
+
+    ${query}=    Set Variable    pod:${json_generator_pod_name} AND collision_case:date-valid
+    ${record}=    Wait Until Keyword Succeeds
+    ...    ${OPERATION_RETRY_COUNT}
+    ...    ${OPERATION_RETRY_INTERVAL}
+    ...    Search Raw Message In Victorialogs By Query    ${query}
+    Dictionary Should Contain Item    ${record}    date    2000-01-02T03:04:05Z
+    ${time}=    Get From Dictionary    ${record}    _time
+    Should Not Match Regexp    ${time}    ^2000-01-02
+
+    ${query}=    Set Variable    pod:${json_generator_pod_name} AND collision_case:date-null
+    ${record}=    Wait Until Keyword Succeeds
+    ...    ${OPERATION_RETRY_COUNT}
+    ...    ${OPERATION_RETRY_INTERVAL}
+    ...    Search Raw Message In Victorialogs By Query    ${query}
+    ${null_date}=    Evaluate    $record.get("date") is None
+    Should Be True    ${null_date}
+    Dictionary Should Contain Key    ${record}    _time
+
+    ${query}=    Set Variable    pod:${json_generator_pod_name} AND collision_case:date-nested
+    ${record}=    Wait Until Keyword Succeeds
+    ...    ${OPERATION_RETRY_COUNT}
+    ...    ${OPERATION_RETRY_INTERVAL}
+    ...    Search Raw Message In Victorialogs By Query    ${query}
+    ${nested_date}=    Evaluate    $record.get("date") == {"nested": "payload-date"} or $record.get("date.nested") == "payload-date"
+    Should Be True    ${nested_date}
+    Dictionary Should Contain Key    ${record}    _time
 
 Check Parsing Klog Error Logs
     [Tags]  log-generator

@@ -59,9 +59,15 @@ jobs:
         - scenario_name: Graylog
           scenario_id: graylog
           backend: graylog
+          aggregator: false
         - scenario_name: VictoriaLogs
           scenario_id: victorialogs
           backend: victorialogs
+          aggregator: false
+        - scenario_name: VictoriaLogs HA
+          scenario_id: victorialogs-ha
+          backend: victorialogs
+          aggregator: true
     steps:
     - name: Checkout code
       uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
@@ -371,6 +377,19 @@ jobs:
                 credentials:
                   username: admin
                   password: admin
+          aggregator:
+            install: ${{ matrix.aggregator }}
+            replicas: 1
+            graylogOutput: false
+            output:
+              http:
+                enabled: true
+                host: ${VLSINGLE_SERVICE}.${{ env.namespace }}
+                port: ${VLSINGLE_PORT}
+                auth:
+                  credentials:
+                    username: admin
+                    password: admin
         fluentd:
           install: false
         integrationTests:

@@ -159,6 +159,26 @@ data:
           - test_operator_reconciler
         message:
           - Reconciling component
+    - name: "json"
+      messagesPerSec: 10
+      generationTime: 1
+      dateFormat: "{\"'level'\":\"'INFO'\""
+      template: ",\"msg\":\"json_collision_invalid_date\",\"collision_case\":\"date-invalid\",\"namespace\":\"payload-namespace\",\"parse_namespace\":\"payload-parse-namespace\",\"container\":\"payload-container\",\"pod\":\"payload-pod\",\"labels\":\"payload-labels\",\"time\":\"2026-07-17T07:45:14,937Z\",\"date\":\"not-a-timestamp\"}"
+    - name: "json"
+      messagesPerSec: 10
+      generationTime: 1
+      dateFormat: "{\"'level'\":\"'INFO'\""
+      template: ",\"msg\":\"json_collision_valid_date\",\"collision_case\":\"date-valid\",\"date\":\"2000-01-02T03:04:05Z\"}"
+    - name: "json"
+      messagesPerSec: 10
+      generationTime: 1
+      dateFormat: "{\"'level'\":\"'INFO'\""
+      template: ",\"msg\":\"json_collision_null_date\",\"collision_case\":\"date-null\",\"date\":null}"
+    - name: "json"
+      messagesPerSec: 10
+      generationTime: 1
+      dateFormat: "{\"'level'\":\"'INFO'\""
+      template: ",\"msg\":\"json_collision_nested_date\",\"collision_case\":\"date-nested\",\"date\":{\"nested\":\"payload-date\"}}"
     - name: "klog"
       messagesPerSec: 10
       generationTime: 1

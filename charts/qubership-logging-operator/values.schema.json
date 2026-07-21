@@ -501,8 +501,8 @@
                                             "type": "object"
                                         },
                                         "uri": {
-                                            "default": "/insert/jsonline?_stream_fields=stream&_msg_field=short_message&_time_field=time",
-                                            "description": "Http uri to ingest logs.",
+                                            "default": "/insert/jsonline?_stream_fields=namespace,container&_msg_field=short_message&_time_field=time",
+                                            "description": "HTTP URI to ingest logs. With the operator-managed default, VictoriaLogs uses the root CRI/Docker time field for _time, a colliding payload time is preserved as parse_time, and the HTTP output does not generate an additional timestamp field.",
                                             "type": "string"
                                         }
                                     },
@@ -1414,8 +1414,8 @@
                                     "type": "object"
                                 },
                                 "uri": {
-                                    "default": "/insert/jsonline?_stream_fields=stream&_msg_field=short_message&_time_field=time",
-                                    "description": "Http uri to ingest logs.",
+                                    "default": "/insert/jsonline?_stream_fields=namespace,container&_msg_field=short_message&_time_field=time",
+                                    "description": "HTTP URI to ingest logs. With the operator-managed default, VictoriaLogs uses the root CRI/Docker time field for _time, a colliding payload time is preserved as parse_time, and the HTTP output does not generate an additional timestamp field.",
                                     "type": "string"
                                 }
                             },

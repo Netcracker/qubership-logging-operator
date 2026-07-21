@@ -59,9 +59,15 @@ jobs:
         - scenario_name: Graylog
           scenario_id: graylog
           backend: graylog
+          aggregator: false
         - scenario_name: VictoriaLogs
           scenario_id: victorialogs
           backend: victorialogs
+          aggregator: false
+        - scenario_name: VictoriaLogs HA
+          scenario_id: victorialogs-ha
+          backend: victorialogs
+          aggregator: true
     steps:
     - name: Checkout code
       uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
@@ -371,6 +377,19 @@ jobs:
                 credentials:
                   username: admin
                   password: admin
+          aggregator:
+            install: ${{ matrix.aggregator }}
+            replicas: 1
+            graylogOutput: false
+            output:
+              http:
+                enabled: true
+                host: ${VLSINGLE_SERVICE}.${{ env.namespace }}
+                port: ${VLSINGLE_PORT}
+                auth:
+                  credentials:
+                    username: admin
+                    password: admin
         fluentd:
           install: false
         integrationTests:
@@ -761,7 +780,18 @@ jobs:
         END
         EOF
         kubectl get events -n "${{ env.namespace }}" --sort-by=.metadata.creationTimestamp > artifacts/${{ env.namespace }}/events.txt
-        kubectl get configmap logging-fluentbit -n "${{ env.namespace }}" -o yaml > artifacts/${{ env.namespace }}/logging-fluentbit.yaml
+        if [[ "${{ matrix.aggregator }}" == "true" ]]; then
+          configmaps=(logging-fluentbit-forwarder logging-fluentbit-aggregator)
+        else
+          configmaps=(logging-fluentbit)
+        fi
+        for configmap in "${configmaps[@]}"; do
+          if configmap_yaml=$(kubectl get configmap "$configmap" -n "${{ env.namespace }}" -o yaml 2>&1); then
+            echo "$configmap_yaml" > "artifacts/${{ env.namespace }}/$configmap.yaml"
+          else
+            echo "Could not fetch ConfigMap $configmap: $configmap_yaml" >&2
+          fi
+        done
         kubectl get pods -n "${{ env.namespace }}" -o jsonpath='{range .items[*]}{.metadata.name}{" "}{.spec.containers[*].name}{"\n"}{end}' | while read -r pod containers; do
           for container in $containers; do
             echo "Fetching logs in ${{ env.namespace }} namespace for pod: $pod, container: $container"

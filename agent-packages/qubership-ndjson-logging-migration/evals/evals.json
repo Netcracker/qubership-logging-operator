@@ -1,0 +1,22 @@
+{
+  "package": "qubership-ndjson-logging-migration",
+  "description": "Two-stage eval definitions — one skill_name per stage file (skill-creator alignment).",
+  "stages": [
+    {
+      "stage": "enable",
+      "skill_name": "qubership-ndjson-logging-enable",
+      "skill_path": ".apm/skills/qubership-ndjson-logging-enable",
+      "evals_file": "evals-enable.json",
+      "objective_checks_file": "objective_checks-enable.json",
+      "workspace_iteration": "../qubership-ndjson-logging-migration-workspace/iteration-7-enable"
+    },
+    {
+      "stage": "migrate",
+      "skill_name": "qubership-ndjson-logging-migrate",
+      "skill_path": ".apm/skills/qubership-ndjson-logging-migrate",
+      "evals_file": "evals-migrate.json",
+      "objective_checks_file": "objective_checks-migrate.json",
+      "workspace_iteration": "../qubership-ndjson-logging-migration-workspace/iteration-8-migrate"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "description": "Programmatic supplements for stage-1 enable grading — run against worktree after enable. Scripts live in the eval workspace, not the published skill.",
+  "stage": "enable",
+  "skill_name": "qubership-ndjson-logging-enable",
+  "workspace_scripts": "../qubership-ndjson-logging-migration-workspace/scripts",
+  "checks": [
+    {
+      "eval_id": 1,
+      "eval_name": "go-log-exporter",
+      "worktree_subpath": "",
+      "script": "../qubership-ndjson-logging-migration-workspace/scripts/check_enable_gates.py",
+      "args": ["{worktree}", "--go-path", "."]
+    },
+    {
+      "eval_id": 2,
+      "eval_name": "java-dbaas-monorepo",
+      "components": [
+        {
+          "name": "dbaas-aggregator",
+          "script": "../qubership-ndjson-logging-migration-workspace/scripts/check_enable_gates.py",
+          "args": ["{worktree}", "--java-path", "dbaas/dbaas-aggregator", "--go-path", "dbaas-operator"]
+        }
+      ],
+      "ledger_expectations": [
+        "dbaas-aggregator listed",
+        "dbaas-operator listed"
+      ]
+    }
+  ]
+}

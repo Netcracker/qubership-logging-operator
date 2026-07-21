@@ -1,0 +1,13 @@
+{
+  "description": "Index for stage-specific objective check files. Use objective_checks-enable.json or objective_checks-migrate.json directly.",
+  "stages": [
+    {
+      "stage": "enable",
+      "file": "objective_checks-enable.json"
+    },
+    {
+      "stage": "migrate",
+      "file": "objective_checks-migrate.json"
+    }
+  ]
+}

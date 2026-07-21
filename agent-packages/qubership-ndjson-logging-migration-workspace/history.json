@@ -1,0 +1,89 @@
+{
+  "started_at": "2026-07-07T00:00:00Z",
+  "package": "qubership-ndjson-logging-migration",
+  "current_best": {
+    "enable": "iteration-7-enable",
+    "migrate": "iteration-9-migrate"
+  },
+  "iterations": [
+    {
+      "version": "v1",
+      "label": "iteration-1",
+      "parent": null,
+      "expectation_pass_rate": null,
+      "notes": "Initial evals; heuristic grader inflated baseline",
+      "is_current_best": false
+    },
+    {
+      "version": "v2",
+      "label": "iteration-2",
+      "parent": "v1",
+      "notes": "Rubric leaked into subagent prompts",
+      "is_current_best": false
+    },
+    {
+      "version": "v3",
+      "label": "iteration-3",
+      "parent": "v2",
+      "notes": "Invalid — shared worktrees",
+      "is_current_best": false
+    },
+    {
+      "version": "v4",
+      "label": "iteration-4",
+      "parent": "v3",
+      "expectation_pass_rate": 1.0,
+      "notes": "100%/100% official assertions; objective supplements showed baseline gaps on dbaas",
+      "is_current_best": false
+    },
+    {
+      "version": "v5",
+      "label": "iteration-5",
+      "parent": "v4",
+      "notes": "Natural blind — Phases C/D cancelled (executor contamination)",
+      "is_current_best": false
+    },
+    {
+      "version": "v6",
+      "label": "iteration-6",
+      "parent": "v5",
+      "skill_snapshot": "Monolithic migrate — superseded by iteration-8-migrate",
+      "expectation_pass_rate": null,
+      "notes": "Scaffold only; cancelled after two-stage split",
+      "is_current_best": false
+    },
+    {
+      "version": "v7-enable",
+      "label": "iteration-7-enable",
+      "stage": "enable",
+      "parent": "v6",
+      "skill_name": "qubership-ndjson-logging-enable",
+      "skill_snapshot": "Stage 1 enable skill",
+      "expectation_pass_rate": null,
+      "notes": "4-arm run done; objective grading done; process grading pending",
+      "is_current_best": true
+    },
+    {
+      "version": "v8-migrate",
+      "label": "iteration-8-migrate",
+      "stage": "migrate",
+      "parent": "v7-enable",
+      "skill_name": "qubership-ndjson-logging-migrate",
+      "skill_snapshot": "Stage 2 migrate — MDC wrapper playbook",
+      "expectation_pass_rate": null,
+      "notes": "4-arm run done; dbaas discriminates; with_skill used StructuredLog MDC",
+      "is_current_best": false
+    },
+    {
+      "version": "v9-migrate",
+      "label": "iteration-9-migrate",
+      "stage": "migrate",
+      "parent": "v8-migrate",
+      "skill_name": "qubership-ndjson-logging-migrate",
+      "skill_snapshot": "Fluent API, semantic fields, immediate user-decision stops",
+      "expectation_pass_rate": null,
+      "notes": "Pending 4-arm run on iteration-7 enable baseline",
+      "is_current_best": true
+    }
+  ]
+}

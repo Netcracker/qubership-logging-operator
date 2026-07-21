@@ -1,0 +1,61 @@
+{
+  "iteration": 9,
+  "stage": "migrate",
+  "skill_name": "qubership-ndjson-logging-migrate",
+  "description": "Process expectations for graders only. Executors must NOT receive this file.",
+  "universal": [
+    "The agent confirms JSON envelope is already enabled and limits scope to call-site field extraction unless config is broken.",
+    "The agent inventories log sources and creates or updates a coverage ledger before claiming completion.",
+    "The agent uses stable semantic field names and preserves log levels unless documenting an explicit decision.",
+    "The agent reports migrated, static/no-action, user-decision, and blocked items with counts.",
+    "The migration report follows migration-report-template.md and records run-start HEAD.",
+    "The agent documents blocked validation with concrete error when local gates cannot run."
+  ],
+  "evals": [
+    {
+      "id": 1,
+      "name": "go-log-exporter",
+      "prompt_file": "prompts/migrate-go-log-exporter.md",
+      "expected_output": "Go service: zero production log.*f, structured fields, smoke NDJSON evidence, completion gate table.",
+      "expectations": [
+        "The agent inventories logger configuration and Go log call sites before claiming completion.",
+        "The agent moves useful variable data from formatted messages into structured fields rather than leaving it only in message.",
+        "The agent rewrites message text after extracting fields so no dangling placeholders, empty ranges, or incomplete fragments remain.",
+        "The agent uses stable semantic field names instead of leaking short local variable names such as i_1 or sbe.",
+        "If the agent uses scripts for candidate rewrites, it reviews changed log records semantically and does not leave temporary rewrite scripts as part of the runtime change.",
+        "The agent inventories preformatted diagnostics such as fmt.Errorf return strings and either structures their fields at the logging boundary or marks them as user-decision/blocked items with concrete counts.",
+        "The agent inventories logged preformatted-message sites such as log.error(msg) or log.warn(message) separately from returned fmt.Errorf strings, lists them with counts in the report, and asks the user how to handle them or marks them blocked.",
+        "The agent preserves original log levels unless it asks for or documents an explicit level-change decision.",
+        "The agent validates with Go tests and at least one realistic runtime or startup smoke path.",
+        "The agent reports coverage, including migrated, static/no-action, user-decision, and blocked items.",
+        "The completion gate reports zero remaining active log.*f formatted calls in production Go packages with before and after counts in the report.",
+        "The agent records evidence of a startup smoke command with valid NDJSON output (parsed JSON line with time, level, message), not only unit tests.",
+        "Objective check: check_migration_gates.py passes on the worktree (or documents a concrete blocker)."
+      ]
+    },
+    {
+      "id": 2,
+      "name": "java-dbaas-monorepo",
+      "prompt_file": "prompts/migrate-java-dbaas-monorepo.md",
+      "expected_output": "Monorepo: both components migrated, zero Java {} and Go log.*f in production, ledger complete.",
+      "expectations": [
+        "The agent scans the repository root for runtime markers such as go.mod, pom.xml, and helm-templates before editing.",
+        "The agent identifies deployable/runtime components before editing and lists both dbaas-aggregator and dbaas-operator in the coverage ledger.",
+        "The agent creates or updates a coverage ledger following migration-report-template.md.",
+        "The agent processes coherent components in batches instead of making an untracked sample edit across the monorepo.",
+        "The agent does not mark the monorepo migrated after finishing only dbaas-aggregator.",
+        "The agent does not mark work blocked merely because the repository is large, repetitive, or noisy.",
+        "The agent inventories logged preformatted-message call sites separately from returned fmt.Errorf, lists counts and example files in the migration report, and asks the user how to handle them.",
+        "The agent does not mark the migration complete while logged preformatted-message sites remain unlisted or silently left as prose-only message without an explicit user choice.",
+        "The logged preformatted-message inventory names at least one example file path per pattern, not only aggregate counts.",
+        "The agent runs or documents Java build gates (mvn compile) and does not mark the Java component complete when compile fails without an explicit blocked-credentials reason.",
+        "The agent uses semantic snake_case field names derived from message context (not positional keys like arg0/argument1/param2 or leaked locals); spot-checks migrated call sites — does not treat argN grep alone as sufficient.",
+        "The agent preserves throwables when converting SLF4J log.error/warn calls that passed an exception (fluent API `setCause`).",
+        "The agent reviews bulk codemod output for integrity (no deleted endpoints/methods, no illegal text blocks) before claiming done.",
+        "The agent follows coding-approaches and java-quarkus playbook: semantic field names via SLF4J fluent API (`addKeyValue`), no new per-call MDC wrappers, preserved exception-mapper buildResponse behavior.",
+        "The migration report records the completion gate table with before/after counts.",
+        "Objective check: check_migration_gates.py passes on the worktree (or documents explicit blocked items)."
+      ]
+    }
+  ]
+}

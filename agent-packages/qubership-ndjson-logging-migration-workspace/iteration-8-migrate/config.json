@@ -1,0 +1,31 @@
+{
+  "iteration": 8,
+  "stage": "migrate",
+  "mode": "fair-isolated",
+  "skill_name": "qubership-ndjson-logging-migrate",
+  "skill_path": "/home/mew/work/repos/observability/qubership-logging-operator/agent-packages/qubership-ndjson-logging-migration/.apm/skills/qubership-ndjson-logging-migrate",
+  "evals_source": "../../qubership-ndjson-logging-migration/evals/evals-migrate.json",
+  "objective_checks_source": "../../qubership-ndjson-logging-migration/evals/objective_checks-migrate.json",
+  "skill_creator_aggregate": "/home/mew/.agents/skills/skill-creator/scripts/aggregate_benchmark.py",
+  "prerequisite": "Worktrees must be post-enable (stage 1 complete). Reset from iteration-7-enable with-skill outputs before migrate runs.",
+  "evals": [
+    {
+      "id": 1,
+      "name": "go-log-exporter",
+      "pinned_commit": "4bf5465c88634cd18ea22fbd30a960d4bca79d13",
+      "baseline_worktree": "/home/mew/work/repos/observability/qubership-logging-operator/agent-packages/qubership-ndjson-logging-migration-workspace/worktrees/log-exporter-baseline",
+      "with_skill_worktree": "/home/mew/work/repos/observability/qubership-logging-operator/agent-packages/qubership-ndjson-logging-migration-workspace/worktrees/log-exporter-with-skill",
+      "prompt": "prompts/migrate-go-log-exporter.md",
+      "gate_args": ["--go-path", "."]
+    },
+    {
+      "id": 2,
+      "name": "java-dbaas-monorepo",
+      "pinned_commit": "f0d45d69f309bc0492def72ac9d924ea5e8e8e75",
+      "baseline_worktree": "/home/mew/work/repos/observability/qubership-logging-operator/agent-packages/qubership-ndjson-logging-migration-workspace/worktrees/dbaas-baseline",
+      "with_skill_worktree": "/home/mew/work/repos/observability/qubership-logging-operator/agent-packages/qubership-ndjson-logging-migration-workspace/worktrees/dbaas-with-skill",
+      "prompt": "prompts/migrate-java-dbaas-monorepo.md",
+      "gate_args": ["--java-path", "dbaas/dbaas-aggregator", "--go-path", "dbaas-operator"]
+    }
+  ]
+}

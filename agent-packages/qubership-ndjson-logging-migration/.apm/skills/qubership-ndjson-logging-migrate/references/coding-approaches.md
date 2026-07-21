@@ -32,7 +32,7 @@ choice: [pattern-recipes.md](pattern-recipes.md).
 1. **Repo-root discovery** — list every runtime component (sibling `go.mod`, Helm charts) before the first edit.
 2. **Call sites + config** — JSON formatter and `LOG_FORMAT` Helm wiring are necessary but not sufficient; migrate
    formatted log calls in production sources.
-3. **Gates, not grep alone** — `632→0 {}` while Java does not compile is incomplete; run
+3. **Gates, not grep alone** — grepping `{}` to zero while Java does not compile is incomplete; run
    [completion-gates.md](completion-gates.md) in full (and SKILL.md self-check).
 4. **`blocked` sparingly** — large/noisy work is batched and continued; `blocked` is for user decisions, missing
    credentials with exact error, or unsafe API changes.

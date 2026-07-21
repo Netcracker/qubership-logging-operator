@@ -43,6 +43,7 @@ Run manual greps and builds from [completion-gates.md](completion-gates.md) per 
 | Java `{}` inline | grep `src/main/java` | | 0 | |
 | Java field names | semantic review + spot-check; optional `"arg[0-9]"` grep | | OK | |
 | Go `log.*f` (production) | grep non-test `.go` | | 0 | |
+| Go residual printf | SKILL self-check residual verbs | | 0 | |
 | Throwables | manual sweep | | fixed | |
 | Integrity | git diff review | | no stray deletions | |
 | Smoke NDJSON | captured stdout line → JSON with time/level/message | | OK | |

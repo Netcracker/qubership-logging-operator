@@ -9,8 +9,12 @@ or prebuilt string instead of a string literal — separate from returned `fmt.E
 ## Go
 
 ```bash
-# Formatted log calls (migrate to WithFields + literal message) — include Trace
+# Formatted log calls (migrate to fields + literal / helper) — include Trace
 grep -rnE 'log\.(Trace|Debug|Info|Warn|Error|Fatal|Panic)f\(' --include='*.go' .
+
+# Residual diagnostic format verbs after dropping f (incomplete — see go-qubership-lib.md).
+# Same-line grep; "%s" + field helper is OK. On any hit, review the whole file for multi-line siblings.
+grep -rnE 'log\.(Trace|Debug|Info|Warn|Error|Fatal|Panic)(C)?\(.*%[vTdoxXefg]' --include='*.go' .
 
 # Variable passed as message (logged preformatted)
 grep -rnE 'log\.(Trace|Debug|Info|Warn|Error|Fatal|Panic)\([^"'\'']' --include='*.go' .
@@ -48,7 +52,7 @@ grep -rnE 'logger\.(debug|info|warning|error|critical)\(f"' --include='*.py' .
 | --------------------------------------- | ------------------------------------------------ |
 | `log.warn(message)` / `log.error(msg)`  | Service classes passing a variable built earlier |
 | `log.error(aggregatedError)`            | Controllers aggregating validation errors        |
-| Text-block summary logged as one string | Backup/restore or batch job services             |
+| Text-block summary logged as one string | Batch / job services                             |
 
 List every hit under `User decision — logged preformatted messages` with file, count, and one example line.
 

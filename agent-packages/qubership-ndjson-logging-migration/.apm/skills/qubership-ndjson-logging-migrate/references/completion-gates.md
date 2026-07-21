@@ -6,7 +6,7 @@ Pattern-count gates alone are **not sufficient**. A migration is complete only w
 **pattern gates**, and **semantic quality gates** all pass (or each failure is explicitly `blocked` with a concrete
 reason).
 
-Lessons from pilot migrations: bulk Java codemods can hit `632→0 {}` while leaving **non-compiling** code, **deleted
+Lessons from pilot migrations: bulk Java codemods can drive `{}` greps to zero while leaving **non-compiling** code, **deleted
 endpoints**, and **unusable `arg0` field keys**.
 
 ## Gate order (run in this sequence)
@@ -86,10 +86,14 @@ Record **before/after counts** in the migration report.
 | Stack               | Production scope check                                                           | Target            |
 | ------------------- | -------------------------------------------------------------------------------- | ----------------- |
 | Go/logrus           | Active `log.*f(` in non-test `.go` (exclude `//` comments, `dev/`, `_test.go`)   | **0**             |
+| Go residual printf  | Non-`f` `log.*(C)?(` with diagnostic `%v`/`%d`/… in the call (see SKILL self-check) | **0**          |
 | Java/SLF4J          | `log.(info\|debug\|warn\|error).*` with `{}` in `src/main/java`                  | **0** inline `{}` |
 | Logged preformatted | Patterns in [preformatted-message-patterns.md](preformatted-message-patterns.md) | **0** unreviewed  |
 
-**Misleading zero:** `{}` in a **shared constant** (e.g. `WARNING_MESSAGE`) still templates at runtime — **stop and ask
+**Misleading zero (Go):** `log.*f` → 0 while `log.Error("… key=%v …", key, err)` remains is **not** done — see
+[go-qubership-lib.md](go-qubership-lib.md).
+
+**Misleading zero (Java):** `{}` in a **shared constant** (e.g. `MESSAGE_TEMPLATE`) still templates at runtime — **stop and ask
 the user immediately** per [user-decisions.md](user-decisions.md); do not treat grep zero as fully structured.
 
 ---
@@ -98,7 +102,7 @@ the user immediately** per [user-decisions.md](user-decisions.md); do not treat 
 
 ### 4.1 Semantic field names (primary gate)
 
-Every structured field must use consumer-friendly **`snake_case` derived from message semantics** (`backup_id`,
+Every structured field must use consumer-friendly **`snake_case` derived from message semantics** (`resource_id`,
 `namespace`, `status`) — not positional placeholders or leaked local variable names.
 
 **Reject (non-exhaustive):**
@@ -111,7 +115,7 @@ Every structured field must use consumer-friendly **`snake_case` derived from me
 **How to verify (required — greps alone are not enough):**
 
 1. **Spot-check** 5–10 migrated call sites per batch: read the original `{}` message and confirm each key matches the
-   semantic label (e.g. `backup_id`, not `id` or `arg0`).
+   semantic label (e.g. `resource_id`, not `id` or `arg0`).
 2. **Review the diff** for `addKeyValue`, `WithField`, `StructuredArguments.kv`, `logfields.Format` — catch generic
    numbered keys and short locals by sight.
 
@@ -128,10 +132,10 @@ Same rule for Go: semantic names + spot-check; optional grep does not replace re
 
 ### 4.2 No duplicate keys in one log call
 
-Fluent API: repeating `addKeyValue("backup", …)` twice in one chain **overwrites** the earlier value. Review every
+Fluent API: repeating `addKeyValue("status", …)` twice in one chain **overwrites** the earlier value. Review every
 multi-field migration manually.
 
-**Bad:** `.addKeyValue("backup", COMPLETED).addKeyValue("backup", FAILED)`  
+**Bad:** `.addKeyValue("status", COMPLETED).addKeyValue("status", FAILED)`  
 **Good:** `.addKeyValue("completed_status", COMPLETED).addKeyValue("failed_status", FAILED)`
 
 ### 4.3 Throwables preserved
@@ -147,7 +151,7 @@ listed.
 After extracting fields, `message` must not contain:
 
 - Dangling `=` or `, ,` gaps
-- Empty placeholder holes (`logicalBackup=, error=`)
+- Empty placeholder holes (`resource=, error=`)
 - Placeholder-only text (`.`)
 
 ### 4.5 Java event fields in JSON (Quarkus / Logback)
@@ -163,13 +167,16 @@ Per-log fields must use the SLF4J 2.x fluent API (`addKeyValue`) or encoder stru
 
 If diagnostic fields appear only under `mdc.*`, the call sites are still MDC-shaped — rework to fluent API.
 
-### 4.6 Go `logfields` / regex formatters
+### 4.6 Go field APIs / `logfields` / regex formatters
 
-See [go-qubership-lib.md](go-qubership-lib.md) (core-lib-go + message suffix). Minimum gates:
+See [go-qubership-lib.md](go-qubership-lib.md). Minimum gates:
 
-- Quote values containing whitespace
+- Prefer first-class fields or a repo helper (`logfields.Format` / `Err`); do not treat “drop `f`, keep printf args”
+  as complete
+- Quote values containing whitespace when using message-suffix parsing
 - Do not let parsed fields overwrite reserved keys (`time`, `level`, `message`, `class`, `request_id`, …)
 - Prefer structural field APIs when the platform logger supports them
+- Smoke: diagnostic keys appear at JSON top level, not only inside `message`
 
 ---
 
@@ -195,6 +202,7 @@ See [go-qubership-lib.md](go-qubership-lib.md) (core-lib-go + message suffix). M
 | Java field names | semantic review + spot-check; optional `"arg[0-9]"` grep | — | OK | |
 | Java event fields | manual: fluent API + JSON top-level; no new MDC wrapper | — | OK | |
 | Go `log.*f` | grep production .go | N | 0 | |
+| Go residual printf | SKILL self-check residual verbs | N | 0 | |
 | Throwables | manual sweep | N dropped | N fixed | |
 | Integrity | git diff review | — | no stray deletions | |
 | Smoke NDJSON | see smoke-validation.md | — | OK | |

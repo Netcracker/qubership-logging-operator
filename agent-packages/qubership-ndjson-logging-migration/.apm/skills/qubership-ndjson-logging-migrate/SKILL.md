@@ -2,9 +2,10 @@
 name: qubership-ndjson-logging-migrate
 description: >
   Use when migrating Qubership log call sites after NDJSON is already enabled (stage 1), or when the user asks for
-  full NDJSON / structured-field migration. Triggers on SLF4J {}, Go log.*f (including Trace), preformatted
-  log.warn(message) / log.error(msg), shared {} template constants, monorepo call-site rollout, or "extract fields
-  from messages". Not for config-only LOG_FORMAT / JSON envelope rollout — use qubership-ndjson-logging-enable.
+  full NDJSON / structured-field migration. Triggers on SLF4J {}, Go log.*f (including Trace), residual Go printf
+  verbs after dropping f (key=%v style), preformatted log.warn(message) / log.error(msg), shared {} template
+  constants, monorepo call-site rollout, or "extract fields from messages". Not for config-only LOG_FORMAT / JSON
+  envelope rollout — use qubership-ndjson-logging-enable.
 ---
 
 # NDJSON Migrate (Stage 2)
@@ -16,16 +17,21 @@ stage 1 first or record config gaps in the report.
 
 ## Hard rules (read before any edit)
 
-1. **Inventory first** — shared `{}` constants, preformatted `log.*(msg|message|…)`, and Go `log.*f` (include **Trace**)
-   before bulk edits. Patterns: [preformatted-message-patterns.md](references/preformatted-message-patterns.md).
+1. **Inventory first** — shared `{}` constants, preformatted `log.*(msg|message|…)`, Go `log.*f` (include **Trace**),
+   and residual printf verbs on non-`f` log methods — before bulk edits. Patterns:
+   [preformatted-message-patterns.md](references/preformatted-message-patterns.md).
 2. **Java event fields** — SLF4J 2.x fluent API (`addKeyValue`). Never add `StructuredLog` or per-call `MDC.put` for
    event data. Request-scoped MDC in filters stays as-is.
-3. **Stop and ask** on shared `{}` template constants and logged preformatted messages — do not guess. Choices:
+3. **Go fields** — prefer a real field API or repo helper (`WithFields`, `logfields.Format` / `Err`, …). Dropping `f`
+   while keeping `log.Error("… key=%v …", key, err)` is **not** done — see
+   [go-qubership-lib.md](references/go-qubership-lib.md).
+4. **Stop and ask** on shared `{}` template constants and logged preformatted messages — do not guess. Choices:
    [user-decisions.md](references/user-decisions.md). After confirmation, shapes:
    [pattern-recipes.md](references/pattern-recipes.md).
-4. **API / throw text** — when a string is also used for `Response.entity`, DTO error fields, or exception detail, keep
+5. **API / throw text** — when a string is also used for `Response.entity`, DTO error fields, or exception detail, keep
    that string unchanged; structure **only** the log line (same variable in `setMessage` when message is conditional).
-5. **Do not claim done** while user-decision rows are open, or while `StructuredLog` / templating constants remain.
+6. **Do not claim done** while user-decision rows are open, or while `StructuredLog` / templating constants / Go residual
+   printf diagnostics remain.
 
 ## Reference map
 
@@ -56,13 +62,13 @@ stage 1 first or record config gaps in the report.
 2. **Repo-root discovery** — coverage ledger for all runtime components.
 3. **Classify stack** → [java-quarkus.md](references/java-quarkus.md) or [go-qubership-lib.md](references/go-qubership-lib.md).
 4. **Inventory** — [preformatted-message-patterns.md](references/preformatted-message-patterns.md) (constants,
-   preformatted, `log.*f` including Trace).
+   preformatted, `log.*f` including Trace, residual `%v`/`%d`/… on non-`f` log calls).
 5. **Classify** sites: `migrate`, `static/no action`, `needs user decision`, `blocked`.
 6. **User decisions** — [user-decisions.md](references/user-decisions.md). After confirmation, read
    [pattern-recipes.md](references/pattern-recipes.md) before editing those sites.
 7. **Map fields** — [schema.md](references/schema.md) + stack playbook + [coding-approaches.md](references/coding-approaches.md).
 8. **Implement** in small batches — build after each batch.
-9. **Re-inventory** — no unaccounted formatted / preformatted calls.
+9. **Re-inventory** — no unaccounted formatted / preformatted / residual-printf calls.
 10. **Self-check** (below) then full [completion-gates.md](references/completion-gates.md).
 11. **Smoke** — [smoke-validation.md](references/smoke-validation.md).
 12. **Write report** — stage = `migrate`; exclude from product PR unless requested.
@@ -85,9 +91,16 @@ grep -rnE 'log\.(warn|error|debug|info)\((message|msg|aggregatedError|e\.getMess
 
 # Go — include Trace; exclude _test.go / commented lines in review
 grep -rnE 'log\.(Trace|Debug|Info|Warn|Error|Fatal|Panic)f\(' --include='*.go' . || true
+
+# Go — residual diagnostic format verbs after dropping f (incomplete).
+# Same-line check; "%s" + field helper is OK. If any hit: review that whole file for
+# multi-line concatenations with the same pattern.
+grep -rnE 'log\.(Trace|Debug|Info|Warn|Error|Fatal|Panic)(C)?\(.*%[vTdoxXefg]' --include='*.go' . || true
 ```
 
 Then spot-check field names and run [completion-gates.md](references/completion-gates.md).
+Go: every residual-verb hit must become a field API / repo helper, or be listed blocked — see
+[go-qubership-lib.md](references/go-qubership-lib.md).
 
 ## Monorepos
 

@@ -148,8 +148,8 @@ withSharedFields(log.atWarn(), …args…)
         .log();
 ```
 
-Name the helper for the **domain** (`withRequestExceptionFields`, `withBackupFailureFields`, …) — do not copy a pilot
-name unless it fits the target repo.
+Name the helper for the **domain** (`withSharedExceptionFields`, `withFailureFields`, …) — do not copy a pilot name
+unless it fits the target repo.
 
 ---
 
@@ -183,9 +183,33 @@ Do not parse `getMessage()` into invented fields.
 
 ---
 
+## Go: drop-`f` with residual printf args
+
+**When:** `log.Errorf` / `log.Infof` / … was rewritten to `log.Error` / `log.Info` but the call still printf-interpolates
+diagnostics (`%v`, `%d`, …) and often embeds `key=value` in the format string.
+
+**Incomplete (do not ship as migrated):**
+
+```go
+log.Error("operation failed key=%v error=%v", key, err)
+```
+
+**Prefer** — first-class fields (`WithFields`) when available; else a repo helper:
+
+```go
+log.Error(logfields.Err("operation failed", err, "resource_key", key))
+// or, if the API requires a format string:
+log.ErrorC(ctx, "%s", logfields.Err("operation failed", err, "resource_key", key))
+```
+
+A single `"%s"` wrapper around the helper is OK. Additional `%v`/`%d` args for diagnostics are not.
+Details: [go-qubership-lib.md](go-qubership-lib.md).
+
+---
+
 ## Report line (user-confirmed)
 
 ```markdown
 | log.error(message) | N | path/Service.java | **structure at boundary** — consumer text unchanged; setMessage(same var); fields added |
-| log.debug(e.getMessage()) | N | path/V1_*.java | **prose-only / no change** |
+| log.debug(e.getMessage()) | N | path/Migration.java | **prose-only / no change** |
 ```

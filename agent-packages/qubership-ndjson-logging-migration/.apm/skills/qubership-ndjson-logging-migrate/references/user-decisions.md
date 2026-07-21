@@ -63,12 +63,12 @@ Mark affected sites `needs user decision` until answered.
 
 ## Java shared `{}` template constants
 
-When inventory finds `log.warn(WARNING_MESSAGE, …)`, `log.error(SOME_TEMPLATE, …)`, or string constants still
+When inventory finds `log.warn(MESSAGE_TEMPLATE, …)`, `log.error(SOME_TEMPLATE, …)`, or string constants still
 containing `{}` used as SLF4J message templates (common in exception mappers):
 
 1. **Stop implementation on that component** and ask the user **immediately** — before bulk edits, helper extraction, or
    claiming `{}` grep is zero.
-2. In the question, name the constant, caller count, and one example file (e.g. `Utils.java:WARNING_MESSAGE`, 12 mappers).
+2. In the question, name the constant, caller count, and one example file (e.g. `Helpers.java:MESSAGE_TEMPLATE`, N callers).
 3. Offer these choices (unless the user already stated a repo-wide policy in this session):
    - **Inline fluent API** — replace each call with `log.atWarn().setMessage("…").addKeyValue(...).log()`; constant
      becomes a fixed message or is removed.

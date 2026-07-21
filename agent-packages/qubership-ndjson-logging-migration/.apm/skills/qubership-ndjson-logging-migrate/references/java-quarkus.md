@@ -7,7 +7,7 @@ Read when the target component uses Maven/Quarkus, SLF4J, or Logback-style loggi
 | Role | What | How |
 | ---- | ---- | --- |
 | **Correlation** (thread/request scope) | `request_id`, `tenant_id`, trace/span | Set once in a filter/interceptor; Quarkus JSON `additional-field` with `%X{...}` is OK |
-| **Event fields** (this log line only) | `backup_id`, `namespace`, `status`, … | **SLF4J 2.x fluent API** — not per-call `MDC.put` |
+| **Event fields** (this log line only) | `resource_id`, `namespace`, `status`, … | **SLF4J 2.x fluent API** — not per-call `MDC.put` |
 
 **Do not** add new `StructuredLog`-style wrappers or per-call MDC for diagnostic fields. MDC is not a structured-logging
 API.
@@ -26,15 +26,15 @@ typically supports this through the SLF4J bridge.
 **Before:**
 
 ```java
-log.error("Logical backup failed: id={}, error={}", id, msg, throwable);
+log.error("operation failed: id={}, error={}", id, msg, throwable);
 ```
 
 **After:**
 
 ```java
 log.atError()
-    .setMessage("Logical backup failed")
-    .addKeyValue("backup_id", id)
+    .setMessage("operation failed")
+    .addKeyValue("resource_id", id)
     .addKeyValue("error_message", msg)
     .setCause(throwable)
     .log();
@@ -71,19 +71,19 @@ not introduce a parallel pattern.
 
 ## Exception mappers
 
-Sites such as `log.warn(WARNING_MESSAGE, class, path, msg)` use a **shared `{}` template constant** — grep hits zero
+Sites such as `log.warn(MESSAGE_TEMPLATE, class, path, msg)` use a **shared `{}` template constant** — grep hits zero
 inline `{}` while values still interpolate at runtime.
 
 **Stop and ask the user before editing these call sites** — do not pick an approach silently and do not defer the
 question to the end of the migration. See [user-decisions.md](user-decisions.md) § Java shared `{}` template constants.
 
-**Only change logging lines** — preserve `buildResponse(status, supplier)` overloads and response builders.
+**Only change logging lines** — preserve response-builder / `buildResponse`-style overloads.
 
 ## Anti-patterns (do not introduce)
 
 | Anti-pattern | Why |
 | ------------ | --- |
-| New `StructuredLog` / per-call `MDC.put` helper | Wrong abstraction; fields hide under `mdc.*`; PR #551-class bugs |
+| New `StructuredLog` / per-call `MDC.put` helper | Wrong abstraction; fields hide under `mdc.*`; leak and overwrite bugs |
 | `MDC.put` at every call site (manual or wrapped) | Leak risk, duplicate keys, not event-scoped |
 | Bulk regex codemod to any helper without `mvn compile` | Deleted endpoints, illegal text blocks, generic field keys |
 
@@ -94,7 +94,7 @@ fluent API** over extending the helper. Remove the helper when no callers remain
 
 - REST controllers
 - Exception mappers
-- Flyway Java migrations (`V1_*__*.java`)
+- Schema / DB migration Java sources (`V1_*__*.java` and similar)
 - Multi-line logs and `"""` text blocks — single-line text blocks are illegal Java
 
 ## Build gate

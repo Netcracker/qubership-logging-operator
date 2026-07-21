@@ -44,12 +44,14 @@ Keep this file short. Unique pitfalls and open validation items — not a second
 - **Parent go.work:** When the target repo is linked from a parent workspace, run Go tests and smoke with
   `GOWORK=off` so results reflect the component under migration.
 - **Infra-only trap:** Logger + Helm + a handful of Go files is not a completed migration; completion gate must show
-  zero active `log.*f` in production packages.
-- **Bulk Java codemod:** `632→0 {}` with failing `mvn compile` is not done — see [completion-gates.md](completion-gates.md).
+  zero active `log.*f` **and** zero residual diagnostic printf verbs on non-`f` log methods in production packages.
+- **Bulk Java codemod:** `{}` greps to zero with failing `mvn compile` is not done — see [completion-gates.md](completion-gates.md).
 - **Java JSON field placement:** `addKeyValue` fields at top level in NDJSON, not only under `mdc.*` — see
   [java-quarkus.md](java-quarkus.md) § Verify JSON output.
-- **Go logfields.Format:** Regex re-parse of `key=value` suffixes is fragile; quote whitespace values and protect reserved
-  keys (`time`, `level`, `message`, `class`, `request_id`).
+- **Go drop-`f` trap:** `log.Error("… key=%v …", key, err)` after removing `f` is still incomplete — use a field API or
+  repo helper; see [go-qubership-lib.md](go-qubership-lib.md).
+- **Go logfields / suffix parse:** Regex re-parse of `key=value` suffixes is fragile; quote whitespace values and protect
+  reserved keys (`time`, `level`, `message`, `class`, `request_id`).
 - **Skill source:** edit the APM skill package source; reinstall/sync to update deployed `.agents/skills` copies.
 - **Migration report:** `.ndjson-migration-report.md` is a worktree ledger — exclude from product PRs unless explicitly
   requested.

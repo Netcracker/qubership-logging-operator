@@ -2,6 +2,32 @@
 
 Surface these **before** claiming completion. Inventory returned diagnostics and logged preformatted messages separately.
 
+## Event-field placement unsupported
+
+When the [placement probe](placement-probe.md) **FAIL**s for a component (any language/stack), **stop bulk call-site
+migration** for that component and ask **immediately**.
+
+1. Show probe evidence: command, one redacted JSON line, PASS/FAIL reason, and local facts used for the recommendation
+   (runtime version, logging deps, failure signature).
+2. Present **one recommended** option (from local facts only — see placement-probe § Recommendation) plus the fixed
+   alternatives below. Always invite a **user-provided** approach.
+3. Do **not** implement a placement fix or continue call-site rewrites until the user chooses.
+4. After the user picks: implement that choice only → **re-probe** until PASS (or leave the component `blocked` /
+   `in-progress` if they chose defer / accept-unmet-goal).
+
+| Option | Description |
+| ------ | ----------- |
+| **Add placement infrastructure** | Keep the preferred call-site field API; add/fix formatter, encoder, bridge, or `JsonProvider`-style hook so event fields become **top-level** JSON keys. |
+| **Change logging backend / encoder** | Switch or reconfigure the logging stack so the field API is natively supported (e.g. Logback JSON encoder with structured args). |
+| **Defer** | Leave component `blocked` / `in-progress`; no bulk call-site migration until placement is fixed later. |
+| **Accept message-embedded fields** | Explicitly accept diagnostics only inside `message` for now. **Goal unmet** — do **not** mark the component `migrated`. |
+| **User-provided** | Any approach the user describes; treat as first-class once stated. |
+
+Do not offer new per-call `MDC.put` / `StructuredLog`-style wrappers for event fields as the default “fix.” Request-scoped
+correlation MDC in filters stays allowed.
+
+Record in the report: probe result, recommended option, user choice, and re-probe result.
+
 ## Returned diagnostics (API / error return paths)
 
 When structured data lives in `fmt.Errorf`, wrapped exceptions, or other values returned across boundaries, ask the user:

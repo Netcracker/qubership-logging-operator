@@ -3,6 +3,9 @@
 Run at least one realistic startup or config-check path **after** call-site migration, not only unit tests. Record the
 exact command and result in the coverage ledger.
 
+**Placement probe first:** Before bulk call-site edits, run [placement-probe.md](placement-probe.md) for **every**
+stack/language component. End smoke must meet the same top-level-field criterion on a real migrated line.
+
 **Build before smoke:** For Java, `mvn compile` must pass (or be explicitly blocked) before claiming the component
 migrated. Smoke on non-compiling code is invalid.
 
@@ -24,6 +27,8 @@ Quick manual check:
 LOG_FORMAT=json go run . -check-config ... 2>&1 | head -1 | python3 -c "import json,sys; r=json.load(sys.stdin); assert all(k in r for k in ('time','level','message'))"
 ```
 
+Placement: also assert the probe / migrated diagnostic keys exist at **top level** (not only inside `message`).
+
 ## Java / Quarkus
 
 ```bash
@@ -38,6 +43,10 @@ mvn -pl <module> quarkus:dev   # or documented integration smoke
 If Maven compile is blocked (private packages, 401), record under **Blocked validation** with the exact error — **do not
 mark the Java component migrated-complete** and do not claim JVM smoke passed.
 
+**Placement:** one fluent `addKeyValue` line must expose keys at JSON **top level**. If
+`loggerClassName` is `org.slf4j.spi.DefaultLoggingEventBuilder` and keys are glued into `message`, placement FAIL —
+[user-decisions.md](user-decisions.md) § Event-field placement unsupported.
+
 After bulk edits, also run [completion-gates.md](completion-gates.md) §4.1 (semantic field-name review + spot-check;
 optional `"arg[0-9]"` grep) and §2.2 (illegal text blocks).
 
@@ -45,13 +54,14 @@ optional `"arg[0-9]"` grep) and §2.2 (illegal text blocks).
 
 ```bash
 LOG_FORMAT=json python -m <app.module> --help   # or documented entrypoint
-# Capture one log line; confirm NDJSON schema (time, level, message)
+# Capture one log line; confirm NDJSON schema (time, level, message) + top-level event fields from the probe API
 ```
 
 ## Fixture-only edits (eval / single-file scope)
 
 Build a representative logrus/zap JSON line from the migrated `WithFields` call and confirm it parses with `time`,
-`level`, `message`. Note in the report that full runtime smoke was out of scope.
+`level`, `message`. Note in the report that full runtime smoke was out of scope. Still record placement probe PASS/FAIL
+or N/A with reason.
 
 ## What to record in the migration report
 
@@ -59,6 +69,7 @@ Build a representative logrus/zap JSON line from the migrated `WithFields` call 
 | --------- | ---------------------------------------------------- |
 | Command   | `LOG_FORMAT=json go run . -check-config ...`         |
 | Result    | PASS — single-line JSON with time/level/message      |
+| Placement | PASS — top-level `probe_field` / migrated keys       |
 | Validator | manual JSON parse — OK                               |
 
 Unit tests alone do not satisfy the smoke requirement for full-repo migrations.

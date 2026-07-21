@@ -13,6 +13,10 @@ description: >
 logger/encoder, `LOG_FORMAT`, and Helm only; leave existing log call sites and `message` text as-is. Minimal bootstrap
 code only when JSON mode fails compile or process startup.
 
+**Envelope ≠ event-field placement:** stage 1 does **not** prove that SLF4J `addKeyValue`, Go field helpers, or similar
+appear as top-level JSON keys. That is stage 2’s [placement probe](../qubership-ndjson-logging-migrate/references/placement-probe.md)
+in `qubership-ndjson-logging-migrate`.
+
 **Discover before changing:** read the target repo’s existing logger dependencies, config files, and Helm env — extend that
 stack; do not copy another service’s pattern. Output shape follows the logging guide (*log-formats.md*); ambiguities go
 to the user. For **build and smoke**, follow the repo’s own README / `dev/` / `bootstrap/` / workflow docs

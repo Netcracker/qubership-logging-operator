@@ -31,26 +31,32 @@ Greps and gates are **smell checks** that the goal may be unmet. Clean greps alo
 
 1. **Serve the goal** — every edit should make diagnostics queryable as fields (or record an explicit no-action / blocked
    reason). Do not ship cosmetic rewrites that only silence greps.
-2. **Inventory first** — find work via [preformatted-message-patterns.md](references/preformatted-message-patterns.md)
+2. **Placement probe before bulk migrate** — for **every** stack/language component, prove the intended event-field API
+   yields **top-level** JSON keys before rewriting call sites. See [placement-probe.md](references/placement-probe.md).
+   On FAIL: stop and ask ([user-decisions.md](references/user-decisions.md) § Event-field placement unsupported) — do
+   **not** guess or implement a placement fix until the user chooses (recommended + alternatives + user-provided).
+3. **Inventory first** — find work via [preformatted-message-patterns.md](references/preformatted-message-patterns.md)
    (shared `{}` constants, preformatted logs, text blocks, Go `log.*f` / residual printf). Inventory finds candidates;
    the goal decides what “fixed” means.
-3. **Java event fields** — SLF4J 2.x fluent API (`addKeyValue`) so event data lands in JSON for search. Never add
-   `StructuredLog` or per-call `MDC.put` for event data. Request-scoped MDC in filters stays as-is.
-4. **Go fields** — prefer a real field API or repo helper so keys appear at JSON top level — see
-   [go-qubership-lib.md](references/go-qubership-lib.md).
-5. **Stop and ask** on shared `{}` template constants and logged preformatted messages — do not guess. Choices:
-   [user-decisions.md](references/user-decisions.md). After confirmation, shapes:
+4. **Java event fields** — SLF4J 2.x fluent API (`addKeyValue`) so event data lands in JSON for search. Never add
+   `StructuredLog` or per-call `MDC.put` for event data. Request-scoped MDC in filters stays as-is. Fluent call sites
+   alone are insufficient if the placement probe FAIL (bridge/formatter gap).
+5. **Go fields** — prefer a real field API or repo helper so keys appear at JSON top level — see
+   [go-qubership-lib.md](references/go-qubership-lib.md). Still require a placement probe.
+6. **Stop and ask** on shared `{}` template constants, logged preformatted messages, and placement-probe FAIL — do not
+   guess. Choices: [user-decisions.md](references/user-decisions.md). After confirmation, shapes:
    [pattern-recipes.md](references/pattern-recipes.md).
-6. **API / throw text** — when a string is also used for `Response.entity`, DTO error fields, or exception detail, keep
+7. **API / throw text** — when a string is also used for `Response.entity`, DTO error fields, or exception detail, keep
    that string unchanged; structure **only** the log line (same variable in `setMessage` when message is conditional).
-7. **Do not claim done** while the goal is unmet: diagnostics still only in `message`, open user-decision rows,
-   `StructuredLog` / templating constants, or any completion gate FAIL/PARTIAL — see
+8. **Do not claim done** while the goal is unmet: diagnostics still only in `message`, open user-decision rows,
+   placement probe FAIL, `StructuredLog` / templating constants, or any completion gate FAIL/PARTIAL — see
    [migration-report-template.md](references/migration-report-template.md) § Status rules.
 
 ## Reference map
 
 | When                 | Read                                                                                                   |
 | -------------------- | ------------------------------------------------------------------------------------------------------ |
+| Placement probe      | [placement-probe.md](references/placement-probe.md) — before bulk call-site edits (all stacks)         |
 | Inventory patterns   | [preformatted-message-patterns.md](references/preformatted-message-patterns.md)                        |
 | User choice          | [user-decisions.md](references/user-decisions.md)                                                      |
 | Pattern recipes      | [pattern-recipes.md](references/pattern-recipes.md) — after user confirms a decision                   |
@@ -65,23 +71,27 @@ Greps and gates are **smell checks** that the goal may be unmet. Clean greps alo
 
 ## Workflow
 
-1. Confirm stage 1 — JSON smoke passed or document config blocker.
+1. Confirm stage 1 — JSON smoke passed or document config blocker. Envelope ≠ event-field placement.
 2. **Repo-root discovery** — coverage ledger for all runtime components.
 3. **Classify stack** → [java-quarkus.md](references/java-quarkus.md) or [go-qubership-lib.md](references/go-qubership-lib.md).
-4. **Inventory** — [preformatted-message-patterns.md](references/preformatted-message-patterns.md) (constants,
+4. **Placement probe** — [placement-probe.md](references/placement-probe.md) for that component (all languages). On
+   FAIL: stop; ask per [user-decisions.md](references/user-decisions.md) § Event-field placement unsupported; implement
+   only after the user chooses; **re-probe** until PASS (or leave component `blocked` / `in-progress`).
+5. **Inventory** — [preformatted-message-patterns.md](references/preformatted-message-patterns.md) (constants,
    preformatted, text-block `{}`, `log.*f` including Trace, residual `%v`/`%d`/… on non-`f` log calls).
-5. **Classify** sites: `migrate`, `static/no action`, `needs user decision`, `blocked`.
-6. **User decisions** — [user-decisions.md](references/user-decisions.md). After confirmation, read
+6. **Classify** sites: `migrate`, `static/no action`, `needs user decision`, `blocked`.
+7. **User decisions** — other rows in [user-decisions.md](references/user-decisions.md). After confirmation, read
    [pattern-recipes.md](references/pattern-recipes.md) before editing those sites.
-7. **Map fields** — [schema.md](references/schema.md) + stack playbook + [coding-approaches.md](references/coding-approaches.md).
-8. **Implement** in small batches — build after each batch; spot-check that new fields are queryable, not only that
+8. **Map fields** — [schema.md](references/schema.md) + stack playbook + [coding-approaches.md](references/coding-approaches.md).
+9. **Implement** in small batches — build after each batch; spot-check that new fields are queryable, not only that
    greps shrank.
-9. **Re-inventory** — no unaccounted formatted / preformatted / text-block / residual-printf candidates.
-10. **Smell checks** (below) then full [completion-gates.md](references/completion-gates.md).
-11. **Smoke** — [smoke-validation.md](references/smoke-validation.md); confirm diagnostic keys at JSON top level.
-12. **Write report** — stage = `migrate`; status rules in
+10. **Re-inventory** — no unaccounted formatted / preformatted / text-block / residual-printf candidates.
+11. **Smell checks** (below) then full [completion-gates.md](references/completion-gates.md).
+12. **Smoke** — [smoke-validation.md](references/smoke-validation.md); confirm diagnostic keys at JSON top level
+    (placement probe criterion again on a real migrated line).
+13. **Write report** — stage = `migrate`; status rules in
     [migration-report-template.md](references/migration-report-template.md); exclude from product PR unless requested.
-13. **Propose skill updates** in the APM package source, not `.agents/skills` copies.
+14. **Propose skill updates** in the APM package source, not `.agents/skills` copies.
 
 ## Smell checks (before claiming done)
 
@@ -125,6 +135,6 @@ One component at a time; update ledger before stopping.
 
 ## Definition of done
 
-The **goal** is met for each component: queryable fields, readable `message`, correlation preserved; build/integrity OK;
-smell checks clean or accounted for; [completion-gates.md](references/completion-gates.md) PASS (or blocked with reason).
-Clean greps without queryable fields is **not** done.
+The **goal** is met for each component: placement probe PASS, queryable fields, readable `message`, correlation
+preserved; build/integrity OK; smell checks clean or accounted for; [completion-gates.md](references/completion-gates.md)
+PASS (or blocked with reason). Clean greps without queryable fields is **not** done.

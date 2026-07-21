@@ -7,6 +7,7 @@ Keep this file short. Unique pitfalls and open validation items — not a second
 | Topic | Source of truth |
 | ----- | --------------- |
 | Hard rules / self-check | [SKILL.md](../SKILL.md) |
+| Placement probe | [placement-probe.md](placement-probe.md) |
 | User decisions | [user-decisions.md](user-decisions.md) |
 | Confirmed transformation shapes | [pattern-recipes.md](pattern-recipes.md) |
 | Gates | [completion-gates.md](completion-gates.md) |
@@ -52,8 +53,12 @@ Keep this file short. Unique pitfalls and open validation items — not a second
   [completion-gates.md](completion-gates.md) §4.1.
 - **Report status:** FAIL/PARTIAL gates → component `in-progress`, not `migrated` —
   [migration-report-template.md](migration-report-template.md) § Status rules.
-- **Java JSON field placement:** `addKeyValue` fields at top level in NDJSON, not only under `mdc.*` — see
-  [java-quarkus.md](java-quarkus.md) § Verify JSON output.
+- **Java JSON field placement:** `addKeyValue` must land at top level in NDJSON, not only under `mdc.*` and not glued
+  into `message` via `DefaultLoggingEventBuilder`. Always run [placement-probe.md](placement-probe.md); on FAIL ask —
+  [user-decisions.md](user-decisions.md) § Event-field placement unsupported. Do not assume Quarkus/JBoss “typically”
+  promotes fluent fields.
+- **Placement probe (all stacks):** Stage 1 envelope PASS does not prove event-field placement. Probe before bulk
+  migrate; user decides among recommended + alternatives + user-provided options.
 - **Go drop-`f` trap:** `log.Error("… key=%v …", key, err)` after removing `f` is still incomplete — use a field API or
   repo helper; see [go-qubership-lib.md](go-qubership-lib.md).
 - **Go logfields / suffix parse:** Regex re-parse of `key=value` suffixes is fragile; quote whitespace values and protect

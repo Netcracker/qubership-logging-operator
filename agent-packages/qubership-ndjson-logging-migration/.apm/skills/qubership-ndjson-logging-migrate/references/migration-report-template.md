@@ -36,17 +36,17 @@ the PR description instead.
 
 | Status | When allowed |
 | ------ | ------------ |
-| **migrated** | All gates for that component are PASS (or smoke BLOCKED with a concrete env reason **and** every other gate PASS). |
-| **in-progress** | Work underway; any gate FAIL/PARTIAL, open user-decision rows, or polish follow-up remaining. |
-| **blocked** | Cannot proceed (auth, missing cluster, unsafe API change) — record exact error. |
+| **migrated** | All gates for that component are PASS (or smoke BLOCKED with a concrete env reason **and** every other gate PASS, including placement probe PASS). |
+| **in-progress** | Work underway; any gate FAIL/PARTIAL, open user-decision rows (including placement), or polish follow-up remaining. |
+| **blocked** | Cannot proceed (auth, missing cluster, placement probe FAIL awaiting user choice, unsafe API change) — record exact error. |
 | **pending** | Not started. |
 
 **Do not** mark a component `migrated` while any completion-gate row is **FAIL** or **PARTIAL** (including field-name
-polish). Prefer `in-progress` and list the follow-up (e.g. “polish 200 `_get_` keys”). Smoke may stay BLOCKED without a
-cluster; that alone does not force `migrated` if other gates are incomplete.
+polish or **placement probe**). Prefer `in-progress` and list the follow-up (e.g. “polish 200 `_get_` keys”). Smoke may
+stay BLOCKED without a cluster; that alone does not force `migrated` if other gates are incomplete.
 
 **Greps clean ≠ migrated** if diagnostics are still only inside `message` (unqueryable) — see [SKILL.md](../SKILL.md)
-§ Goal.
+§ Goal. Fluent/`addKeyValue` call sites with placement probe FAIL are **not** `migrated`.
 
 ## Completion gates
 
@@ -54,6 +54,7 @@ Run manual greps and builds from [completion-gates.md](completion-gates.md) per 
 
 | Gate | Command / check | Before | After | PASS |
 |------|-----------------|--------|-------|------|
+| Placement probe | see placement-probe.md | | top-level keys / BLOCKED | |
 | Java compile | `mvn -pl <module> compile` | | exit 0 / BLOCKED | |
 | Go build | `GOWORK=off go build ./...` | | exit 0 | |
 | Java `{}` inline | same-line + text-block inventory | | 0 | |
@@ -62,7 +63,13 @@ Run manual greps and builds from [completion-gates.md](completion-gates.md) per 
 | Go residual printf | SKILL self-check residual verbs | | 0 | |
 | Throwables | manual sweep | | fixed | |
 | Integrity | git diff review | | no stray deletions | |
-| Smoke NDJSON | captured stdout line → JSON with time/level/message | | OK / BLOCKED | |
+| Smoke NDJSON | captured stdout line → JSON with time/level/message + top-level event fields | | OK / BLOCKED | |
+
+## User decision — event-field placement
+
+| Component | Probe result | Recommended | User choice | Re-probe |
+|-----------|--------------|-------------|-------------|----------|
+| | PASS / FAIL / N/A | | | |
 
 ## User decision — logged preformatted messages
 

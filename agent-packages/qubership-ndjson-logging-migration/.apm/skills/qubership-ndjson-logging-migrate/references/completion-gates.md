@@ -13,6 +13,7 @@ endpoints**, and **unusable `arg0` field keys**.
 
 ## Gate order (run in this sequence)
 
+0. **Placement probe** — before bulk call-site edits ([placement-probe.md](placement-probe.md)); all stacks
 1. **Build** — compile/test per runtime component
 2. **Integrity** — no accidental method/endpoint deletion; imports still resolve
 3. **Pattern smells** — zero unaccounted formatted/variable-message candidates in production scope
@@ -20,7 +21,7 @@ endpoints**, and **unusable `arg0` field keys**.
 5. **Smoke** — realistic startup emits valid NDJSON with diagnostic keys at top level (see [smoke-validation.md](smoke-validation.md))
 
 Do not claim completion if an earlier gate failed unless the failure is recorded as `blocked` and unrelated work is still
-valid.
+valid. Do **not** bulk-migrate while placement probe is FAIL without a recorded user decision.
 
 ---
 
@@ -164,8 +165,10 @@ After extracting fields, `message` must not contain:
 ### 4.5 Java event fields in JSON (Quarkus / Logback)
 
 Per-log fields must use the SLF4J 2.x fluent API (`addKeyValue`) or encoder structured args — see
-[java-quarkus.md](java-quarkus.md). After migration:
+[java-quarkus.md](java-quarkus.md).
 
+- **Before bulk migrate:** [placement-probe.md](placement-probe.md) must PASS (or user chose defer / accept-unmet-goal —
+  then do not mark `migrated`).
 - Capture one runtime JSON line and verify `addKeyValue` fields appear at the **top level**.
 - Correlation fields (`request_id`, `tenant_id`) may still use request-scoped MDC + `%X{...}` in config — that is
   expected.
@@ -173,6 +176,8 @@ Per-log fields must use the SLF4J 2.x fluent API (`addKeyValue`) or encoder stru
   Request-scoped MDC in filters/interceptors is OK.
 
 If diagnostic fields appear only under `mdc.*`, the call sites are still MDC-shaped — rework to fluent API.
+If diagnostics are glued into `message` (`DefaultLoggingEventBuilder` / similar), that is placement FAIL — see
+[user-decisions.md](user-decisions.md) § Event-field placement unsupported.
 
 ### 4.6 Go field APIs / `logfields` / regex formatters
 
@@ -203,6 +208,7 @@ See [go-qubership-lib.md](go-qubership-lib.md). Minimum gates:
 
 | Gate | Command / check | Before | After | PASS |
 |------|-----------------|--------|-------|------|
+| Placement probe | see placement-probe.md | — | top-level probe keys | |
 | Java compile | `mvn -pl ... compile` | — | exit 0 | |
 | Go build | `GOWORK=off go build ./cmd/` | — | exit 0 | |
 | Java `{}` inline | same-line + text-block inventory | N | 0 | |

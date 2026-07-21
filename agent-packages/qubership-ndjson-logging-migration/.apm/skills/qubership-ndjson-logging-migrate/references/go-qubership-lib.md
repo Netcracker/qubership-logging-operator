@@ -7,6 +7,9 @@ Read when the target uses `go.mod`, qubership-core-lib-go `logging`, logrus, zap
 NDJSON lines must expose diagnostics as **top-level JSON keys** operators can filter on. A readable `message` alone is
 not enough. Prefer APIs/helpers that attach fields; do not rearrange printf only so greps go quiet.
 
+**Before bulk call-site migration:** run the [placement probe](placement-probe.md) with the same field path this playbook
+will use. On FAIL → [user-decisions.md](user-decisions.md) § Event-field placement unsupported.
+
 ## Infrastructure
 
 - Install NDJSON formatter via `logging.SetLogFormat` or existing repo pattern.
@@ -78,5 +81,6 @@ Map key-value pairs to structured fields in the adapter — do not concatenate t
 
 ## Smoke
 
-Capture one stdout line and confirm it parses as JSON with `time`, `level`, `message`, and expected diagnostic keys at
-**top level** (not only buried in `message`).
+Run [placement-probe.md](placement-probe.md) before bulk migrate. At the end, capture one stdout line and confirm it
+parses as JSON with `time`, `level`, `message`, and expected diagnostic keys at **top level** (not only buried in
+`message`).

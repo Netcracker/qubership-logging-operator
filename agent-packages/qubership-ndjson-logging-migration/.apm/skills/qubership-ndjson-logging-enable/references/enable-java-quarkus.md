@@ -13,6 +13,9 @@ first — see [maven-github-packages.md](maven-github-packages.md).
 - Promote correlation via `quarkus.log.console.json.additional-field.*` (e.g. `%X{requestId}` → `request_id`) — config only.
 - Map encoder keys to logging-guide field names if needed (`date-format`, excluded keys).
 
+Stage 1 success = valid JSON **envelope**. Promoting per-log `addKeyValue` fields to top-level keys is **stage 2**
+(placement probe / user decision) — do not claim structured event fields from enable alone.
+
 ## Logback / Spring
 
 - Enable JSON encoder (Logstash or native JSON layout) in `logback-spring.xml` / profile XML.

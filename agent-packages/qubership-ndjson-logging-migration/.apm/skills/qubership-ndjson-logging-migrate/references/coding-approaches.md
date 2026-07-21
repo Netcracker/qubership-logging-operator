@@ -30,14 +30,16 @@ choice: [pattern-recipes.md](pattern-recipes.md).
 ## Migration process (done right)
 
 1. **Repo-root discovery** — list every runtime component (sibling `go.mod`, Helm charts) before the first edit.
-2. **Call sites + config** — JSON formatter and `LOG_FORMAT` Helm wiring are necessary but not sufficient; migrate
-   formatted log calls in production sources.
-3. **Gates, not grep alone** — grepping `{}` to zero while Java does not compile is incomplete; run
+2. **Placement probe** — [placement-probe.md](placement-probe.md) per component before bulk call-site edits; on FAIL ask
+   ([user-decisions.md](user-decisions.md) § Event-field placement unsupported).
+3. **Call sites + config** — JSON formatter and `LOG_FORMAT` Helm wiring are necessary but not sufficient; migrate
+   formatted log calls in production sources only after placement PASS (or explicit user defer).
+4. **Gates, not grep alone** — grepping `{}` to zero while Java does not compile is incomplete; run
    [completion-gates.md](completion-gates.md) in full (and SKILL.md self-check).
-4. **`blocked` sparingly** — large/noisy work is batched and continued; `blocked` is for user decisions, missing
+5. **`blocked` sparingly** — large/noisy work is batched and continued; `blocked` is for user decisions, missing
    credentials with exact error, or unsafe API changes.
-5. **Smoke** — one realistic startup/config path with a captured NDJSON line (`time`, `level`, `message`), not unit tests
-   alone.
+6. **Smoke** — one realistic startup/config path with a captured NDJSON line (`time`, `level`, `message` + top-level
+   event fields), not unit tests alone.
 6. **Target repo wins** — extend existing logger/config patterns; do not copy another service's stack blindly.
 7. **Report** — write `.ndjson-migration-report.md` in the worktree per
    [migration-report-template.md](migration-report-template.md); exclude from product PR unless the team asks for it.

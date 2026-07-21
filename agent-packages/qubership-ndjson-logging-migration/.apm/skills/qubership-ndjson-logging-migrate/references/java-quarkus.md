@@ -22,8 +22,12 @@ API.
 
 ## Preferred: SLF4J 2.x fluent API (event fields)
 
-Verify the target uses SLF4J 2.x (`org.slf4j.Logger` with `atInfo()` / `addKeyValue()`). Quarkus 3 + JBoss Logging
-typically supports this through the SLF4J bridge.
+Verify the target uses SLF4J 2.x (`org.slf4j.Logger` with `atInfo()` / `addKeyValue()`).
+
+**Do not assume** Quarkus / JBoss Logging promotes `addKeyValue` to top-level JSON. The JBoss SLF4J bridge often lacks a
+fluent `LoggingEventBuilder`, so SLF4J’s `DefaultLoggingEventBuilder` may prefix `key=value` onto `message` while
+`quarkus-logging-json` only serializes that string. **Always** run the [placement probe](placement-probe.md) before bulk
+migrate. On FAIL → [user-decisions.md](user-decisions.md) § Event-field placement unsupported.
 
 **Before:**
 
@@ -56,14 +60,18 @@ log.atError()
 
 ## Verify JSON output
 
+**Before bulk migrate:** [placement-probe.md](placement-probe.md) must PASS for this component.
+
 After migrating a batch, capture one runtime stdout JSON line and confirm:
 
 - `time`, `level`, `message` present
-- `addKeyValue` fields appear at the **top level** (not only under `mdc.*`)
+- `addKeyValue` fields appear at the **top level** (not only under `mdc.*`, not glued into `message`)
 - Correlation fields (`request_id`, `tenant_id`) still populate from request-scoped MDC / `%X{...}` config
 
-If fields land under `mdc.*`, the implementation is wrong for event data — fix the call site (fluent API), not by
-promoting hundreds of keys in `application.properties`.
+If fields land under `mdc.*` only, the implementation is wrong for event data — fix the call site (fluent API), not by
+promoting hundreds of keys in `application.properties`. If fields are glued into `message` with
+`DefaultLoggingEventBuilder`, that is a **placement** failure — stop and ask; do not keep rewriting call sites hoping
+the bridge will catch up.
 
 ## Logback / Spring (non-Quarkus)
 

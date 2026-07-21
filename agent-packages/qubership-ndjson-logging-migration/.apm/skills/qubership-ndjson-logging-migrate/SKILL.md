@@ -31,7 +31,8 @@ stage 1 first or record config gaps in the report.
 5. **API / throw text** — when a string is also used for `Response.entity`, DTO error fields, or exception detail, keep
    that string unchanged; structure **only** the log line (same variable in `setMessage` when message is conditional).
 6. **Do not claim done** while user-decision rows are open, or while `StructuredLog` / templating constants / Go residual
-   printf diagnostics remain.
+   printf diagnostics remain. A component is **not** `migrated` while any completion gate is FAIL or PARTIAL (see
+   [migration-report-template.md](references/migration-report-template.md) § Status rules).
 
 ## Reference map
 
@@ -62,16 +63,17 @@ stage 1 first or record config gaps in the report.
 2. **Repo-root discovery** — coverage ledger for all runtime components.
 3. **Classify stack** → [java-quarkus.md](references/java-quarkus.md) or [go-qubership-lib.md](references/go-qubership-lib.md).
 4. **Inventory** — [preformatted-message-patterns.md](references/preformatted-message-patterns.md) (constants,
-   preformatted, `log.*f` including Trace, residual `%v`/`%d`/… on non-`f` log calls).
+   preformatted, text-block `{}`, `log.*f` including Trace, residual `%v`/`%d`/… on non-`f` log calls).
 5. **Classify** sites: `migrate`, `static/no action`, `needs user decision`, `blocked`.
 6. **User decisions** — [user-decisions.md](references/user-decisions.md). After confirmation, read
    [pattern-recipes.md](references/pattern-recipes.md) before editing those sites.
 7. **Map fields** — [schema.md](references/schema.md) + stack playbook + [coding-approaches.md](references/coding-approaches.md).
 8. **Implement** in small batches — build after each batch.
-9. **Re-inventory** — no unaccounted formatted / preformatted / residual-printf calls.
+9. **Re-inventory** — no unaccounted formatted / preformatted / text-block / residual-printf calls.
 10. **Self-check** (below) then full [completion-gates.md](references/completion-gates.md).
 11. **Smoke** — [smoke-validation.md](references/smoke-validation.md).
-12. **Write report** — stage = `migrate`; exclude from product PR unless requested.
+12. **Write report** — stage = `migrate`; status rules in
+    [migration-report-template.md](references/migration-report-template.md); exclude from product PR unless requested.
 13. **Propose skill updates** in the APM package source, not `.agents/skills` copies.
 
 ## Self-check (before claiming done)
@@ -86,8 +88,15 @@ grep -rn 'StructuredLog\|MDC\.put' --include='*.java' src/main/java || true
 grep -rnE 'WARNING_MESSAGE|MESSAGE_[A-Z_]+\s*=\s*".*\{}' --include='*.java' src/main/java || true
 
 # Java — unreviewed preformatted log sites
-grep -rnE 'log\.(warn|error|debug|info)\((message|msg|aggregatedError|e\.getMessage)' \
+grep -rnE 'log\.(warn|error|debug|info)\((message|msg|aggregatedError|errorMsg|warn|e\.getMessage)' \
   --include='*.java' src/main/java || true
+
+# Java — text-block logs (same-line {} grep misses these; open each hit for {})
+grep -rnE 'log\.(info|debug|warn|error|trace)\("""' --include='*.java' src/main/java || true
+
+# Java — codemod field-name residue (polish required; target 0)
+grep -rnE 'addKeyValue\("[^"]*(_get_|_stream_|e_get_message)' --include='*.java' src/main/java || true
+grep -rn '"arg[0-9]\+"' --include='*.java' src/main/java || true
 
 # Go — include Trace; exclude _test.go / commented lines in review
 grep -rnE 'log\.(Trace|Debug|Info|Warn|Error|Fatal|Panic)f\(' --include='*.go' . || true
@@ -101,6 +110,7 @@ grep -rnE 'log\.(Trace|Debug|Info|Warn|Error|Fatal|Panic)(C)?\(.*%[vTdoxXefg]' -
 Then spot-check field names and run [completion-gates.md](references/completion-gates.md).
 Go: every residual-verb hit must become a field API / repo helper, or be listed blocked — see
 [go-qubership-lib.md](references/go-qubership-lib.md).
+Java: text-block `{}` and `_get_`/`_stream_` keys block `migrated` — see completion-gates §3–§4.1.
 
 ## Monorepos
 

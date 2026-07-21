@@ -46,6 +46,12 @@ Keep this file short. Unique pitfalls and open validation items — not a second
 - **Infra-only trap:** Logger + Helm + a handful of Go files is not a completed migration; completion gate must show
   zero active `log.*f` **and** zero residual diagnostic printf verbs on non-`f` log methods in production packages.
 - **Bulk Java codemod:** `{}` greps to zero with failing `mvn compile` is not done — see [completion-gates.md](completion-gates.md).
+- **Java text-block trap:** same-line `{}` grep misses `log.info(""" … {} … """)` — inventory text-block opens; see
+  [preformatted-message-patterns.md](preformatted-message-patterns.md).
+- **Codemod field names:** `_get_` / `_stream_` / `e_get_message` keys are PARTIAL — polish before `migrated`; see
+  [completion-gates.md](completion-gates.md) §4.1.
+- **Report status:** FAIL/PARTIAL gates → component `in-progress`, not `migrated` —
+  [migration-report-template.md](migration-report-template.md) § Status rules.
 - **Java JSON field placement:** `addKeyValue` fields at top level in NDJSON, not only under `mdc.*` — see
   [java-quarkus.md](java-quarkus.md) § Verify JSON output.
 - **Go drop-`f` trap:** `log.Error("… key=%v …", key, err)` after removing `f` is still incomplete — use a field API or

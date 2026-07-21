@@ -87,7 +87,8 @@ Record **before/after counts** in the migration report.
 | ------------------- | -------------------------------------------------------------------------------- | ----------------- |
 | Go/logrus           | Active `log.*f(` in non-test `.go` (exclude `//` comments, `dev/`, `_test.go`)   | **0**             |
 | Go residual printf  | Non-`f` `log.*(C)?(` with diagnostic `%v`/`%d`/… in the call (see SKILL self-check) | **0**          |
-| Java/SLF4J          | `log.(info\|debug\|warn\|error).*` with `{}` in `src/main/java`                  | **0** inline `{}` |
+| Java/SLF4J          | Same-line `log.(info\|…).*\{` **and** text-block `log.*( """` with `{}` inside   | **0**             |
+| Java field polish   | Codemod residue keys (`_get_`, `_stream_`, `e_get_message`, `argN`) — §4.1       | **0** or polish pass done |
 | Logged preformatted | Patterns in [preformatted-message-patterns.md](preformatted-message-patterns.md) | **0** unreviewed  |
 
 **Misleading zero (Go):** `log.*f` → 0 while `log.Error("… key=%v …", key, err)` remains is **not** done — see
@@ -96,6 +97,9 @@ Record **before/after counts** in the migration report.
 **Misleading zero (Java):** `{}` in a **shared constant** (e.g. `MESSAGE_TEMPLATE`) still templates at runtime — **stop and ask
 the user immediately** per [user-decisions.md](user-decisions.md); do not treat grep zero as fully structured.
 
+**Misleading zero (Java text blocks):** same-line `{}` grep → 0 while `log.info(""" … {} … """)` remains is **not** done —
+inventory text-block opens and open each hit.
+
 ---
 
 ## 4. Semantic quality gates (blocking for merge-quality)
@@ -103,7 +107,7 @@ the user immediately** per [user-decisions.md](user-decisions.md); do not treat 
 ### 4.1 Semantic field names (primary gate)
 
 Every structured field must use consumer-friendly **`snake_case` derived from message semantics** (`resource_id`,
-`namespace`, `status`) — not positional placeholders or leaked local variable names.
+`namespace`, `status`) — not positional placeholders, leaked locals, or expression-derived keys.
 
 **Reject (non-exhaustive):**
 
@@ -111,24 +115,24 @@ Every structured field must use consumer-friendly **`snake_case` derived from me
 | -------- | -------- |
 | Positional / generic | `arg0`, `argument1`, `param2`, `value0`, `field1` |
 | Leaked locals / abbreviations | `i`, `ns`, `err`, `sbe`, `qName`, `lbName` |
+| Codemod / expression residue | `resource_get_id`, `items_stream_map_to_list`, `e_get_message` |
 
-**How to verify (required — greps alone are not enough):**
+**How to verify (required):**
 
-1. **Spot-check** 5–10 migrated call sites per batch: read the original `{}` message and confirm each key matches the
-   semantic label (e.g. `resource_id`, not `id` or `arg0`).
-2. **Review the diff** for `addKeyValue`, `WithField`, `StructuredArguments.kv`, `logfields.Format` — catch generic
-   numbered keys and short locals by sight.
-
-**Optional sanity grep (codemod artifact — not exhaustive):** baseline is usually **0 before migration**. Bulk codemods
-in pilots emitted literal `"arg0"`, `"arg1"` keys; this grep catches that one failure mode only — not `argument0`,
-`param1`, or other lazy names.
+1. **Spot-check** 5–10 migrated call sites per batch: original `{}` message → each key matches the semantic label
+   (e.g. `resource_id`, not `id` or `arg0`). Also check key↔value (do not name a field `*_address` if the value is an id).
+2. **Review the diff** for `addKeyValue`, `WithField`, `StructuredArguments.kv`, `logfields.Format`.
+3. **Codemod residue greps (blocking until 0 or an explicit polish follow-up is finished):**
 
 ```bash
+grep -rnE 'addKeyValue\("[^"]*(_get_|_stream_|e_get_message)' --include='*.java' src/main/java
 grep -rn '"arg[0-9]\+"' --include='*.java' src/main/java
 ```
 
-Same rule for Go: semantic names + spot-check; optional grep does not replace review. See
-[user-decisions.md](user-decisions.md) § Semantic field names.
+Mark the field-names gate **PARTIAL** (and the component **not** migrated) while these hits remain. Polish to semantic
+names before claiming done. Spot-check alone is not enough after a bulk codemod.
+
+Same rule for Go: semantic names + spot-check. See [user-decisions.md](user-decisions.md) § Semantic field names.
 
 ### 4.2 No duplicate keys in one log call
 
@@ -198,8 +202,8 @@ See [go-qubership-lib.md](go-qubership-lib.md). Minimum gates:
 |------|-----------------|--------|-------|------|
 | Java compile | `mvn -pl ... compile` | — | exit 0 | |
 | Go build | `GOWORK=off go build ./cmd/` | — | exit 0 | |
-| Java `{}` inline | grep src/main/java | N | 0 | |
-| Java field names | semantic review + spot-check; optional `"arg[0-9]"` grep | — | OK | |
+| Java `{}` inline | same-line + text-block inventory | N | 0 | |
+| Java field names | spot-check + `_get_`/`_stream_`/`argN` greps | — | OK (0 residue) | |
 | Java event fields | manual: fluent API + JSON top-level; no new MDC wrapper | — | OK | |
 | Go `log.*f` | grep production .go | N | 0 | |
 | Go residual printf | SKILL self-check residual verbs | N | 0 | |
@@ -208,4 +212,6 @@ See [go-qubership-lib.md](go-qubership-lib.md). Minimum gates:
 | Smoke NDJSON | see smoke-validation.md | — | OK | |
 ```
 
-Migration is **not complete** while any **blocking** row is FAIL without a concrete `blocked` reason.
+Migration is **not complete** while any **blocking** row is FAIL or PARTIAL without a concrete `blocked` reason.
+Do not mark a component `migrated` in the coverage ledger while any gate for that component is FAIL/PARTIAL — see
+[migration-report-template.md](migration-report-template.md) § Status rules.

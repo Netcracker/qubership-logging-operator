@@ -25,14 +25,18 @@ Exclude `_test.go` and `dev/` from production counts unless tests emit runtime l
 ## Java / SLF4J / Quarkus
 
 ```bash
-# {} interpolation in production sources
+# {} interpolation in production sources (same-line — not enough alone)
 grep -rnE 'log\.(info|debug|warn|error|trace)\([^)]*\{' --include='*.java' src/main/java
+
+# Text-block logs — same-line {} grep misses these; treat as part of the {} gate
+grep -rnE 'log\.(info|debug|warn|error|trace)\("""' --include='*.java' src/main/java
+# For each hit above: open the file and confirm no {} remain inside the text block
 
 # Variable or expression as sole message argument (no literal string)
 grep -rnE 'log\.(info|debug|warn|error|trace)\(\s*[^"'\''{]' --include='*.java' src/main/java
 
 # Common preformatted patterns
-grep -rnE 'log\.(warn|error)\((message|msg|errorMsg|aggregatedError)' --include='*.java' .
+grep -rnE 'log\.(warn|error)\((message|msg|errorMsg|aggregatedError|warn)' --include='*.java' .
 grep -rnE '\.getMessage\(\)' --include='*.java' src/main/java | grep -E 'log\.(info|debug|warn|error)'
 
 # Shared {} template constants (misleading zero — ask immediately; see user-decisions.md)

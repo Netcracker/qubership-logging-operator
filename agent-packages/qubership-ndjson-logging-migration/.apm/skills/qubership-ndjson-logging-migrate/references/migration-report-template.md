@@ -30,7 +30,20 @@ the PR description instead.
 
 | Component | Path | Stack | Log config | Status |
 |-----------|------|-------|------------|--------|
-| ... | ... | ... | ... | migrated / blocked / pending |
+| ... | ... | ... | ... | migrated / in-progress / blocked / pending |
+
+## Status rules
+
+| Status | When allowed |
+| ------ | ------------ |
+| **migrated** | All gates for that component are PASS (or smoke BLOCKED with a concrete env reason **and** every other gate PASS). |
+| **in-progress** | Work underway; any gate FAIL/PARTIAL, open user-decision rows, or polish follow-up remaining. |
+| **blocked** | Cannot proceed (auth, missing cluster, unsafe API change) — record exact error. |
+| **pending** | Not started. |
+
+**Do not** mark a component `migrated` while any completion-gate row is **FAIL** or **PARTIAL** (including field-name
+polish). Prefer `in-progress` and list the follow-up (e.g. “polish 200 `_get_` keys”). Smoke may stay BLOCKED without a
+cluster; that alone does not force `migrated` if other gates are incomplete.
 
 ## Completion gates
 
@@ -40,13 +53,13 @@ Run manual greps and builds from [completion-gates.md](completion-gates.md) per 
 |------|-----------------|--------|-------|------|
 | Java compile | `mvn -pl <module> compile` | | exit 0 / BLOCKED | |
 | Go build | `GOWORK=off go build ./...` | | exit 0 | |
-| Java `{}` inline | grep `src/main/java` | | 0 | |
-| Java field names | semantic review + spot-check; optional `"arg[0-9]"` grep | | OK | |
+| Java `{}` inline | same-line + text-block inventory | | 0 | |
+| Java field names | spot-check + `_get_`/`_stream_`/`argN` greps | | OK (0 residue) | |
 | Go `log.*f` (production) | grep non-test `.go` | | 0 | |
 | Go residual printf | SKILL self-check residual verbs | | 0 | |
 | Throwables | manual sweep | | fixed | |
 | Integrity | git diff review | | no stray deletions | |
-| Smoke NDJSON | captured stdout line → JSON with time/level/message | | OK | |
+| Smoke NDJSON | captured stdout line → JSON with time/level/message | | OK / BLOCKED | |
 
 ## User decision — logged preformatted messages
 
@@ -78,4 +91,4 @@ Run manual greps and builds from [completion-gates.md](completion-gates.md) per 
 ```
 
 Record **blocked** with the exact error when Maven or private registry auth prevents compile — do not mark the Java
-component migrated-complete.
+component migrated-complete. Same for FAIL/PARTIAL gates (field polish, text-block `{}`, residual printf).

@@ -21,8 +21,8 @@ changed call site still gets semantic review.
 | Script + review | Large homogeneous one-line `log.info("...", a, b)` in services                |
 | Script-only     | Never — if the diff could delete methods or break annotations, review by hand |
 
-After each batch: `mvn compile` or `go build` → **review diff field names** → spot-check 5–10 call sites → optional
-`"arg[0-9]"` grep (codemod artifact only) → throwables sweep.
+After each batch: `mvn compile` or `go build` → **review diff field names** → spot-check 5–10 call sites →
+`_get_`/`_stream_`/`argN` greps (blocking residue) → throwables sweep → text-block inventory.
 
 Java event-field rules (fluent API, no per-call MDC): [java-quarkus.md](java-quarkus.md). Confirmed shapes after user
 choice: [pattern-recipes.md](pattern-recipes.md).

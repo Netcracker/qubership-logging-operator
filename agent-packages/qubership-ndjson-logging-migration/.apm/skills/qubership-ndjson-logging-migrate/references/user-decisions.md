@@ -87,5 +87,6 @@ these sites await an answer. If the session cannot wait, stop with the question 
 
 ## Semantic field names
 
-Consumer-friendly `snake_case` from message semantics — not positional keys or leaked locals. Validation:
-[completion-gates.md](completion-gates.md) §4.1 (spot-check required; greps are optional heuristics only).
+Consumer-friendly `snake_case` from message semantics — not positional keys, leaked locals, or codemod residue
+(`*_get_*`, `*_stream_*`). Validation: [completion-gates.md](completion-gates.md) §4.1 (residue greps are **blocking**
+until polished; spot-check alone is not enough after bulk codemod).

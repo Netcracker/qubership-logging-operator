@@ -9,6 +9,8 @@ Read when the target component uses Maven/Quarkus, SLF4J, or Logback-style loggi
 | **Correlation** (thread/request scope) | `request_id`, `tenant_id`, trace/span | Set once in a filter/interceptor; Quarkus JSON `additional-field` with `%X{...}` is OK |
 | **Event fields** (this log line only) | `resource_id`, `namespace`, `status`, … | **SLF4J 2.x fluent API** — not per-call `MDC.put` |
 
+Fluent API exists so operators can **search** event data in JSON — not merely to clear `{}` greps.
+
 **Do not** add new `StructuredLog`-style wrappers or per-call MDC for diagnostic fields. MDC is not a structured-logging
 API.
 
@@ -71,7 +73,7 @@ not introduce a parallel pattern.
 
 ## Exception mappers
 
-Sites such as `log.warn(MESSAGE_TEMPLATE, class, path, msg)` use a **shared `{}` template constant** — grep hits zero
+Sites such as `log.warn(SHARED_TEMPLATE, class, path, msg)` use a **shared `{}` template constant** — grep hits zero
 inline `{}` while values still interpolate at runtime.
 
 **Stop and ask the user before editing these call sites** — do not pick an approach silently and do not defer the

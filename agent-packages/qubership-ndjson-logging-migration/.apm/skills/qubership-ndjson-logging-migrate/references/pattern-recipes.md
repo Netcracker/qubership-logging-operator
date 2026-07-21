@@ -12,7 +12,8 @@ user-confirmed choice from [user-decisions.md](user-decisions.md).
 | Adapt level, framework return type, and DTO setters to the actual code | Assume JAX-RS, `String msg`, Java, or one repo's naming |
 | Treat each block as **before/after shape** | Treat examples as an exhaustive inventory of sites |
 
-Placeholders: `varA`, `varB`, `context`, `consumer`, `MESSAGE_X`, `detailVar` — stand in for whatever exists at the call
+Placeholders: `varA`, `varB`, `context`, `consumer`, `SHARED_TEMPLATE`, `detailVar` — stand in for whatever exists at
+the call
 site. The **rules and table invariants** transfer; literal text does not.
 
 Do **not** apply these recipes until the user confirms the choice (or states a repo-wide policy in session). Record the
@@ -155,7 +156,7 @@ unless it fits the target repo.
 
 ## Template constant without `{}` (prose-only constant)
 
-**When:** A `private static final String MESSAGE_X = "…{}…"` is still used as an SLF4J template. User chooses **keep
+**When:** A `private static final String SHARED_TEMPLATE = "…{}…"` is still used as an SLF4J template. User chooses **keep
 constant, remove placeholders**.
 
 _Constant shape:_ fixed prose, no `{}`.
@@ -164,7 +165,7 @@ _Call site shape:_
 
 ```java
 log.atLevel()
-        .setMessage(MESSAGE_X)
+        .setMessage(SHARED_TEMPLATE)
         .addKeyValue("semantic_a", varA)    // one field per former placeholder
         .addKeyValue("semantic_b", varB)
         .log();
@@ -183,15 +184,18 @@ Do not parse `getMessage()` into invented fields.
 
 ---
 
-## Go: drop-`f` with residual printf args
+## Go: drop-`f` / printf still burying diagnostics
 
-**When:** `log.Errorf` / `log.Infof` / … was rewritten to `log.Error` / `log.Info` but the call still printf-interpolates
-diagnostics (`%v`, `%d`, …) and often embeds `key=value` in the format string.
+**When:** Diagnostics remain inside the log string — either residual printf on `log.Info`/`Error`, or a
+`fmt.Sprintf` / string build followed by `log.X("%s", msg)`.
 
-**Incomplete (do not ship as migrated):**
+**Incomplete (goal unmet — do not ship as migrated):**
 
 ```go
 log.Error("operation failed key=%v error=%v", key, err)
+
+msg := fmt.Sprintf("operation failed key=%s error=%s", key, err)
+log.Error("%s", msg)
 ```
 
 **Prefer** — first-class fields (`WithFields`) when available; else a repo helper:
@@ -202,7 +206,7 @@ log.Error(logfields.Err("operation failed", err, "resource_key", key))
 log.ErrorC(ctx, "%s", logfields.Err("operation failed", err, "resource_key", key))
 ```
 
-A single `"%s"` wrapper around the helper is OK. Additional `%v`/`%d` args for diagnostics are not.
+A single `"%s"` wrapper around the **helper** is OK. Pre-baking diagnostics into `msg` then logging `"%s"` is not.
 Details: [go-qubership-lib.md](go-qubership-lib.md).
 
 ---

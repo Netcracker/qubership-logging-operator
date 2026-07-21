@@ -2,9 +2,11 @@
 
 **Prerequisite:** Stage 1 JSON envelope (`qubership-ndjson-logging-enable`) or equivalent repo config.
 
-Pattern-count gates alone are **not sufficient**. A migration is complete only when **build gates**, **integrity gates**,
-**pattern gates**, and **semantic quality gates** all pass (or each failure is explicitly `blocked` with a concrete
-reason).
+**Goal first:** operators can filter on top-level JSON fields with a readable `message` (see [SKILL.md](../SKILL.md)
+§ Goal). Pattern greps are **smell checks** — necessary evidence that candidates remain, **not** the win condition.
+A migration is complete only when **build**, **integrity**, **pattern smells**, and **semantic quality** gates pass and
+smoke shows queryable fields (or each failure is explicitly `blocked` with a concrete reason). Clean greps with
+diagnostics still only inside `message` is **not** done.
 
 Lessons from pilot migrations: bulk Java codemods can drive `{}` greps to zero while leaving **non-compiling** code, **deleted
 endpoints**, and **unusable `arg0` field keys**.
@@ -13,9 +15,9 @@ endpoints**, and **unusable `arg0` field keys**.
 
 1. **Build** — compile/test per runtime component
 2. **Integrity** — no accidental method/endpoint deletion; imports still resolve
-3. **Pattern** — zero unaccounted formatted/variable-message calls in production scope
-4. **Semantic quality** — field names, throwables, messages, duplicate keys
-5. **Smoke** — realistic startup emits valid NDJSON (see [smoke-validation.md](smoke-validation.md))
+3. **Pattern smells** — zero unaccounted formatted/variable-message candidates in production scope
+4. **Semantic quality** — field names, throwables, messages, duplicate keys (goal: queryable fields)
+5. **Smoke** — realistic startup emits valid NDJSON with diagnostic keys at top level (see [smoke-validation.md](smoke-validation.md))
 
 Do not claim completion if an earlier gate failed unless the failure is recorded as `blocked` and unrelated work is still
 valid.
@@ -94,8 +96,9 @@ Record **before/after counts** in the migration report.
 **Misleading zero (Go):** `log.*f` → 0 while `log.Error("… key=%v …", key, err)` remains is **not** done — see
 [go-qubership-lib.md](go-qubership-lib.md).
 
-**Misleading zero (Java):** `{}` in a **shared constant** (e.g. `MESSAGE_TEMPLATE`) still templates at runtime — **stop and ask
-the user immediately** per [user-decisions.md](user-decisions.md); do not treat grep zero as fully structured.
+**Misleading zero (Java):** `{}` in a **shared string constant** still templates at runtime — **stop and ask
+the user immediately** per [user-decisions.md](user-decisions.md); do not treat same-line `{}` grep zero as fully
+structured.
 
 **Misleading zero (Java text blocks):** same-line `{}` grep → 0 while `log.info(""" … {} … """)` remains is **not** done —
 inventory text-block opens and open each hit.
@@ -214,4 +217,5 @@ See [go-qubership-lib.md](go-qubership-lib.md). Minimum gates:
 
 Migration is **not complete** while any **blocking** row is FAIL or PARTIAL without a concrete `blocked` reason.
 Do not mark a component `migrated` in the coverage ledger while any gate for that component is FAIL/PARTIAL — see
-[migration-report-template.md](migration-report-template.md) § Status rules.
+[migration-report-template.md](migration-report-template.md) § Status rules. Pattern smells cleared without queryable
+top-level fields still fail the goal ([SKILL.md](../SKILL.md)).

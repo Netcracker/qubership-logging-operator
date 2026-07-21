@@ -45,6 +45,9 @@ the PR description instead.
 polish). Prefer `in-progress` and list the follow-up (e.g. “polish 200 `_get_` keys”). Smoke may stay BLOCKED without a
 cluster; that alone does not force `migrated` if other gates are incomplete.
 
+**Greps clean ≠ migrated** if diagnostics are still only inside `message` (unqueryable) — see [SKILL.md](../SKILL.md)
+§ Goal.
+
 ## Completion gates
 
 Run manual greps and builds from [completion-gates.md](completion-gates.md) per component.

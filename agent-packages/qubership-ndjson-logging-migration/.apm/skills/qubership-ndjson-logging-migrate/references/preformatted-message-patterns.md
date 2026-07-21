@@ -39,8 +39,8 @@ grep -rnE 'log\.(info|debug|warn|error|trace)\(\s*[^"'\''{]' --include='*.java' 
 grep -rnE 'log\.(warn|error)\((message|msg|errorMsg|aggregatedError|warn)' --include='*.java' .
 grep -rnE '\.getMessage\(\)' --include='*.java' src/main/java | grep -E 'log\.(info|debug|warn|error)'
 
-# Shared {} template constants (misleading zero — ask immediately; see user-decisions.md)
-grep -rnE 'WARNING_MESSAGE|MESSAGE_[A-Z_]+\s*=\s*".*\{}' --include='*.java' src/main/java
+# Shared string constants that still contain SLF4J {} (misleading zero — ask immediately; see user-decisions.md)
+grep -rnE 'String\s+[A-Z][A-Z0-9_]*\s*=\s*"[^"]*\{\}' --include='*.java' src/main/java
 ```
 
 ## Python

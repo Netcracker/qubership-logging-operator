@@ -2,6 +2,11 @@
 
 Read when the target uses `go.mod`, qubership-core-lib-go `logging`, logrus, zap, slog, zerolog, or controller-runtime `logr`.
 
+## Goal
+
+NDJSON lines must expose diagnostics as **top-level JSON keys** operators can filter on. A readable `message` alone is
+not enough. Prefer APIs/helpers that attach fields; do not rearrange printf only so greps go quiet.
+
 ## Infrastructure
 
 - Install NDJSON formatter via `logging.SetLogFormat` or existing repo pattern.
@@ -24,17 +29,20 @@ Use the highest option the repo already supports:
 
 Avoid encoding structured data only in the message string when a first-class API or repo helper exists.
 
-### Incomplete — do not claim done
+### Incomplete — goal unmet (do not claim done)
 
-Dropping the `f` while keeping printf args and `key=value` inside the format string is **not** a migration:
+These may silence greps but leave diagnostics unqueryable:
 
 ```go
-// Incomplete (still printf diagnostics in the format string)
+// Incomplete — printf diagnostics in the format string
 log.Error("operation failed key=%v error=%v", key, err)
+
+// Incomplete — dodge: format first, then log "%s" (greps miss this; fields still only in message)
+msg := fmt.Sprintf("operation failed key=%s error=%s", key, err)
+log.Error("%s", msg)
 ```
 
-That still fails the residual-verb self-check even when `log.*f` is zero. Zero `log.*f` alone is necessary, not
-sufficient.
+Zero `log.*f` / clean residual-verb greps are **smells cleared**, not proof the goal is met.
 
 ### Prefer — repo helper (message-string logger)
 
@@ -56,9 +64,9 @@ is used:
 
 ## logrus pattern
 
-Migrate `log.*f(` to literal message + `WithFields` / `WithField`. Production scope must reach **zero active `log.*f`**
-and **zero residual diagnostic format verbs** on non-`f` methods (see [SKILL.md](../SKILL.md) self-check).
-Exclude `_test.go`, `dev/`, commented lines.
+Migrate `log.*f(` to literal message + `WithFields` / `WithField`. Residual `log.*f` and diagnostic format verbs on
+non-`f` methods are smell checks (see [SKILL.md](../SKILL.md)) — clear them by attaching real fields, not by
+pre-formatting strings. Exclude `_test.go`, `dev/`, commented lines.
 
 ## logr / controller-runtime
 
@@ -71,4 +79,4 @@ Map key-value pairs to structured fields in the adapter — do not concatenate t
 ## Smoke
 
 Capture one stdout line and confirm it parses as JSON with `time`, `level`, `message`, and expected diagnostic keys at
-top level (not only buried in `message`).
+**top level** (not only buried in `message`).

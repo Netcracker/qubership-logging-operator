@@ -1,0 +1,4 @@
+name: troubleshoot-logging
+version: 1.0.0
+description: Diagnose installation, configuration, and runtime failures involving Qubership Logging Operator (Logging Operator, logging-operator, qubership-logging-operator, Logging Service, Logging stack, LoggingService) or its components (operator, LoggingService, Graylog, OpenSearch, MongoDB, FluentD, FluentBit, FluentBit forwarder and aggregator, events-reader, auth proxy, ConfigMap reloader, monitoring resources, and log outputs) from a support ticket, pasted problem description, or attached evidence, with no live system access.
+author: Qubership

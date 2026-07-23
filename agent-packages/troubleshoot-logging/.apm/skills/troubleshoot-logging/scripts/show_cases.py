@@ -10,7 +10,7 @@ if len(sys.argv) == 2:
     for index, line in enumerate(lines):
         if line == "**Symptoms:**":
             end = lines.index("**Root cause:**", index)
-            print("\n".join(lines[index - 2 : end]))
+            print("\n".join(lines[index - 2:end]))
 else:
     start = lines.index("### " + sys.argv[2])
     end = start + 1

@@ -78,6 +78,7 @@ Map key-value pairs to structured fields in the adapter — do not concatenate t
 ## Build gate
 
 `GOWORK=off go build ./...` and relevant `go test` for touched packages before claiming done.
+Run `gofmt -w` (or the repo’s format step) on touched files so structured rewrites keep valid Go indentation.
 
 ## Smoke
 

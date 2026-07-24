@@ -24,10 +24,70 @@ decision in `.ndjson-migration-report.md`.
 | User choice | This file |
 | ----------- | --------- |
 | **Structure at logging boundary** | § Split log vs API text, § Conditional message |
+| **Composed path / URL (or ask)** | § Composed path or URL |
+| **Fixed allowed values in message** | § Fixed allowed values |
 | **Partial fluent helper for mappers** | § Partial fluent helper |
 | **Prose-only constant** | § Template constant without `{}` |
 | **Prose-only / no change** | § `getMessage()` only at log site |
 | **Throw-only exception** | § Throw vs log+return |
+
+---
+
+## Composed path or URL
+
+**When:** Placeholders build one path / URL / similar composed string (segments joined in the template), not independent
+filter keys.
+
+**Rule:** Preserve the original event meaning. Prefer the **whole** string in `message` and/or one field. Do **not**
+rename the event or split path segments into separate fields unless each segment is independently useful to filter on —
+if unsure, ask ([user-decisions.md](user-decisions.md) § Ambiguous meaning or field extraction).
+
+_Before shape:_
+
+```java
+log.debug("…prose… {}/…/{}/…/{}", varA, varB, varC);
+```
+
+_After shape (default):_
+
+```java
+String composed = String.format("%s/…/%s/…/%s", varA, varB, varC);
+log.atDebug()
+        .setMessage("…same prose… " + composed)   // same intent as before
+        .addKeyValue("semantic_composed", composed)
+        .log();
+```
+
+(Or shorter fixed prose + one `semantic_composed` field — still the same intent; do not invent a different outcome.)
+
+---
+
+## Fixed allowed values
+
+**When:** A template mixes one runtime diagnostic with fixed literals / enums that only name allowed values
+(`Only {}, {} or {}`, `expected {}`, etc.).
+
+**Rule:** Extract the **event-varying** value(s) as fields. Keep allowed constants in the **message** via format/concat
+(so renames/`toString` stay correct) — do **not** add a field per constant.
+
+_Before shape:_
+
+```java
+log.error("… invalid status={}. Only {}, {} or {} …", status, EnumA.A, EnumA.B, EnumA.C);
+```
+
+_After shape:_
+
+```java
+log.atError()
+        .setMessage(String.format("… invalid status. Only %s, %s or %s …", EnumA.A, EnumA.B, EnumA.C))
+        .addKeyValue("status", status)
+        .log();
+```
+
+**Not:** `.addKeyValue("a_status", EnumA.A).addKeyValue("b_status", EnumA.B)…` — those keys never vary and are not useful
+filters. Prefer `String.format` / concat with the constants over hard-coding `"A, B or C"` in the string. Name the
+event field from message semantics (`status`, not a wrong noun like the surrounding entity type alone).
 
 ---
 
@@ -63,8 +123,12 @@ consumer.accept(msg);   // unchanged
 | `msg` / `message` variable and consumer | **Unchanged** |
 | Log | Fluent API + semantic `addKeyValue` |
 
-Use a **short fixed `setMessage` only when** it does not replace conditional or formatted text the original log emitted.
-When in doubt, use `.setMessage(msg)` with the same variable the consumer uses.
+**Incomplete:** `log.atError().setMessage(msg).log()` with **no** `addKeyValue` — cosmetics only; diagnostics still only
+in `message`. Always add fields from variables in scope (here: whatever was formatted into `msg`).
+
+Use a **short fixed `setMessage` only when** it does not replace conditional or formatted text the original log emitted
+**and** those diagnostics are also attached as fields. When `msg` is shared with a consumer, keep `.setMessage(msg)` and
+still add the fields.
 
 ---
 

@@ -39,6 +39,32 @@ When structured data lives in `fmt.Errorf`, wrapped exceptions, or other values 
 
 Example: `fmt.Errorf("error opening config file %v : %+v", path, err)` — do not silently redesign the return shape.
 
+## Ambiguous meaning or field extraction
+
+Preserve **what the log meant** while extracting **independently useful** fields. When that trade-off is unclear,
+**stop and ask** — do not invent a new summary or over-split a composed value.
+
+Typical triggers (non-exhaustive):
+
+- Placeholders assemble one URL / path / query / template (`…/{}/{}/…`) — operators usually need the **whole** string,
+  not each segment as its own field.
+- Some `{}` args are **fixed** allowed values (enums / literals); only the runtime value is a useful field.
+- Unclear whether a value is a filter key vs prose-only detail.
+- Extracting fields would force a shorter/different `message` that changes the event meaning.
+- Several reasonable field layouts; none is obviously correct from the call site alone.
+
+1. Show the original call (one example) and 2–3 concrete options (e.g. keep full composed string in `message` + optional
+   single field; or also extract a true id field; or prose-only / no change).
+2. Wait for the user (or a stated repo-wide policy). Record the decision in the report.
+3. Do not change level or invent failure/success wording the original line did not express.
+
+Defaults when the case is clear:
+
+- **Composed path/URL:** build the full string once; keep meaning in `message`; add at most one field for the whole
+  string. See [pattern-recipes.md](pattern-recipes.md) § Composed path or URL.
+- **Fixed allowed values:** extract only the runtime diagnostic; keep allowed constants in `message` via
+  format/concat (not as fields). See [pattern-recipes.md](pattern-recipes.md) § Fixed allowed values.
+
 ## Logged preformatted messages
 
 Search patterns: [preformatted-message-patterns.md](preformatted-message-patterns.md).

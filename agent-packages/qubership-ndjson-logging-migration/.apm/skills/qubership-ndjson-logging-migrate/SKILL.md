@@ -20,17 +20,20 @@ stage 1 first or record config gaps in the report.
 Operators must **filter and aggregate** on stable top-level JSON keys (`resource_id`, `error`, `namespace`, …), not by
 parsing prose inside `message`. Each event should still read as a clear human summary.
 
-- **Win:** diagnostic values are named JSON fields; `message` says what happened; correlation
-  (`request_id`, `tenant_id`, trace/span, `logType`) stays intact.
+- **Win:** diagnostic values that are useful to filter on become named JSON fields; **`message` keeps the same meaning**
+  as before (what happened); correlation (`request_id`, `tenant_id`, trace/span, `logType`) stays intact.
 - **Lose:** rearranging call sites only so inventory greps go to zero while diagnostics remain buried in `message` —
   including `fmt.Sprintf(…)` / string build then `log.X("%s", msg)`, or drop-`f` with `key=%v` still in the format string.
+- **Also lose:** changing what the log says (wrong level summary, invented failure text) or splitting a composed value
+  (URL/path/query) into path segments when operators need the whole string.
 
 Greps and gates are **smell checks** that the goal may be unmet. Clean greps alone never mean `migrated`.
 
 ## Hard rules (read before any edit)
 
 1. **Serve the goal** — every edit should make diagnostics queryable as fields (or record an explicit no-action / blocked
-   reason). Do not ship cosmetic rewrites that only silence greps.
+   reason). Do not ship cosmetic rewrites (`log.error(msg)` → `log.atError().setMessage(msg).log()` with no fields, or
+   greps-only dodges).
 2. **Placement probe before bulk migrate** — for **every** stack/language component, prove the intended event-field API
    yields **top-level** JSON keys before rewriting call sites. See [placement-probe.md](references/placement-probe.md).
    On FAIL: stop and ask ([user-decisions.md](references/user-decisions.md) § Event-field placement unsupported) — do
@@ -43,14 +46,19 @@ Greps and gates are **smell checks** that the goal may be unmet. Clean greps alo
    alone are insufficient if the placement probe FAIL (bridge/formatter gap).
 5. **Go fields** — prefer a real field API or repo helper so keys appear at JSON top level — see
    [go-qubership-lib.md](references/go-qubership-lib.md). Still require a placement probe.
-6. **Stop and ask** on shared `{}` template constants, logged preformatted messages, and placement-probe FAIL — do not
-   guess. Choices: [user-decisions.md](references/user-decisions.md). After confirmation, shapes:
+6. **Stop and ask** on shared `{}` template constants, logged preformatted messages, placement-probe FAIL, and
+   **ambiguous meaning / field splits** (composed URL/path, unclear what to extract) — do not guess. Choices:
+   [user-decisions.md](references/user-decisions.md). After confirmation, shapes:
    [pattern-recipes.md](references/pattern-recipes.md).
-7. **API / throw text** — when a string is also used for `Response.entity`, DTO error fields, or exception detail, keep
+7. **Preserve log meaning** — keep the same event intent and a faithful `message`. Extract only values useful to filter
+   on alone (not fixed allowed-value enums/literals; not over-split path segments). When unsure → stop and ask (§ above).
+8. **API / throw text** — when a string is also used for `Response.entity`, DTO error fields, or exception detail, keep
    that string unchanged; structure **only** the log line (same variable in `setMessage` when message is conditional).
-8. **Do not claim done** while the goal is unmet: diagnostics still only in `message`, open user-decision rows,
+9. **Do not claim done** while the goal is unmet: diagnostics still only in `message`, open user-decision rows,
    placement probe FAIL, `StructuredLog` / templating constants, or any completion gate FAIL/PARTIAL — see
    [migration-report-template.md](references/migration-report-template.md) § Status rules.
+10. **Preserve indentation** — match surrounding indent; no padding after `->` when expanding one-liners. Broken
+    whitespace that fails checkstyle / spotless / gofmt is a gate failure — [java-quarkus.md](references/java-quarkus.md).
 
 ## Reference map
 

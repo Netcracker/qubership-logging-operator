@@ -10,6 +10,8 @@ Keep this file short. Unique pitfalls and open validation items — not a second
 | Placement probe | [placement-probe.md](placement-probe.md) |
 | User decisions | [user-decisions.md](user-decisions.md) |
 | Confirmed transformation shapes | [pattern-recipes.md](pattern-recipes.md) |
+| Ambiguous meaning / field splits | [user-decisions.md](user-decisions.md) § Ambiguous meaning |
+| Fixed allowed values vs event fields | [pattern-recipes.md](pattern-recipes.md) § Fixed allowed values |
 | Gates | [completion-gates.md](completion-gates.md) |
 | Java / Go call patterns | [java-quarkus.md](java-quarkus.md), [go-qubership-lib.md](go-qubership-lib.md) |
 

@@ -80,6 +80,11 @@ grep -rn '""" [^"]' --include='*.java' src/main/java | grep -E 'log\.(at|info|de
 - Exception mappers must still call the same `buildResponse(...)` overloads with the same suppliers/builders.
 - Do not reduce `buildResponse(status)` to a single-arg form when only two-arg overloads exist.
 
+### 2.5 Indentation and formatting
+
+Match surrounding indent; fluent chain columns consistent; no padding after `->` when expanding one-liners. Run the
+repo formatter / checkstyle if present. Details: [java-quarkus.md](java-quarkus.md) (Indentation practice).
+
 ---
 
 ## 3. Pattern gates (necessary, not sufficient)
@@ -138,14 +143,19 @@ names before claiming done. Spot-check alone is not enough after a bulk codemod.
 
 Same rule for Go: semantic names + spot-check. See [user-decisions.md](user-decisions.md) § Semantic field names.
 
-### 4.2 No duplicate keys in one log call
+### 4.2 Extract only event-varying fields; no duplicate keys
 
-Fluent API: repeating `addKeyValue("status", …)` twice in one chain **overwrites** the earlier value. Review every
-multi-field migration manually.
+**Fields:** extract values that **vary per event** and are useful to filter on. Fixed literals / enum constants that only
+list allowed values stay in **`message`** (format/concat with the constants) — do not turn them into
+`completed_status` / `failed_status`-style fields.
 
-**Bad:** `.addKeyValue("status", COMPLETED).addKeyValue("status", FAILED)`  
-**Good:** `.addKeyValue("completed_status", COMPLETED).addKeyValue("failed_status", FAILED)`
+**Duplicate keys:** repeating `addKeyValue("status", …)` twice in one chain **overwrites** the earlier value. Do not
+“fix” that by inventing parallel keys for fixed constants; keep the constants in `message` instead.
 
+**Bad:** `.addKeyValue("status", status).addKeyValue("completed_status", COMPLETED).addKeyValue("failed_status", FAILED)`  
+**Good:** `.addKeyValue("status", status)` + `String.format(…, COMPLETED, FAILED, …)` in `setMessage`
+
+Review every multi-field migration manually.
 ### 4.3 Throwables preserved
 
 When the original call passed an exception as the final SLF4J argument (`log.error("...", a, b, throwable)`), use
@@ -162,6 +172,11 @@ After extracting fields, `message` must not contain:
 - Empty placeholder holes (`resource=, error=`)
 - Placeholder-only text (`.`)
 
+`message` must also **preserve the original event meaning** (same intent as before migration). Invented summaries,
+over-split URL/path segments, or fields for fixed allowed-value enums fail this gate — see
+[user-decisions.md](user-decisions.md) § Ambiguous meaning and [pattern-recipes.md](pattern-recipes.md) § Fixed allowed
+values.
+
 ### 4.5 Java event fields in JSON (Quarkus / Logback)
 
 Per-log fields must use the SLF4J 2.x fluent API (`addKeyValue`) or encoder structured args — see
@@ -172,6 +187,8 @@ Per-log fields must use the SLF4J 2.x fluent API (`addKeyValue`) or encoder stru
 - Capture one runtime JSON line and verify `addKeyValue` fields appear at the **top level**.
 - Correlation fields (`request_id`, `tenant_id`) may still use request-scoped MDC + `%X{...}` in config — that is
   expected.
+- Diff smell: `setMessage(msg).log()` with no `addKeyValue` while `msg` was built from diagnostics — **incomplete**
+  (same as pre-migration for operators).
 - **Manual review (diff):** no new `StructuredLog`-style helper and no new per-call `MDC.put` for event fields.
   Request-scoped MDC in filters/interceptors is OK.
 

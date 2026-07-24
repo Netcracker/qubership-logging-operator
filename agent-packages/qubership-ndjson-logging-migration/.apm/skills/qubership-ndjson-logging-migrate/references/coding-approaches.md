@@ -21,7 +21,7 @@ changed call site still gets semantic review.
 | Script + review | Large homogeneous one-line `log.info("...", a, b)` in services                |
 | Script-only     | Never — if the diff could delete methods or break annotations, review by hand |
 
-After each batch: `mvn compile` or `go build` → **review diff field names** → spot-check 5–10 call sites →
+After each batch: `mvn compile` or `go build` → **review diff field names + indentation** → spot-check 5–10 call sites →
 `_get_`/`_stream_`/`argN` greps (blocking residue) → throwables sweep → text-block inventory.
 
 Java event-field rules (fluent API, no per-call MDC): [java-quarkus.md](java-quarkus.md). Confirmed shapes after user
@@ -40,18 +40,27 @@ choice: [pattern-recipes.md](pattern-recipes.md).
    credentials with exact error, or unsafe API changes.
 6. **Smoke** — one realistic startup/config path with a captured NDJSON line (`time`, `level`, `message` + top-level
    event fields), not unit tests alone.
-6. **Target repo wins** — extend existing logger/config patterns; do not copy another service's stack blindly.
-7. **Report** — write `.ndjson-migration-report.md` in the worktree per
+7. **Target repo wins** — extend existing logger/config patterns; do not copy another service's stack blindly.
+8. **Report** — write `.ndjson-migration-report.md` in the worktree per
    [migration-report-template.md](migration-report-template.md); exclude from product PR unless the team asks for it.
 
 ## Per call site checklist
 
+- [ ] `message` preserves original event meaning (no invented summaries)
+- [ ] Composed URL/path kept whole unless user approved segment fields —
+      [pattern-recipes.md](pattern-recipes.md) § Composed path or URL
+- [ ] Fixed allowed-value enums kept in `message` via format/concat (not separate fields) —
+      [pattern-recipes.md](pattern-recipes.md) § Fixed allowed values
+- [ ] Ambiguous extraction asked — [user-decisions.md](user-decisions.md) § Ambiguous meaning
 - [ ] Semantic `snake_case` field names — [completion-gates.md](completion-gates.md) §4.1
 - [ ] Throwable preserved (`setCause`) when original had one
 - [ ] No duplicate `addKeyValue` key in one fluent chain (Java)
 - [ ] No new per-call MDC / `StructuredLog` helper for event fields (Java)
-- [ ] If user chose structure-at-boundary: consumer text unchanged; `.setMessage(sameVariable)` —
+- [ ] Not a no-op fluent wrap — `setMessage(msg).log()` alone is incomplete; add fields (or record prose-only /
+      blocked) — [pattern-recipes.md](pattern-recipes.md) § Split log vs API text
+- [ ] If user chose structure-at-boundary: consumer text unchanged; `.setMessage(sameVariable)` **and** `addKeyValue` —
       [pattern-recipes.md](pattern-recipes.md)
 - [ ] `message` reads naturally without dangling placeholders
+- [ ] Indentation matches surrounding code (no `->` padding; fluent chain columns consistent)
 - [ ] Level unchanged unless user approved
 - [ ] Non-logging code unchanged (`buildResponse`, endpoints, imports)

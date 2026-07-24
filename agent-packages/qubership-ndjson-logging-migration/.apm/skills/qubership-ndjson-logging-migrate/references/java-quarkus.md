@@ -55,6 +55,8 @@ log.atError()
 - Use `setCause(throwable)` when the original SLF4J call passed an exception — do not put `Throwable` in a field value.
 - `atDebug()` / `atTrace()` are lazy — prefer them over guarded `log.debug(...)` when using the fluent API.
 - Chain multiple `addKeyValue` calls; do not repeat the same key in one event.
+- **Indentation** — match surrounding indent; keep fluent chain columns consistent; no padding after `->` / `(` when
+  expanding a one-liner (lambdas / `.peek`). Prefer braces if the chain is long. Run the repo formatter when present.
 
 **Levels:** `atTrace`, `atDebug`, `atInfo`, `atWarn`, `atError` — match the original level unless user approved a change.
 

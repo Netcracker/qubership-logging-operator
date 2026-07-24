@@ -4,8 +4,8 @@
 
 **Goal first:** operators can filter on top-level JSON fields with a readable `message` (see [SKILL.md](../SKILL.md)
 § Goal). Pattern greps are **smell checks** — necessary evidence that candidates remain, **not** the win condition.
-A migration is complete only when **build**, **integrity**, **pattern smells**, and **semantic quality** gates pass and
-smoke shows queryable fields (or each failure is explicitly `blocked` with a concrete reason). Clean greps with
+A migration is complete only when **build**, **integrity**, **pattern smells**, **semantic quality**, the **review
+pass**, and **smoke** pass (or each failure is explicitly `blocked` with a concrete reason). Clean greps with
 diagnostics still only inside `message` is **not** done.
 
 Lessons from pilot migrations: bulk Java codemods can drive `{}` greps to zero while leaving **non-compiling** code, **deleted
@@ -18,7 +18,8 @@ endpoints**, and **unusable `arg0` field keys**.
 2. **Integrity** — no accidental method/endpoint deletion; imports still resolve
 3. **Pattern smells** — zero unaccounted formatted/variable-message candidates in production scope
 4. **Semantic quality** — field names, throwables, messages, duplicate keys (goal: queryable fields)
-5. **Smoke** — realistic startup emits valid NDJSON with diagnostic keys at top level (see [smoke-validation.md](smoke-validation.md))
+5. **Review pass** — full migrate diff vs hard rules + these gates; fix; re-check ([SKILL.md](../SKILL.md) § Review pass)
+6. **Smoke** — realistic startup emits valid NDJSON with diagnostic keys at top level (see [smoke-validation.md](smoke-validation.md))
 
 Do not claim completion if an earlier gate failed unless the failure is recorded as `blocked` and unrelated work is still
 valid. Do **not** bulk-migrate while placement probe is FAIL without a recorded user decision.
@@ -156,6 +157,7 @@ list allowed values stay in **`message`** (format/concat with the constants) —
 **Good:** `.addKeyValue("status", status)` + `String.format(…, COMPLETED, FAILED, …)` in `setMessage`
 
 Review every multi-field migration manually.
+
 ### 4.3 Throwables preserved
 
 When the original call passed an exception as the final SLF4J argument (`log.error("...", a, b, throwable)`), use
@@ -235,6 +237,7 @@ See [go-qubership-lib.md](go-qubership-lib.md). Minimum gates:
 | Go residual printf | SKILL self-check residual verbs | N | 0 | |
 | Throwables | manual sweep | N dropped | N fixed | |
 | Integrity | git diff review | — | no stray deletions | |
+| Review pass | SKILL.md § Review pass — fix + re-check | — | done | |
 | Smoke NDJSON | see smoke-validation.md | — | OK | |
 ```
 

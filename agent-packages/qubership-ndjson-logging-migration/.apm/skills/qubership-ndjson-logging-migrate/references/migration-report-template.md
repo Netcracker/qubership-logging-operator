@@ -36,13 +36,13 @@ the PR description instead.
 
 | Status | When allowed |
 | ------ | ------------ |
-| **migrated** | All gates for that component are PASS (or smoke BLOCKED with a concrete env reason **and** every other gate PASS, including placement probe PASS). |
-| **in-progress** | Work underway; any gate FAIL/PARTIAL, open user-decision rows (including placement), or polish follow-up remaining. |
+| **migrated** | All gates for that component are PASS (or smoke BLOCKED with a concrete env reason **and** every other gate PASS, including placement probe PASS and **review pass** finished). |
+| **in-progress** | Work underway; any gate FAIL/PARTIAL, open user-decision rows (including placement), review pass not done, or polish follow-up remaining. |
 | **blocked** | Cannot proceed (auth, missing cluster, placement probe FAIL awaiting user choice, unsafe API change) — record exact error. |
 | **pending** | Not started. |
 
 **Do not** mark a component `migrated` while any completion-gate row is **FAIL** or **PARTIAL** (including field-name
-polish or **placement probe**). Prefer `in-progress` and list the follow-up (e.g. “polish 200 `_get_` keys”). Smoke may
+polish, **placement probe**, or **review pass** skipped). Prefer `in-progress` and list the follow-up (e.g. “polish 200 `_get_` keys”). Smoke may
 stay BLOCKED without a cluster; that alone does not force `migrated` if other gates are incomplete.
 
 **Greps clean ≠ migrated** if diagnostics are still only inside `message` (unqueryable) — see [SKILL.md](../SKILL.md)
@@ -63,6 +63,7 @@ Run manual greps and builds from [completion-gates.md](completion-gates.md) per 
 | Go residual printf | SKILL self-check residual verbs | | 0 | |
 | Throwables | manual sweep | | fixed | |
 | Integrity | git diff review | | no stray deletions | |
+| Review pass | SKILL.md § Review pass — fix + re-check | | done (note fixes) | |
 | Smoke NDJSON | captured stdout line → JSON with time/level/message + top-level event fields | | OK / BLOCKED | |
 
 ## User decision — event-field placement

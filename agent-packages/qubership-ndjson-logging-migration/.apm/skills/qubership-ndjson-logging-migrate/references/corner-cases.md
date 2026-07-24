@@ -13,6 +13,7 @@ Keep this file short. Unique pitfalls and open validation items — not a second
 | Ambiguous meaning / field splits | [user-decisions.md](user-decisions.md) § Ambiguous meaning |
 | Fixed allowed values vs event fields | [pattern-recipes.md](pattern-recipes.md) § Fixed allowed values |
 | Gates | [completion-gates.md](completion-gates.md) |
+| Review pass (before migrated) | [SKILL.md](../SKILL.md) § Review pass |
 | Java / Go call patterns | [java-quarkus.md](java-quarkus.md), [go-qubership-lib.md](go-qubership-lib.md) |
 
 ## Known from logging docs and fixtures

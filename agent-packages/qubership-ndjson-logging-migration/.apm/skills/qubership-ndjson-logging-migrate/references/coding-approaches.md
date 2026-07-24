@@ -35,7 +35,8 @@ choice: [pattern-recipes.md](pattern-recipes.md).
 3. **Call sites + config** — JSON formatter and `LOG_FORMAT` Helm wiring are necessary but not sufficient; migrate
    formatted log calls in production sources only after placement PASS (or explicit user defer).
 4. **Gates, not grep alone** — grepping `{}` to zero while Java does not compile is incomplete; run
-   [completion-gates.md](completion-gates.md) in full (and SKILL.md self-check).
+   [completion-gates.md](completion-gates.md) in full, then the **review pass** ([SKILL.md](../SKILL.md) § Review pass)
+   before marking `migrated`.
 5. **`blocked` sparingly** — large/noisy work is batched and continued; `blocked` is for user decisions, missing
    credentials with exact error, or unsafe API changes.
 6. **Smoke** — one realistic startup/config path with a captured NDJSON line (`time`, `level`, `message` + top-level
@@ -43,6 +44,7 @@ choice: [pattern-recipes.md](pattern-recipes.md).
 7. **Target repo wins** — extend existing logger/config patterns; do not copy another service's stack blindly.
 8. **Report** — write `.ndjson-migration-report.md` in the worktree per
    [migration-report-template.md](migration-report-template.md); exclude from product PR unless the team asks for it.
+   Note that the review pass ran.
 
 ## Per call site checklist
 

@@ -55,8 +55,8 @@ Greps and gates are **smell checks** that the goal may be unmet. Clean greps alo
 8. **API / throw text** — when a string is also used for `Response.entity`, DTO error fields, or exception detail, keep
    that string unchanged; structure **only** the log line (same variable in `setMessage` when message is conditional).
 9. **Do not claim done** while the goal is unmet: diagnostics still only in `message`, open user-decision rows,
-   placement probe FAIL, `StructuredLog` / templating constants, or any completion gate FAIL/PARTIAL — see
-   [migration-report-template.md](references/migration-report-template.md) § Status rules.
+   placement probe FAIL, `StructuredLog` / templating constants, any completion gate FAIL/PARTIAL, or the **review
+   pass** not finished — see [migration-report-template.md](references/migration-report-template.md) § Status rules.
 10. **Preserve indentation** — match surrounding indent; no padding after `->` when expanding one-liners. Broken
     whitespace that fails checkstyle / spotless / gofmt is a gate failure — [java-quarkus.md](references/java-quarkus.md).
 
@@ -71,7 +71,7 @@ Greps and gates are **smell checks** that the goal may be unmet. Clean greps alo
 | Stack implementation | [java-quarkus.md](references/java-quarkus.md) or [go-qubership-lib.md](references/go-qubership-lib.md) |
 | Cross-cutting rules  | [coding-approaches.md](references/coding-approaches.md)                                                |
 | Field naming contract | [schema.md](references/schema.md) — when mapping fields                                                |
-| Before claiming done | [completion-gates.md](references/completion-gates.md)                                                  |
+| Before claiming done | [completion-gates.md](references/completion-gates.md) + § Review pass (below)                          |
 | Report               | [migration-report-template.md](references/migration-report-template.md)                                |
 | Smoke                | [smoke-validation.md](references/smoke-validation.md)                                                  |
 | Pitfalls             | [corner-cases.md](references/corner-cases.md)                                                          |
@@ -95,11 +95,13 @@ Greps and gates are **smell checks** that the goal may be unmet. Clean greps alo
    greps shrank.
 10. **Re-inventory** — no unaccounted formatted / preformatted / text-block / residual-printf candidates.
 11. **Smell checks** (below) then full [completion-gates.md](references/completion-gates.md).
-12. **Smoke** — [smoke-validation.md](references/smoke-validation.md); confirm diagnostic keys at JSON top level
+12. **Review pass (blocking)** — see § Review pass below. Do **not** write the report or mark `migrated` until this
+    finishes (or remaining hits are explicitly `blocked` / user-decision).
+13. **Smoke** — [smoke-validation.md](references/smoke-validation.md); confirm diagnostic keys at JSON top level
     (placement probe criterion again on a real migrated line).
-13. **Write report** — stage = `migrate`; status rules in
+14. **Write report** — stage = `migrate`; status rules in
     [migration-report-template.md](references/migration-report-template.md); exclude from product PR unless requested.
-14. **Propose skill updates** in the APM package source, not `.agents/skills` copies.
+15. **Propose skill updates** in the APM package source, not `.agents/skills` copies.
 
 ## Smell checks (before claiming done)
 
@@ -137,6 +139,20 @@ grep -rnE 'log\.(Trace|Debug|Info|Warn|Error|Fatal|Panic)(C)?\(.*%[vTdoxXefg]' -
 Then run [completion-gates.md](references/completion-gates.md). Semantic + smoke gates decide `migrated`, not pattern
 counts alone — see [go-qubership-lib.md](references/go-qubership-lib.md) and completion-gates §3–§4.1.
 
+## Review pass (blocking)
+
+After smells + completion gates look green, **do not** stop. Greps clean still miss indent breaks, wrong key↔value,
+no-op fluent wraps, and leftover Go printf.
+
+1. **Diff review** — read the full migrate diff for the component (not only grep hits). Judge against existing hard
+   rules and [completion-gates.md](references/completion-gates.md) (especially integrity §2.5, semantic §4). Do not
+   invent a second checklist.
+2. **Fix** clear violations in place (indent, field names, residual format verbs, `setMessage` without fields when
+   diagnostics exist in scope). Stop and ask only for true ambiguities ([user-decisions.md](references/user-decisions.md)).
+3. **Re-check** — re-run smell greps + any gate that the fixes could affect (build / integrity / semantic spot-check).
+4. **One loop** — one review→fix→re-check cycle is required; a second only if the re-check still finds clear defects.
+   Then proceed to smoke and the report. Record in the report that the review pass ran (and what was fixed, briefly).
+
 ## Monorepos
 
 One component at a time; update ledger before stopping.
@@ -144,5 +160,6 @@ One component at a time; update ledger before stopping.
 ## Definition of done
 
 The **goal** is met for each component: placement probe PASS, queryable fields, readable `message`, correlation
-preserved; build/integrity OK; smell checks clean or accounted for; [completion-gates.md](references/completion-gates.md)
-PASS (or blocked with reason). Clean greps without queryable fields is **not** done.
+preserved; build/integrity OK; smell checks clean or accounted for; **review pass** finished;
+[completion-gates.md](references/completion-gates.md) PASS (or blocked with reason). Clean greps without queryable
+fields is **not** done.

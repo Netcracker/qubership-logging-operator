@@ -35,45 +35,7 @@ func newTestHAFluentReconciler() *HAFluentReconciler {
 }
 
 func TestAggregatorHTTPOutputTimestampConfiguration(t *testing.T) {
-	newLoggingService := func(uri, extraParams string) *loggingService.LoggingService {
-		return &loggingService.LoggingService{
-			Spec: loggingService.LoggingServiceSpec{
-				Fluentbit: &loggingService.Fluentbit{
-					Aggregator: &loggingService.FluentbitAggregator{
-						Output: &loggingService.OutputFluentbit{
-							Http: &loggingService.HttpFluentbit{
-								Enabled:     true,
-								Uri:         uri,
-								ExtraParams: extraParams,
-							},
-						},
-					},
-				},
-			},
-		}
-	}
-
-	t.Run("uses the root container timestamp", func(t *testing.T) {
-		configMap, err := aggregatorConfigMap(newLoggingService("", ""), util.DynamicParameters{})
-		if err != nil {
-			t.Fatalf("failed to render aggregator ConfigMap: %v", err)
-		}
-
-		output := configMap.Data["output-http.conf"]
-		if !strings.Contains(output, "_time_field=time") {
-			t.Error("expected the default HTTP URI to use the root time field")
-		}
-		if strings.Contains(output, "ignore_fields=time") {
-			t.Error("did not expect VictoriaLogs ingestion to ignore its configured time field")
-		}
-		if !strings.Contains(output, "_stream_fields=namespace,container") {
-			t.Error("expected the default HTTP URI to use namespace and container stream fields")
-		}
-		if !strings.Contains(output, "json_date_key          false") {
-			t.Error("expected HTTP output not to generate a redundant timestamp field")
-		}
-	})
-
+	t.Run("uses the root container timestamp", testAggregatorDefaultHTTPTimestamp)
 	for name, extraParams := range map[string]string{
 		"custom value": "JSON_DATE_KEY custom_timestamp",
 		"disabled":     "json_date_key false",
@@ -81,45 +43,82 @@ func TestAggregatorHTTPOutputTimestampConfiguration(t *testing.T) {
 		"duplicated":   "json_date_key first\njson_date_key second",
 	} {
 		t.Run("rejects "+name+" json_date_key for the default URI", func(t *testing.T) {
-			_, err := aggregatorConfigMap(newLoggingService("", extraParams), util.DynamicParameters{})
-			if err == nil || !strings.Contains(err.Error(), "must not set json_date_key") {
-				t.Fatalf("expected an operator-managed json_date_key error, got: %v", err)
-			}
+			testAggregatorRejectsDefaultJSONDateKey(t, extraParams)
 		})
 	}
+	t.Run("preserves custom URI timestamp configuration", testAggregatorCustomHTTPTimestamp)
+	t.Run("preserves disabled json_date_key with a custom URI", testAggregatorDisabledCustomJSONDateKey)
+}
 
-	t.Run("preserves custom URI timestamp configuration", func(t *testing.T) {
-		const customURI = "/insert/jsonline?_stream_fields=custom&_msg_field=message&_time_field=date"
-		configMap, err := aggregatorConfigMap(newLoggingService(customURI, "json_date_key date"), util.DynamicParameters{})
-		if err != nil {
-			t.Fatalf("failed to render custom aggregator HTTP output: %v", err)
-		}
+func newAggregatorHTTPTestLoggingService(uri, extraParams string) *loggingService.LoggingService {
+	return &loggingService.LoggingService{
+		Spec: loggingService.LoggingServiceSpec{
+			Fluentbit: &loggingService.Fluentbit{
+				Aggregator: &loggingService.FluentbitAggregator{
+					Output: &loggingService.OutputFluentbit{
+						Http: &loggingService.HttpFluentbit{
+							Enabled:     true,
+							Uri:         uri,
+							ExtraParams: extraParams,
+						},
+					},
+				},
+			},
+		},
+	}
+}
 
-		output := configMap.Data["output-http.conf"]
-		if !strings.Contains(output, "uri                    "+customURI) {
-			t.Error("expected the custom HTTP URI to be preserved")
-		}
-		if !strings.Contains(output, "json_date_key date") {
-			t.Error("expected the custom json_date_key to be preserved")
-		}
-		if strings.Contains(output, "json_date_key          false") {
-			t.Error("did not expect the operator-managed json_date_key with a custom URI")
-		}
-		if strings.Contains(output, "ignore_fields=time") {
-			t.Error("did not expect the operator-managed ignored fields with a custom URI")
-		}
-	})
+func renderAggregatorHTTPOutput(t *testing.T, uri, extraParams string) string {
+	t.Helper()
+	configMap, err := aggregatorConfigMap(newAggregatorHTTPTestLoggingService(uri, extraParams), util.DynamicParameters{})
+	if err != nil {
+		t.Fatalf("failed to render aggregator ConfigMap: %v", err)
+	}
+	return configMap.Data["output-http.conf"]
+}
 
-	t.Run("preserves disabled json_date_key with a custom URI", func(t *testing.T) {
-		const customURI = "/insert/jsonline?_stream_fields=custom&_msg_field=message"
-		configMap, err := aggregatorConfigMap(newLoggingService(customURI, "json_date_key false"), util.DynamicParameters{})
-		if err != nil {
-			t.Fatalf("failed to render disabled custom json_date_key: %v", err)
-		}
-		if !strings.Contains(configMap.Data["output-http.conf"], "json_date_key false") {
-			t.Error("expected the disabled custom json_date_key to be preserved")
-		}
-	})
+func assertAggregatorOutputContains(t *testing.T, output, expected, message string) {
+	t.Helper()
+	if !strings.Contains(output, expected) {
+		t.Error(message)
+	}
+}
+
+func assertAggregatorOutputExcludes(t *testing.T, output, unexpected, message string) {
+	t.Helper()
+	if strings.Contains(output, unexpected) {
+		t.Error(message)
+	}
+}
+
+func testAggregatorDefaultHTTPTimestamp(t *testing.T) {
+	output := renderAggregatorHTTPOutput(t, "", "")
+	assertAggregatorOutputContains(t, output, "_time_field=time", "expected the default HTTP URI to use the root time field")
+	assertAggregatorOutputExcludes(t, output, "ignore_fields=time", "did not expect VictoriaLogs ingestion to ignore its configured time field")
+	assertAggregatorOutputContains(t, output, "_stream_fields=namespace,container", "expected the default HTTP URI to use namespace and container stream fields")
+	assertAggregatorOutputContains(t, output, "json_date_key          false", "expected HTTP output not to generate a redundant timestamp field")
+}
+
+func testAggregatorRejectsDefaultJSONDateKey(t *testing.T, extraParams string) {
+	_, err := aggregatorConfigMap(newAggregatorHTTPTestLoggingService("", extraParams), util.DynamicParameters{})
+	if err == nil || !strings.Contains(err.Error(), "must not set json_date_key") {
+		t.Fatalf("expected an operator-managed json_date_key error, got: %v", err)
+	}
+}
+
+func testAggregatorCustomHTTPTimestamp(t *testing.T) {
+	const customURI = "/insert/jsonline?_stream_fields=custom&_msg_field=message&_time_field=date"
+	output := renderAggregatorHTTPOutput(t, customURI, "json_date_key date")
+	assertAggregatorOutputContains(t, output, "uri                    "+customURI, "expected the custom HTTP URI to be preserved")
+	assertAggregatorOutputContains(t, output, "json_date_key date", "expected the custom json_date_key to be preserved")
+	assertAggregatorOutputExcludes(t, output, "json_date_key          false", "did not expect the operator-managed json_date_key with a custom URI")
+	assertAggregatorOutputExcludes(t, output, "ignore_fields=time", "did not expect the operator-managed ignored fields with a custom URI")
+}
+
+func testAggregatorDisabledCustomJSONDateKey(t *testing.T) {
+	const customURI = "/insert/jsonline?_stream_fields=custom&_msg_field=message"
+	output := renderAggregatorHTTPOutput(t, customURI, "json_date_key false")
+	assertAggregatorOutputContains(t, output, "json_date_key false", "expected the disabled custom json_date_key to be preserved")
 }
 
 func TestHAFluentEqual(t *testing.T) {

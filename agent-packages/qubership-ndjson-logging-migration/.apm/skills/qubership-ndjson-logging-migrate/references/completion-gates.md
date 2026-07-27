@@ -60,16 +60,9 @@ git diff HEAD -- '*.java' | grep '^-.*\(public \|private \|@GET\|@POST\)'
 
 ### 2.2 Java syntax sanity (post-codemod)
 
-These patterns must be **zero** in `src/main/java`:
-
-```bash
-# Illegal single-line text block (opening """ must be followed by newline)
-grep -rn 'log\.at\w\+([^)]*""" [^"]' --include='*.java' src/main/java
-grep -rn '""" [^"]' --include='*.java' src/main/java | grep -E 'log\.(at|info|debug|warn|error)'
-
-# Orphan annotations / broken method stubs (manual review)
-# e.g. @APIResponses without following @GET method body
-```
+Illegal single-line text blocks must be **zero** in `src/main/java` — smell-checks.sh **J7** (and open every **J5**
+hit). Orphan annotations / broken method stubs (e.g. `@APIResponses` without a following `@GET` method body) still
+need manual review — no grep catches them.
 
 ### 2.3 Imports and annotations
 
@@ -90,25 +83,19 @@ repo formatter / checkstyle if present. Details: [java-quarkus.md](java-quarkus.
 
 ## 3. Pattern gates (necessary, not sufficient)
 
-Record **before/after counts** in the migration report.
+Run [scripts/smell-checks.sh](../scripts/smell-checks.sh); record **before/after counts** in the migration report.
+Check meanings: [preformatted-message-patterns.md](preformatted-message-patterns.md).
 
-| Stack               | Production scope check                                                           | Target            |
-| ------------------- | -------------------------------------------------------------------------------- | ----------------- |
-| Go/logrus           | Active `log.*f(` in non-test `.go` (exclude `//` comments, `dev/`, `_test.go`)   | **0**             |
-| Go residual printf  | Non-`f` `log.*(C)?(` with diagnostic `%v`/`%d`/… in the call (see SKILL self-check) | **0**          |
-| Java/SLF4J          | Same-line `log.(info\|…).*\{` **and** text-block `log.*( """` with `{}` inside   | **0**             |
-| Java field polish   | Codemod residue keys (`_get_`, `_stream_`, `e_get_message`, `argN`) — §4.1       | **0** or polish pass done |
-| Logged preformatted | Patterns in [preformatted-message-patterns.md](preformatted-message-patterns.md) | **0** unreviewed  |
+| Stack               | Check                                          | Target                    |
+| ------------------- | ---------------------------------------------- | ------------------------- |
+| Go/logrus           | **G1** — active `log.*f(` in production `.go`  | **0**                     |
+| Go residual printf  | **G2** — diagnostic verbs on non-`f` log calls | **0**                     |
+| Java/SLF4J          | **J2** same-line `{}` **and** **J5** text-block hits opened | **0**        |
+| Java field polish   | **J6a/J6b** — codemod residue keys — §4.1      | **0** or polish pass done |
+| Logged preformatted | **J4/J8/G3** (helper calls are expected hits)  | **0** unreviewed          |
 
-**Misleading zero (Go):** `log.*f` → 0 while `log.Error("… key=%v …", key, err)` remains is **not** done — see
-[go-qubership-lib.md](go-qubership-lib.md).
-
-**Misleading zero (Java):** `{}` in a **shared string constant** still templates at runtime — **stop and ask
-the user immediately** per [user-decisions.md](user-decisions.md); do not treat same-line `{}` grep zero as fully
-structured.
-
-**Misleading zero (Java text blocks):** same-line `{}` grep → 0 while `log.info(""" … {} … """)` remains is **not** done —
-inventory text-block opens and open each hit.
+**Misleading zeros** (Go drop-`f`, Sprintf-then-`%s` dodge, Java shared `{}` constants — **stop and ask**, Java text
+blocks): [preformatted-message-patterns.md](preformatted-message-patterns.md) § Misleading zeros.
 
 ---
 
@@ -132,12 +119,8 @@ Every structured field must use consumer-friendly **`snake_case` derived from me
 1. **Spot-check** 5–10 migrated call sites per batch: original `{}` message → each key matches the semantic label
    (e.g. `resource_id`, not `id` or `arg0`). Also check key↔value (do not name a field `*_address` if the value is an id).
 2. **Review the diff** for `addKeyValue`, `WithField`, `StructuredArguments.kv`, `logfields.Format`.
-3. **Codemod residue greps (blocking until 0 or an explicit polish follow-up is finished):**
-
-```bash
-grep -rnE 'addKeyValue\("[^"]*(_get_|_stream_|e_get_message)' --include='*.java' src/main/java
-grep -rn '"arg[0-9]\+"' --include='*.java' src/main/java
-```
+3. **Codemod residue check** — smell-checks.sh **J6a/J6b** (blocking until 0 or an explicit polish follow-up is
+   finished).
 
 Mark the field-names gate **PARTIAL** (and the component **not** migrated) while these hits remain. Polish to semantic
 names before claiming done. Spot-check alone is not enough after a bulk codemod.
@@ -195,8 +178,8 @@ Per-log fields must use the SLF4J 2.x fluent API (`addKeyValue`) or encoder stru
   Request-scoped MDC in filters/interceptors is OK.
 
 If diagnostic fields appear only under `mdc.*`, the call sites are still MDC-shaped — rework to fluent API.
-If diagnostics are glued into `message` (`DefaultLoggingEventBuilder` / similar), that is placement FAIL — see
-[user-decisions.md](user-decisions.md) § Event-field placement unsupported.
+If diagnostics are glued into `message`, that is placement FAIL ([placement-probe.md](placement-probe.md) § Failure
+signatures) — stop and ask per [user-decisions.md](user-decisions.md) § Event-field placement unsupported.
 
 ### 4.6 Go field APIs / `logfields` / regex formatters
 
@@ -220,26 +203,11 @@ See [go-qubership-lib.md](go-qubership-lib.md). Minimum gates:
 
 ---
 
-## Report template (paste into migration report)
+## Recording results
 
-```markdown
-## Completion gates
-
-| Gate | Command / check | Before | After | PASS |
-|------|-----------------|--------|-------|------|
-| Placement probe | see placement-probe.md | — | top-level probe keys | |
-| Java compile | `mvn -pl ... compile` | — | exit 0 | |
-| Go build | `GOWORK=off go build ./cmd/` | — | exit 0 | |
-| Java `{}` inline | same-line + text-block inventory | N | 0 | |
-| Java field names | spot-check + `_get_`/`_stream_`/`argN` greps | — | OK (0 residue) | |
-| Java event fields | manual: fluent API + JSON top-level; no new MDC wrapper | — | OK | |
-| Go `log.*f` | grep production .go | N | 0 | |
-| Go residual printf | SKILL self-check residual verbs | N | 0 | |
-| Throwables | manual sweep | N dropped | N fixed | |
-| Integrity | git diff review | — | no stray deletions | |
-| Review pass | SKILL.md § Review pass — fix + re-check | — | done | |
-| Smoke NDJSON | see smoke-validation.md | — | OK | |
-```
+Record per-gate before/after results in the migration report — the canonical gate-table skeleton lives in
+[migration-report-template.md](migration-report-template.md) § Completion gates (single home; do not maintain a copy
+here).
 
 Migration is **not complete** while any **blocking** row is FAIL or PARTIAL without a concrete `blocked` reason.
 Do not mark a component `migrated` in the coverage ledger while any gate for that component is FAIL/PARTIAL — see

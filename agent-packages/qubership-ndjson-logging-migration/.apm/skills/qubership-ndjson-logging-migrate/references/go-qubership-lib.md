@@ -68,8 +68,9 @@ is used:
 ## logrus pattern
 
 Migrate `log.*f(` to literal message + `WithFields` / `WithField`. Residual `log.*f` and diagnostic format verbs on
-non-`f` methods are smell checks (see [SKILL.md](../SKILL.md)) — clear them by attaching real fields, not by
-pre-formatting strings. Exclude `_test.go`, `dev/`, commented lines.
+non-`f` methods are smell checks (smell-checks.sh **G1/G2**; misleading zeros:
+[preformatted-message-patterns.md](preformatted-message-patterns.md)) — clear them by attaching real fields, not by
+pre-formatting strings.
 
 ## logr / controller-runtime
 

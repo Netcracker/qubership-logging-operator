@@ -43,12 +43,12 @@ mvn -pl <module> quarkus:dev   # or documented integration smoke
 If Maven compile is blocked (private packages, 401), record under **Blocked validation** with the exact error — **do not
 mark the Java component migrated-complete** and do not claim JVM smoke passed.
 
-**Placement:** one fluent `addKeyValue` line must expose keys at JSON **top level**. If
-`loggerClassName` is `org.slf4j.spi.DefaultLoggingEventBuilder` and keys are glued into `message`, placement FAIL —
+**Placement:** one fluent `addKeyValue` line must expose keys at JSON **top level**. Keys glued into `message` =
+placement FAIL ([placement-probe.md](placement-probe.md) § Failure signatures) —
 [user-decisions.md](user-decisions.md) § Event-field placement unsupported.
 
 After bulk edits, also run [completion-gates.md](completion-gates.md) §4.1 (semantic field-name review + spot-check;
-optional `"arg[0-9]"` grep) and §2.2 (illegal text blocks).
+smell-checks.sh J6a/J6b — blocking) and §2.2 (illegal text blocks — J5/J7).
 
 ## Python
 

@@ -57,10 +57,11 @@ Run manual greps and builds from [completion-gates.md](completion-gates.md) per 
 | Placement probe | see placement-probe.md | | top-level keys / BLOCKED | |
 | Java compile | `mvn -pl <module> compile` | | exit 0 / BLOCKED | |
 | Go build | `GOWORK=off go build ./...` | | exit 0 | |
-| Java `{}` inline | same-line + text-block inventory | | 0 | |
-| Java field names | spot-check + `_get_`/`_stream_`/`argN` greps | | OK (0 residue) | |
-| Go `log.*f` (production) | grep non-test `.go` | | 0 | |
-| Go residual printf | SKILL self-check residual verbs | | 0 | |
+| Java `{}` inline | smell-checks.sh J2 + J5 hits opened | | 0 | |
+| Java field names | spot-check + smell-checks.sh J6a/J6b | | OK (0 residue) | |
+| Java event fields | manual: fluent API + JSON top-level; no new MDC wrapper | | OK | |
+| Go `log.*f` (production) | smell-checks.sh G1 | | 0 | |
+| Go residual printf | smell-checks.sh G2 | | 0 | |
 | Throwables | manual sweep | | fixed | |
 | Integrity | git diff review | | no stray deletions | |
 | Review pass | SKILL.md § Review pass — fix + re-check | | done (note fixes) | |

@@ -78,14 +78,10 @@ One structured call matching the repo convention; confirm top-level keys in NDJS
 
 ## On FAIL — stop
 
-1. Do **not** bulk-migrate call sites for that component.
-2. Ask the user per [user-decisions.md](user-decisions.md) § Event-field placement unsupported:
-   - **Recommended** option + 1–3 sentences of evidence from this probe / local facts
-   - Fixed **alternatives** from that section
-   - Invite **user-provided** approach
-3. Record probe command, sample JSON line (redact secrets), PASS/FAIL, and the user’s choice in the migration report.
-4. Implement placement infra / backend change **only after** the user picks. Then **re-probe** (must PASS) before
-   call-site migration.
+Do **not** bulk-migrate call sites for that component. Follow
+[user-decisions.md](user-decisions.md) § Event-field placement unsupported — it owns the full procedure (probe
+evidence → recommended option + alternatives → wait for the user → implement the choice → **re-probe** until PASS)
+and what to record in the migration report.
 
 ## On PASS
 

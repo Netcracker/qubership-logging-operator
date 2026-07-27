@@ -22,7 +22,8 @@ changed call site still gets semantic review.
 | Script-only     | Never — if the diff could delete methods or break annotations, review by hand |
 
 After each batch: `mvn compile` or `go build` → **review diff field names + indentation** → spot-check 5–10 call sites →
-`_get_`/`_stream_`/`argN` greps (blocking residue) → throwables sweep → text-block inventory.
+run [scripts/smell-checks.sh](../scripts/smell-checks.sh) (residue J6a/J6b blocking; open J5 text-block hits) →
+throwables sweep.
 
 Java event-field rules (fluent API, no per-call MDC): [java-quarkus.md](java-quarkus.md). Confirmed shapes after user
 choice: [pattern-recipes.md](pattern-recipes.md).

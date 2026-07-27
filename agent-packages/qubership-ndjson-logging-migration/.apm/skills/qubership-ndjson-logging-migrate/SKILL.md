@@ -38,8 +38,8 @@ Greps and gates are **smell checks** that the goal may be unmet. Clean greps alo
    yields **top-level** JSON keys before rewriting call sites. See [placement-probe.md](references/placement-probe.md).
    On FAIL: stop and ask ([user-decisions.md](references/user-decisions.md) § Event-field placement unsupported) — do
    **not** guess or implement a placement fix until the user chooses (recommended + alternatives + user-provided).
-3. **Inventory first** — find work via [preformatted-message-patterns.md](references/preformatted-message-patterns.md)
-   (shared `{}` constants, preformatted logs, text blocks, Go `log.*f` / residual printf). Inventory finds candidates;
+3. **Inventory first** — run [scripts/smell-checks.sh](scripts/smell-checks.sh); check meanings in
+   [preformatted-message-patterns.md](references/preformatted-message-patterns.md). Inventory finds candidates;
    the goal decides what “fixed” means.
 4. **Java event fields** — SLF4J 2.x fluent API (`addKeyValue`) so event data lands in JSON for search. Never add
    `StructuredLog` or per-call `MDC.put` for event data. Request-scoped MDC in filters stays as-is. Fluent call sites
@@ -57,15 +57,15 @@ Greps and gates are **smell checks** that the goal may be unmet. Clean greps alo
 9. **Do not claim done** while the goal is unmet: diagnostics still only in `message`, open user-decision rows,
    placement probe FAIL, `StructuredLog` / templating constants, any completion gate FAIL/PARTIAL, or the **review
    pass** not finished — see [migration-report-template.md](references/migration-report-template.md) § Status rules.
-10. **Preserve indentation** — match surrounding indent; no padding after `->` when expanding one-liners. Broken
-    whitespace that fails checkstyle / spotless / gofmt is a gate failure — [java-quarkus.md](references/java-quarkus.md).
+10. **Preserve indentation** — broken whitespace that fails checkstyle / spotless / gofmt is a gate failure. Practice:
+    [java-quarkus.md](references/java-quarkus.md) § Indentation.
 
 ## Reference map
 
 | When                 | Read                                                                                                   |
 | -------------------- | ------------------------------------------------------------------------------------------------------ |
 | Placement probe      | [placement-probe.md](references/placement-probe.md) — before bulk call-site edits (all stacks)         |
-| Inventory patterns   | [preformatted-message-patterns.md](references/preformatted-message-patterns.md)                        |
+| Smell / inventory checks | [scripts/smell-checks.sh](scripts/smell-checks.sh) + [preformatted-message-patterns.md](references/preformatted-message-patterns.md) |
 | User choice          | [user-decisions.md](references/user-decisions.md)                                                      |
 | Pattern recipes      | [pattern-recipes.md](references/pattern-recipes.md) — after user confirms a decision                   |
 | Stack implementation | [java-quarkus.md](references/java-quarkus.md) or [go-qubership-lib.md](references/go-qubership-lib.md) |
@@ -82,18 +82,17 @@ Greps and gates are **smell checks** that the goal may be unmet. Clean greps alo
 1. Confirm stage 1 — JSON smoke passed or document config blocker. Envelope ≠ event-field placement.
 2. **Repo-root discovery** — coverage ledger for all runtime components.
 3. **Classify stack** → [java-quarkus.md](references/java-quarkus.md) or [go-qubership-lib.md](references/go-qubership-lib.md).
-4. **Placement probe** — [placement-probe.md](references/placement-probe.md) for that component (all languages). On
-   FAIL: stop; ask per [user-decisions.md](references/user-decisions.md) § Event-field placement unsupported; implement
-   only after the user chooses; **re-probe** until PASS (or leave component `blocked` / `in-progress`).
-5. **Inventory** — [preformatted-message-patterns.md](references/preformatted-message-patterns.md) (constants,
-   preformatted, text-block `{}`, `log.*f` including Trace, residual `%v`/`%d`/… on non-`f` log calls).
+4. **Placement probe** — [placement-probe.md](references/placement-probe.md) for that component (all languages); on
+   FAIL apply hard rule 2 (stop, ask, re-probe until PASS or leave `blocked` / `in-progress`).
+5. **Inventory** — run [scripts/smell-checks.sh](scripts/smell-checks.sh)
+   ([preformatted-message-patterns.md](references/preformatted-message-patterns.md)).
 6. **Classify** sites: `migrate`, `static/no action`, `needs user decision`, `blocked`.
 7. **User decisions** — other rows in [user-decisions.md](references/user-decisions.md). After confirmation, read
    [pattern-recipes.md](references/pattern-recipes.md) before editing those sites.
 8. **Map fields** — [schema.md](references/schema.md) + stack playbook + [coding-approaches.md](references/coding-approaches.md).
 9. **Implement** in small batches — build after each batch; spot-check that new fields are queryable, not only that
    greps shrank.
-10. **Re-inventory** — no unaccounted formatted / preformatted / text-block / residual-printf candidates.
+10. **Re-inventory** — re-run [scripts/smell-checks.sh](scripts/smell-checks.sh); no unaccounted candidates.
 11. **Smell checks** (below) then full [completion-gates.md](references/completion-gates.md).
 12. **Review pass (blocking)** — see § Review pass below. Do **not** write the report or mark `migrated` until this
     finishes (or remaining hits are explicitly `blocked` / user-decision).
@@ -105,36 +104,11 @@ Greps and gates are **smell checks** that the goal may be unmet. Clean greps alo
 
 ## Smell checks (before claiming done)
 
-Run against production sources (adjust paths). Hits suggest the **goal** is unmet — fix toward queryable fields, or list
-as blocked / user-decision with counts. **Clean greps are not sufficient** (e.g. `fmt.Sprintf` then `log.X("%s", msg)`
-with diagnostics inside `msg` still fails the goal). Spot-check field names and JSON placement after greps.
-
-```bash
-# Java — forbidden helper / per-call MDC for event fields
-grep -rn 'StructuredLog\|MDC\.put' --include='*.java' src/main/java || true
-
-# Java — shared string constants that still contain SLF4J {} (misleading zero — ask)
-grep -rnE 'String\s+[A-Z][A-Z0-9_]*\s*=\s*"[^"]*\{\}' --include='*.java' src/main/java || true
-
-# Java — unreviewed preformatted log sites
-grep -rnE 'log\.(warn|error|debug|info)\((message|msg|aggregatedError|errorMsg|warn|e\.getMessage)' \
-  --include='*.java' src/main/java || true
-
-# Java — text-block logs (same-line {} grep misses these; open each hit for {})
-grep -rnE 'log\.(info|debug|warn|error|trace)\("""' --include='*.java' src/main/java || true
-
-# Java — codemod field-name residue (after bulk rewrite; polish required; target 0)
-grep -rnE 'addKeyValue\("[^"]*(_get_|_stream_|e_get_message)' --include='*.java' src/main/java || true
-grep -rn '"arg[0-9]\+"' --include='*.java' src/main/java || true
-
-# Go — include Trace; exclude _test.go / commented lines in review
-grep -rnE 'log\.(Trace|Debug|Info|Warn|Error|Fatal|Panic)f\(' --include='*.go' . || true
-
-# Go — residual diagnostic format verbs after dropping f (smell).
-# Same-line check; if any hit: review that whole file for multi-line concatenations.
-# Also review fmt.Sprintf / string build then log.X("%s", msg) — greps miss that dodge.
-grep -rnE 'log\.(Trace|Debug|Info|Warn|Error|Fatal|Panic)(C)?\(.*%[vTdoxXefg]' --include='*.go' . || true
-```
+Run [scripts/smell-checks.sh](scripts/smell-checks.sh) against each component root — check meanings, production scopes,
+and misleading zeros: [preformatted-message-patterns.md](references/preformatted-message-patterns.md). Hits suggest the
+**goal** is unmet — fix toward queryable fields, or list as blocked / user-decision with counts. **Clean checks are not
+sufficient** (e.g. `fmt.Sprintf` then `log.X("%s", msg)` with diagnostics inside `msg` still fails the goal — no grep
+catches it). Spot-check field names and JSON placement after the script run.
 
 Then run [completion-gates.md](references/completion-gates.md). Semantic + smoke gates decide `migrated`, not pattern
 counts alone — see [go-qubership-lib.md](references/go-qubership-lib.md) and completion-gates §3–§4.1.

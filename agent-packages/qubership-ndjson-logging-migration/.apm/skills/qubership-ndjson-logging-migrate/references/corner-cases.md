@@ -56,12 +56,9 @@ Keep this file short. Unique pitfalls and open validation items — not a second
   [completion-gates.md](completion-gates.md) §4.1.
 - **Report status:** FAIL/PARTIAL gates → component `in-progress`, not `migrated` —
   [migration-report-template.md](migration-report-template.md) § Status rules.
-- **Java JSON field placement:** `addKeyValue` must land at top level in NDJSON, not only under `mdc.*` and not glued
-  into `message` via `DefaultLoggingEventBuilder`. Always run [placement-probe.md](placement-probe.md); on FAIL ask —
-  [user-decisions.md](user-decisions.md) § Event-field placement unsupported. Do not assume Quarkus/JBoss “typically”
-  promotes fluent fields.
-- **Placement probe (all stacks):** Stage 1 envelope PASS does not prove event-field placement. Probe before bulk
-  migrate; user decides among recommended + alternatives + user-provided options.
+- **Event-field placement (all stacks):** stage 1 envelope PASS does not prove placement — fields may land under
+  `mdc.*` or glued into `message`. Probe before bulk migrate ([placement-probe.md](placement-probe.md)); on FAIL ask —
+  [user-decisions.md](user-decisions.md) § Event-field placement unsupported.
 - **Go drop-`f` trap:** `log.Error("… key=%v …", key, err)` after removing `f` is still incomplete — use a field API or
   repo helper; see [go-qubership-lib.md](go-qubership-lib.md).
 - **Go logfields / suffix parse:** Regex re-parse of `key=value` suffixes is fragile; quote whitespace values and protect

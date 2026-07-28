@@ -32,9 +32,19 @@ greps or a successful build.
 
 ## Deployable components
 
+| Column | Meaning |
+| --- | --- |
+| `Phase` | Current workflow checkpoint from the phase set below. |
+| `Status` | High-level outcome: `pending`, `in-progress`, `blocked`, or `migrated`. |
+| `Open decisions` | Number of unresolved user decisions for this component. |
+| `Next action` | A specific imperative instruction that allows safe resume. |
+
 | Component | Path | Stack | Log config | Phase | Status | Open decisions | Next action |
 |-----------|------|-------|------------|-------|--------|----------------|-------------|
+| example-java | `service/` | Java / Quarkus | JSON enabled | placement | blocked | 1 | Await user choice: add placement infrastructure / change backend / defer / accept message-embedded fields |
 | ... | ... | ... | ... | pending / discovery / placement / inventory / awaiting_decisions / migrating / gates / review / smoke / migrated | pending / in-progress / blocked / migrated | 0 | Start discovery |
+
+The placement-failure example row records probe FAIL in **User decision — event-field placement** below; do not enter `inventory` or bulk `migrating` until the user chooses and re-probe passes.
 
 ## Component state machine
 
@@ -65,7 +75,11 @@ independently.
 | `smoke` | `migrated` | Smoke passes, or is environment-blocked while every other gate passes. |
 
 `blocked` is a status overlay, not a phase. Preserve the component's phase when
-blocked; set `Next action` to the action that clears the block.
+blocked; set `Next action` to the action that clears the block. For placement
+probe FAIL, record the probe in **User decision — event-field placement** and
+name the awaiting choice using the fixed option menu in
+[user-decisions.md](user-decisions.md) § Event-field placement unsupported — do
+not restate probe mechanics here.
 
 No transition may skip a preceding phase. A component resumes at its recorded
 phase after its block clears.
@@ -75,9 +89,9 @@ phase after its block clears.
 | Status | When allowed |
 | ------ | ------------ |
 | **migrated** | `Phase=migrated`, `Status=migrated`, `Open decisions=0`, and all existing completion evidence: all gates for that component are PASS (or smoke BLOCKED with a concrete env reason **and** every other gate PASS, including placement probe PASS and **review pass** finished). |
-| **in-progress** | Any nonterminal phase; work underway; any gate FAIL/PARTIAL, open user-decision rows (including placement), review pass not done, or polish follow-up remaining. |
-| **blocked** | Cannot proceed (auth, missing cluster, placement probe FAIL awaiting user choice, unsafe API change) — record exact error. |
-| **pending** | Not started. |
+| **in-progress** | Work has begun in a nonterminal phase (`discovery` through `smoke`); any gate FAIL/PARTIAL, open user-decision rows (excluding placement when already `blocked`), review pass not done, or polish follow-up remaining. Never use with `Phase=pending`. |
+| **blocked** | Cannot proceed safely (auth, missing cluster, placement probe FAIL awaiting user choice, unsafe API change) — record exact error; preserve phase; set `Next action` to the choice or fix that clears the block (see **User decision — event-field placement** or **Blocked validation** as appropriate). |
+| **pending** | `Phase=pending` and `Status=pending` only — component is recorded in the ledger but work has not started. Do not use `in-progress` while `Phase=pending`. |
 
 **Do not** mark a component `migrated` while any completion-gate row is **FAIL** or **PARTIAL** (including field-name
 polish, **placement probe**, or **review pass** skipped). Prefer `in-progress` and list the follow-up (e.g. “polish 200 `_get_` keys”). Smoke may

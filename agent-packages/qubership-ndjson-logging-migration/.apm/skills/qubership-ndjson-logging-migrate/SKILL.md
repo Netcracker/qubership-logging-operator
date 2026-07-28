@@ -97,7 +97,8 @@ component's ledger row (`Phase`, `Status`, `Open decisions`, `Next action`) per
    - **Classify stack** → [java-quarkus.md](references/java-quarkus.md) or [go-qubership-lib.md](references/go-qubership-lib.md).
 2. `placement` — run probe; on FAIL block and ask immediately.
    - **Placement probe** — [placement-probe.md](references/placement-probe.md) for that component (all languages); on
-     FAIL apply hard rule 2 (stop, ask immediately, re-probe until PASS or leave `blocked` / `in-progress`).
+     FAIL apply hard rule 2 (stop, ask immediately, re-probe until PASS or leave `blocked` when user chose defer /
+     accept-unmet-goal).
      `blocked` is a status overlay — preserve `Phase=placement`.
 3. `inventory` — run smell checks and classify candidates.
    - **Inventory** — run [scripts/smell-checks.sh](scripts/smell-checks.sh)

@@ -85,7 +85,7 @@ independently.
 | `gates` | `review` | Build, integrity, pattern, and semantic gates pass, or a concrete validation block is recorded. |
 | `review` | `smoke` | The required review -> fix -> re-check loop is recorded. |
 | `review` | `awaiting_decisions` | Review finds genuine new semantic ambiguities; queue them in one review decision batch (`Open decisions` > 0). |
-| `gates` | `migrating` | After a review decision batch is resolved, re-enter migration work before another gate/review cycle. |
+| `gates` | `migrating` | A gate failure requires more migration work (fix candidates, polish fields, re-apply patterns) before re-running gates; after a review decision batch is resolved, re-enter migration work before another gate/review cycle. |
 | `smoke` | `migrated` | Smoke passes, or is environment-blocked while every other gate passes. |
 
 `blocked` is a status overlay, not a phase. Preserve the component's phase when
@@ -95,13 +95,16 @@ name the awaiting choice using the fixed option menu in
 [user-decisions.md](user-decisions.md) § Event-field placement unsupported — do
 not restate probe mechanics here.
 
-No transition may skip a preceding phase. A component resumes at its recorded
-phase after its block clears.
+Permitted transitions are only those listed in the table above — including the
+zero-decision `inventory -> migrating` path when `Open decisions=0`. Do not infer
+or invent other phase jumps. A component resumes at its recorded phase after its
+block clears.
 
 **Re-entry paths (only allowed backward transitions):** `review -> awaiting_decisions`
-(when review queues new semantic ambiguities) and `gates -> migrating` (after those
-decisions are resolved, before another gate/review cycle). No other backward or
-skip transitions are permitted.
+(when review queues new semantic ambiguities) and `gates -> migrating` (when gate
+failure requires more migration work, or after a review decision batch is resolved,
+before another gate/review cycle). No other backward or skip transitions are
+permitted.
 
 ## Status rules
 
@@ -116,7 +119,15 @@ skip transitions are permitted.
 polish, **placement probe**, or **review pass** skipped). Prefer `in-progress` and list the follow-up (e.g. “polish 200 `_get_` keys”). Smoke may
 stay BLOCKED without a cluster; that alone does not force `migrated` if other gates are incomplete.
 
-**Greps clean ≠ migrated** if diagnostics are still only inside `message` (unqueryable) — see [SKILL.md](../SKILL.md)
+Stage 1 envelope-only enablement may leave diagnostics inside `message`; that is
+not a Stage 2 completion failure for the whole repo. Stage 2 component migration
+does **not** accept a component-wide placement-probe failure as `migrated` — keep
+`Phase=placement`, `Status=blocked`. An individually accepted message-embedded
+diagnostic at a single call site is a completed migrated log-entry exception —
+record it in the decision tables.
+
+**Greps clean ≠ migrated** if diagnostics are still only inside `message` at
+sites that were not individually accepted (unqueryable) — see [SKILL.md](../SKILL.md)
 § Goal. Fluent/`addKeyValue` call sites with placement probe FAIL are **not** `migrated`.
 
 ## Completion gates

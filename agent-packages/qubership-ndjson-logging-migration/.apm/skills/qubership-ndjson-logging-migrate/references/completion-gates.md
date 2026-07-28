@@ -94,8 +94,9 @@ Check meanings: [preformatted-message-patterns.md](preformatted-message-patterns
 | Java field polish   | **J6a/J6b** — codemod residue keys — §4.1      | **0** or polish pass done |
 | Logged preformatted | **J4/J8/G3** (helper calls are expected hits)  | **0** unreviewed          |
 
-**Misleading zeros** (Go drop-`f`, Sprintf-then-`%s` dodge, Java shared `{}` constants — **stop and ask**, Java text
-blocks): [preformatted-message-patterns.md](preformatted-message-patterns.md) § Misleading zeros.
+**Misleading zeros** (Go drop-`f`, Sprintf-then-`%s` dodge, Java shared `{}` constants — **queue for the inventory
+decision batch**, Java text blocks): [preformatted-message-patterns.md](preformatted-message-patterns.md) § Misleading
+zeros.
 
 ---
 

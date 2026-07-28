@@ -18,14 +18,14 @@ to the exact user choice needed. Do not bulk-migrate call sites.
 2. Present **one recommended** option (from local facts only — see placement-probe § Recommendation) plus the fixed
    alternatives below. Always invite a **user-provided** approach.
 3. Do **not** implement a placement fix or continue call-site rewrites until the user chooses.
-4. After the user picks: implement that choice only → **re-probe** until PASS (or leave the component `blocked` /
-   `in-progress` if they chose defer / accept-unmet-goal).
+4. After the user picks: implement that choice only → **re-probe** until PASS (or leave the component `blocked` if they
+   chose defer / accept-unmet-goal).
 
 | Option | Description |
 | ------ | ----------- |
 | **Add placement infrastructure** | Keep the preferred call-site field API; add/fix formatter, encoder, bridge, or `JsonProvider`-style hook so event fields become **top-level** JSON keys. |
 | **Change logging backend / encoder** | Switch or reconfigure the logging stack so the field API is natively supported (e.g. Logback JSON encoder with structured args). |
-| **Defer** | Leave component `blocked` / `in-progress`; no bulk call-site migration until placement is fixed later. |
+| **Defer** | Leave component `Phase=placement`, `Status=blocked`; no bulk call-site migration until placement is fixed later. |
 | **Accept message-embedded fields** | Explicitly accept diagnostics only inside `message` for now. **Goal unmet** — do **not** mark the component `migrated`. |
 | **User-provided** | Any approach the user describes; treat as first-class once stated. |
 

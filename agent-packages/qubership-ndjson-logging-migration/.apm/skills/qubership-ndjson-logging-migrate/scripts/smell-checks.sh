@@ -54,7 +54,7 @@ if [ -n "${JAVA_SCOPE}" ]; then
   run_check J2 "same-line SLF4J {} in log calls" \
     "${JG} -E 'log\.(info|debug|warn|error|trace)\([^)]*\{' ${JAVA_SCOPE}"
 
-  run_check J3 "shared string constants still containing {} (misleading zero — stop and ask)" \
+  run_check J3 "shared string constants still containing {} (misleading zero — queue for the inventory decision batch)" \
     "${JG} -E 'String\s+[A-Z][A-Z0-9_]*\s*=\s*\"[^\"]*\{\}' ${JAVA_SCOPE}"
 
   run_check J4 "preformatted message logs (log.warn(message), e.getMessage(), ...)" \

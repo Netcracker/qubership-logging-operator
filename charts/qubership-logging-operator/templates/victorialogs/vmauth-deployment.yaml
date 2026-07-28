@@ -1,0 +1,129 @@
+{{- if eq (include "victorialogs.vmauthEnabled" .) "true" }}
+{{- $podSecurityContext := deepCopy (.Values.victorialogs.vmauth.podSecurityContext | default dict) }}
+{{- $securityContext := deepCopy (.Values.victorialogs.vmauth.securityContext | default dict) }}
+{{- if .Capabilities.APIVersions.Has "security.openshift.io/v1" }}
+{{- $_ := unset $podSecurityContext "fsGroup" }}
+{{- $_ := unset $podSecurityContext "runAsGroup" }}
+{{- $_ := unset $podSecurityContext "runAsUser" }}
+{{- $_ := unset $securityContext "runAsGroup" }}
+{{- $_ := unset $securityContext "runAsUser" }}
+{{- end }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "victorialogs.vmauthFullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "victorialogs.vmauthLabels" . | nindent 4 }}
+  {{- $annotations := mergeOverwrite (deepCopy (.Values.annotations | default dict)) (.Values.victorialogs.vmauth.annotations | default dict) }}
+  {{- with $annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.victorialogs.vmauth.replicaCount }}
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      {{- include "victorialogs.vmauthSelectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "victorialogs.vmauthPodLabels" . | nindent 8 }}
+      annotations:
+        checksum/config: {{ include "victorialogs.vmauthConfig" . | sha256sum }}
+        {{- with .Values.victorialogs.vmauth.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      automountServiceAccountToken: false
+      {{- with .Values.victorialogs.vmauth.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.victorialogs.vmauth.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
+      containers:
+        - name: vmauth
+          image: {{ include "victorialogs.vmauthImage" . }}
+          imagePullPolicy: {{ .Values.victorialogs.vmauth.imagePullPolicy }}
+          {{- with $securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          args:
+            - -auth.config=/etc/vmauth/auth.yml
+            - -httpListenAddr=:{{ .Values.victorialogs.vmauth.port }}
+            {{- range $name, $value := .Values.victorialogs.vmauth.extraArgs }}
+            {{- if and (kindIs "bool" $value) $value }}
+            - -{{ $name }}
+            {{- else }}
+            - -{{ $name }}={{ $value }}
+            {{- end }}
+            {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.victorialogs.vmauth.port }}
+              protocol: TCP
+          {{- with .Values.victorialogs.vmauth.env }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.victorialogs.vmauth.envFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.victorialogs.vmauth.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.victorialogs.vmauth.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.victorialogs.vmauth.startupProbe }}
+          startupProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.victorialogs.vmauth.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: config
+              mountPath: /etc/vmauth
+              readOnly: true
+            {{- with .Values.victorialogs.vmauth.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+      {{- with .Values.victorialogs.vmauth.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.victorialogs.vmauth.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.victorialogs.vmauth.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.victorialogs.vmauth.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.victorialogs.vmauth.terminationGracePeriodSeconds }}
+      volumes:
+        - name: config
+          secret:
+            secretName: {{ include "victorialogs.vmauthFullname" . }}
+        {{- with .Values.victorialogs.vmauth.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+{{- end }}

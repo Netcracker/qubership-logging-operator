@@ -11,6 +11,9 @@ createClusterAdminEntities: true
 # -- Cloud address. Openshift cloud may require to set the current host address.
 cloudURL: "https://kubernetes.default.svc"
 
+# -- Public DNS suffix used to generate component hosts when an explicit host is not set.
+# CLOUD_PUBLIC_HOST: ""
+
 # -- Operating system kind on cloud nodes: centos/rhel/oracle/ubuntu
 osKind: centos
 
@@ -104,6 +107,258 @@ readinessProbe:
   periodSeconds: 10
   timeoutSeconds: 5
   failureThreshold: 3
+
+# -- VictoriaLogs single-node instance.
+victorialogs:
+  # -- Deploy VictoriaLogs as part of the logging Helm release.
+  install: false
+
+  # -- Override the VictoriaLogs resource name.
+  nameOverride: ""
+
+  # -- VictoriaLogs image. The default matches victoria-logs-single chart 0.13.8.
+  # dockerImage: docker.io/victoriametrics/victoria-logs:v1.51.0
+
+  # -- Image pull policy for the VictoriaLogs container.
+  imagePullPolicy: IfNotPresent
+
+  # -- Image pull secrets for the VictoriaLogs Pod.
+  imagePullSecrets: []
+
+  # -- Data retention period. Supported units are h, d, w, and y. A value without a unit means months.
+  retentionPeriod: "1"
+
+  # -- HTTP listen port exposed by the container and Service.
+  port: 9428
+
+  # -- Pod creation order for the VictoriaLogs StatefulSet.
+  podManagementPolicy: OrderedReady
+
+  # -- Update strategy for the VictoriaLogs StatefulSet.
+  updateStrategy:
+    type: RollingUpdate
+
+  # -- Additional VictoriaLogs command-line arguments.
+  extraArgs:
+    envflag.enable: true
+    envflag.prefix: VM_
+    loggerFormat: json
+    http.shutdownDelay: 15s
+
+  # -- Persistent storage configuration. The chart retains generated PVCs after uninstall or storage reconfiguration.
+  storage:
+    # The generated PVC is retained after Helm upgrades and uninstall operations. Delete it manually after backing up
+    # the data. Changing nameOverride or existingClaim does not migrate data from the retained PVC.
+    # -- Mount this PVC instead of creating one.
+    existingClaim: ""
+    # -- Bind the generated PVC to a specific persistent volume.
+    persistentVolume: ""
+    # -- StorageClass for the generated PVC.
+    storageClassName: ""
+    # -- Access modes for the generated PVC.
+    accessModes:
+      - ReadWriteOnce
+    # -- Requested storage capacity for the generated PVC.
+    size: 10Gi
+    # -- Data volume mount path.
+    mountPath: /storage
+    # -- Optional subpath within the data volume.
+    subPath: ""
+    # -- Labels for the generated PVC.
+    labels: {}
+    # -- Annotations for the generated PVC.
+    annotations: {}
+  # -- Service configuration.
+  service:
+    port: 9428
+    labels: {}
+    annotations: {}
+
+  # -- VMAuth configuration. VMAuth is deployed when VictoriaLogs Ingress or HTTPRoute is enabled.
+  vmauth:
+    # -- VMAuth image. The default matches victoria-metrics-auth chart 0.36.0.
+    # dockerImage: docker.io/victoriametrics/vmauth:v1.147.0
+    imagePullPolicy: IfNotPresent
+    imagePullSecrets: []
+    replicaCount: 1
+    port: 8427
+
+    # -- Native VMAuth configuration stored in a Kubernetes Secret and mounted read-only.
+    # Define at least one user before enabling external access. Each user must contain exactly one authentication
+    # method: non-empty username and password, or non-empty bearer_token.
+    # Use %{ENV_VAR} placeholders for credentials and load their values from a Secret through env or envFrom.
+    config:
+      # Example with credentials stored in the generated VMAuth configuration Secret:
+      # users:
+      #   - username: external-user
+      #     password: strong-password
+      #   - bearer_token: strong-token
+      users: []
+
+    # -- Additional VMAuth command-line arguments.
+    extraArgs:
+      configCheckInterval: 1m
+      envflag.enable: true
+      envflag.prefix: VM_
+      loggerFormat: json
+
+    # -- Environment variables for the VMAuth container. Use Secret references for credentials.
+    env: []
+    # -- Sources for VMAuth environment variables. Use Secret references for credentials.
+    envFrom: []
+    resources: {}
+    annotations: {}
+    podAnnotations: {}
+    podLabels: {}
+
+    service:
+      port: 8427
+      labels: {}
+      annotations: {}
+
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+
+    podSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+
+    readinessProbe:
+      tcpSocket:
+        port: http
+      initialDelaySeconds: 5
+      periodSeconds: 15
+
+    livenessProbe:
+      tcpSocket:
+        port: http
+      initialDelaySeconds: 5
+      periodSeconds: 15
+      timeoutSeconds: 5
+
+    startupProbe: {}
+    terminationGracePeriodSeconds: 30
+    priorityClassName: ""
+    affinity: {}
+    nodeSelector: {}
+    tolerations: []
+    topologySpreadConstraints: []
+    extraVolumes: []
+    extraVolumeMounts: []
+
+  # -- Add an ignore annotation to Ingress when HTTPRoute is enabled to prevent duplicate route conversion.
+  addIngressIgnoreAnnotation: true
+
+  # -- Ingress configuration for the VictoriaLogs HTTP endpoint and web UI.
+  ingress:
+    # -- Create an Ingress backed by VMAuth. Configure at least one authenticated VMAuth user.
+    install: false
+    ingressClassName: ""
+    labels: {}
+    annotations: {}
+    # If empty, the chart uses vmauth-<release-namespace>.<CLOUD_PUBLIC_HOST>.
+    hosts: []
+    tls: []
+
+  # -- Gateway API HTTPRoute configuration for the VictoriaLogs HTTP endpoint and web UI.
+  httpRoute:
+    # -- Create an HTTPRoute backed by VMAuth. Configure at least one authenticated VMAuth user.
+    install: false
+    labels: {}
+    annotations: {}
+    # If empty, the chart uses vmauth-<release-namespace>.<CLOUD_PUBLIC_HOST>.
+    hostnames: []
+    parentRefs: []
+
+  # -- Prometheus Operator ServiceMonitor configuration.
+  serviceMonitor:
+    # -- Create a ServiceMonitor resource. The Prometheus Operator CRDs must be installed.
+    install: true
+    scrapeInterval: 30s
+    scrapeTimeout: 10s
+    labels: {}
+    annotations: {}
+    relabelings: []
+    metricRelabelings: []
+
+  # -- Grafana Operator dashboard configuration.
+  dashboard:
+    # -- Create a GrafanaDashboard resource. The Grafana Operator CRDs must be installed.
+    install: true
+    labels: {}
+    annotations: {}
+
+  # -- Compute resources for the VictoriaLogs container.
+  resources: {}
+
+  # -- Container security context.
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    readOnlyRootFilesystem: true
+
+  # -- Pod security context.
+  podSecurityContext:
+    fsGroup: 2000
+    runAsNonRoot: true
+    runAsUser: 1000
+
+  # -- Readiness probe configuration.
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: http
+      scheme: HTTP
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+  # -- Liveness probe configuration.
+  livenessProbe:
+    tcpSocket:
+      port: http
+    initialDelaySeconds: 30
+    periodSeconds: 30
+    timeoutSeconds: 5
+    failureThreshold: 10
+
+  # -- Optional startup probe configuration.
+  startupProbe: {}
+
+  # -- Grace period for VictoriaLogs shutdown.
+  terminationGracePeriodSeconds: 60
+
+  # -- PriorityClass assigned to the VictoriaLogs Pod.
+  priorityClassName: ""
+
+  # -- Pod scheduling constraints.
+  affinity: {}
+  nodeSelector: {}
+  tolerations: []
+  topologySpreadConstraints: []
+
+  # -- Environment variables for the VictoriaLogs container.
+  env: []
+  # -- Sources for environment variables.
+  envFrom: []
+  # -- Additional Pod volumes.
+  extraVolumes: []
+  # -- Additional VictoriaLogs volume mounts.
+  extraVolumeMounts: []
+
+  # -- Labels and annotations for VictoriaLogs resources.
+  labels: {}
+  annotations: {}
+  podLabels: {}
+  podAnnotations: {}
 
 # -- Mandatory values for Graylog.
 # @default -- {}

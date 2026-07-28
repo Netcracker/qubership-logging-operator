@@ -1,0 +1,38 @@
+{{- if and .Values.victorialogs.install .Values.victorialogs.serviceMonitor.install }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "victorialogs.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "victorialogs.labels" . | nindent 4 }}
+    app.kubernetes.io/processed-by-operator: prometheus-operator
+    {{- with .Values.victorialogs.serviceMonitor.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.victorialogs.serviceMonitor.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: {{ .Values.victorialogs.serviceMonitor.scrapeInterval }}
+      scrapeTimeout: {{ .Values.victorialogs.serviceMonitor.scrapeTimeout }}
+      {{- with .Values.victorialogs.serviceMonitor.relabelings }}
+      relabelings:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.victorialogs.serviceMonitor.metricRelabelings }}
+      metricRelabelings:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}
+  selector:
+    matchLabels:
+      {{- include "victorialogs.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/service-role: client
+{{- end }}

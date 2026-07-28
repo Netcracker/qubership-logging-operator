@@ -1,0 +1,21 @@
+{{- if and .Values.victorialogs.install .Values.victorialogs.dashboard.install }}
+{{- $dashboard := tpl (.Files.Get "monitoring/victorialogs-single-node.yaml") . | fromYaml }}
+apiVersion: integreatly.org/v1alpha1
+kind: GrafanaDashboard
+metadata:
+  name: {{ include "victorialogs.fullname" . }}-single-node
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "victorialogs.labels" . | nindent 4 }}
+    app.kubernetes.io/processed-by-operator: grafana-operator
+    {{- with .Values.victorialogs.dashboard.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.victorialogs.dashboard.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  json: |
+    {{- $dashboard | toRawJson | nindent 4 }}
+{{- end }}

@@ -59,6 +59,11 @@ Greps and gates are **smell checks** that the goal may be unmet. Clean greps alo
    pass** not finished — see [migration-report-template.md](references/migration-report-template.md) § Status rules.
 10. **Preserve indentation** — broken whitespace that fails checkstyle / spotless / gofmt is a gate failure. Practice:
     [java-quarkus.md](references/java-quarkus.md) § Indentation.
+11. **Advance one component through recorded phases** — update `Phase`,
+    `Status`, `Open decisions`, and `Next action` in the migration report at
+    each transition. Do not skip a phase or mark `migrated` unless the report
+    transition guard permits it — see migration-report-template.md § Component
+    state machine.
 
 ## Reference map
 
@@ -79,28 +84,50 @@ Greps and gates are **smell checks** that the goal may be unmet. Clean greps alo
 
 ## Workflow
 
-1. Confirm stage 1 — JSON smoke passed or document config blocker. Envelope ≠ event-field placement.
-2. **Repo-root discovery** — coverage ledger for all runtime components.
-3. **Classify stack** → [java-quarkus.md](references/java-quarkus.md) or [go-qubership-lib.md](references/go-qubership-lib.md).
-4. **Placement probe** — [placement-probe.md](references/placement-probe.md) for that component (all languages); on
-   FAIL apply hard rule 2 (stop, ask, re-probe until PASS or leave `blocked` / `in-progress`).
-5. **Inventory** — run [scripts/smell-checks.sh](scripts/smell-checks.sh)
-   ([preformatted-message-patterns.md](references/preformatted-message-patterns.md)).
-6. **Classify** sites: `migrate`, `static/no action`, `needs user decision`, `blocked`.
-7. **User decisions** — other rows in [user-decisions.md](references/user-decisions.md). After confirmation, read
-   [pattern-recipes.md](references/pattern-recipes.md) before editing those sites.
-8. **Map fields** — [schema.md](references/schema.md) + stack playbook + [coding-approaches.md](references/coding-approaches.md).
-9. **Implement** in small batches — build after each batch; spot-check that new fields are queryable, not only that
-   greps shrank.
-10. **Re-inventory** — re-run [scripts/smell-checks.sh](scripts/smell-checks.sh); no unaccounted candidates.
-11. **Smell checks** (below) then full [completion-gates.md](references/completion-gates.md).
-12. **Review pass (blocking)** — see § Review pass below. Do **not** write the report or mark `migrated` until this
-    finishes (or remaining hits are explicitly `blocked` / user-decision).
-13. **Smoke** — [smoke-validation.md](references/smoke-validation.md); confirm diagnostic keys at JSON top level
-    (placement probe criterion again on a real migrated line).
-14. **Write report** — stage = `migrate`; status rules in
-    [migration-report-template.md](references/migration-report-template.md); exclude from product PR unless requested.
-15. **Propose skill updates** in the APM package source, not `.agents/skills` copies.
+Advance **one deployable component** at a time. At every phase below, update that
+component's ledger row (`Phase`, `Status`, `Open decisions`, `Next action`) per
+[migration-report-template.md](references/migration-report-template.md).
+
+1. `discovery` — stage 1 confirmation, repo-root discovery, stack classification.
+   - Confirm stage 1 — JSON smoke passed or document config blocker. Envelope ≠ event-field placement.
+   - **Repo-root discovery** — coverage ledger for all runtime components.
+   - **Classify stack** → [java-quarkus.md](references/java-quarkus.md) or [go-qubership-lib.md](references/go-qubership-lib.md).
+2. `placement` — run probe; on FAIL block and ask immediately.
+   - **Placement probe** — [placement-probe.md](references/placement-probe.md) for that component (all languages); on
+     FAIL apply hard rule 2 (stop, ask immediately, re-probe until PASS or leave `blocked` / `in-progress`).
+     `blocked` is a status overlay — preserve `Phase=placement`.
+3. `inventory` — run smell checks and classify candidates.
+   - **Inventory** — run [scripts/smell-checks.sh](scripts/smell-checks.sh)
+     ([preformatted-message-patterns.md](references/preformatted-message-patterns.md)).
+   - **Classify** sites: `migrate`, `static/no action`, `needs user decision`, `blocked`.
+   - **Queue decisions** — record unresolved shared `{}` templates, logged preformatted messages, returned diagnostics
+     ([user-decisions.md](references/user-decisions.md) § Returned diagnostics), ambiguous extraction, and sensitive
+     response-body choices in the report. Do **not** ask individually; count them for the inventory batch.
+4. `awaiting_decisions` — present one inventory batch; apply explicit policy.
+   - **User decisions** — present one grouped question for all queued inventory items per
+     [user-decisions.md](references/user-decisions.md) § Inventory decision batch. After confirmation, read
+     [pattern-recipes.md](references/pattern-recipes.md) before editing those sites.
+5. `migrating` — map fields and implement small batches.
+   - **Map fields** — [schema.md](references/schema.md) + stack playbook + [coding-approaches.md](references/coding-approaches.md).
+   - **Implement** in small batches — build after each batch; spot-check that new fields are queryable, not only that
+     greps shrank.
+6. `gates` — re-inventory, smell checks, completion gates.
+   - **Re-inventory** — re-run [scripts/smell-checks.sh](scripts/smell-checks.sh); no unaccounted candidates.
+   - **Smell checks** (below) then full [completion-gates.md](references/completion-gates.md).
+7. `review` — required review -> fix -> re-check loop.
+   - **Review pass (blocking)** — see § Review pass below. Fix clear defects without asking. For genuine new semantic
+     ambiguities, queue them in one **review decision batch**, return to `awaiting_decisions`, and after the choice
+     re-enter `migrating` followed by `gates` and this review loop
+     ([user-decisions.md](references/user-decisions.md)). Do **not** write the report or mark `migrated` until this
+     finishes (or remaining hits are explicitly `blocked` / user-decision).
+8. `smoke` — capture top-level diagnostic fields.
+   - **Smoke** — [smoke-validation.md](references/smoke-validation.md); confirm diagnostic keys at JSON top level
+     (placement probe criterion again on a real migrated line).
+9. `migrated` — update the report only when the transition guard passes.
+   - **Write report** — stage = `migrate`; status rules in
+     [migration-report-template.md](references/migration-report-template.md); mark `migrated` only when the transition
+     guard permits. Exclude from product PR unless requested.
+   - **Propose skill updates** in the APM package source, not `.agents/skills` copies.
 
 ## Smell checks (before claiming done)
 
@@ -130,6 +157,10 @@ no-op fluent wraps, and leftover Go printf.
 ## Monorepos
 
 One component at a time; update ledger before stopping.
+
+On resume, read each component's ledger row first. Continue only the recorded
+`Next action`; do not restart completed phases. Components may be at different
+phases.
 
 ## Definition of done
 

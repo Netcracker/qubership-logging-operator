@@ -85,8 +85,9 @@ not introduce a parallel pattern.
 Sites such as `log.warn(SHARED_TEMPLATE, class, path, msg)` use a **shared `{}` template constant** — grep hits zero
 inline `{}` while values still interpolate at runtime.
 
-**Stop and ask the user before editing these call sites** — do not pick an approach silently and do not defer the
-question to the end of the migration. See [user-decisions.md](user-decisions.md) § Java shared `{}` template constants.
+**Ask the user before editing these call sites** — do not pick an approach silently. Queue the decision during
+inventory and ask at the inventory decision boundary; the question must be answered before those call sites are edited.
+See [user-decisions.md](user-decisions.md) § Java shared `{}` template constants.
 
 **Only change logging lines** — preserve response-builder / `buildResponse`-style overloads.
 

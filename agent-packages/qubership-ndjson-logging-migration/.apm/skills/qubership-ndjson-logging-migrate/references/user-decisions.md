@@ -38,10 +38,16 @@ Record in the report: probe result, recommended option, user choice, and re-prob
 
 During `inventory`, record unresolved shared `{}` templates, logged
 preformatted messages, returned diagnostics, ambiguous extraction, and
-sensitive response-body choices. When inventory completes, set
-`Phase=awaiting_decisions`, set `Open decisions` to the unresolved count, and
-ask one grouped question. Do not enter `migrating` until every row is resolved,
-blocked, or covered by an explicit repo-wide policy.
+sensitive response-body choices. When inventory completes:
+
+- If **no** unresolved decisions remain: set `Open decisions=0` and transition
+  directly to `migrating`. Do **not** enter `awaiting_decisions` or ask a
+  vacuous question.
+- If unresolved decisions remain: set `Phase=awaiting_decisions`, set
+  `Open decisions` to the unresolved count, and ask one grouped question.
+
+Do not enter `migrating` until every row is resolved, blocked, or covered by
+an explicit repo-wide policy.
 
 ## Returned diagnostics (API / error return paths)
 
@@ -133,8 +139,8 @@ Mark affected sites `needs user decision` until answered.
 When inventory finds `log.warn(SHARED_TEMPLATE, …)`, `log.error(SOME_CONSTANT, …)`, or any `String` constant that still
 contains `{}` and is used as an SLF4J message template:
 
-1. **Stop implementation on that component** and queue during inventory and ask at the inventory decision boundary —
-   before bulk edits, helper extraction, or claiming `{}` grep is zero.
+1. **Queue during inventory** and ask at the inventory decision boundary —
+   before editing those call sites, helper extraction, or claiming `{}` grep is zero.
 2. In the question, name the constant, caller count, and one example file (e.g. `Helpers.java:SHARED_TEMPLATE`, N callers).
 3. Offer these choices (unless the user already stated a repo-wide policy in this session):
    - **Inline fluent API** — replace each call with `log.atWarn().setMessage("…").addKeyValue(...).log()`; constant
@@ -152,10 +158,12 @@ contains `{}` and is used as an SLF4J message template:
 Do not move `{}` into another constant, leave templating in place, or mark the Java component migrated-complete while
 these sites await an answer. If the session cannot wait, stop with the question in the report — do not guess.
 
-During review, fix clear defects without asking. For a genuine new semantic
-ambiguity, add it to one review decision batch, return to
-`awaiting_decisions`, and after the choice re-enter `migrating` followed by
-gates and the required review loop.
+## Review decision batch
+
+During `review`, fix clear defects without asking. For a genuine new semantic
+ambiguity, add it to one review decision batch, return to `awaiting_decisions`,
+and after the choice re-enter `migrating` followed by `gates` and the required
+review loop.
 
 ## Semantic field names
 

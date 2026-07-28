@@ -46,12 +46,15 @@ Greps and gates are **smell checks** that the goal may be unmet. Clean greps alo
    alone are insufficient if the placement probe FAIL (bridge/formatter gap).
 5. **Go fields** — prefer a real field API or repo helper so keys appear at JSON top level — see
    [go-qubership-lib.md](references/go-qubership-lib.md). Still require a placement probe.
-6. **Stop and ask** on shared `{}` template constants, logged preformatted messages, placement-probe FAIL, and
-   **ambiguous meaning / field splits** (composed URL/path, unclear what to extract) — do not guess. Choices:
-   [user-decisions.md](references/user-decisions.md). After confirmation, shapes:
+6. **Ask immediately** only on placement-probe FAIL ([user-decisions.md](references/user-decisions.md) § Event-field
+   placement unsupported). **Queue** shared `{}` template constants, logged preformatted messages, and **ambiguous
+   meaning / field splits** (composed URL/path, unclear what to extract) during inventory or review — present one batch
+   at that phase boundary ([user-decisions.md](references/user-decisions.md) § Inventory decision batch,
+   [user-decisions.md](references/user-decisions.md) § Review decision batch). Do not guess. After confirmation, shapes:
    [pattern-recipes.md](references/pattern-recipes.md).
 7. **Preserve log meaning** — keep the same event intent and a faithful `message`. Extract only values useful to filter
-   on alone (not fixed allowed-value enums/literals; not over-split path segments). When unsure → stop and ask (§ above).
+   on alone (not fixed allowed-value enums/literals; not over-split path segments). When unsure → queue for the
+   inventory or review decision batch (hard rule 6).
 8. **API / throw text** — when a string is also used for `Response.entity`, DTO error fields, or exception detail, keep
    that string unchanged; structure **only** the log line (same variable in `setMessage` when message is conditional).
 9. **Do not claim done** while the goal is unmet: diagnostics still only in `message`, open user-decision rows,
@@ -118,7 +121,8 @@ component's ledger row (`Phase`, `Status`, `Open decisions`, `Next action`) per
    - **Review pass (blocking)** — see § Review pass below. Fix clear defects without asking. For genuine new semantic
      ambiguities, queue them in one **review decision batch**, return to `awaiting_decisions`, and after the choice
      re-enter `migrating` followed by `gates` and this review loop
-     ([user-decisions.md](references/user-decisions.md)). Do **not** write the report or mark `migrated` until this
+     ([user-decisions.md](references/user-decisions.md) § Review decision batch). Do **not** write the report or mark
+     `migrated` until this
      finishes (or remaining hits are explicitly `blocked` / user-decision).
 8. `smoke` — capture top-level diagnostic fields.
    - **Smoke** — [smoke-validation.md](references/smoke-validation.md); confirm diagnostic keys at JSON top level
@@ -149,7 +153,8 @@ no-op fluent wraps, and leftover Go printf.
    rules and [completion-gates.md](references/completion-gates.md) (especially integrity §2.5, semantic §4). Do not
    invent a second checklist.
 2. **Fix** clear violations in place (indent, field names, residual format verbs, `setMessage` without fields when
-   diagnostics exist in scope). Stop and ask only for true ambiguities ([user-decisions.md](references/user-decisions.md)).
+   diagnostics exist in scope). Queue true ambiguities for the review decision batch
+   ([user-decisions.md](references/user-decisions.md) § Review decision batch).
 3. **Re-check** — re-run smell greps + any gate that the fixes could affect (build / integrity / semantic spot-check).
 4. **One loop** — one review→fix→re-check cycle is required; a second only if the re-check still finds clear defects.
    Then proceed to smoke and the report. Record in the report that the review pass ran (and what was fixed, briefly).

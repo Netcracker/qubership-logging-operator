@@ -5,7 +5,7 @@ Use this structure; leave N/A rows explicit rather than omitting them.
 
 ## Lifecycle (not part of the product PR)
 
-| Phase                  | Report in worktree?                         | Commit / upstream PR?                                                                            |
+| Moment | Report in worktree?                         | Commit / upstream PR?                                                                            |
 | ---------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------ |
 | Migration run          | **Yes** — coverage ledger and gate evidence | No — working artifact                                                                            |
 | Resume across sessions | Yes — update in place                       | Untracked is fine                                                                                |
@@ -44,7 +44,18 @@ greps or a successful build.
 | example-java | `service/` | Java / Quarkus | JSON enabled | placement | blocked | 1 | Await user choice: add placement infrastructure / change backend / defer / accept message-embedded fields |
 | ... | ... | ... | ... | pending / discovery / placement / inventory / awaiting_decisions / migrating / gates / review / smoke / migrated | pending / in-progress / blocked / migrated | 0 | Start discovery |
 
-The placement-failure example row records probe FAIL in **User decision — event-field placement** below; do not enter `inventory` or bulk `migrating` until the user chooses and re-probe passes.
+The placement-failure example row records probe FAIL in **User decision — event-field placement** below.
+
+**Placement probe outcomes:**
+
+| User choice | Phase | Status | Next transition |
+| --- | --- | --- | --- |
+| Probe **PASS** | `placement` → `inventory` | `in-progress` | Enter inventory. |
+| **Defer** | stays `placement` | `blocked` | End work on this component until placement is fixed later. Do **not** enter `inventory`. |
+| **Accept message-embedded fields** | stays `placement` | `blocked` | End work on this component; goal unmet. Do **not** enter `inventory` or mark `migrated`. |
+| **Add placement infrastructure** / **Change logging backend** / **User-provided** | stays `placement` | `in-progress` or `blocked` | Implement choice → re-probe; on PASS → `inventory`. |
+
+Do not enter `inventory` or bulk `migrating` until the user chooses (for FAIL) and re-probe passes (when applicable).
 
 ## Component state machine
 
@@ -67,11 +78,14 @@ independently.
 | `pending` | `discovery` | Component is recorded in the ledger. |
 | `discovery` | `placement` | Stack and logging path are identified. |
 | `placement` | `inventory` | Placement probe passes. |
-| `inventory` | `awaiting_decisions` | Candidates are classified and unresolved decisions are recorded. |
+| `inventory` | `awaiting_decisions` | Candidates are classified and unresolved decisions are recorded (`Open decisions` > 0). |
+| `inventory` | `migrating` | Candidates are classified and **no** unresolved decisions remain (`Open decisions=0`). Do **not** enter `awaiting_decisions` or ask a vacuous question. |
 | `awaiting_decisions` | `migrating` | Every queued decision has a user choice or applies a recorded repo-wide policy. |
 | `migrating` | `gates` | Every candidate is migrated, static/no-action, blocked, or decision-accounted. |
 | `gates` | `review` | Build, integrity, pattern, and semantic gates pass, or a concrete validation block is recorded. |
 | `review` | `smoke` | The required review -> fix -> re-check loop is recorded. |
+| `review` | `awaiting_decisions` | Review finds genuine new semantic ambiguities; queue them in one review decision batch (`Open decisions` > 0). |
+| `gates` | `migrating` | After a review decision batch is resolved, re-enter migration work before another gate/review cycle. |
 | `smoke` | `migrated` | Smoke passes, or is environment-blocked while every other gate passes. |
 
 `blocked` is a status overlay, not a phase. Preserve the component's phase when
@@ -83,6 +97,11 @@ not restate probe mechanics here.
 
 No transition may skip a preceding phase. A component resumes at its recorded
 phase after its block clears.
+
+**Re-entry paths (only allowed backward transitions):** `review -> awaiting_decisions`
+(when review queues new semantic ambiguities) and `gates -> migrating` (after those
+decisions are resolved, before another gate/review cycle). No other backward or
+skip transitions are permitted.
 
 ## Status rules
 

@@ -27,7 +27,7 @@ residue — separate from returned `fmt.Errorf` / wrapped exceptions.
 | -- | ----- | ----- | ----------- |
 | J1 | Java | `StructuredLog` / per-call `MDC.put` for event fields (forbidden) | 0 |
 | J2 | Java | same-line SLF4J `{}` in log calls | 0 |
-| J3 | Java | shared string constants still containing `{}` | 0 — any hit: **stop and ask** |
+| J3 | Java | shared string constants still containing `{}` | 0 — any hit: queue for inventory decision batch |
 | J4 | Java | preformatted message logs (`log.warn(message)`, `e.getMessage()`, …) | 0 unreviewed |
 | J5 | Java | text-block logs `log.*("""` — open each hit for `{}` inside | 0 unreviewed |
 | J6a/J6b | Java | codemod residue keys (`_get_`, `_stream_`, `e_get_message`, `argN`) | 0 — blocking (§4.1) |
@@ -51,8 +51,8 @@ Clean checks are **necessary, never sufficient** — the goal is queryable top-l
 - **Go Sprintf dodge:** `fmt.Sprintf(…)` / string build then `log.X("%s", msg)` — **no grep catches this**; review
   string builds feeding log calls. A single `"%s"` wrapper around a field helper is OK
   ([go-qubership-lib.md](go-qubership-lib.md)).
-- **Java shared constants:** J2 → 0 while a `{}` constant still templates at runtime (J3) — stop and ask immediately
-  ([user-decisions.md](user-decisions.md) § Java shared `{}` template constants).
+- **Java shared constants:** J2 → 0 while a `{}` constant still templates at runtime (J3) — queue for the inventory
+  decision batch ([user-decisions.md](user-decisions.md) § Java shared `{}` template constants).
 - **Java text blocks:** J2 misses `log.info(""" … {} … """)` — open every J5 hit.
 
 ## Common patterns

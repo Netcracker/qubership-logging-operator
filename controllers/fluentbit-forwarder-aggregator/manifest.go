@@ -64,7 +64,7 @@ func forwarderConfigMap(cr *loggingService.LoggingService, dynamicParameters uti
 	}
 	util.SetLabelsForResource(&configMap, util.LabelInput{
 		Name:            util.ForwarderFluentbitComponentName,
-		Component:       "fluentbit",
+		Component:       util.ComponentBackend,
 		ComponentLabels: cr.Spec.Fluentbit.Labels,
 	}, map[string]string{"k8s-app": "fluent-bit"})
 	return &configMap, nil
@@ -83,7 +83,7 @@ func forwarderDaemonSet(cr *loggingService.LoggingService, dynamicParameters uti
 		}
 		util.SetLabelsForWorkload(&ds, &ds.Spec.Template.Labels, util.LabelInput{
 			Name:            ds.GetName(),
-			Component:       "fluentbit",
+			Component:       util.ComponentBackend,
 			Instance:        util.GetInstanceLabel(ds.GetName(), ds.GetNamespace()),
 			Version:         util.GetTagFromImage(cr.Spec.Fluentbit.DockerImage),
 			Technology:      "c",
@@ -127,7 +127,7 @@ func forwarderService(cr *loggingService.LoggingService, dynamicParameters util.
 	}
 	util.SetLabelsForResource(&service, util.LabelInput{
 		Name:            service.GetName(),
-		Component:       "fluentbit",
+		Component:       util.ComponentBackend,
 		ComponentLabels: cr.Spec.Fluentbit.Labels,
 	}, nil)
 	return &service, nil
@@ -177,7 +177,7 @@ func aggregatorConfigMap(cr *loggingService.LoggingService, dynamicParameters ut
 	}
 	util.SetLabelsForResource(&configMap, util.LabelInput{
 		Name:            util.AggregatorFluentbitComponentName,
-		Component:       "fluentbit",
+		Component:       util.ComponentBackend,
 		ComponentLabels: cr.Spec.Fluentbit.Aggregator.Labels,
 	}, map[string]string{"k8s-app": "fluent-bit"})
 	return &configMap, nil
@@ -195,7 +195,7 @@ func aggregatorStatefulSet(cr *loggingService.LoggingService) (*appsv1.StatefulS
 	if cr.Spec.Fluentbit.Aggregator != nil {
 		util.SetLabelsForWorkload(&statefulSet, &statefulSet.Spec.Template.Labels, util.LabelInput{
 			Name:            statefulSet.GetName(),
-			Component:       "fluentbit",
+			Component:       util.ComponentBackend,
 			Instance:        util.GetInstanceLabel(statefulSet.GetName(), statefulSet.GetNamespace()),
 			Version:         util.GetTagFromImage(cr.Spec.Fluentbit.Aggregator.DockerImage),
 			Technology:      "c",
@@ -235,7 +235,7 @@ func aggregatorService(cr *loggingService.LoggingService) (*corev1.Service, erro
 	}
 	util.SetLabelsForResource(&service, util.LabelInput{
 		Name:            service.GetName(),
-		Component:       "fluentbit",
+		Component:       util.ComponentBackend,
 		ComponentLabels: cr.Spec.Fluentbit.Aggregator.Labels,
 	}, nil)
 	return &service, nil

@@ -1,0 +1,143 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
+chart="$repo_root/charts/qubership-logging-operator"
+logging_service_template=templates/operator/loggingservice.observability.netcracker.com.yaml
+
+rendered=$(helm template logging "$chart" --show-only "$logging_service_template" \
+  --set victorialogs.install=true \
+  --set victorialogs.nameOverride=logs-store \
+  --set victorialogs.service.port=19428 \
+  --set fluentd.install=true \
+  --set fluentd.output.http.enabled=true \
+  --set fluentbit.install=true \
+  --set fluentbit.output.http.enabled=true \
+  --set fluentbit.aggregator.install=true \
+  --set fluentbit.aggregator.output.http.enabled=true)
+
+[[ $(grep -Fc 'host: http://logs-store:19428' <<< "$rendered") -eq 1 ]]
+[[ $(grep -Fc 'host: logs-store' <<< "$rendered") -eq 2 ]]
+[[ $(grep -Fc 'port: 19428' <<< "$rendered") -eq 2 ]]
+
+overridden=$(helm template logging "$chart" --show-only "$logging_service_template" \
+  --set victorialogs.install=true \
+  --set fluentd.install=true \
+  --set fluentd.output.http.enabled=true \
+  --set-string fluentd.output.http.host=http://vmauth:8427 \
+  --set fluentbit.install=true \
+  --set fluentbit.output.http.enabled=true \
+  --set-string fluentbit.output.http.host=vmauth \
+  --set fluentbit.output.http.port=8427 \
+  --set fluentbit.aggregator.install=true \
+  --set fluentbit.aggregator.output.http.enabled=true \
+  --set-string fluentbit.aggregator.output.http.host=aggregator-vmauth \
+  --set fluentbit.aggregator.output.http.port=8428)
+
+grep -Fq 'host: http://vmauth:8427' <<< "$overridden"
+grep -Fq 'host: vmauth' <<< "$overridden"
+grep -Fq 'port: 8427' <<< "$overridden"
+grep -Fq 'host: aggregator-vmauth' <<< "$overridden"
+grep -Fq 'port: 8428' <<< "$overridden"
+
+pvc=$(helm template logging "$chart" --show-only templates/victorialogs/pvc.yaml \
+  --set victorialogs.install=true)
+grep -Fq 'helm.sh/resource-policy: keep' <<< "$pvc"
+
+services=$(helm template logging "$chart" \
+  --show-only templates/victorialogs/service.yaml \
+  --show-only templates/victorialogs/service-headless.yaml \
+  --set victorialogs.install=true)
+[[ $(grep -Fc 'type: ClusterIP' <<< "$services") -eq 2 ]]
+[[ $(grep -Fc 'clusterIP: None' <<< "$services") -eq 1 ]]
+
+statefulset=$(helm template logging "$chart" --show-only templates/victorialogs/statefulset.yaml \
+  --set victorialogs.install=true \
+  --set-string 'victorialogs.podLabels.app\.kubernetes\.io/component=invalid')
+grep -Fq 'serviceName: victorialogs-headless' <<< "$statefulset"
+grep -Fq -- '--retentionPeriod=1' <<< "$statefulset"
+grep -Fq 'app.kubernetes.io/component: victorialogs' <<< "$statefulset"
+if grep -Fq 'app.kubernetes.io/component: invalid' <<< "$statefulset"; then
+  echo "Selector label app.kubernetes.io/component was overridden by podLabels."
+  exit 1
+fi
+
+vmauth=$(helm template logging "$chart" --namespace logging \
+  --show-only templates/victorialogs/vmauth-secret.yaml \
+  --show-only templates/victorialogs/vmauth-deployment.yaml \
+  --show-only templates/victorialogs/vmauth-service.yaml \
+  --show-only templates/victorialogs/ingress.yaml \
+  --show-only templates/victorialogs/httproute.yaml \
+  --set victorialogs.install=true \
+  --set victorialogs.ingress.install=true \
+  --set victorialogs.httpRoute.install=true \
+  --set-string CLOUD_PUBLIC_HOST=apps.example.com \
+  --set-string victorialogs.vmauth.config.users[0].username=viewer \
+  --set-string 'victorialogs.vmauth.config.users[0].password=%{VMAUTH_PASSWORD}' \
+  --set-string 'victorialogs.vmauth.podLabels.app\.kubernetes\.io/component=invalid')
+
+[[ $(grep -Fc 'vmauth-logging.apps.example.com' <<< "$vmauth") -eq 2 ]]
+grep -Fq 'name: vmauth-victorialogs' <<< "$vmauth"
+grep -Fq 'kind: Secret' <<< "$vmauth"
+grep -Fq 'port: 8427' <<< "$vmauth"
+grep -Fq -- '-auth.config=/etc/vmauth/auth.yml' <<< "$vmauth"
+vmauth_config=$(sed -n 's/^  auth.yml: "\(.*\)"$/\1/p' <<< "$vmauth" | base64 --decode)
+grep -Fq "password: '%{VMAUTH_PASSWORD}'" <<< "$vmauth_config"
+grep -Fq 'url_prefix: http://victorialogs:9428/' <<< "$vmauth_config"
+if grep -Fq 'app.kubernetes.io/component: invalid' <<< "$vmauth"; then
+  echo "Selector label app.kubernetes.io/component was overridden in the VMAuth Pod."
+  exit 1
+fi
+
+explicit_hosts=$(helm template logging "$chart" --namespace logging \
+  --show-only templates/victorialogs/ingress.yaml \
+  --show-only templates/victorialogs/httproute.yaml \
+  --set victorialogs.install=true \
+  --set victorialogs.ingress.install=true \
+  --set-string victorialogs.ingress.hosts[0].host=ingress.example.org \
+  --set-string victorialogs.ingress.hosts[0].paths[0].path=/ \
+  --set victorialogs.httpRoute.install=true \
+  --set-string victorialogs.httpRoute.hostnames[0]=route.example.org \
+  --set-string victorialogs.vmauth.config.users[0].bearer_token=secret)
+
+grep -Fq 'ingress.example.org' <<< "$explicit_hosts"
+grep -Fq 'route.example.org' <<< "$explicit_hosts"
+
+if helm template logging "$chart" \
+  --set victorialogs.install=true \
+  --set victorialogs.ingress.install=true \
+  --set-string CLOUD_PUBLIC_HOST=apps.example.com >/dev/null 2>&1; then
+  echo "VictoriaLogs Ingress rendered without an authenticated VMAuth user."
+  exit 1
+fi
+
+expect_vmauth_auth_failure() {
+  local case_name=$1
+  shift
+  if helm template logging "$chart" \
+    --set victorialogs.install=true \
+    --set victorialogs.ingress.install=true \
+    --set-string CLOUD_PUBLIC_HOST=apps.example.com \
+    "$@" >/dev/null 2>&1; then
+    echo "VMAuth accepted invalid authentication configuration: $case_name."
+    exit 1
+  fi
+}
+
+expect_vmauth_auth_failure "name without credentials" \
+  --set-string victorialogs.vmauth.config.users[0].name=viewer
+expect_vmauth_auth_failure "username without password" \
+  --set-string victorialogs.vmauth.config.users[0].username=viewer
+expect_vmauth_auth_failure "password without username" \
+  --set-string victorialogs.vmauth.config.users[0].password=secret
+expect_vmauth_auth_failure "empty password" \
+  --set-string victorialogs.vmauth.config.users[0].username=viewer \
+  --set-string victorialogs.vmauth.config.users[0].password=
+expect_vmauth_auth_failure "multiple authentication methods" \
+  --set-string victorialogs.vmauth.config.users[0].username=viewer \
+  --set-string victorialogs.vmauth.config.users[0].password=secret \
+  --set-string victorialogs.vmauth.config.users[0].bearer_token=secret
+expect_vmauth_auth_failure "helper validation without schema" \
+  --skip-schema-validation \
+  --set-string victorialogs.vmauth.config.users[0].username=viewer

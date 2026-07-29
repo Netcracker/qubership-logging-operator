@@ -33,7 +33,7 @@ releases:
     namespace: opensearch
     createNamespace: true
     condition: backend.graylog.enabled
-    chart: https://github.com/Netcracker/qubership-opensearch/releases/download/{{ env "OPENSEARCH_VERSION" | default "2.3.0" }}/opensearch-{{ env "OPENSEARCH_VERSION" | default "2.3.0" }}.tgz
+    chart: https://github.com/Netcracker/qubership-opensearch/releases/download/{{ requiredEnv "OPENSEARCH_VERSION" }}/opensearch-{{ requiredEnv "OPENSEARCH_VERSION" }}.tgz
     values:
       - values-opensearch.yaml
       - opensearch:

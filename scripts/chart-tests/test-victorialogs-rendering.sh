@@ -63,6 +63,19 @@ if grep -Fq 'app.kubernetes.io/component: invalid' <<<"$statefulset"; then
     exit 1
 fi
 
+dashboard=$(helm template logging "$chart" --namespace logging \
+    --show-only templates/victorialogs/grafanadashboard.yaml \
+    --set victorialogs.install=true \
+    --set victorialogs.dashboard.install=true)
+grep -Fq 'apiVersion: grafana.integreatly.org/v1beta1' <<<"$dashboard"
+grep -Fq 'allowCrossNamespaceImport: true' <<<"$dashboard"
+grep -Fq 'app.kubernetes.io/component: grafana' <<<"$dashboard"
+grep -Fq 'app.kubernetes.io/part-of: monitoring' <<<"$dashboard"
+if grep -Fq 'apiVersion: integreatly.org/v1alpha1' <<<"$dashboard"; then
+    echo "VictoriaLogs rendered a Grafana Operator v4 dashboard resource."
+    exit 1
+fi
+
 vmauth=$(helm template logging "$chart" --namespace logging \
     --show-only templates/victorialogs/vmauth-secret.yaml \
     --show-only templates/victorialogs/vmauth-deployment.yaml \
@@ -74,7 +87,7 @@ vmauth=$(helm template logging "$chart" --namespace logging \
     --set victorialogs.httpRoute.install=true \
     --set-string CLOUD_PUBLIC_HOST=apps.example.com \
     --set-string victorialogs.vmauth.config.users[0].username=viewer \
-    --set-string 'victorialogs.vmauth.config.users[0].password=%{VMAUTH_PASSWORD}' \
+    --set-string victorialogs.vmauth.config.users[0].password=strong-password \
     --set-string 'victorialogs.vmauth.podLabels.app\.kubernetes\.io/component=invalid')
 
 [[ $(grep -Fc 'vmauth-logging.apps.example.com' <<<"$vmauth") -eq 2 ]]
@@ -82,8 +95,15 @@ grep -Fq 'name: vmauth-victorialogs' <<<"$vmauth"
 grep -Fq 'kind: Secret' <<<"$vmauth"
 grep -Fq 'port: 8427' <<<"$vmauth"
 grep -Fq -- '-auth.config=/etc/vmauth/auth.yml' <<<"$vmauth"
+grep -Fq 'mountPath: /etc/vmauth' <<<"$vmauth"
+grep -Fq 'readOnly: true' <<<"$vmauth"
+grep -Fq 'secretName: vmauth-victorialogs' <<<"$vmauth"
+if grep -Eq '^[[:space:]]+env(From)?:' <<<"$vmauth"; then
+    echo "VMAuth rendered environment variables instead of a read-only Secret file."
+    exit 1
+fi
 vmauth_config=$(sed -n 's/^  auth.yml: "\(.*\)"$/\1/p' <<<"$vmauth" | base64 --decode)
-grep -Fq "password: '%{VMAUTH_PASSWORD}'" <<<"$vmauth_config"
+grep -Fq 'password: strong-password' <<<"$vmauth_config"
 grep -Fq 'url_prefix: http://victorialogs:9428/' <<<"$vmauth_config"
 if grep -Fq 'app.kubernetes.io/component: invalid' <<<"$vmauth"; then
     echo "Selector label app.kubernetes.io/component was overridden in the VMAuth Pod."

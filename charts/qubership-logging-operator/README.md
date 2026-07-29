@@ -17,15 +17,6 @@ A Helm chart for qubership-logging-operator
 	</thead>
 	<tbody>
 		<tr>
-			<td>CLOUD_PUBLIC_HOST</td>
-			<td>string</td>
-			<td><pre lang="json">
-""
-</pre>
-</td>
-			<td>Public DNS suffix used to generate component hosts when an explicit host is not set.</td>
-		</tr>
-		<tr>
 			<td>affinity</td>
 			<td>object</td>
 			<td><pre lang="json">
@@ -3105,8 +3096,15 @@ true
   "affinity": {},
   "annotations": {},
   "dashboard": {
+    "allowCrossNamespaceImport": true,
     "annotations": {},
     "install": true,
+    "instanceSelector": {
+      "matchLabels": {
+        "app.kubernetes.io/component": "grafana",
+        "app.kubernetes.io/part-of": "monitoring"
+      }
+    },
     "labels": {}
   },
   "env": [],
@@ -3307,13 +3305,29 @@ true
 			<td>object</td>
 			<td><pre lang="json">
 {
+  "allowCrossNamespaceImport": true,
   "annotations": {},
   "install": true,
+  "instanceSelector": {
+    "matchLabels": {
+      "app.kubernetes.io/component": "grafana",
+      "app.kubernetes.io/part-of": "monitoring"
+    }
+  },
   "labels": {}
 }
 </pre>
 </td>
 			<td>Grafana Operator dashboard configuration.</td>
+		</tr>
+		<tr>
+			<td>victorialogs.dashboard.allowCrossNamespaceImport</td>
+			<td>bool</td>
+			<td><pre lang="json">
+true
+</pre>
+</td>
+			<td>Allow the dashboard in the logging namespace to target a Grafana instance in another namespace.</td>
 		</tr>
 		<tr>
 			<td>victorialogs.dashboard.install</td>
@@ -3322,7 +3336,21 @@ true
 true
 </pre>
 </td>
-			<td>Create a GrafanaDashboard resource. The Grafana Operator CRDs must be installed.</td>
+			<td>Create a GrafanaDashboard v5 resource. The Grafana Operator v5 CRDs must be installed.</td>
+		</tr>
+		<tr>
+			<td>victorialogs.dashboard.instanceSelector</td>
+			<td>object</td>
+			<td><pre lang="json">
+{
+  "matchLabels": {
+    "app.kubernetes.io/component": "grafana",
+    "app.kubernetes.io/part-of": "monitoring"
+  }
+}
+</pre>
+</td>
+			<td>Select the Grafana v5 instance that imports the dashboard.</td>
 		</tr>
 		<tr>
 			<td>victorialogs.env</td>
@@ -3331,7 +3359,7 @@ true
 []
 </pre>
 </td>
-			<td>Environment variables for the VictoriaLogs container.</td>
+			<td>Additional non-sensitive environment variables for the VictoriaLogs container.</td>
 		</tr>
 		<tr>
 			<td>victorialogs.envFrom</td>
@@ -3340,7 +3368,7 @@ true
 []
 </pre>
 </td>
-			<td>Sources for environment variables.</td>
+			<td>Sources for additional non-sensitive VictoriaLogs environment variables.</td>
 		</tr>
 		<tr>
 			<td>victorialogs.extraArgs</td>
@@ -3832,7 +3860,7 @@ true
 }
 </pre>
 </td>
-			<td>Native VMAuth configuration stored in a Kubernetes Secret and mounted read-only. Define at least one user before enabling external access. Each user must contain exactly one authentication method: non-empty username and password, or non-empty bearer_token. Use %{ENV_VAR} placeholders for credentials and load their values from a Secret through env or envFrom.</td>
+			<td>Native VMAuth configuration stored in a Kubernetes Secret and mounted read-only. Define at least one user before enabling external access. Each user must contain exactly one authentication method: non-empty username and password, or non-empty bearer_token. The chart writes the complete configuration, including credentials, to the mounted Secret file.</td>
 		</tr>
 		<tr>
 			<td>victorialogs.vmauth.env</td>
@@ -3841,7 +3869,7 @@ true
 []
 </pre>
 </td>
-			<td>Environment variables for the VMAuth container. Use Secret references for credentials.</td>
+			<td>Additional non-sensitive environment variables for the VMAuth container.</td>
 		</tr>
 		<tr>
 			<td>victorialogs.vmauth.envFrom</td>
@@ -3850,7 +3878,7 @@ true
 []
 </pre>
 </td>
-			<td>Sources for VMAuth environment variables. Use Secret references for credentials.</td>
+			<td>Sources for additional non-sensitive VMAuth environment variables.</td>
 		</tr>
 		<tr>
 			<td>victorialogs.vmauth.extraArgs</td>

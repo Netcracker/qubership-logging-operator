@@ -4089,16 +4089,41 @@
                 "dashboard": {
                     "description": "Grafana Operator dashboard configuration.",
                     "properties": {
+                        "allowCrossNamespaceImport": {
+                            "description": "Allow the dashboard to target a Grafana instance in another namespace.",
+                            "type": "boolean"
+                        },
                         "annotations": {
                             "type": "object"
                         },
                         "install": {
                             "type": "boolean"
                         },
+                        "instanceSelector": {
+                            "description": "Label selector for the Grafana v5 instance that imports the dashboard.",
+                            "properties": {
+                                "matchExpressions": {
+                                    "items": {
+                                        "type": "object"
+                                    },
+                                    "type": "array"
+                                },
+                                "matchLabels": {
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    },
+                                    "type": "object"
+                                }
+                            },
+                            "type": "object"
+                        },
                         "labels": {
                             "type": "object"
                         }
                     },
+                    "required": [
+                        "instanceSelector"
+                    ],
                     "type": "object"
                 },
                 "dockerImage": {
@@ -4106,14 +4131,14 @@
                     "type": "string"
                 },
                 "env": {
-                    "description": "Environment variables for the VictoriaLogs container.",
+                    "description": "Additional non-sensitive environment variables for the VictoriaLogs container.",
                     "items": {
                         "type": "object"
                     },
                     "type": "array"
                 },
                 "envFrom": {
-                    "description": "Sources for VictoriaLogs environment variables.",
+                    "description": "Sources for additional non-sensitive VictoriaLogs environment variables.",
                     "items": {
                         "type": "object"
                     },
@@ -4498,14 +4523,14 @@
                             "type": "string"
                         },
                         "env": {
-                            "description": "Environment variables for the VMAuth container.",
+                            "description": "Additional non-sensitive environment variables for the VMAuth container.",
                             "items": {
                                 "type": "object"
                             },
                             "type": "array"
                         },
                         "envFrom": {
-                            "description": "Sources for VMAuth environment variables.",
+                            "description": "Sources for additional non-sensitive VMAuth environment variables.",
                             "items": {
                                 "type": "object"
                             },

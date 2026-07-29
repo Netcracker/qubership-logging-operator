@@ -186,7 +186,7 @@ victorialogs:
     # -- Native VMAuth configuration stored in a Kubernetes Secret and mounted read-only.
     # Define at least one user before enabling external access. Each user must contain exactly one authentication
     # method: non-empty username and password, or non-empty bearer_token.
-    # Use %{ENV_VAR} placeholders for credentials and load their values from a Secret through env or envFrom.
+    # The chart writes the complete configuration, including credentials, to the mounted Secret file.
     config:
       # Example with credentials stored in the generated VMAuth configuration Secret:
       # users:
@@ -202,9 +202,9 @@ victorialogs:
       envflag.prefix: VM_
       loggerFormat: json
 
-    # -- Environment variables for the VMAuth container. Use Secret references for credentials.
+    # -- Additional non-sensitive environment variables for the VMAuth container.
     env: []
-    # -- Sources for VMAuth environment variables. Use Secret references for credentials.
+    # -- Sources for additional non-sensitive VMAuth environment variables.
     envFrom: []
     resources: {}
     annotations: {}
@@ -288,8 +288,15 @@ victorialogs:
 
   # -- Grafana Operator dashboard configuration.
   dashboard:
-    # -- Create a GrafanaDashboard resource. The Grafana Operator CRDs must be installed.
+    # -- Create a GrafanaDashboard v5 resource. The Grafana Operator v5 CRDs must be installed.
     install: true
+    # -- Allow the dashboard in the logging namespace to target a Grafana instance in another namespace.
+    allowCrossNamespaceImport: true
+    # -- Select the Grafana v5 instance that imports the dashboard.
+    instanceSelector:
+      matchLabels:
+        app.kubernetes.io/component: grafana
+        app.kubernetes.io/part-of: monitoring
     labels: {}
     annotations: {}
 
@@ -345,9 +352,9 @@ victorialogs:
   tolerations: []
   topologySpreadConstraints: []
 
-  # -- Environment variables for the VictoriaLogs container.
+  # -- Additional non-sensitive environment variables for the VictoriaLogs container.
   env: []
-  # -- Sources for environment variables.
+  # -- Sources for additional non-sensitive VictoriaLogs environment variables.
   envFrom: []
   # -- Additional Pod volumes.
   extraVolumes: []

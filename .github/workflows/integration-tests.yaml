@@ -40,6 +40,8 @@ env:
   opensearch_major_version: 2
   # renovate: datasource=github-releases depName=Netcracker/qubership-monitoring-operator versioning=semver
   monitoring_version: v0.88.0
+  # renovate: datasource=github-releases depName=grafana/grafana-operator versioning=semver
+  grafana_operator_version: v5.22.0
   ## Other parameters
   opensearch_namespace: opensearch
   victorialogs_service: victorialogs
@@ -129,6 +131,7 @@ jobs:
     - name: Install required CRDs
       run: |
         kubectl create -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/tags/${{ env.monitoring_version }}/charts/qubership-monitoring-operator/charts/grafana-operator/crds/integreatly.org_grafanadashboards.yaml
+        kubectl create -f https://raw.githubusercontent.com/grafana/grafana-operator/${{ env.grafana_operator_version }}/config/crd/bases/grafana.integreatly.org_grafanadashboards.yaml
         kubectl create -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/tags/${{ env.monitoring_version }}/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_prometheusrules.yaml
         kubectl create -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/tags/${{ env.monitoring_version }}/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_servicemonitors.yaml
         kubectl create -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/tags/${{ env.monitoring_version }}/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_podmonitors.yaml

@@ -1,5 +1,5 @@
 {{- if and .Values.victorialogs.install .Values.victorialogs.dashboard.install }}
-{{- $dashboard := tpl (.Files.Get "monitoring/victorialogs-single-node.yaml") . | fromYaml }}
+{{- $dashboard := tpl (.Files.Get "monitoring/victorialogs-single-node.yaml.gotmpl") . | fromYaml }}
 apiVersion: integreatly.org/v1alpha1
 kind: GrafanaDashboard
 metadata:

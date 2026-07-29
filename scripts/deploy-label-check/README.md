@@ -45,7 +45,7 @@ kind load docker-image qubership-logging-operator:local   # only for kind; omit 
 OPERATOR_IMAGE=qubership-logging-operator:local ./scripts/deploy-label-check/deploy-and-verify-labels.sh
 ```
 
-**Rancher Desktop**  
+**Rancher Desktop**
 The cluster runs in a VM and may not see images you build on the host. Easiest options:
 
 1. **Push to a registry** (Docker Hub, ghcr.io, etc.) and use the full image name:

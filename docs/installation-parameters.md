@@ -106,8 +106,9 @@ Enabling `ingress.install` or `httpRoute.install` also deploys VMAuth. The exter
 the VMAuth Service instead of the VictoriaLogs Service. Define at least one authenticated user in
 `vmauth.config.users`; the chart rejects anonymous `unauthorized_user` configuration.
 
-Store credentials in a Kubernetes Secret. Reference the Secret through `vmauth.env` or `vmauth.envFrom`, and use
-`%{ENV_VAR}` placeholders in the VMAuth ConfigMap. Do not put passwords or tokens directly in `values.yaml`.
+The chart stores the complete VMAuth configuration, including credentials, in a Kubernetes Secret and mounts
+`auth.yml` as a read-only file. Do not pass credentials through `vmauth.env` or `vmauth.envFrom`. Treat values files
+that contain credentials as sensitive data.
 
 Each authenticated user is routed to the internal VictoriaLogs Service by default. Set `url_prefix`, `url_map`, or
 `default_url` for that user to override the generated backend routing.
@@ -120,51 +121,54 @@ The generated PVC has the `helm.sh/resource-policy: keep` annotation. Helm retai
 disabling VictoriaLogs, changing `nameOverride`, or switching to `existingClaim`. Back up and delete retained PVCs
 manually when their data is no longer needed. Changing the claim does not migrate stored data.
 
-`serviceMonitor.install` requires the Prometheus Operator CRDs. `dashboard.install` requires the Grafana Operator CRDs.
+`serviceMonitor.install` requires the Prometheus Operator CRDs. `dashboard.install` requires the Grafana Operator v5
+CRDs. The default dashboard selector targets the Grafana instance managed by qubership-monitoring-operator.
 Disable these resources when the corresponding operator is unavailable.
 
 <!-- markdownlint-disable line-length -->
-| Parameter                   | Type              | Mandatory | Default value                                     | Description                                                                                          |
-| --------------------------- | ----------------- | --------- | ------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| `install`                   | boolean           | no        | `false`                                           | Deploys VictoriaLogs as part of the logging Helm release                                             |
-| `nameOverride`              | string            | no        | `-`                                               | Overrides the names of VictoriaLogs resources                                                        |
-| `dockerImage`               | string            | no        | `docker.io/victoriametrics/victoria-logs:v1.51.0` | Sets the VictoriaLogs container image                                                                |
-| `imagePullPolicy`           | string            | no        | `IfNotPresent`                                    | Sets the VictoriaLogs image pull policy                                                              |
-| `imagePullSecrets`          | []object          | no        | `[]`                                              | Configures image pull secrets for the VictoriaLogs Pod                                               |
-| `retentionPeriod`           | string or integer | no        | `1`                                               | Sets data retention. Supported units are `h`, `d`, `w`, and `y`; a value without a unit means months |
-| `port`                      | integer           | no        | `9428`                                            | Sets the VictoriaLogs HTTP listen port                                                               |
-| `extraArgs`                 | map               | no        | See `values.yaml`                                 | Adds VictoriaLogs command-line arguments                                                             |
-| `storage.existingClaim`     | string            | no        | `-`                                               | Mounts an existing PVC instead of creating one                                                       |
-| `storage.persistentVolume`  | string            | no        | `-`                                               | Binds the generated PVC to a specific persistent volume                                              |
-| `storage.storageClassName`  | string            | no        | `-`                                               | Sets the StorageClass for the generated PVC                                                          |
-| `storage.accessModes`       | []string          | no        | `[ReadWriteOnce]`                                 | Sets access modes for the generated PVC                                                              |
-| `storage.size`              | string            | no        | `10Gi`                                            | Requests storage capacity for the generated PVC                                                      |
-| `storage.mountPath`         | string            | no        | `/storage`                                        | Sets the data volume mount path                                                                      |
-| `service.port`              | integer           | no        | `9428`                                            | Sets the internal client Service port                                                                |
-| `CLOUD_PUBLIC_HOST`         | string            | no        | `-`                                               | Provides the public DNS suffix used to generate the default VMAuth host                              |
-| `ingress.install`           | boolean           | no        | `false`                                           | Creates an Ingress backed by the VMAuth Service                                                      |
-| `ingress.hosts`             | []object          | no        | `[]`                                              | Configures Ingress hosts and paths; an empty list uses the generated VMAuth host                     |
-| `ingress.tls`               | []object          | no        | `[]`                                              | Configures TLS for the Ingress                                                                       |
-| `httpRoute.install`         | boolean           | no        | `false`                                           | Creates an HTTPRoute backed by the VMAuth Service                                                    |
-| `httpRoute.hostnames`       | []string          | no        | `[]`                                              | Configures HTTPRoute hostnames; an empty list uses the generated VMAuth host                         |
-| `httpRoute.parentRefs`      | []object          | no        | `[]`                                              | Selects Gateway listeners for the HTTPRoute                                                          |
-| `vmauth.dockerImage`        | string            | no        | `docker.io/victoriametrics/vmauth:v1.147.0`       | Sets the VMAuth container image                                                                      |
-| `vmauth.replicaCount`       | integer           | no        | `1`                                               | Sets the number of VMAuth replicas                                                                   |
-| `vmauth.port`               | integer           | no        | `8427`                                            | Sets the VMAuth HTTP listen port                                                                     |
-| `vmauth.service.port`       | integer           | no        | `8427`                                            | Sets the VMAuth Service port                                                                         |
-| `vmauth.config`             | object            | no        | `{users: []}`                                     | Configures authenticated VMAuth users and routing; `unauthorized_user` is rejected                   |
-| `vmauth.env`                | []object          | no        | `[]`                                              | Supplies VMAuth environment variables, including credentials from Secrets                            |
-| `vmauth.envFrom`            | []object          | no        | `[]`                                              | Supplies VMAuth environment variables from Secrets or ConfigMaps                                     |
-| `vmauth.resources`          | object            | no        | `{}`                                              | Configures compute resources for VMAuth                                                              |
-| `serviceMonitor.install`    | boolean           | no        | `true`                                            | Creates a ServiceMonitor; requires the Prometheus Operator CRDs                                      |
-| `dashboard.install`         | boolean           | no        | `true`                                            | Creates a GrafanaDashboard; requires the Grafana Operator CRDs                                       |
-| `resources`                 | object            | no        | `{}`                                              | Configures compute resources for the VictoriaLogs container                                          |
-| `securityContext`           | object            | no        | See `values.yaml`                                 | Configures the VictoriaLogs container security context                                               |
-| `podSecurityContext`        | object            | no        | See `values.yaml`                                 | Configures the VictoriaLogs Pod security context                                                     |
-| `affinity`                  | object            | no        | `{}`                                              | Configures Pod affinity and anti-affinity                                                            |
-| `nodeSelector`              | map               | no        | `{}`                                              | Selects nodes for the VictoriaLogs Pod                                                               |
-| `tolerations`               | []object          | no        | `[]`                                              | Configures Pod tolerations                                                                           |
-| `topologySpreadConstraints` | []object          | no        | `[]`                                              | Configures Pod topology spread constraints                                                           |
+| Parameter                             | Type              | Mandatory | Default value                                     | Description                                                                                          |
+| ------------------------------------- | ----------------- | --------- | ------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `install`                             | boolean           | no        | `false`                                           | Deploys VictoriaLogs as part of the logging Helm release                                             |
+| `nameOverride`                        | string            | no        | `-`                                               | Overrides the names of VictoriaLogs resources                                                        |
+| `dockerImage`                         | string            | no        | `docker.io/victoriametrics/victoria-logs:v1.51.0` | Sets the VictoriaLogs container image                                                                |
+| `imagePullPolicy`                     | string            | no        | `IfNotPresent`                                    | Sets the VictoriaLogs image pull policy                                                              |
+| `imagePullSecrets`                    | []object          | no        | `[]`                                              | Configures image pull secrets for the VictoriaLogs Pod                                               |
+| `retentionPeriod`                     | string or integer | no        | `1`                                               | Sets data retention. Supported units are `h`, `d`, `w`, and `y`; a value without a unit means months |
+| `port`                                | integer           | no        | `9428`                                            | Sets the VictoriaLogs HTTP listen port                                                               |
+| `extraArgs`                           | map               | no        | See `values.yaml`                                 | Adds VictoriaLogs command-line arguments                                                             |
+| `storage.existingClaim`               | string            | no        | `-`                                               | Mounts an existing PVC instead of creating one                                                       |
+| `storage.persistentVolume`            | string            | no        | `-`                                               | Binds the generated PVC to a specific persistent volume                                              |
+| `storage.storageClassName`            | string            | no        | `-`                                               | Sets the StorageClass for the generated PVC                                                          |
+| `storage.accessModes`                 | []string          | no        | `[ReadWriteOnce]`                                 | Sets access modes for the generated PVC                                                              |
+| `storage.size`                        | string            | no        | `10Gi`                                            | Requests storage capacity for the generated PVC                                                      |
+| `storage.mountPath`                   | string            | no        | `/storage`                                        | Sets the data volume mount path                                                                      |
+| `service.port`                        | integer           | no        | `9428`                                            | Sets the internal client Service port                                                                |
+| `CLOUD_PUBLIC_HOST`                   | string            | no        | `-`                                               | Provides the public DNS suffix used to generate the default VMAuth host                              |
+| `ingress.install`                     | boolean           | no        | `false`                                           | Creates an Ingress backed by the VMAuth Service                                                      |
+| `ingress.hosts`                       | []object          | no        | `[]`                                              | Configures Ingress hosts and paths; an empty list uses the generated VMAuth host                     |
+| `ingress.tls`                         | []object          | no        | `[]`                                              | Configures TLS for the Ingress                                                                       |
+| `httpRoute.install`                   | boolean           | no        | `false`                                           | Creates an HTTPRoute backed by the VMAuth Service                                                    |
+| `httpRoute.hostnames`                 | []string          | no        | `[]`                                              | Configures HTTPRoute hostnames; an empty list uses the generated VMAuth host                         |
+| `httpRoute.parentRefs`                | []object          | no        | `[]`                                              | Selects Gateway listeners for the HTTPRoute                                                          |
+| `vmauth.dockerImage`                  | string            | no        | `docker.io/victoriametrics/vmauth:v1.147.0`       | Sets the VMAuth container image                                                                      |
+| `vmauth.replicaCount`                 | integer           | no        | `1`                                               | Sets the number of VMAuth replicas                                                                   |
+| `vmauth.port`                         | integer           | no        | `8427`                                            | Sets the VMAuth HTTP listen port                                                                     |
+| `vmauth.service.port`                 | integer           | no        | `8427`                                            | Sets the VMAuth Service port                                                                         |
+| `vmauth.config`                       | object            | no        | `{users: []}`                                     | Configures authenticated VMAuth users and routing; `unauthorized_user` is rejected                   |
+| `vmauth.env`                          | []object          | no        | `[]`                                              | Supplies additional non-sensitive VMAuth environment variables                                      |
+| `vmauth.envFrom`                      | []object          | no        | `[]`                                              | Supplies sources for additional non-sensitive VMAuth environment variables                          |
+| `vmauth.resources`                    | object            | no        | `{}`                                              | Configures compute resources for VMAuth                                                              |
+| `serviceMonitor.install`              | boolean           | no        | `true`                                            | Creates a ServiceMonitor; requires the Prometheus Operator CRDs                                      |
+| `dashboard.install`                   | boolean           | no        | `true`                                            | Creates a GrafanaDashboard v5 resource                                                               |
+| `dashboard.allowCrossNamespaceImport` | boolean           | no        | `true`                                            | Allows the dashboard to target a Grafana instance outside the logging namespace                      |
+| `dashboard.instanceSelector`          | object            | no        | See `values.yaml`                                 | Selects the Grafana v5 instance that imports the dashboard                                           |
+| `resources`                           | object            | no        | `{}`                                              | Configures compute resources for the VictoriaLogs container                                          |
+| `securityContext`                     | object            | no        | See `values.yaml`                                 | Configures the VictoriaLogs container security context                                               |
+| `podSecurityContext`                  | object            | no        | See `values.yaml`                                 | Configures the VictoriaLogs Pod security context                                                     |
+| `affinity`                            | object            | no        | `{}`                                              | Configures Pod affinity and anti-affinity                                                            |
+| `nodeSelector`                        | map               | no        | `{}`                                              | Selects nodes for the VictoriaLogs Pod                                                               |
+| `tolerations`                         | []object          | no        | `[]`                                              | Configures Pod tolerations                                                                           |
+| `topologySpreadConstraints`           | []object          | no        | `[]`                                              | Configures Pod topology spread constraints                                                           |
 <!-- markdownlint-enable line-length -->
 
 VMAuth accepts basic authentication credentials or a bearer token. When credentials are defined directly under
@@ -178,43 +182,6 @@ victorialogs:
         - username: external-user
           password: strong-password
         - bearer_token: strong-token
-```
-
-To keep credentials out of Helm values, create a separate Secret:
-
-```yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: victorialogs-vmauth-credentials
-type: Opaque
-stringData:
-  VMAUTH_USERNAME: external-user
-  VMAUTH_PASSWORD: strong-password
-```
-
-Reference the Secret through environment placeholders in the VMAuth configuration:
-
-```yaml
-victorialogs:
-  install: true
-  retentionPeriod: "1"
-  storage:
-    size: 20Gi
-  serviceMonitor:
-    install: true
-  dashboard:
-    install: true
-  ingress:
-    install: true
-  vmauth:
-    config:
-      users:
-        - username: "%{VMAUTH_USERNAME}"
-          password: "%{VMAUTH_PASSWORD}"
-    envFrom:
-      - secretRef:
-          name: victorialogs-vmauth-credentials
 ```
 
 ### VMAuth routing rules
@@ -235,17 +202,15 @@ The chart applies these routing rules to every user:
   `victorialogs.nameOverride` and `victorialogs.service.port`.
 - The top-level `unauthorized_user` section is rejected because external access must remain authenticated.
 
-With the default Service name and port, the placeholder example above produces this `auth.yml` in the VMAuth
+With the default Service name and port, the basic authentication example above produces this `auth.yml` in the VMAuth
 configuration Secret:
 
 ```yaml
 users:
-  - password: "%{VMAUTH_PASSWORD}"
+  - password: strong-password
     url_prefix: http://victorialogs:9428/
-    username: "%{VMAUTH_USERNAME}"
+    username: external-user
 ```
-
-VMAuth resolves the environment placeholders when it reads the mounted configuration file.
 
 [Back to TOC](#table-of-contents)
 

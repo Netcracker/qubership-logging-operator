@@ -88,7 +88,7 @@ Create the name of the service account to use
 Check the major version of Graylog and return 'true' if it equal 5
 */}}
 {{- define "graylog.isMajorVersion5" -}}
-  {{- if regexMatch "^*:5\\.[0-9]+\\.[0-9]+$" (include "graylog.image" . ) -}}
+  {{- if regexMatch "^*:5\\.[0-9]+\\.[0-9]+(@sha256:[a-f0-9]{64})?$" (include "graylog.image" . ) -}}
 true
   {{- end -}}
 {{- end -}}
@@ -306,7 +306,7 @@ Image can be found from:
     {{- printf "%s" .Values.graylog.dockerImage -}}
   {{- else -}}
     {{- /* # renovate: datasource=docker depName=graylog/graylog */ -}}
-    {{- print "docker.io/graylog/graylog:5.2.12" -}}
+    {{- print "docker.io/graylog/graylog:5.2.12@sha256:3f4aa0885cd3e30442e5f7e1b2361f57773831bb84515386eb5dfa6f426fc1d7" -}}
   {{- end -}}
 {{- end -}}
 
@@ -351,7 +351,7 @@ Image can be found from:
     {{- printf "%s" .Values.fluentbit.dockerImage -}}
   {{- else -}}
     {{- /* # renovate: datasource=docker depName=fluent/fluent-bit */ -}}
-    {{- print "docker.io/fluent/fluent-bit:4.2.4" -}}
+    {{- print "docker.io/fluent/fluent-bit:4.2.4@sha256:f0d24db349929c1b9fd655384278c687993070c3ba325490f130fae12aa9d60c" -}}
   {{- end -}}
 {{- end -}}
 
@@ -425,7 +425,7 @@ Image can be found from:
     {{- printf "%s" .Values.graylog.mongodbImage -}}
   {{- else -}}
     {{- /* # renovate: datasource=docker depName=mongo */ -}}
-    {{- print "docker.io/mongo:5.0.33" -}}
+    {{- print "docker.io/mongo:5.0.33@sha256:41108d183e972dcbf98d09ed83f6cfc89a471a3f15d06f9d64a95e45d9db8dd2" -}}
   {{- end -}}
 {{- end -}}
 
@@ -455,7 +455,7 @@ Image can be found from:
     {{- printf "%s" .Values.graylog.initSetupImage -}}
   {{- else -}}
     {{- /* # renovate: datasource=docker depName=alpine */ -}}
-    {{- print "docker.io/alpine:3.23.4" -}}
+    {{- print "docker.io/alpine:3.23.4@sha256:5b10f432ef3da1b8d4c7eb6c487f2f5a8f096bc91145e68878dd4a5019afde11" -}}
   {{- end -}}
 {{- end -}}
 
@@ -473,7 +473,7 @@ MongoDB 4.0 image.
     {{- printf "%s" .Values.graylog.mongodb40Image -}}
   {{- else -}}
     {{- /* # renovate: datasource=docker depName=mongo */ -}}
-    {{- print "docker.io/mongo:4.0.28" -}}
+    {{- print "docker.io/mongo:4.0.28@sha256:4ca81c89ad08f4cfa9906005126112bffe8fb363800466ef5e50f6238f6f6af1" -}}
   {{- end -}}
 {{- end -}}
 
@@ -485,7 +485,7 @@ MongoDB 4.2 image.
     {{- printf "%s" .Values.graylog.mongodb42Image -}}
   {{- else -}}
     {{- /* # renovate: datasource=docker depName=mongo */ -}}
-    {{- print "docker.io/mongo:4.2.24" -}}
+    {{- print "docker.io/mongo:4.2.24@sha256:699d652ed67423d689258bad7b316cf005dfbb82b334118ec306f049042f3717" -}}
   {{- end -}}
 {{- end -}}
 
@@ -497,7 +497,7 @@ MongoDB 4.4 image.
     {{- printf "%s" .Values.graylog.mongodb44Image -}}
   {{- else -}}
     {{- /* # renovate: datasource=docker depName=mongo */ -}}
-    {{- print "docker.io/mongo:4.4.30" -}}
+    {{- print "docker.io/mongo:4.4.30@sha256:4be76f674fc4b27859816811b8baa3c51830eb1dbf4ca81a51e26b79edd662ef" -}}
   {{- end -}}
 {{- end -}}
 

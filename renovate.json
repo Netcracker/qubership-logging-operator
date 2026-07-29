@@ -72,8 +72,7 @@
         "mongo",
         "alpine"
       ],
-      "groupName": "third-party-images",
-      "pinDigests": false
+      "groupName": "third-party-images"
     },
     {
       "matchManagers": ["dockerfile"],

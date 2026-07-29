@@ -138,7 +138,8 @@ func ResourceExists(dc discovery.DiscoveryInterface, apiGroupVersion, kind strin
 }
 
 func GetTagFromImage(image string) string {
-	partsOfImage := strings.Split(image, ":")
+	imageWithoutDigest, _, _ := strings.Cut(image, "@")
+	partsOfImage := strings.Split(imageWithoutDigest, ":")
 	return partsOfImage[len(partsOfImage)-1]
 }
 

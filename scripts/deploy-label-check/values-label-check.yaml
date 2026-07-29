@@ -1,0 +1,25 @@
+# Minimal values for local deploy to verify labels.
+# Use from repo root: ./scripts/deploy-label-check/deploy-and-verify-labels.sh
+# Or: helm upgrade --install qubership-logging-operator ./charts/qubership-logging-operator -n logging -f scripts/deploy-label-check/values-label-check.yaml --create-namespace
+#
+# Enables: operator, fluentbit, cloud-events-reader. Disables graylog/fluentd to avoid OpenSearch/Mongo.
+
+name: qubership-logging
+
+graylog:
+  install: false
+
+fluentd:
+  install: false
+
+fluentbit:
+  install: true
+  # Dummy host/port so LoggingService CR is valid; fluentbit will run but logs may not be delivered
+  graylogHost: graylog-service
+  graylogPort: 12201
+
+cloudEventsReader:
+  install: true
+
+integrationTests:
+  install: false

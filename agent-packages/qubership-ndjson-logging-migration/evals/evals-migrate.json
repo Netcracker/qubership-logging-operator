@@ -21,6 +21,9 @@
         "The agent reports coverage, including migrated, static/no-action, user-decision, and blocked items.",
         "The completion gate reports zero remaining active log.*f formatted calls in production Go packages with before and after counts in the report.",
         "The agent records evidence of a startup smoke command with valid NDJSON output (parsed JSON line with time, level, message), not only unit tests.",
+        "The agent classifies runtime evidence: direct formatter/helper tests are L0 and cannot pass placement; a production-equivalent L1 logging-runtime integration test is the normal minimum.",
+        "The agent uses an existing practical L2/L3 path only when available and does not create complex deployment infrastructure solely for logging validation.",
+        "When L2/L3 is unavailable, the agent records exact L1 evidence, command/test, result, and higher-fidelity blocker rather than fabricating a smoke PASS.",
         "The migration report follows migration-report-template.md and records the worktree HEAD commit hash at run start.",
         "Objective check: manual greps (or eval workspace check_migration_gates.py) report zero production log.*f and go build passes (or documents a concrete blocker)."
       ]
@@ -47,6 +50,10 @@
         "The agent reviews bulk codemod output for integrity (no deleted endpoints/methods, no illegal text blocks) before claiming done.",
         "The agent follows coding-approaches and java-quarkus playbook: semantic field names via SLF4J fluent API (`addKeyValue`), no new per-call MDC wrappers, preserved exception-mapper buildResponse behavior.",
         "The migration report records the completion gate table with before/after counts.",
+        "The migration report records evidence level, command/test, parsed final-sink result, and any higher-fidelity blocker for each component.",
+        "When a migration report already exists, the agent resumes from its Active component, Workflow phase, and Next action rather than restarting completed discovery, placement, or inventory.",
+        "The agent does not treat direct construction of a Quarkus/Logback formatter as runtime placement proof; it requires L1 framework logging initialization and final sink capture.",
+        "The agent prefers a production-equivalent L1 logging-runtime integration test, disables unrelated infrastructure without replacing the logging graph, and uses L2/L3 only when an existing practical path is available.",
         "The migration report records the worktree HEAD commit hash at run start.",
         "Objective check: manual greps (or eval workspace check_migration_gates.py) on the worktree report zero Java {} in aggregator src/main/java, zero production Go log.*f in dbaas-operator, and go build passes (argN grep in the script is an optional codemod-artifact heuristic only)."
       ]

@@ -12,18 +12,30 @@ How to implement call-site changes. [completion-gates.md](completion-gates.md) v
 
 ## Cross-cutting rules
 
-**Default strategy:** small batches, hand review, compile/build after each batch. Scripts produce candidates only — every
-changed call site still gets semantic review.
+Choose the batch tier before editing. The tier controls batch size and immediate checks; it never replaces the required
+component-wide review pass.
 
-| Approach        | When                                                                          |
-| --------------- | ----------------------------------------------------------------------------- |
-| Hand edit       | Controllers, mappers, multi-line logs, text blocks, < 20 sites                |
-| Script + review | Large homogeneous one-line `log.info("...", a, b)` in services                |
-| Script-only     | Never — if the diff could delete methods or break annotations, review by hand |
+| Tier | Use for | Batch and required check |
+| ---- | ------- | ------------------------ |
+| **R0 — decide** | Placement FAIL, shared `{}` templates, or a user-decision row | Record the exact scope and pause for the user decision. |
+| **R1 — hand** | Controllers, mappers, migrations, text blocks, multi-line calls, error paths, or a small heterogeneous group | One related package or ≤15 calls. Hand-edit, build, then review the full batch diff. |
+| **R2 — reviewed batch** | Homogeneous one-line service calls with clear scalar diagnostics | One module subtree or ≤50 calls. Build, review field names/indentation, and spot-check 5–10 calls. |
 
-After each batch: `mvn compile` or `go build` → **review diff field names + indentation** → spot-check 5–10 call sites →
-run [scripts/smell-checks.sh](../scripts/smell-checks.sh) (residue J6a/J6b blocking; open J5 text-block hits) →
-throwables sweep.
+Never use script-only migration. Scripts produce candidates; the agent must still review each changed event for meaning,
+key/value correctness, throwable preservation, and non-logging behavior.
+Large inventory count alone is never an R0 blocker: divide homogeneous R2 candidates into consecutive bounded batches and
+continue. Review each changed event while applying the batch, then use the 5–10-call spot-check to verify the batch
+pattern before the required component-wide review.
+
+### Conservative field extraction
+
+| Prefer as fields | Keep whole or reduce | Stop and ask |
+| ---------------- | -------------------- | ------------ |
+| Event-varying scalar IDs, names, types, statuses, booleans, and semantically named counts | A safe composed URL/path remains one field; collections become a specific count | Extraction changes meaning, exposes a potentially sensitive value, or needs an unclear field split |
+| Existing request correlation fields | Objects, maps, DTOs, request/response bodies, settings, connection properties, credentials, passwords, and tokens are omitted unless an existing safe scalar is available | Shared templates, logged preformatted messages, or placement gaps — follow [user-decisions.md](user-decisions.md) |
+
+Preserve API/exception consumer text and structure only the logging boundary. Preserve the original throwable association.
+Keep fixed allowed-value enums in `message`; do not create redundant fixed-value fields.
 
 Java event-field rules (fluent API, no per-call MDC): [java-quarkus.md](java-quarkus.md). Confirmed shapes after user
 choice: [pattern-recipes.md](pattern-recipes.md).

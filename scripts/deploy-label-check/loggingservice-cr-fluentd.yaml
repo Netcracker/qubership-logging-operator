@@ -1,0 +1,51 @@
+# LoggingService CR with Fluentd enabled (in addition to Fluent Bit + cloud-events-reader).
+# Creates: logging-fluentd DaemonSet, logging-fluentd Service, logging-fluentd ConfigMap.
+# Apply: kubectl apply -f scripts/deploy-label-check/loggingservice-cr-fluentd.yaml -n logging
+#
+# Note: Fluentd will try to reach Graylog (not installed), so its pod may show flush warnings,
+# but the DaemonSet/Service/ConfigMap resources will be created with correct labels.
+---
+apiVersion: logging.netcracker.com/v1
+kind: LoggingService
+metadata:
+  name: qubership-logging
+  namespace: logging
+  labels:
+    app.kubernetes.io/name: qubership-logging
+    app.kubernetes.io/component: logging-operator
+    app.kubernetes.io/part-of: logging
+spec:
+  openshiftDeploy: false
+  osKind: centos
+  ipv6: false
+  containerRuntimeType: containerd
+  fluentbit:
+    dockerImage: docker.io/fluent/fluent-bit:4.0.1
+    configmapReload:
+      dockerImage: ghcr.io/jimmidyson/configmap-reload:v0.15.0
+    systemLogging: true
+    systemLogType: varlogmessages
+    graylogOutput: true
+    graylogHost: graylog-service
+    graylogPort: 12201
+    containerLogging: true
+    watchKubernetesMetadata: true
+    customInputConf: ""
+    customFilterConf: ""
+    customOutputConf: ""
+  fluentd:
+    dockerImage: ghcr.io/fluent/fluentd-kubernetes-daemonset:v1.18-debian-forward-1
+    configmapReload:
+      dockerImage: ghcr.io/jimmidyson/configmap-reload:v0.15.0
+    systemLogType: varlogmessages
+    graylogOutput: true
+    graylogHost: graylog-service
+    graylogPort: 12201
+    containerLogging: true
+    watchKubernetesMetadata: true
+    customInputConf: ""
+    customFilterConf: ""
+    customOutputConf: ""
+  cloudEventsReader:
+    install: true
+    dockerImage: ghcr.io/netcracker/qubership-kube-events-reader:main

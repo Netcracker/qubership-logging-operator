@@ -3,6 +3,25 @@
   "stage": "migrate",
   "skill_name": "qubership-ndjson-logging-migrate",
   "workspace_scripts": "../qubership-ndjson-logging-migration-workspace/scripts",
+  "runtime_evidence_fixtures": {
+    "validator": "../qubership-ndjson-logging-migration-workspace/scripts/validate_ndjson_line.py",
+    "tests": "../qubership-ndjson-logging-migration-workspace/scripts/test_validate_ndjson_line.py",
+    "fixtures": [
+      {
+        "path": "../qubership-ndjson-logging-migration-workspace/scripts/fixtures/ndjson-runtime/top-level-timestamp.jsonl",
+        "expect": "PASS with --require-key resource_id --require-key classifier"
+      },
+      {
+        "path": "../qubership-ndjson-logging-migration-workspace/scripts/fixtures/ndjson-runtime/glued-message.jsonl",
+        "expect": "FAIL because required diagnostics remain only in the leading message prefix"
+      },
+      {
+        "path": "../qubership-ndjson-logging-migration-workspace/scripts/fixtures/ndjson-runtime/nested-mdc.jsonl",
+        "expect": "FAIL because diagnostics are nested rather than top-level"
+      }
+    ],
+    "scope": "Eval-only. This validates the skill contract; it does not require a deployment eval."
+  },
   "checks": [
     {
       "eval_id": 1,

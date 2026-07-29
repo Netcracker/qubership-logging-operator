@@ -4,9 +4,11 @@
 
 **Goal first:** operators can filter on top-level JSON fields with a readable `message` (see [SKILL.md](../SKILL.md)
 § Goal). Pattern greps are **smell checks** — necessary evidence that candidates remain, **not** the win condition.
-A migration is complete only when **build**, **integrity**, **pattern smells**, **semantic quality**, the **review
-pass**, and **smoke** pass (or each failure is explicitly `blocked` with a concrete reason). Clean greps with
-diagnostics still only inside `message` is **not** done.
+A migration is complete only when **build**, **integrity**, **pattern smells**, **semantic quality**, and the **review
+pass** succeed, and placement passes at L1 or higher. Attempt L2/L3 smoke when a practical existing path is available.
+Unavailable or environment-blocked L2/L3 does not prevent completion when every non-smoke gate passes and the exact L1
+evidence and higher-fidelity blocker are recorded. Clean greps with diagnostics still only inside `message` is
+**not** done.
 
 Lessons from pilot migrations: bulk Java codemods can drive `{}` greps to zero while leaving **non-compiling** code, **deleted
 endpoints**, and **unusable `arg0` field keys**.
@@ -19,10 +21,26 @@ endpoints**, and **unusable `arg0` field keys**.
 3. **Pattern smells** — zero unaccounted formatted/variable-message candidates in production scope
 4. **Semantic quality** — field names, throwables, messages, duplicate keys (goal: queryable fields)
 5. **Review pass** — full migrate diff vs hard rules + these gates; fix; re-check ([SKILL.md](../SKILL.md) § Review pass)
-6. **Smoke** — realistic startup emits valid NDJSON with diagnostic keys at top level (see [smoke-validation.md](smoke-validation.md))
+6. **Smoke** — attempt existing practical L2/L3 paths; record achieved evidence and blockers
+   ([smoke-validation.md](smoke-validation.md))
 
 Do not claim completion if an earlier gate failed unless the failure is recorded as `blocked` and unrelated work is still
 valid. Do **not** bulk-migrate while placement probe is FAIL without a recorded user decision.
+
+## Runtime evidence levels
+
+| Level | Completion meaning |
+| ----- | ------------------ |
+| **L0 — transformation-only** | Direct formatter/helper unit tests; supporting only, never placement evidence. |
+| **L1 — logging-runtime integration** | Public application logger through initialized lifecycle, configured handler/appender and encoder/formatter, and production JSON settings to captured final sink. Minimum placement evidence. |
+| **L2 — packaged process stdout** | Built process emits configured JSON stdout. Attempt only when an existing path is practical. |
+| **L3 — practical deployment logs** | Existing compose/kind/integration deployment logs. Attempt only when already practical. |
+
+At L1, unrelated databases, migrations, schedulers, and external services may be disabled without replacing the logging
+graph. Capability discovery selects the highest already-runnable level; it does not create complex deployment
+infrastructure solely for logging validation. Parse final output with an existing component/test-framework parser; do
+not install Python, Node, `jq`, or another runtime solely for validation. Record the achieved level, command/test,
+final-sink result, validator, and any higher-fidelity blocker in the report.
 
 ---
 
@@ -86,13 +104,11 @@ repo formatter / checkstyle if present. Details: [java-quarkus.md](java-quarkus.
 Run [scripts/smell-checks.sh](../scripts/smell-checks.sh); record **before/after counts** in the migration report.
 Check meanings: [preformatted-message-patterns.md](preformatted-message-patterns.md).
 
-| Stack               | Check                                          | Target                    |
-| ------------------- | ---------------------------------------------- | ------------------------- |
-| Go/logrus           | **G1** — active `log.*f(` in production `.go`  | **0**                     |
-| Go residual printf  | **G2** — diagnostic verbs on non-`f` log calls | **0**                     |
-| Java/SLF4J          | **J2** same-line `{}` **and** **J5** text-block hits opened | **0**        |
-| Java field polish   | **J6a/J6b** — codemod residue keys — §4.1      | **0** or polish pass done |
-| Logged preformatted | **J4/J8/G3** (helper calls are expected hits)  | **0** unreviewed          |
+- Go/logrus: **G1** active `log.*f(` in production `.go` — target **0**.
+- Go residual printf: **G2** diagnostic verbs on non-`f` log calls — target **0**.
+- Java/SLF4J: **J2** same-line `{}` and **J5** text-block hits opened — target **0**.
+- Java field polish: **J6a/J6b** codemod residue keys — target **0** or polish complete.
+- Logged preformatted messages: **J4/J8/G3** (helper calls are expected hits) — target **0** unreviewed.
 
 **Misleading zeros** (Go drop-`f`, Sprintf-then-`%s` dodge, Java shared `{}` constants — **queue for the inventory
 decision batch**, Java text blocks): [preformatted-message-patterns.md](preformatted-message-patterns.md) § Misleading
@@ -137,7 +153,8 @@ list allowed values stay in **`message`** (format/concat with the constants) —
 **Duplicate keys:** repeating `addKeyValue("status", …)` twice in one chain **overwrites** the earlier value. Do not
 “fix” that by inventing parallel keys for fixed constants; keep the constants in `message` instead.
 
-**Bad:** `.addKeyValue("status", status).addKeyValue("completed_status", COMPLETED).addKeyValue("failed_status", FAILED)`  
+**Bad:** `.addKeyValue("status", status).addKeyValue("completed_status", COMPLETED)`
+`.addKeyValue("failed_status", FAILED)`
 **Good:** `.addKeyValue("status", status)` + `String.format(…, COMPLETED, FAILED, …)` in `setMessage`
 
 Review every multi-field migration manually.
@@ -170,7 +187,7 @@ Per-log fields must use the SLF4J 2.x fluent API (`addKeyValue`) or encoder stru
 
 - **Before bulk migrate:** [placement-probe.md](placement-probe.md) must PASS (or user chose defer / accept-unmet-goal —
   then do not mark `migrated`).
-- Capture one runtime JSON line and verify `addKeyValue` fields appear at the **top level**.
+- Capture final configured sink output at L1 or higher and verify `addKeyValue` fields appear at the **top level**.
 - Correlation fields (`request_id`, `tenant_id`) may still use request-scoped MDC + `%X{...}` in config — that is
   expected.
 - Diff smell: `setMessage(msg).log()` with no `addKeyValue` while `msg` was built from diagnostics — **incomplete**
@@ -191,7 +208,7 @@ See [go-qubership-lib.md](go-qubership-lib.md). Minimum gates:
 - Quote values containing whitespace when using message-suffix parsing
 - Do not let parsed fields overwrite reserved keys (`time`, `level`, `message`, `class`, `request_id`, …)
 - Prefer structural field APIs when the platform logger supports them
-- Smoke: diagnostic keys appear at JSON top level, not only inside `message`
+- L1 placement and any practical L2/L3 smoke: diagnostic keys appear at JSON top level, not only inside `message`
 
 ---
 
@@ -210,7 +227,8 @@ Record per-gate before/after results in the migration report — the canonical g
 [migration-report-template.md](migration-report-template.md) § Completion gates (single home; do not maintain a copy
 here).
 
-Migration is **not complete** while any **blocking** row is FAIL or PARTIAL without a concrete `blocked` reason.
-Do not mark a component `migrated` in the coverage ledger while any gate for that component is FAIL/PARTIAL — see
-[migration-report-template.md](migration-report-template.md) § Status rules. Pattern smells cleared without queryable
-top-level fields still fail the goal ([SKILL.md](../SKILL.md)).
+Migration is **not complete** while any non-smoke **blocking** row is FAIL or PARTIAL. Do not mark a component
+`migrated` while placement is below L1 or any non-smoke gate is FAIL/PARTIAL — see
+[migration-report-template.md](migration-report-template.md) § Status rules. Smoke may be `UNAVAILABLE` or `BLOCKED`
+only with exact L1 evidence, the attempted command/test and result, and a concrete higher-fidelity blocker. Pattern
+smells cleared without queryable top-level fields still fail the goal ([SKILL.md](../SKILL.md)).

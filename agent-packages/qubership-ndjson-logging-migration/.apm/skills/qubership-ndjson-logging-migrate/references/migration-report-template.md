@@ -11,6 +11,11 @@ Use this structure; leave N/A rows explicit rather than omitting them.
 | Resume across sessions | Yes — update in place                       | Untracked is fine                                                                                |
 | Final product PR       | —                                           | **Exclude** `.ndjson-migration-report.md` unless the team explicitly wants an audit file in-repo |
 
+On resume, read **Active component**, **Workflow phase**, and **Next action** before rediscovering the repository.
+Repeat placement or full inventory only when the report says that phase is incomplete or a later change invalidated it.
+During `implement`, **Next action** names the next batch ID, risk tier, and path/scope; “continue migration” is not enough
+to resume safely.
+
 Before opening or updating a product PR, drop the report from the commit (`git restore --staged` / omit from `git add`).
 Copy it to the eval workspace or keep a local copy if you need an audit trail. Summarize completion gates and coverage in
 the PR description instead.
@@ -25,6 +30,10 @@ the PR description instead.
 | **Skill** | `qubership-ndjson-logging-migrate` |
 | **Stage** | migrate (stage 2) |
 | **Date** | YYYY-MM-DD |
+| **Active component** | `<path or none>` |
+| **Workflow phase** | `pending` / `discovery` / `placement` / `inventory` / `awaiting_decisions` / `migrating` / `gates` / `review` / `smoke` / `migrated` |
+| **Next action** | `<one concrete action; during migrating: batch ID + tier + path/scope>` |
+| **Last updated** | `YYYY-MM-DD — <short note>` |
 
 Before updating a component row, identify its current phase and next legal
 transition. Do not infer a completed phase from partial evidence such as clean
@@ -115,9 +124,10 @@ permitted.
 | **blocked** | Cannot proceed safely (auth, missing cluster, placement probe FAIL awaiting user choice, unsafe API change) — record exact error; preserve phase; set `Next action` to the choice or fix that clears the block (see **User decision — event-field placement** or **Blocked validation** as appropriate). |
 | **pending** | `Phase=pending` and `Status=pending` only — component is recorded in the ledger but work has not started. Do not use `in-progress` while `Phase=pending`. |
 
-**Do not** mark a component `migrated` while any completion-gate row is **FAIL** or **PARTIAL** (including field-name
-polish, **placement probe**, or **review pass** skipped). Prefer `in-progress` and list the follow-up (e.g. “polish 200 `_get_` keys”). Smoke may
-stay BLOCKED without a cluster; that alone does not force `migrated` if other gates are incomplete.
+**Do not** mark a component `migrated` while any non-smoke completion-gate row is **FAIL** or **PARTIAL** (including
+field-name polish, placement below L1, or **review pass** skipped). Prefer `in-progress` and list the follow-up
+(e.g. “polish 200 `_get_` keys”). L2/L3 smoke may stay `UNAVAILABLE` or `BLOCKED` only when every non-smoke gate
+passes and the report records exact L1 evidence plus the higher-fidelity blocker.
 
 Stage 1 envelope-only enablement may leave diagnostics inside `message`; that is
 not a Stage 2 completion failure for the whole repo. Stage 2 component migration
@@ -130,13 +140,21 @@ record it in the decision tables.
 sites that were not individually accepted (unqueryable) — see [SKILL.md](../SKILL.md)
 § Goal. Fluent/`addKeyValue` call sites with placement probe FAIL are **not** `migrated`.
 
+## Progress — `<active component>`
+
+Update this section after each batch so a fresh session can resume without reading prior chat history.
+
+| Batch | Risk tier | Scope | Build / review evidence | State |
+|-------|-----------|-------|-------------------------|-------|
+| 1 | R1 / R2 | `<path or glob>` | `<command result; spot-check or diff review>` | pending / in-progress / done / blocked |
+
 ## Completion gates
 
 Run manual greps and builds from [completion-gates.md](completion-gates.md) per component.
 
-| Gate | Command / check | Before | After | PASS |
-|------|-----------------|--------|-------|------|
-| Placement probe | see placement-probe.md | | top-level keys / BLOCKED | |
+| Gate | Command / check | Before | Result / blocker | PASS |
+|------|-----------------|--------|------------------|------|
+| Placement probe | L1+ test/command; application logger → final configured sink | | level, top-level keys, validator / BLOCKED error | |
 | Java compile | `mvn -pl <module> compile` | | exit 0 / BLOCKED | |
 | Go build | `GOWORK=off go build ./...` | | exit 0 | |
 | Java `{}` inline | smell-checks.sh J2 + J5 hits opened | | 0 | |
@@ -147,7 +165,25 @@ Run manual greps and builds from [completion-gates.md](completion-gates.md) per 
 | Throwables | manual sweep | | fixed | |
 | Integrity | git diff review | | no stray deletions | |
 | Review pass | SKILL.md § Review pass — fix + re-check | | done (note fixes) | |
-| Smoke NDJSON | captured stdout line → JSON with time/level/message + top-level event fields | | OK / BLOCKED | |
+| Smoke NDJSON | existing L2/L3 path; otherwise L1 evidence | | PASS / UNAVAILABLE / BLOCKED + higher-fidelity blocker | |
+
+## Runtime evidence
+
+Use the highest already-runnable level. L0 is direct formatter/helper testing and never placement evidence. L1
+initializes the real application-facing logger, lifecycle, configured handler/appender and encoder/formatter, and
+production JSON settings, then captures final rendered sink output. L2 is packaged process stdout. L3 is an existing
+practical deployment or integration log path. Do not create complex deployment infrastructure solely for this
+evidence. When L1 is the highest achieved level, record `UNAVAILABLE` or `BLOCKED` for L2/L3 and state the concrete
+higher-fidelity reason.
+
+| Component | Achieved level | Command / test | Result | Validator | Higher-fidelity blocker |
+| --------- | -------------- | -------------- | ------ | --------- | ----------------------- |
+| | L0 / L1 / L2 / L3 | | exact parse, required aliases, top-level diagnostics, readable message | existing parser/test assertion | L2/L3 UNAVAILABLE or BLOCKED reason |
+
+For placement PASS, `Achieved level` must be L1 or higher. Record the chosen diagnostic keys/values, including simple,
+quoted/whitespace, braced/map, and parenthesized/object values. The result must show that diagnostics are top-level and
+not only a leading `key=value` message prefix. Name the already available JSON parser or component test assertion used;
+never require or install a runtime solely for validation.
 
 ## User decision — event-field placement
 
@@ -169,15 +205,15 @@ Run manual greps and builds from [completion-gates.md](completion-gates.md) per 
 
 ## Blocked validation
 
-| Component | Command | Error |
-|-----------|---------|-------|
-| | | |
+| Component | Gate / evidence level | Command / test | Error or unavailable reason |
+| --------- | --------------------- | -------------- | --------------------------- |
+| | | | |
 
 ## Validation commands
 
-| Command | Result |
-|---------|--------|
-| | |
+| Component | Evidence level | Command / test | Result | Higher-fidelity blocker |
+| --------- | -------------- | -------------- | ------ | ----------------------- |
+| | | | | |
 
 ## Lessons (target-specific)
 

@@ -46,6 +46,7 @@ Each stage file follows skill-creator shape: top-level `skill_name` + `evals[]` 
    # Stage 2 migrate
    python3 "$WS/scripts/check_migration_gates.py" <worktree> [--java-path ...] [--go-path ...]
    python3 "$WS/scripts/validate_ndjson_line.py" sample.log
+   python3 "$WS/scripts/test_validate_ndjson_line.py"
    python3 "$WS/iteration-9-migrate/scripts/grade_objective.py" with_skill java-dbaas-monorepo
    ```
 

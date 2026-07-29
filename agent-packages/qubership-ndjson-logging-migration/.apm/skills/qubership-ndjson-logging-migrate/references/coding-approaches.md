@@ -18,8 +18,8 @@ component-wide review pass.
 | Tier | Use for | Batch and required check |
 | ---- | ------- | ------------------------ |
 | **R0 — decide** | Placement FAIL, shared `{}` templates, or a user-decision row | Record the exact scope and pause for the user decision. |
-| **R1 — hand** | Controllers, mappers, migrations, text blocks, multi-line calls, error paths, or a small heterogeneous group | One related package or ≤15 calls. Hand-edit, build, then review the full batch diff. |
-| **R2 — reviewed batch** | Homogeneous one-line service calls with clear scalar diagnostics | One module subtree or ≤50 calls. Build, review field names/indentation, and spot-check 5–10 calls. |
+| **R1 — hand** | Controllers, mappers, migrations, text blocks, multi-line calls, error paths, or a small heterogeneous group | ≤15 calls from one related package. Hand-edit, build, then review the full batch diff. |
+| **R2 — reviewed batch** | Homogeneous one-line service calls with clear scalar diagnostics | ≤50 calls from one module subtree. Build, review field names/indentation, and spot-check 5–10 calls. |
 
 Never use script-only migration. Scripts produce candidates; the agent must still review each changed event for meaning,
 key/value correctness, throwable preservation, and non-logging behavior.
@@ -46,7 +46,7 @@ choice: [pattern-recipes.md](pattern-recipes.md).
 2. **Placement probe** — [placement-probe.md](placement-probe.md) per component before bulk call-site edits; on FAIL ask
    ([user-decisions.md](user-decisions.md) § Event-field placement unsupported).
 3. **Call sites + config** — JSON formatter and `LOG_FORMAT` Helm wiring are necessary but not sufficient; migrate
-   formatted log calls in production sources only after placement PASS (or explicit user defer).
+   formatted log calls in production sources only after placement PASS.
 4. **Gates, not grep alone** — grepping `{}` to zero while Java does not compile is incomplete; run
    [completion-gates.md](completion-gates.md) in full, then the **review pass** ([SKILL.md](../SKILL.md) § Review pass)
    before marking `migrated`.

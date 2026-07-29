@@ -13,7 +13,7 @@ Use this structure; leave N/A rows explicit rather than omitting them.
 
 On resume, read **Active component**, **Workflow phase**, and **Next action** before rediscovering the repository.
 Repeat placement or full inventory only when the report says that phase is incomplete or a later change invalidated it.
-During `implement`, **Next action** names the next batch ID, risk tier, and path/scope; “continue migration” is not enough
+During `migrating`, **Next action** names the next batch ID, risk tier, and path/scope; “continue migration” is not enough
 to resume safely.
 
 Before opening or updating a product PR, drop the report from the commit (`git restore --staged` / omit from `git add`).

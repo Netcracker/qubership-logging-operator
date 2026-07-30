@@ -17,7 +17,7 @@ During `migrating`, **Next action** names the next batch ID, risk tier, and path
 to resume safely.
 
 Before opening or updating a product PR, drop the report from the commit (`git restore --staged` / omit from `git add`).
-Copy it to the eval workspace or keep a local copy if you need an audit trail. Summarize completion gates and coverage in
+Keep a local copy if you need an audit trail. Summarize completion gates and coverage in
 the PR description instead.
 
 ```markdown

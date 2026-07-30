@@ -24,6 +24,3 @@ site/
 
 # Local deploy env files
 deploy/**/.env
-
-# Local skill-creator eval workspace (keep on disk, do not publish)
-agent-packages/qubership-ndjson-logging-migration-workspace/

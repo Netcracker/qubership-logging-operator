@@ -13,12 +13,12 @@ or automatic transition validator.
 
 The existing `Deployable components` table gains these columns:
 
-| Column | Meaning |
-| --- | --- |
-| `Phase` | Current workflow checkpoint from the phase set below. |
-| `Status` | High-level outcome: `pending`, `in-progress`, `blocked`, or `migrated`. |
-| `Open decisions` | Number of unresolved user decisions for this component. |
-| `Next action` | A specific imperative instruction that allows safe resume. |
+| Column           | Meaning                                                                    |
+| ---------------- | -------------------------------------------------------------------------- |
+| `Phase`          | Current workflow checkpoint from the phase set below.                      |
+| `Status`         | High-level outcome: `pending`, `in-progress`, `blocked`, or `migrated`.    |
+| `Open decisions` | Number of unresolved user decisions for this component.                    |
+| `Next action`    | A specific imperative instruction that allows safe resume.                 |
 
 The state machine is per deployable component. Components in one repository may
 advance independently.
@@ -41,17 +41,17 @@ pending
   -> migrated
 ```
 
-| From | To | Required condition |
-| --- | --- | --- |
-| `pending` | `discovery` | Component is recorded in the ledger. |
-| `discovery` | `placement` | Stack and logging path are identified. |
-| `placement` | `inventory` | Placement probe passes. |
-| `inventory` | `awaiting_decisions` | Candidates are classified and unresolved decisions are recorded. |
-| `awaiting_decisions` | `migrating` | Every queued decision has a user choice or applies a recorded repo-wide policy. |
-| `migrating` | `gates` | Every candidate is migrated, static/no-action, blocked, or decision-accounted. |
-| `gates` | `review` | Build, integrity, pattern, and semantic gates pass, or a concrete validation block is recorded. |
-| `review` | `smoke` | The required review -> fix -> re-check loop is recorded. |
-| `smoke` | `migrated` | Smoke passes, or is environment-blocked while every other gate passes. |
+| From                 | To                   | Required condition                                                                               |
+| -------------------- | -------------------- | ------------------------------------------------------------------------------------------------ |
+| `pending`            | `discovery`          | Component is recorded in the ledger.                                                             |
+| `discovery`          | `placement`          | Stack and logging path are identified.                                                           |
+| `placement`          | `inventory`          | Placement probe passes.                                                                          |
+| `inventory`          | `awaiting_decisions` | Candidates are classified and unresolved decisions are recorded.                                 |
+| `awaiting_decisions` | `migrating`          | Every queued decision has a user choice or applies a recorded repo-wide policy.                  |
+| `migrating`          | `gates`              | Every candidate is migrated, static/no-action, blocked, or decision-accounted.                   |
+| `gates`              | `review`             | Build, integrity, pattern, and semantic gates pass, or a concrete validation block is recorded.  |
+| `review`             | `smoke`              | The required review -> fix -> re-check loop is recorded.                                         |
+| `smoke`              | `migrated`           | Smoke passes, or is environment-blocked while every other gate passes.                           |
 
 No transition may skip a preceding phase. A `blocked` component resumes at its
 recorded phase after its block clears.

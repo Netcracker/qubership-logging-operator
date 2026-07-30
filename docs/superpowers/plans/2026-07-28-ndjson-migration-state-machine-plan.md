@@ -1,16 +1,24 @@
 # NDJSON Migration Report State Machine Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use
+> superpowers:subagent-driven-development (recommended) or
+> superpowers:executing-plans to implement this plan task-by-task.
+> Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Make the NDJSON migration report an explicit per-component workflow state machine and make user-question timing deterministic.
+**Goal:** Make the NDJSON migration report an explicit per-component
+workflow state machine and make user-question timing deterministic.
 
-**Architecture:** The report ledger stores each component's phase, high-level status, open-decision count, and next safe action. The skill describes transition guards; `user-decisions.md` owns decision queues. No parser or transition-validation command is introduced.
+**Architecture:** The report ledger stores each component's phase,
+high-level status, open-decision count, and next safe action. The skill
+describes transition guards; `user-decisions.md` owns decision queues.
+No parser or transition-validation command is introduced.
 
 **Tech Stack:** Markdown, Bash validation commands, existing APM skill package.
 
 ## Global Constraints
 
-- Edit only the package source under `agent-packages/qubership-ndjson-logging-migration/.apm/skills/qubership-ndjson-logging-migrate/`.
+- Edit only the package source under
+  `agent-packages/qubership-ndjson-logging-migration/.apm/skills/qubership-ndjson-logging-migrate/`.
 - State is per deployable component; components in one monorepo may use different phases.
 - `blocked` remains a status overlay, not a phase.
 - Placement-probe FAIL is the only immediate user question.
@@ -22,11 +30,16 @@
 ### Task 1: Make the migration report the state authority
 
 **Files:**
-- Modify: `agent-packages/qubership-ndjson-logging-migration/.apm/skills/qubership-ndjson-logging-migrate/references/migration-report-template.md`
+
+- Modify:
+  `agent-packages/qubership-ndjson-logging-migration/.apm/skills/qubership-ndjson-logging-migrate/references/migration-report-template.md`
 
 **Interfaces:**
+
 - Produces: Ledger columns `Phase`, `Status`, `Open decisions`, and `Next action`.
-- Produces: Phase vocabulary consumed by `SKILL.md`: `pending`, `discovery`, `placement`, `inventory`, `awaiting_decisions`, `migrating`, `gates`, `review`, `smoke`, `migrated`.
+- Produces: Phase vocabulary consumed by `SKILL.md`: `pending`,
+  `discovery`, `placement`, `inventory`, `awaiting_decisions`,
+  `migrating`, `gates`, `review`, `smoke`, `migrated`.
 
 - [ ] **Step 1: Add a failing documentation scenario to the template**
 
@@ -52,7 +65,9 @@ Replace the current component header/table with:
 
 - [ ] **Step 3: Define phases, blocked overlay, and legal transitions**
 
-Insert a `## Component state machine` section after the ledger. Include the exact phase sequence, a transition table matching the design spec, and these rules:
+Insert a `## Component state machine` section after the ledger. Include
+the exact phase sequence, a transition table matching the design spec,
+and these rules:
 
 ```markdown
 `blocked` is a status overlay, not a phase. Preserve the component's phase when
@@ -64,7 +79,8 @@ phase after its block clears.
 
 - [ ] **Step 4: Update status rules**
 
-Keep the existing status meanings, but make `in-progress` apply to any nonterminal phase and state that `migrated` requires:
+Keep the existing status meanings, but make `in-progress` apply to any nonterminal phase and state that `migrated`
+requires:
 
 ```markdown
 `Phase=migrated`, `Status=migrated`, `Open decisions=0`, and all existing
@@ -93,9 +109,12 @@ git commit -m "docs: add NDJSON migration report phases"
 ### Task 2: Define immediate and batched user-decision queues
 
 **Files:**
-- Modify: `agent-packages/qubership-ndjson-logging-migration/.apm/skills/qubership-ndjson-logging-migrate/references/user-decisions.md`
+
+- Modify:
+  `agent-packages/qubership-ndjson-logging-migration/.apm/skills/qubership-ndjson-logging-migrate/references/user-decisions.md`
 
 **Interfaces:**
+
 - Consumes: Component phase and ledger columns from `migration-report-template.md`.
 - Produces: Immediate placement procedure and inventory/review queue procedure consumed by `SKILL.md`.
 
@@ -174,9 +193,11 @@ git commit -m "docs: batch NDJSON migration decisions"
 ### Task 3: Make the primary workflow phase-driven
 
 **Files:**
+
 - Modify: `agent-packages/qubership-ndjson-logging-migration/.apm/skills/qubership-ndjson-logging-migrate/SKILL.md`
 
 **Interfaces:**
+
 - Consumes: Phase and transition definitions from `migration-report-template.md`.
 - Consumes: Immediate/batched question policy from `user-decisions.md`.
 - Produces: The agent's primary execution workflow.
@@ -246,11 +267,13 @@ git commit -m "docs: guide NDJSON migration by component phase"
 ### Task 4: Run report-state scenarios and update installed copy
 
 **Files:**
+
 - Modify: `.agents/skills/qubership-ndjson-logging-migrate/SKILL.md`
 - Modify: `.agents/skills/qubership-ndjson-logging-migrate/references/migration-report-template.md`
 - Modify: `.agents/skills/qubership-ndjson-logging-migrate/references/user-decisions.md`
 
 **Interfaces:**
+
 - Consumes: Final package-source skill from Tasks 1–3.
 - Produces: Installed skill identical to the package source.
 

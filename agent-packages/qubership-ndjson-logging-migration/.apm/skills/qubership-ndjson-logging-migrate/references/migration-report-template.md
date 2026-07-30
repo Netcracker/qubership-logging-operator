@@ -5,11 +5,11 @@ Use this structure; leave N/A rows explicit rather than omitting them.
 
 ## Lifecycle (not part of the product PR)
 
-| Moment | Report in worktree?                         | Commit / upstream PR?                                                                            |
-| ---------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| Migration run          | **Yes** — coverage ledger and gate evidence | No — working artifact                                                                            |
-| Resume across sessions | Yes — update in place                       | Untracked is fine                                                                                |
-| Final product PR       | —                                           | **Exclude** `.ndjson-migration-report.md` unless the team explicitly wants an audit file in-repo |
+| Moment                 | Report in worktree?                         | Commit / upstream PR?                                                                              |
+| ---------------------- | ------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Migration run          | **Yes** — coverage ledger and gate evidence | No — working artifact                                                                              |
+| Resume across sessions | Yes — update in place                       | Untracked is fine                                                                                  |
+| Final product PR       | —                                           | **Exclude** `.ndjson-migration-report.md` unless the team explicitly wants an audit file in-repo   |
 
 On resume, read **Active component**, **Workflow phase**, and **Next action** before rediscovering the repository.
 Repeat placement or full inventory only when the report says that phase is incomplete or a later change invalidated it.
@@ -23,17 +23,17 @@ the PR description instead.
 ```markdown
 # NDJSON Logging Migration Report — <repo-name>
 
-| Field | Value |
-|-------|-------|
-| **Run start HEAD** | `<git rev-parse HEAD at run start>` |
-| **Branch** | `<branch>` |
-| **Skill** | `qubership-ndjson-logging-migrate` |
-| **Stage** | migrate (stage 2) |
-| **Date** | YYYY-MM-DD |
-| **Active component** | `<path or none>` |
-| **Workflow phase** | `pending` / `discovery` / `placement` / `inventory` / `awaiting_decisions` / `migrating` / `gates` / `review` / `smoke` / `migrated` |
-| **Next action** | `<one concrete action; during migrating: batch ID + tier + path/scope>` |
-| **Last updated** | `YYYY-MM-DD — <short note>` |
+| Field                | Value                                                                                                                                |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| **Run start HEAD**   | `<git rev-parse HEAD at run start>`                                                                                                  |
+| **Branch**           | `<branch>`                                                                                                                           |
+| **Skill**            | `qubership-ndjson-logging-migrate`                                                                                                   |
+| **Stage**            | migrate (stage 2)                                                                                                                    |
+| **Date**             | YYYY-MM-DD                                                                                                                           |
+| **Active component** | `<path or none>`                                                                                                                     |
+| **Workflow phase**   | `pending` / `discovery` / `placement` / `inventory` / `awaiting_decisions` / `migrating` / `gates` / `review` / `smoke` / `migrated` |
+| **Next action**      | `<one concrete action; during migrating: batch ID + tier + path/scope>`                                                              |
+| **Last updated**     | `YYYY-MM-DD — <short note>`                                                                                                          |
 
 Before updating a component row, identify its current phase and next legal
 transition. Do not infer a completed phase from partial evidence such as clean
@@ -41,28 +41,28 @@ greps or a successful build.
 
 ## Deployable components
 
-| Column | Meaning |
-| --- | --- |
-| `Phase` | Current workflow checkpoint from the phase set below. |
-| `Status` | High-level outcome: `pending`, `in-progress`, `blocked`, or `migrated`. |
-| `Open decisions` | Number of unresolved user decisions for this component. |
-| `Next action` | A specific imperative instruction that allows safe resume. |
+| Column           | Meaning                                                                 |
+| ---------------- | ----------------------------------------------------------------------- |
+| `Phase`          | Current workflow checkpoint from the phase set below.                   |
+| `Status`         | High-level outcome: `pending`, `in-progress`, `blocked`, or `migrated`. |
+| `Open decisions` | Number of unresolved user decisions for this component.                 |
+| `Next action`    | A specific imperative instruction that allows safe resume.              |
 
-| Component | Path | Stack | Log config | Phase | Status | Open decisions | Next action |
-|-----------|------|-------|------------|-------|--------|----------------|-------------|
-| example-java | `service/` | Java / Quarkus | JSON enabled | placement | blocked | 1 | Await user choice: add placement infrastructure / change backend / defer / accept message-embedded fields |
-| ... | ... | ... | ... | pending / discovery / placement / inventory / awaiting_decisions / migrating / gates / review / smoke / migrated | pending / in-progress / blocked / migrated | 0 | Start discovery |
+| Component    | Path       | Stack          | Log config   | Phase                                                                                                            | Status                                     | Open decisions   | Next action                                                                                               |
+| ------------ | ---------- | -------------- | ------------ | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------ | ---------------- | --------------------------------------------------------------------------------------------------------- |
+| example-java | `service/` | Java / Quarkus | JSON enabled | placement                                                                                                        | blocked                                    | 1                | Await user choice: add placement infrastructure / change backend / defer / accept message-embedded fields |
+| ...          | ...        | ...            | ...          | pending / discovery / placement / inventory / awaiting_decisions / migrating / gates / review / smoke / migrated | pending / in-progress / blocked / migrated | 0                | Start discovery                                                                                           |
 
 The placement-failure example row records probe FAIL in **User decision — event-field placement** below.
 
 **Placement probe outcomes:**
 
-| User choice | Phase | Status | Next transition |
-| --- | --- | --- | --- |
-| Probe **PASS** | `placement` → `inventory` | `in-progress` | Enter inventory. |
-| **Defer** | stays `placement` | `blocked` | End work on this component until placement is fixed later. Do **not** enter `inventory`. |
-| **Accept message-embedded fields** | stays `placement` | `blocked` | End work on this component; goal unmet. Do **not** enter `inventory` or mark `migrated`. |
-| **Add placement infrastructure** / **Change logging backend** / **User-provided** | stays `placement` | `in-progress` or `blocked` | Implement choice → re-probe; on PASS → `inventory`. |
+| User choice                                                                       | Phase                     | Status                     | Next transition                                                                          |
+| --------------------------------------------------------------------------------- | ------------------------- | -------------------------- | ---------------------------------------------------------------------------------------- |
+| Probe **PASS**                                                                    | `placement` → `inventory` | `in-progress`              | Enter inventory.                                                                         |
+| **Defer**                                                                         | stays `placement`         | `blocked`                  | End work on this component until placement is fixed later. Do **not** enter `inventory`. |
+| **Accept message-embedded fields**                                                | stays `placement`         | `blocked`                  | End work on this component; goal unmet. Do **not** enter `inventory` or mark `migrated`. |
+| **Add placement infrastructure** / **Change logging backend** / **User-provided** | stays `placement`         | `in-progress` or `blocked` | Implement choice → re-probe; on PASS → `inventory`.                                      |
 
 Do not enter `inventory` or bulk `migrating` until the user chooses (for FAIL) and re-probe passes (when applicable).
 
@@ -82,20 +82,20 @@ independently.
       -> smoke
       -> migrated
 
-| From | To | Required condition |
-| --- | --- | --- |
-| `pending` | `discovery` | Component is recorded in the ledger. |
-| `discovery` | `placement` | Stack and logging path are identified. |
-| `placement` | `inventory` | Placement probe passes. |
-| `inventory` | `awaiting_decisions` | Candidates are classified and unresolved decisions are recorded (`Open decisions` > 0). |
-| `inventory` | `migrating` | Candidates are classified and **no** unresolved decisions remain (`Open decisions=0`). Do **not** enter `awaiting_decisions` or ask a vacuous question. |
-| `awaiting_decisions` | `migrating` | Every queued decision has a user choice or applies a recorded repo-wide policy. |
-| `migrating` | `gates` | Every candidate is migrated, static/no-action, blocked, or decision-accounted. |
-| `gates` | `review` | Build, integrity, pattern, and semantic gates pass, or a concrete validation block is recorded. |
-| `review` | `smoke` | The required review -> fix -> re-check loop is recorded. |
-| `review` | `awaiting_decisions` | Review finds genuine new semantic ambiguities; queue them in one review decision batch (`Open decisions` > 0). |
-| `gates` | `migrating` | A gate failure requires more migration work (fix candidates, polish fields, re-apply patterns) before re-running gates; after a review decision batch is resolved, re-enter migration work before another gate/review cycle. |
-| `smoke` | `migrated` | Smoke passes, or is environment-blocked while every other gate passes. |
+| From                 | To                   | Required condition                                                                                                                                                                                                           |
+| -------------------- | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pending`            | `discovery`          | Component is recorded in the ledger.                                                                                                                                                                                         |
+| `discovery`          | `placement`          | Stack and logging path are identified.                                                                                                                                                                                       |
+| `placement`          | `inventory`          | Placement probe passes.                                                                                                                                                                                                      |
+| `inventory`          | `awaiting_decisions` | Candidates are classified and unresolved decisions are recorded (`Open decisions` > 0).                                                                                                                                      |
+| `inventory`          | `migrating`          | Candidates are classified and **no** unresolved decisions remain (`Open decisions=0`). Do **not** enter `awaiting_decisions` or ask a vacuous question.                                                                      |
+| `awaiting_decisions` | `migrating`          | Every queued decision has a user choice or applies a recorded repo-wide policy.                                                                                                                                              |
+| `migrating`          | `gates`              | Every candidate is migrated, static/no-action, blocked, or decision-accounted.                                                                                                                                               |
+| `gates`              | `review`             | Build, integrity, pattern, and semantic gates pass, or a concrete validation block is recorded.                                                                                                                              |
+| `review`             | `smoke`              | The required review -> fix -> re-check loop is recorded.                                                                                                                                                                     |
+| `review`             | `awaiting_decisions` | Review finds genuine new semantic ambiguities; queue them in one review decision batch (`Open decisions` > 0).                                                                                                               |
+| `gates`              | `migrating`          | A gate failure requires more migration work (fix candidates, polish fields, re-apply patterns) before re-running gates; after a review decision batch is resolved, re-enter migration work before another gate/review cycle. |
+| `smoke`              | `migrated`           | Smoke passes, or is environment-blocked while every other gate passes.                                                                                                                                                       |
 
 `blocked` is a status overlay, not a phase. Preserve the component's phase when
 blocked; set `Next action` to the action that clears the block. For placement
@@ -117,12 +117,12 @@ permitted.
 
 ## Status rules
 
-| Status | When allowed |
-| ------ | ------------ |
-| **migrated** | `Phase=migrated`, `Status=migrated`, `Open decisions=0`, and all existing completion evidence: all gates for that component are PASS (or smoke BLOCKED with a concrete env reason **and** every other gate PASS, including placement probe PASS and **review pass** finished). |
-| **in-progress** | Work has begun in a nonterminal phase (`discovery` through `smoke`); any gate FAIL/PARTIAL, open user-decision rows (excluding placement when already `blocked`), review pass not done, or polish follow-up remaining. Never use with `Phase=pending`. |
-| **blocked** | Cannot proceed safely (auth, missing cluster, placement probe FAIL awaiting user choice, unsafe API change) — record exact error; preserve phase; set `Next action` to the choice or fix that clears the block (see **User decision — event-field placement** or **Blocked validation** as appropriate). |
-| **pending** | `Phase=pending` and `Status=pending` only — component is recorded in the ledger but work has not started. Do not use `in-progress` while `Phase=pending`. |
+| Status          | When allowed                                                                                                                                                                                                                                                                                             |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **migrated**    | `Phase=migrated`, `Status=migrated`, `Open decisions=0`, and all existing completion evidence: all gates for that component are PASS (or smoke BLOCKED with a concrete env reason **and** every other gate PASS, including placement probe PASS and **review pass** finished).                           |
+| **in-progress** | Work has begun in a nonterminal phase (`discovery` through `smoke`); any gate FAIL/PARTIAL, open user-decision rows (excluding placement when already `blocked`), review pass not done, or polish follow-up remaining. Never use with `Phase=pending`.                                                   |
+| **blocked**     | Cannot proceed safely (auth, missing cluster, placement probe FAIL awaiting user choice, unsafe API change) — record exact error; preserve phase; set `Next action` to the choice or fix that clears the block (see **User decision — event-field placement** or **Blocked validation** as appropriate). |
+| **pending**     | `Phase=pending` and `Status=pending` only — component is recorded in the ledger but work has not started. Do not use `in-progress` while `Phase=pending`.                                                                                                                                                |
 
 **Do not** mark a component `migrated` while any non-smoke completion-gate row is **FAIL** or **PARTIAL** (including
 field-name polish, placement below L1, or **review pass** skipped). Prefer `in-progress` and list the follow-up
@@ -144,28 +144,28 @@ sites that were not individually accepted (unqueryable) — see [SKILL.md](../SK
 
 Update this section after each batch so a fresh session can resume without reading prior chat history.
 
-| Batch | Risk tier | Scope | Build / review evidence | State |
-|-------|-----------|-------|-------------------------|-------|
-| 1 | R1 / R2 | `<path or glob>` | `<command result; spot-check or diff review>` | pending / in-progress / done / blocked |
+| Batch   | Risk tier   | Scope            | Build / review evidence                       | State                                  |
+| ------- | ----------- | ---------------- | --------------------------------------------- | -------------------------------------- |
+| 1       | R1 / R2     | `<path or glob>` | `<command result; spot-check or diff review>` | pending / in-progress / done / blocked |
 
 ## Completion gates
 
 Run manual greps and builds from [completion-gates.md](completion-gates.md) per component.
 
-| Gate | Command / check | Before | Result / blocker | PASS |
-|------|-----------------|--------|------------------|------|
-| Placement probe | L1+ test/command; application logger → final configured sink | | level, top-level keys, validator / BLOCKED error | |
-| Java compile | `mvn -pl <module> compile` | | exit 0 / BLOCKED | |
-| Go build | `GOWORK=off go build ./...` | | exit 0 | |
-| Java `{}` inline | smell-checks.sh J2 + J5 hits opened | | 0 | |
-| Java field names | spot-check + smell-checks.sh J6a/J6b | | OK (0 residue) | |
-| Java event fields | manual: fluent API + JSON top-level; no new MDC wrapper | | OK | |
-| Go `log.*f` (production) | smell-checks.sh G1 | | 0 | |
-| Go residual printf | smell-checks.sh G2 | | 0 | |
-| Throwables | manual sweep | | fixed | |
-| Integrity | git diff review | | no stray deletions | |
-| Review pass | SKILL.md § Review pass — fix + re-check | | done (note fixes) | |
-| Smoke NDJSON | existing L2/L3 path; otherwise L1 evidence | | PASS / UNAVAILABLE / BLOCKED + higher-fidelity blocker | |
+| Gate                     | Command / check                                              | Before   | Result / blocker                                       | PASS   |
+| ------------------------ | ------------------------------------------------------------ | -------- | ------------------------------------------------------ | ------ |
+| Placement probe          | L1+ test/command; application logger → final configured sink |          | level, top-level keys, validator / BLOCKED error       |        |
+| Java compile             | `mvn -pl <module> compile`                                   |          | exit 0 / BLOCKED                                       |        |
+| Go build                 | `GOWORK=off go build ./...`                                  |          | exit 0                                                 |        |
+| Java `{}` inline         | smell-checks.sh J2 + J5 hits opened                          |          | 0                                                      |        |
+| Java field names         | spot-check + smell-checks.sh J6a/J6b                         |          | OK (0 residue)                                         |        |
+| Java event fields        | manual: fluent API + JSON top-level; no new MDC wrapper      |          | OK                                                     |        |
+| Go `log.*f` (production) | smell-checks.sh G1                                           |          | 0                                                      |        |
+| Go residual printf       | smell-checks.sh G2                                           |          | 0                                                      |        |
+| Throwables               | manual sweep                                                 |          | fixed                                                  |        |
+| Integrity                | git diff review                                              |          | no stray deletions                                     |        |
+| Review pass              | SKILL.md § Review pass — fix + re-check                      |          | done (note fixes)                                      |        |
+| Smoke NDJSON             | existing L2/L3 path; otherwise L1 evidence                   |          | PASS / UNAVAILABLE / BLOCKED + higher-fidelity blocker |        |
 
 ## Runtime evidence
 
@@ -176,9 +176,9 @@ practical deployment or integration log path. Do not create complex deployment i
 evidence. When L1 is the highest achieved level, record `UNAVAILABLE` or `BLOCKED` for L2/L3 and state the concrete
 higher-fidelity reason.
 
-| Component | Achieved level | Command / test | Result | Validator | Higher-fidelity blocker |
-| --------- | -------------- | -------------- | ------ | --------- | ----------------------- |
-| | L0 / L1 / L2 / L3 | | exact parse, required aliases, top-level diagnostics, readable message | existing parser/test assertion | L2/L3 UNAVAILABLE or BLOCKED reason |
+| Component | Achieved level    | Command / test | Result                                                                 | Validator                      | Higher-fidelity blocker             |
+| --------- | ----------------- | -------------- | ---------------------------------------------------------------------- | ------------------------------ | ----------------------------------- |
+|           | L0 / L1 / L2 / L3 |                | exact parse, required aliases, top-level diagnostics, readable message | existing parser/test assertion | L2/L3 UNAVAILABLE or BLOCKED reason |
 
 For placement PASS, `Achieved level` must be L1 or higher. Record the chosen diagnostic keys/values, including simple,
 quoted/whitespace, braced/map, and parenthesized/object values. The result must show that diagnostics are top-level and
@@ -187,33 +187,33 @@ never require or install a runtime solely for validation.
 
 ## User decision — event-field placement
 
-| Component | Probe result | Recommended | User choice | Re-probe |
-|-----------|--------------|-------------|-------------|----------|
-| | PASS / FAIL / N/A | | | |
+| Component   | Probe result      | Recommended   | User choice   | Re-probe   |
+| ----------- | ----------------- | ------------- | ------------- | ---------- |
+|             | PASS / FAIL / N/A |               |               |            |
 
 ## User decision — logged preformatted messages
 
-| Pattern | Count | Example files | Decision |
-|---------|-------|---------------|----------|
-| log.warn(message) | | | structure / prose-only / blocked |
+| Pattern           | Count   | Example files   | Decision                         |
+| ----------------- | ------- | --------------- | -------------------------------- |
+| log.warn(message) |         |                 | structure / prose-only / blocked |
 
 ## User decision — returned diagnostics
 
-| Pattern | Count | Example files | Decision |
-|---------|-------|---------------|----------|
-| fmt.Errorf with embedded fields | | | keep at boundary / typed error / blocked |
+| Pattern                         | Count   | Example files   | Decision                                 |
+| ------------------------------- | ------- | --------------- | ---------------------------------------- |
+| fmt.Errorf with embedded fields |         |                 | keep at boundary / typed error / blocked |
 
 ## Blocked validation
 
 | Component | Gate / evidence level | Command / test | Error or unavailable reason |
 | --------- | --------------------- | -------------- | --------------------------- |
-| | | | |
+|           |                       |                |                             |
 
 ## Validation commands
 
 | Component | Evidence level | Command / test | Result | Higher-fidelity blocker |
 | --------- | -------------- | -------------- | ------ | ----------------------- |
-| | | | | |
+|           |                |                |        |                         |
 
 ## Lessons (target-specific)
 

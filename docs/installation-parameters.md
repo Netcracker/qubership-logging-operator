@@ -913,6 +913,10 @@ fluentbit:
 | `output.otel.tls.verify`          | boolean                                                                                                                           | no        | `true`                                                                                          | Force certificate validation                                                                                                                                                             |
 <!-- markdownlint-enable line-length -->
 
+Fluent Bit output authentication values are read from the referenced Kubernetes Secrets and written only to the
+generated Fluent Bit configuration Secret. The operator watches these credential Secrets and regenerates the
+configuration after their data changes.
+
 Examples:
 
 **Note:** This is only an example of the parameters format, not a recommended value.
@@ -1266,6 +1270,10 @@ fluentbit:
 | `output.otel.tls.key.key`         | string                                                                                                                 | no        | `-`                                                                                             | Key (filename) in the Secret with private key                                                                                                                                                                                     |
 | `output.otel.tls.verify`          | boolean                                                                                                                | no        | `true`                                                                                          | Force certificate validation                                                                                                                                                                                                      |
 <!-- markdownlint-enable line-length -->
+
+Fluent Bit aggregator output authentication values are read from the referenced Kubernetes Secrets and written
+only to the generated Fluent Bit aggregator configuration Secret. The operator watches these credential Secrets
+and regenerates the configuration after their data changes.
 
 Examples:
 

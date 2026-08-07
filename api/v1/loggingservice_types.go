@@ -684,20 +684,17 @@ func (graylogTLS *HTTPGraylogTLS) GetCertificates(ctx context.Context, clientSet
 
 					caCertPool := x509.NewCertPool()
 					if secret.Type == v1.SecretTypeTLS {
-						for key, cert := range secret.Data {
-							if key == v1.ServiceAccountRootCAKey {
-								ok := caCertPool.AppendCertsFromPEM(cert)
-								if !ok {
-									err = errors.New("can't parse Certificate Authority")
-									return
-								}
+						if ca, ok := secret.Data[v1.ServiceAccountRootCAKey]; ok {
+							if !caCertPool.AppendCertsFromPEM(ca) {
+								err = errors.New("can't parse Certificate Authority")
+								return
 							}
-							if key == v1.TLSCertKey {
-								certValue = string(cert)
-							}
-							if key == v1.TLSPrivateKeyKey {
-								pkey = string(cert)
-							}
+						}
+						if cert, ok := secret.Data[v1.TLSCertKey]; ok {
+							certValue = string(cert)
+						}
+						if pk, ok := secret.Data[v1.TLSPrivateKeyKey]; ok {
+							pkey = string(pk)
 						}
 					}
 

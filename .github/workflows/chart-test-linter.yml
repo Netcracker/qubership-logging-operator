@@ -9,11 +9,13 @@ on:
       - 'main'
     paths:
       - 'charts/**'
+      - 'scripts/chart-tests/**'
   push:
     branches:
       - main
     paths:
       - 'charts/**'
+      - 'scripts/chart-tests/**'
   workflow_dispatch: null
 
 jobs:
@@ -39,3 +41,6 @@ jobs:
 
       - name: Run chart-testing (lint)
         run: ct lint --check-version-increment=false --validate-maintainers=false --target-branch=main --chart-dirs=charts
+
+      - name: Test VictoriaLogs chart rendering
+        run: scripts/chart-tests/test-victorialogs-rendering.sh

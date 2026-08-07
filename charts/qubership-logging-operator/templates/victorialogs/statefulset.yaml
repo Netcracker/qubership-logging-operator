@@ -1,0 +1,135 @@
+{{- if .Values.victorialogs.install }}
+{{- $podSecurityContext := deepCopy (.Values.victorialogs.podSecurityContext | default dict) }}
+{{- $securityContext := deepCopy (.Values.victorialogs.securityContext | default dict) }}
+{{- if .Capabilities.APIVersions.Has "security.openshift.io/v1" }}
+{{- $_ := unset $podSecurityContext "fsGroup" }}
+{{- $_ := unset $podSecurityContext "runAsGroup" }}
+{{- $_ := unset $podSecurityContext "runAsUser" }}
+{{- $_ := unset $securityContext "runAsGroup" }}
+{{- $_ := unset $securityContext "runAsUser" }}
+{{- end }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "victorialogs.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "victorialogs.labels" . | nindent 4 }}
+  {{- $annotations := mergeOverwrite (deepCopy (.Values.annotations | default dict)) (.Values.victorialogs.annotations | default dict) }}
+  {{- with $annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: 1
+  serviceName: {{ include "victorialogs.headlessServiceName" . }}
+  podManagementPolicy: {{ .Values.victorialogs.podManagementPolicy }}
+  {{- with .Values.victorialogs.updateStrategy }}
+  updateStrategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "victorialogs.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "victorialogs.podLabels" . | nindent 8 }}
+      {{- with .Values.victorialogs.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      automountServiceAccountToken: false
+      {{- with .Values.victorialogs.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.victorialogs.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
+      containers:
+        - name: victorialogs
+          image: {{ include "victorialogs.image" . }}
+          imagePullPolicy: {{ .Values.victorialogs.imagePullPolicy }}
+          {{- with $securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          args:
+            - --httpListenAddr=:{{ .Values.victorialogs.port }}
+            - --retentionPeriod={{ required "victorialogs.retentionPeriod is required" .Values.victorialogs.retentionPeriod }}
+            - --storageDataPath={{ .Values.victorialogs.storage.mountPath }}
+            {{- range $name, $value := .Values.victorialogs.extraArgs }}
+            {{- if and (kindIs "bool" $value) $value }}
+            - --{{ $name }}
+            {{- else }}
+            - --{{ $name }}={{ $value }}
+            {{- end }}
+            {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.victorialogs.port }}
+              protocol: TCP
+          {{- with .Values.victorialogs.env }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.victorialogs.envFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.victorialogs.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.victorialogs.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.victorialogs.startupProbe }}
+          startupProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.victorialogs.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: data
+              mountPath: {{ .Values.victorialogs.storage.mountPath }}
+              {{- with .Values.victorialogs.storage.subPath }}
+              subPath: {{ . }}
+              {{- end }}
+            {{- with .Values.victorialogs.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+      {{- with .Values.victorialogs.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.victorialogs.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.victorialogs.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.victorialogs.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.victorialogs.terminationGracePeriodSeconds }}
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "victorialogs.claimName" . }}
+        {{- with .Values.victorialogs.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+{{- end }}

@@ -1,0 +1,29 @@
+{{- if and .Values.victorialogs.install (not .Values.victorialogs.storage.existingClaim) }}
+{{- $annotations := mergeOverwrite (deepCopy (.Values.victorialogs.storage.annotations | default dict)) (dict "helm.sh/resource-policy" "keep") }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "victorialogs.claimName" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "victorialogs.labels" . | nindent 4 }}
+    {{- with .Values.victorialogs.storage.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- toYaml $annotations | nindent 4 }}
+spec:
+  accessModes:
+    {{- toYaml .Values.victorialogs.storage.accessModes | nindent 4 }}
+  resources:
+    requests:
+      storage: {{ .Values.victorialogs.storage.size }}
+  {{- if .Values.victorialogs.storage.persistentVolume }}
+  volumeName: {{ .Values.victorialogs.storage.persistentVolume }}
+  {{- end }}
+  {{- if .Values.victorialogs.storage.storageClassName }}
+  storageClassName: {{ .Values.victorialogs.storage.storageClassName }}
+  {{- else if .Values.victorialogs.storage.persistentVolume }}
+  storageClassName: ""
+  {{- end }}
+{{- end }}

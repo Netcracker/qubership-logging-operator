@@ -418,7 +418,7 @@ Installation consists of the following steps:
    fluentbit:
      install: true
      configmapReload:
-       dockerImage: ghcr.io/jimmidyson/configmap-reload:v0.13.1
+       dockerImage: ghcr.io/jimmidyson/configmap-reload:v0.15.0
      graylogHost: <graylog_host>
      graylogPort: 12201
    fluentd:

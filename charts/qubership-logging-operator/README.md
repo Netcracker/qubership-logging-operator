@@ -709,7 +709,7 @@ false
 }
 </pre>
 </td>
-			<td>A docker image to use for ConfigMap Reload daemon set. dockerImage: ghcr.io/jimmidyson/configmap-reload:v0.13.1 The resources describe to compute resource requests and limits for single Pods. Ref: https://kubernetes.io/docs/user-guide/compute-resources/</td>
+			<td>A docker image to use for ConfigMap Reload daemon set. dockerImage: ghcr.io/jimmidyson/configmap-reload:v0.15.0 The resources describe to compute resource requests and limits for single Pods. Ref: https://kubernetes.io/docs/user-guide/compute-resources/</td>
 		</tr>
 		<tr>
 			<td>fluentbit.containerLogging</td>
@@ -1391,7 +1391,7 @@ not set
 }
 </pre>
 </td>
-			<td>A docker image for configmap-reload. dockerImage: ghcr.io/jimmidyson/configmap-reload:v0.13.1 The resources describe to compute resource requests and limits for single Pods. Ref: https://kubernetes.io/docs/user-guide/compute-resources/</td>
+			<td>A docker image for configmap-reload. dockerImage: ghcr.io/jimmidyson/configmap-reload:v0.15.0 The resources describe to compute resource requests and limits for single Pods. Ref: https://kubernetes.io/docs/user-guide/compute-resources/</td>
 		</tr>
 		<tr>
 			<td>fluentd.containerLogging</td>

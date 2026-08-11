@@ -662,7 +662,7 @@ fluentd:
 
   # -- A docker image to use for fluent daemon set.
   # renovate: datasource=github-releases depName=Netcracker/qubership-fluentd versioning=loose
-  # dockerImage: ghcr.io/netcracker/qubership-fluentd:1.19.2-2
+  # dockerImage: ghcr.io/netcracker/qubership-fluentd:1.19.3-1
 
   # -- If specified, the pod's scheduling constraints. Ref: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
   affinity: {}
@@ -791,7 +791,7 @@ fluentd:
 
   configmapReload:
     # -- A docker image for configmap-reload.
-    # dockerImage: ghcr.io/jimmidyson/configmap-reload:v0.13.1
+    # dockerImage: ghcr.io/jimmidyson/configmap-reload:v0.15.0
 
     # The resources describe to compute resource requests and limits for single Pods. Ref: https://kubernetes.io/docs/user-guide/compute-resources/
     resources:
@@ -1064,7 +1064,7 @@ fluentbit:
 
   configmapReload:
     # -- A docker image to use for ConfigMap Reload daemon set.
-    # dockerImage: ghcr.io/jimmidyson/configmap-reload:v0.13.1
+    # dockerImage: ghcr.io/jimmidyson/configmap-reload:v0.15.0
 
     # The resources describe to compute resource requests and limits for single Pods.
     # Ref: https://kubernetes.io/docs/user-guide/compute-resources/
@@ -1534,7 +1534,7 @@ fluentbit:
 
     configmapReload:
       # -- A docker image to use for FluentBit aggregator configmap reload sidecar.
-      # dockerImage: ghcr.io/jimmidyson/configmap-reload:v0.13.1
+      # dockerImage: ghcr.io/jimmidyson/configmap-reload:v0.15.0
 
       # -- The resources describe to compute resource requests and limits for single Pods.
       # Ref: https://kubernetes.io/docs/user-guide/compute-resources/

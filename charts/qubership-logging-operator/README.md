@@ -175,7 +175,7 @@ not set
 }
 </pre>
 </td>
-			<td>A docker image to use for FluentBit aggregator deployment. dockerImage: fluent/fluent-bit:3.0.6</td>
+			<td>A docker image to use for FluentBit aggregator deployment. dockerImage: fluent/fluent-bit:5.1.0</td>
 		</tr>
 		<tr>
 			<td>fluentbit.aggregator.configmapReload.resources</td>
@@ -691,7 +691,7 @@ false
 }
 </pre>
 </td>
-			<td>A docker image to use for FluentBit daemon set. dockerImage: fluent/fluent-bit:3.0.6</td>
+			<td>A docker image to use for FluentBit daemon set. dockerImage: fluent/fluent-bit:5.1.0</td>
 		</tr>
 		<tr>
 			<td>fluentbit.configmapReload.resources</td>

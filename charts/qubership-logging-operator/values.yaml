@@ -121,7 +121,7 @@ graylog:
   replicas: 1
 
   # -- A docker image of MongoDB to use for graylog deployment.
-  # mongodbImage: mongo:5.0.19
+  # mongodbImage: mongo:5.0.33
 
   # -- A docker image to initialize plugins for Graylog
   # initContainerDockerImage: ghcr.io/netcracker/graylog-plugins-init-container:main
@@ -1060,7 +1060,7 @@ fluentbit:
   install: false
 
   # -- A docker image to use for FluentBit daemon set.
-  # dockerImage: fluent/fluent-bit:3.0.6
+  # dockerImage: fluent/fluent-bit:5.1.0
 
   configmapReload:
     # -- A docker image to use for ConfigMap Reload daemon set.
@@ -1530,7 +1530,7 @@ fluentbit:
     install: false
 
     # -- A docker image to use for FluentBit aggregator deployment.
-    # dockerImage: fluent/fluent-bit:3.0.6
+    # dockerImage: fluent/fluent-bit:5.1.0
 
     configmapReload:
       # -- A docker image to use for FluentBit aggregator configmap reload sidecar.

@@ -198,12 +198,12 @@ graylog:
       memory: 256Mi
 
   # MongoDB sidecar settings
-  mongoDBImage: mongo:5.0.31
+  mongoDBImage: mongo:5.0.33
   mongoUpgrade: true
   mongoDBUpgrade:
     mongoDBImage40: mongo:4.0.28
-    mongoDBImage42: mongo:4.2.22
-    mongoDBImage44: mongo:4.4.17
+    mongoDBImage42: mongo:4.2.24
+    mongoDBImage44: mongo:4.4.30
   mongoPersistentVolume: pv-mongodb
   mongoStorageClassName: cinder
   mongoResources:
@@ -920,7 +920,7 @@ Examples:
 ```yaml
 fluentbit:
   install: true
-  dockerImage: fluent/fluent-bit:4.0.0
+  dockerImage: fluent/fluent-bit:5.1.0
 
   graylogOutput: true
   graylogHost: graylog.logging.svc
@@ -998,7 +998,7 @@ Example of FluentBit configuration with Loki output enabled:
 ```yaml
 fluentbit:
   install: true
-  dockerImage: fluent/fluent-bit:4.0.0
+  dockerImage: fluent/fluent-bit:5.1.0
 
   graylogOutput: false
 
@@ -1059,7 +1059,7 @@ Example of FluentBit configuration with HTTP output enabled:
 ```yaml
 fluentbit:
   install: true
-  dockerImage: fluent/fluent-bit:4.0.0
+  dockerImage: fluent/fluent-bit:5.1.0
 
   graylogOutput: false
 
@@ -1103,7 +1103,7 @@ Example of FluentBit configuration with Opentelemetry output enabled:
 ```yaml
 fluentbit:
   install: true
-  dockerImage: fluent/fluent-bit:4.0.0
+  dockerImage: fluent/fluent-bit:5.1.0
 
   graylogOutput: false
 
@@ -1275,7 +1275,7 @@ Examples:
 fluentbit:
   aggregator:
     install: true
-    dockerImage: fluent/fluent-bit:4.0.0
+    dockerImage: fluent/fluent-bit:5.1.0
     replicas: 2
 
     tolerations:
@@ -1329,11 +1329,11 @@ Example of FluentBit HA configuration with Loki output enabled:
 ```yaml
 fluentbit:
   install: true
-  dockerImage: fluent/fluent-bit:4.0.0
+  dockerImage: fluent/fluent-bit:5.1.0
 
   aggregator:
     install: true
-    dockerImage: fluent/fluent-bit:4.0.0
+    dockerImage: fluent/fluent-bit:5.1.0
     replicas: 2
     graylogOutput: false
     output:
@@ -1393,11 +1393,11 @@ Example of FluentBit HA configuration with HTTP output enabled:
 ```yaml
 fluentbit:
   install: true
-  dockerImage: fluent/fluent-bit:4.0.0
+  dockerImage: fluent/fluent-bit:5.1.0
 
   aggregator:
     install: true
-    dockerImage: fluent/fluent-bit:4.0.0
+    dockerImage: fluent/fluent-bit:5.1.0
     replicas: 2
     graylogOutput: false
     output:
@@ -1441,11 +1441,11 @@ Example of FluentBit HA configuration with Opentelemetry output enabled:
 ```yaml
 fluentbit:
   install: true
-  dockerImage: fluent/fluent-bit:4.0.0
+  dockerImage: fluent/fluent-bit:5.1.0
 
   aggregator:
     install: true
-    dockerImage: fluent/fluent-bit:4.0.0
+    dockerImage: fluent/fluent-bit:5.1.0
     replicas: 2
     graylogOutput: false
     output:

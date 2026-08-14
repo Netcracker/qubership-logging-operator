@@ -175,7 +175,7 @@ not set
 }
 </pre>
 </td>
-			<td>A docker image to use for FluentBit aggregator deployment. dockerImage: fluent/fluent-bit:3.0.6</td>
+			<td>A docker image to use for FluentBit aggregator deployment. dockerImage: fluent/fluent-bit:5.1.0</td>
 		</tr>
 		<tr>
 			<td>fluentbit.aggregator.configmapReload.resources</td>
@@ -691,7 +691,7 @@ false
 }
 </pre>
 </td>
-			<td>A docker image to use for FluentBit daemon set. dockerImage: fluent/fluent-bit:3.0.6</td>
+			<td>A docker image to use for FluentBit daemon set. dockerImage: fluent/fluent-bit:5.1.0</td>
 		</tr>
 		<tr>
 			<td>fluentbit.configmapReload.resources</td>
@@ -709,7 +709,7 @@ false
 }
 </pre>
 </td>
-			<td>A docker image to use for ConfigMap Reload daemon set. dockerImage: ghcr.io/jimmidyson/configmap-reload:v0.13.1 The resources describe to compute resource requests and limits for single Pods. Ref: https://kubernetes.io/docs/user-guide/compute-resources/</td>
+			<td>A docker image to use for ConfigMap Reload daemon set. dockerImage: ghcr.io/jimmidyson/configmap-reload:v0.15.0 The resources describe to compute resource requests and limits for single Pods. Ref: https://kubernetes.io/docs/user-guide/compute-resources/</td>
 		</tr>
 		<tr>
 			<td>fluentbit.containerLogging</td>
@@ -1391,7 +1391,7 @@ not set
 }
 </pre>
 </td>
-			<td>A docker image for configmap-reload. dockerImage: ghcr.io/jimmidyson/configmap-reload:v0.13.1 The resources describe to compute resource requests and limits for single Pods. Ref: https://kubernetes.io/docs/user-guide/compute-resources/</td>
+			<td>A docker image for configmap-reload. dockerImage: ghcr.io/jimmidyson/configmap-reload:v0.15.0 The resources describe to compute resource requests and limits for single Pods. Ref: https://kubernetes.io/docs/user-guide/compute-resources/</td>
 		</tr>
 		<tr>
 			<td>fluentd.containerLogging</td>

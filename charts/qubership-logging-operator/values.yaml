@@ -121,7 +121,7 @@ graylog:
   replicas: 1
 
   # -- A docker image of MongoDB to use for graylog deployment.
-  # mongodbImage: mongo:5.0.19
+  # mongodbImage: mongo:5.0.33
 
   # -- A docker image to initialize plugins for Graylog
   # initContainerDockerImage: ghcr.io/netcracker/graylog-plugins-init-container:main
@@ -662,7 +662,7 @@ fluentd:
 
   # -- A docker image to use for fluent daemon set.
   # renovate: datasource=github-releases depName=Netcracker/qubership-fluentd versioning=loose
-  # dockerImage: ghcr.io/netcracker/qubership-fluentd:1.19.2-2
+  # dockerImage: ghcr.io/netcracker/qubership-fluentd:1.19.3-1
 
   # -- If specified, the pod's scheduling constraints. Ref: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
   affinity: {}
@@ -791,7 +791,7 @@ fluentd:
 
   configmapReload:
     # -- A docker image for configmap-reload.
-    # dockerImage: ghcr.io/jimmidyson/configmap-reload:v0.13.1
+    # dockerImage: ghcr.io/jimmidyson/configmap-reload:v0.15.0
 
     # The resources describe to compute resource requests and limits for single Pods. Ref: https://kubernetes.io/docs/user-guide/compute-resources/
     resources:
@@ -1060,11 +1060,11 @@ fluentbit:
   install: false
 
   # -- A docker image to use for FluentBit daemon set.
-  # dockerImage: fluent/fluent-bit:3.0.6
+  # dockerImage: fluent/fluent-bit:5.1.0
 
   configmapReload:
     # -- A docker image to use for ConfigMap Reload daemon set.
-    # dockerImage: ghcr.io/jimmidyson/configmap-reload:v0.13.1
+    # dockerImage: ghcr.io/jimmidyson/configmap-reload:v0.15.0
 
     # The resources describe to compute resource requests and limits for single Pods.
     # Ref: https://kubernetes.io/docs/user-guide/compute-resources/
@@ -1530,11 +1530,11 @@ fluentbit:
     install: false
 
     # -- A docker image to use for FluentBit aggregator deployment.
-    # dockerImage: fluent/fluent-bit:3.0.6
+    # dockerImage: fluent/fluent-bit:5.1.0
 
     configmapReload:
       # -- A docker image to use for FluentBit aggregator configmap reload sidecar.
-      # dockerImage: ghcr.io/jimmidyson/configmap-reload:v0.13.1
+      # dockerImage: ghcr.io/jimmidyson/configmap-reload:v0.15.0
 
       # -- The resources describe to compute resource requests and limits for single Pods.
       # Ref: https://kubernetes.io/docs/user-guide/compute-resources/

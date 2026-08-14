@@ -13,6 +13,180 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
+func TestFluentdDaemonSetSecurityContext(t *testing.T) {
+	for _, privileged := range []bool{false, true} {
+		t.Run(map[bool]string{false: "unprivileged", true: "privileged"}[privileged], func(t *testing.T) {
+			cr := &loggingService.LoggingService{
+				Spec: loggingService.LoggingServiceSpec{
+					Fluentd: &loggingService.Fluentd{
+						DockerImage:               "fluentd:test",
+						SecurityContextPrivileged: privileged,
+						ConfigmapReload: &loggingService.ConfigmapReload{
+							DockerImage: "configmap-reload:test",
+						},
+					},
+				},
+			}
+
+			daemonSet, err := fluentdDaemonSet(cr, util.DynamicParameters{ContainerRuntimeType: "containerd"})
+			if err != nil {
+				t.Fatalf("render Fluentd DaemonSet: %v", err)
+			}
+
+			podSpec := daemonSet.Spec.Template.Spec
+			if podSpec.SecurityContext == nil || podSpec.SecurityContext.RunAsUser == nil ||
+				*podSpec.SecurityContext.RunAsUser != 0 || podSpec.SecurityContext.RunAsNonRoot == nil ||
+				*podSpec.SecurityContext.RunAsNonRoot || podSpec.SecurityContext.RunAsGroup == nil ||
+				*podSpec.SecurityContext.RunAsGroup != 0 || podSpec.SecurityContext.SeccompProfile == nil ||
+				podSpec.SecurityContext.SeccompProfile.Type != corev1.SeccompProfileTypeRuntimeDefault {
+				t.Error("Fluentd pod must run as root with the RuntimeDefault seccomp profile")
+			}
+
+			reloader := podSpec.Containers[0]
+			if reloader.SecurityContext == nil || reloader.SecurityContext.RunAsUser == nil ||
+				*reloader.SecurityContext.RunAsUser != 1001 || reloader.SecurityContext.RunAsNonRoot == nil ||
+				!*reloader.SecurityContext.RunAsNonRoot || reloader.SecurityContext.RunAsGroup == nil ||
+				*reloader.SecurityContext.RunAsGroup != 1001 || !isHardened(reloader.SecurityContext) {
+				t.Error("configmap-reload must use the hardened non-root security context")
+			}
+
+			fluentd := podSpec.Containers[1]
+			if fluentd.SecurityContext == nil || fluentd.SecurityContext.RunAsUser == nil ||
+				*fluentd.SecurityContext.RunAsUser != 0 || fluentd.SecurityContext.RunAsNonRoot == nil ||
+				*fluentd.SecurityContext.RunAsNonRoot || fluentd.SecurityContext.RunAsGroup == nil ||
+				*fluentd.SecurityContext.RunAsGroup != 0 || fluentd.SecurityContext.Privileged == nil ||
+				*fluentd.SecurityContext.Privileged != privileged ||
+				fluentd.SecurityContext.ReadOnlyRootFilesystem == nil ||
+				!*fluentd.SecurityContext.ReadOnlyRootFilesystem {
+				t.Error("Fluentd must retain root access and a read-only root filesystem")
+			}
+			if !privileged && !isHardened(fluentd.SecurityContext) {
+				t.Error("unprivileged Fluentd must disable escalation and drop all capabilities")
+			}
+			if !hasWritableMount(fluentd.VolumeMounts, "varlog", "/var/log") {
+				t.Error("Fluentd must mount node logs read-write to persist position files")
+			}
+			for _, container := range podSpec.Containers {
+				if !hasMount(container.VolumeMounts, "tmp", "/tmp") {
+					t.Errorf("container %s must mount the tmp volume", container.Name)
+				}
+			}
+		})
+	}
+}
+
+func TestFluentdConfigSecretUsesLegacyPositionFiles(t *testing.T) {
+	for _, systemLogType := range []string{"varlogmessages", "varlogsyslog", "systemd"} {
+		t.Run(systemLogType, func(t *testing.T) {
+			cr := &loggingService.LoggingService{
+				Spec: loggingService.LoggingServiceSpec{
+					Fluentd: &loggingService.Fluentd{
+						SystemLogging:             true,
+						SystemLogType:             systemLogType,
+						SystemAuditLogging:        true,
+						KubeAuditLogging:          true,
+						KubeApiserverAuditLogging: true,
+						ContainerLogging:          true,
+					},
+				},
+			}
+
+			secret, err := fluentdConfigSecret(cr,
+				util.DynamicParameters{ContainerRuntimeType: "containerd"}, outputCredentials{})
+			if err != nil {
+				t.Fatalf("render Fluentd configuration Secret: %v", err)
+			}
+
+			expected := map[string]bool{
+				"/var/log/es-containers.log.pos":        false,
+				"/var/log/audit/audit.log.pos":          false,
+				"/var/log/kube-audit.log.pos":           false,
+				"/var/log/kube-apiserver.log.pos":       false,
+				"/var/log/kube-apiserver-audit.log.pos": false,
+				"/var/log/openshift-apiserver.log.pos":  false,
+				map[string]string{
+					"varlogmessages": "/var/log/messages.pos",
+					"varlogsyslog":   "/var/log/syslog.pos",
+					"systemd":        "/var/log/journal.pos",
+				}[systemLogType]: false,
+			}
+			for name, content := range secret.Data {
+				for _, line := range strings.Split(string(content), "\n") {
+					fields := strings.Fields(line)
+					if len(fields) < 2 || fields[0] != "pos_file" {
+						continue
+					}
+					if _, found := expected[fields[1]]; !found {
+						t.Errorf("Secret entry %s uses unexpected position file %q", name, fields[1])
+						continue
+					}
+					expected[fields[1]] = true
+				}
+			}
+			for path, found := range expected {
+				if !found {
+					t.Errorf("Secret does not use legacy position file %q", path)
+				}
+			}
+		})
+	}
+}
+
+func TestFluentdOpenShiftSecurityContext(t *testing.T) {
+	cr := &loggingService.LoggingService{
+		Spec: loggingService.LoggingServiceSpec{
+			OpenshiftDeploy: true,
+			Fluentd: &loggingService.Fluentd{
+				DockerImage: "fluentd:test",
+				ConfigmapReload: &loggingService.ConfigmapReload{
+					DockerImage: "configmap-reload:test",
+				},
+			},
+		},
+	}
+	daemonSet, err := fluentdDaemonSet(cr, util.DynamicParameters{ContainerRuntimeType: "containerd"})
+	if err != nil {
+		t.Fatalf("render OpenShift Fluentd DaemonSet: %v", err)
+	}
+	podContext := daemonSet.Spec.Template.Spec.SecurityContext
+	if podContext == nil || podContext.SELinuxOptions == nil || podContext.SELinuxOptions.Type != "spc_t" {
+		t.Error("OpenShift Fluentd pod must use spc_t to access var_log_t host paths")
+	}
+}
+
+func isHardened(context *corev1.SecurityContext) bool {
+	return context.AllowPrivilegeEscalation != nil && !*context.AllowPrivilegeEscalation &&
+		context.ReadOnlyRootFilesystem != nil && *context.ReadOnlyRootFilesystem &&
+		context.Capabilities != nil && hasCapability(context.Capabilities.Drop, corev1.Capability("ALL"))
+}
+
+func hasCapability(capabilities []corev1.Capability, expected corev1.Capability) bool {
+	for _, capability := range capabilities {
+		if capability == expected {
+			return true
+		}
+	}
+	return false
+}
+
+func hasMount(mounts []corev1.VolumeMount, name, path string) bool {
+	for _, mount := range mounts {
+		if mount.Name == name && mount.MountPath == path {
+			return true
+		}
+	}
+	return false
+}
+
+func hasWritableMount(mounts []corev1.VolumeMount, name, path string) bool {
+	for _, mount := range mounts {
+		if mount.Name == name && mount.MountPath == path && !mount.ReadOnly {
+			return true
+		}
+	}
+	return false
+}
+
 func TestResolveOutputCredentials(t *testing.T) {
 	scheme := runtime.NewScheme()
 	if err := corev1.AddToScheme(scheme); err != nil {

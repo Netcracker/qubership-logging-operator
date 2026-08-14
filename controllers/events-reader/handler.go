@@ -35,9 +35,11 @@ func (r *EventsReaderReconciler) handleDeployment(cr *loggingService.LoggingServ
 			e.Spec.Template.SetLabels(m.Spec.Template.GetLabels())
 			e.Spec.Template.Spec.SecurityContext = m.Spec.Template.Spec.SecurityContext
 			e.Spec.Template.Spec.Containers = m.Spec.Template.Spec.Containers
+			e.Spec.Template.Spec.Volumes = m.Spec.Template.Spec.Volumes
 			e.Spec.Template.Spec.ServiceAccountName = m.Spec.Template.Spec.ServiceAccountName
 			e.Spec.Template.Spec.NodeSelector = m.Spec.Template.Spec.NodeSelector
 			e.Spec.Template.Spec.Affinity = m.Spec.Template.Spec.Affinity
+			e.Spec.Template.Spec.PriorityClassName = m.Spec.Template.Spec.PriorityClassName
 
 			if err = r.UpdateResource(e); err != nil {
 				return err

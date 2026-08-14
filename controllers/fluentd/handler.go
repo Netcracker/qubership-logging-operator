@@ -79,12 +79,7 @@ func (r *FluentdReconciler) handleDaemonSet(cr *loggingService.LoggingService) e
 				maps.Copy(e.Labels, m.Labels)
 			}
 			e.Spec.Template.SetLabels(m.Spec.Template.GetLabels())
-			e.Spec.Template.Spec.Containers = m.Spec.Template.Spec.Containers
-			e.Spec.Template.Spec.ServiceAccountName = m.Spec.Template.Spec.ServiceAccountName
-			e.Spec.Template.Spec.NodeSelector = m.Spec.Template.Spec.NodeSelector
-			e.Spec.Template.Spec.Volumes = m.Spec.Template.Spec.Volumes
-			e.Spec.Template.Spec.Tolerations = m.Spec.Template.Spec.Tolerations
-			e.Spec.Template.Spec.Affinity = m.Spec.Template.Spec.Affinity
+			e.Spec.Template.Spec = m.Spec.Template.Spec
 			if err = r.UpdateResource(e); err != nil {
 				return err
 			}

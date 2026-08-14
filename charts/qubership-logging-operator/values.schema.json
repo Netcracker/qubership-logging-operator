@@ -3890,6 +3890,16 @@
                     "description": "Allow disabling create Integration Tests Pod during deploy",
                     "type": "boolean"
                 },
+                "operationRetryCount": {
+                    "default": "60x",
+                    "description": "Maximum number of retries in Robot Framework wait keywords.",
+                    "type": "string"
+                },
+                "operationRetryInterval": {
+                    "default": "5s",
+                    "description": "Interval between retries in Robot Framework wait keywords.",
+                    "type": "string"
+                },
                 "priorityClassName": {
                     "description": "PriorityClassName assigned to the Pods to prevent them from evicting.",
                     "type": "string"

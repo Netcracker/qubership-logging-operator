@@ -46,6 +46,9 @@ spec:
           secret:
             secretName: logging-fluentbit-aggregator
             defaultMode: 420
+        - name: tmp
+          emptyDir:
+            sizeLimit: 100Mi
 {{- if .Values.Fluentbit.Aggregator.TLS }}
 {{- if and .Values.Fluentbit.Aggregator.TLS.GenerateCerts .Values.Fluentbit.Aggregator.TLS.GenerateCerts.Enabled }}
         - name: tls-ca
@@ -158,6 +161,8 @@ spec:
             - mountPath: /fluent-bit/etc
               name: config
               readOnly: true
+            - mountPath: /tmp
+              name: tmp
           {{- if .Values.Fluentbit.Aggregator.ConfigmapReload.Resources }}
           resources:
             limits:
@@ -172,9 +177,13 @@ spec:
               name: reload-metrics
           securityContext:
             allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
             capabilities:
               drop:
                 - ALL
+            runAsNonRoot: true
+            runAsUser: 1001
+            runAsGroup: 1001
         - name: logging-fluentbit-aggregator
           image: {{ .Values.Fluentbit.Aggregator.DockerImage }}
           ports:
@@ -203,6 +212,8 @@ spec:
             - name: config
               readOnly: true
               mountPath: /fluent-bit/etc
+            - name: tmp
+              mountPath: /tmp
 {{- if .Values.Fluentbit.Aggregator.TLS }}
 {{- if and .Values.Fluentbit.Aggregator.TLS.GenerateCerts .Values.Fluentbit.Aggregator.TLS.GenerateCerts.Enabled }}
             - mountPath: /fluent-bit/tls/ca.crt
@@ -328,16 +339,25 @@ spec:
           terminationMessagePolicy: File
           imagePullPolicy: IfNotPresent
           securityContext:
-            runAsUser: 0
-            runAsNonRoot: false
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+            runAsNonRoot: true
+            runAsUser: 1001
+            runAsGroup: 1001
       terminationGracePeriodSeconds: 30
       serviceAccountName: logging-fluentbit-aggregator
       serviceAccount: logging-fluentbit-aggregator
       securityContext:
-        runAsUser: 0
-        runAsNonRoot: false
         fsGroup: 1001
         fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
       schedulerName: default-scheduler
   strategy:
     type: RollingUpdate

@@ -244,6 +244,169 @@ func newHAFluentHandlerTestScheme(t *testing.T) *runtime.Scheme {
 		t.Fatalf("add apps scheme: %v", err)
 	}
 	return testScheme
+func TestForwarderDaemonSetSecurityContext(t *testing.T) {
+	cr := &loggingService.LoggingService{
+		Spec: loggingService.LoggingServiceSpec{
+			Fluentbit: &loggingService.Fluentbit{
+				DockerImage:     "fluent-bit:test",
+				ConfigmapReload: &loggingService.ConfigmapReload{DockerImage: "configmap-reload:test"},
+			},
+		},
+	}
+
+	daemonSet, err := forwarderDaemonSet(cr, util.DynamicParameters{ContainerRuntimeType: "containerd"})
+	if err != nil {
+		t.Fatalf("render Fluent Bit forwarder DaemonSet: %v", err)
+	}
+
+	podSpec := daemonSet.Spec.Template.Spec
+	if podSpec.SecurityContext == nil || podSpec.SecurityContext.SeccompProfile == nil ||
+		podSpec.SecurityContext.SeccompProfile.Type != corev1.SeccompProfileTypeRuntimeDefault {
+		t.Error("pod must use the RuntimeDefault seccomp profile")
+	}
+
+	forwarder := podSpec.Containers[1]
+	if forwarder.SecurityContext == nil || forwarder.SecurityContext.RunAsUser == nil ||
+		*forwarder.SecurityContext.RunAsUser != 0 || forwarder.SecurityContext.RunAsNonRoot == nil ||
+		*forwarder.SecurityContext.RunAsNonRoot || forwarder.SecurityContext.RunAsGroup == nil ||
+		*forwarder.SecurityContext.RunAsGroup != 0 {
+		t.Error("forwarder must run as root to access node logs and its existing state under /var/log")
+	}
+	if forwarder.SecurityContext.ReadOnlyRootFilesystem == nil ||
+		!*forwarder.SecurityContext.ReadOnlyRootFilesystem {
+		t.Error("forwarder must use a read-only root filesystem")
+	}
+	if !hasCapability(forwarder.SecurityContext.Capabilities.Add, corev1.Capability("DAC_OVERRIDE")) {
+		t.Error("forwarder must add DAC_OVERRIDE to write its existing state on the /var/log hostPath")
+	}
+	if !hasWritableMount(forwarder.VolumeMounts, "varlog", "/var/log") {
+		t.Error("forwarder must retain its writable /var/log mount")
+	}
+	if !hasMount(forwarder.VolumeMounts, "tmp", "/tmp") {
+		t.Error("forwarder must mount the tmp volume at /tmp")
+	}
+
+	cr.Spec.OpenshiftDeploy = true
+	openShiftDaemonSet, err := forwarderDaemonSet(cr, util.DynamicParameters{ContainerRuntimeType: "containerd"})
+	if err != nil {
+		t.Fatalf("render OpenShift Fluent Bit forwarder DaemonSet: %v", err)
+	}
+	openShiftPodContext := openShiftDaemonSet.Spec.Template.Spec.SecurityContext
+	if openShiftPodContext == nil || openShiftPodContext.SELinuxOptions == nil ||
+		openShiftPodContext.SELinuxOptions.Type != "spc_t" {
+		t.Error("OpenShift forwarder pod must use spc_t to access var_log_t host paths")
+	}
+	for _, container := range openShiftDaemonSet.Spec.Template.Spec.Containers {
+		expectedGroup := int64(1001)
+		if container.Name == "logging-fluentbit-forwarder" {
+			expectedGroup = 0
+		}
+		if container.SecurityContext == nil || container.SecurityContext.RunAsGroup == nil ||
+			*container.SecurityContext.RunAsGroup != expectedGroup {
+			t.Errorf("OpenShift container %s must use GID %d", container.Name, expectedGroup)
+		}
+	}
+}
+
+func TestAggregatorStatefulSetSecurityContext(t *testing.T) {
+	for _, openshift := range []bool{false, true} {
+		t.Run(map[bool]string{false: "kubernetes", true: "openshift"}[openshift], func(t *testing.T) {
+			resources := &corev1.ResourceRequirements{
+				Limits: corev1.ResourceList{
+					corev1.ResourceCPU:    resource.MustParse("1"),
+					corev1.ResourceMemory: resource.MustParse("512Mi"),
+				},
+				Requests: corev1.ResourceList{
+					corev1.ResourceCPU:    resource.MustParse("100m"),
+					corev1.ResourceMemory: resource.MustParse("128Mi"),
+				},
+			}
+			cr := &loggingService.LoggingService{
+				Spec: loggingService.LoggingServiceSpec{
+					OpenshiftDeploy: openshift,
+					Fluentbit: &loggingService.Fluentbit{
+						DockerImage: "fluent-bit:test",
+						Aggregator: &loggingService.FluentbitAggregator{
+							DockerImage: "fluent-bit:test",
+							Resources:   resources,
+							ConfigmapReload: &loggingService.ConfigmapReload{
+								DockerImage: "configmap-reload:test",
+							},
+						},
+					},
+				},
+			}
+
+			statefulSet, err := aggregatorStatefulSet(cr)
+			if err != nil {
+				t.Fatalf("render Fluent Bit aggregator StatefulSet: %v", err)
+			}
+
+			podSpec := statefulSet.Spec.Template.Spec
+			if podSpec.SecurityContext == nil || podSpec.SecurityContext.RunAsNonRoot == nil ||
+				!*podSpec.SecurityContext.RunAsNonRoot || podSpec.SecurityContext.SeccompProfile == nil ||
+				podSpec.SecurityContext.SeccompProfile.Type != corev1.SeccompProfileTypeRuntimeDefault {
+				t.Error("aggregator pod must run as non-root with the RuntimeDefault seccomp profile")
+			}
+			if podSpec.SecurityContext.RunAsUser == nil || *podSpec.SecurityContext.RunAsUser != 1001 {
+				t.Error("aggregator pod must use UID 1001")
+			}
+			if podSpec.SecurityContext.RunAsGroup == nil || *podSpec.SecurityContext.RunAsGroup != 1001 {
+				t.Error("aggregator pod must use GID 1001")
+			}
+
+			for _, container := range podSpec.Containers {
+				context := container.SecurityContext
+				if context == nil || context.RunAsNonRoot == nil || !*context.RunAsNonRoot ||
+					context.AllowPrivilegeEscalation == nil || *context.AllowPrivilegeEscalation ||
+					context.ReadOnlyRootFilesystem == nil || !*context.ReadOnlyRootFilesystem ||
+					context.Capabilities == nil || !hasCapability(context.Capabilities.Drop, corev1.Capability("ALL")) {
+					t.Errorf("container %s must use the hardened non-root security context", container.Name)
+				}
+				if !hasMount(container.VolumeMounts, "tmp", "/tmp") {
+					t.Errorf("container %s must mount the tmp volume", container.Name)
+				}
+				if context.RunAsUser == nil || *context.RunAsUser != 1001 {
+					t.Errorf("container %s must use UID 1001", container.Name)
+				}
+				if context.RunAsGroup == nil || *context.RunAsGroup != 1001 {
+					t.Errorf("container %s must use GID 1001", container.Name)
+				}
+			}
+
+			aggregator := podSpec.Containers[1]
+			if !hasWritableMount(aggregator.VolumeMounts, "storage", "/fluent-bit/storage") {
+				t.Error("aggregator must retain its writable storage mount")
+			}
+		})
+	}
+}
+
+func hasCapability(capabilities []corev1.Capability, expected corev1.Capability) bool {
+	for _, capability := range capabilities {
+		if capability == expected {
+			return true
+		}
+	}
+	return false
+}
+
+func hasWritableMount(mounts []corev1.VolumeMount, name, path string) bool {
+	for _, mount := range mounts {
+		if mount.Name == name && mount.MountPath == path && !mount.ReadOnly {
+			return true
+		}
+	}
+	return false
+}
+
+func hasMount(mounts []corev1.VolumeMount, name, path string) bool {
+	for _, mount := range mounts {
+		if mount.Name == name && mount.MountPath == path {
+			return true
+		}
+	}
+	return false
 }
 
 func newTestHAFluentReconciler() *HAFluentReconciler {

@@ -96,6 +96,10 @@ nodeSelectorKey: kubernetes.io/os
 nodeSelectorValue: linux
 ```
 
+The operator container runs as UID `2001` and GID `1000` on Kubernetes. On OpenShift, its Security Context Constraint
+assigns an arbitrary UID, while the pod explicitly retains GID `1000` to avoid running in the root group. The root
+filesystem is read-only; a size-limited `emptyDir` provides writable `/tmp` storage.
+
 [Back to TOC](#table-of-contents)
 
 ## Graylog
@@ -2052,6 +2056,8 @@ integrationTests:
 | `graylogProtocol`                       | string                                                                                                                 | no        | `-`                                                                          | Graylog protocol                                                                                                                                                                                                      |
 | `graylogHost`                           | string                                                                                                                 | no        | `-`                                                                          | The hostname of Graylog                                                                                                                                                                                               |
 | `graylogPort`                           | integer                                                                                                                | no        | `80`                                                                         | The Graylog HTTP port                                                                                                                                                                                                 |
+| `operationRetryInterval`                | string                                                                                                                 | no        | `5s`                                                                         | Interval between retries in Robot Framework wait keywords                                                                                                                                                             |
+| `operationRetryCount`                   | string                                                                                                                 | no        | `60x`                                                                        | Maximum number of retries in Robot Framework wait keywords                                                                                                                                                            |
 | `affinity`                              | [core/v1.Affinity](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#podaffinityterm-v1-core)       | no        | `-`                                                                          | Specifies the pod\'s scheduling constraints                                                                                                                                                                           |
 | `resources`                             | [core/v1.Resources](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#resourcerequirements-v1-core) | no        | `{requests: {cpu: 100m, memory: 128Mi}, limits: {cpu: 200m, memory: 256Mi}}` | Describes compute resources requests and limits for Integration Tests container                                                                                                                                       |
 | `statusWriting.enabled`                 | boolean                                                                                                                | no        | false                                                                        | Enable Store tests status to `LoggingService` custom resource                                                                                                                                                         |
@@ -2072,6 +2078,14 @@ integrationTests:
 | `victorialogs.auth.password.key`        | string                                                                                                                 | no        | `-`                                                                          | The key in the secret with password for authorization in Victorialogs                                                                                                                                                 |
 
 <!-- markdownlint-enable line-length -->
+
+The runner uses a read-only root filesystem. Size-limited `emptyDir` volumes provide writable `/tmp` and
+`/opt/robot/output` directories; test reports are ephemeral and disappear when the Pod is replaced.
+
+On Kubernetes, the runner uses UID and GID `1000`. The runner image removes the `robot` user from supplementary group
+`0`. The container runs with all capabilities dropped and privilege escalation disabled. On OpenShift, the Security
+Context Constraint assigns an arbitrary UID, while the pod explicitly retains GID `1000`. The namespace supplemental
+group can still be added by OpenShift for mounted-volume access; it is not the root group.
 
 Integration test credentials are stored in a Kubernetes Secret and mounted to the test container as files. The Secret
 must contain the `graylog-user`, `graylog-password`, `vm-user`, and `ssh-key` keys. `vm-user` and `ssh-key` are required

@@ -48,7 +48,7 @@ spec:
       # Allow adding the root group.
       - min: 0
         max: 65535
-  readOnlyRootFilesystem: false
+  readOnlyRootFilesystem: true
 {{- end }}
 {{- end }}
 {{- end }}

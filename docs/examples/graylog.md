@@ -91,6 +91,37 @@ Most Graylog examples include integration with:
 - **Cloud Events Reader**: Kubernetes events ingestion
 - **Elasticsearch**: Search and storage backend
 
+## Container hardening
+
+Graylog and MongoDB run as non-root users with a read-only root filesystem. Their application containers use the
+`RuntimeDefault` seccomp profile, disable privilege escalation, and drop all Linux capabilities. Writable runtime
+paths use bounded `emptyDir` volumes. Graylog and MongoDB data remain on their existing persistent volume claims.
+
+The Graylog container adds back only `NET_BIND_SERVICE`. The upstream Graylog image assigns
+`cap_net_bind_service=ep` to its Java binary, and Graylog exposes its default UDP input on port 514. Removing this
+capability from the bounding set prevents Java from starting.
+
+The `setup` init container remains root and keeps a writable image filesystem. It prepares ownership and permissions
+on existing Graylog persistent volumes before the non-root application containers start. Kubernetes
+PodSecurityPolicy and OpenShift SecurityContextConstraints apply one policy to both init and application containers,
+so their global read-only-root-filesystem and required-drop-capabilities settings cannot be enabled without blocking
+this setup step. The stricter controls are applied directly to every application container instead.
+
+On Kubernetes, the setup step assigns the data volume to UID and GID `1100`, removes permissions for other users, and
+uses mode `0660` for `directories.json`. OpenShift retains the legacy `0777` data-directory and `0666`
+`directories.json` permissions until a restricted model is verified on OpenShift. The Graylog-specific SCC uses
+`runAsUser: RunAsAny`, so application containers explicitly use their image UID and GID (`1100` for Graylog and
+`1001` for MongoDB). Without those settings, the kubelet rejects these images when `runAsNonRoot` is enabled.
+The setup container also normalizes existing MongoDB data to UID and GID `1001` with owner/group-only access. This is
+required when upgrading a volume whose root directory already matches the pod `fsGroup`, but nested files do not.
+MongoDB upgrade jobs use the same UID, GID, and `fsGroup` on Kubernetes and OpenShift. The Graylog SCC uses
+`runAsUser: RunAsAny`, so omitting the numeric identity would leave the root-default MongoDB image incompatible with
+`runAsNonRoot: true`.
+
+The optional `download-plugins` init container runs as non-root UID `1001`, but it does not enforce a read-only root
+filesystem, drop capabilities, or disable privilege escalation. Existing init containers are outside the hardening
+scope.
+
 ## Use Cases
 
 - **Simple Deployment**: Complete logging stack for standard environments

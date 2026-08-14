@@ -39,6 +39,16 @@ This configuration adds:
 | `cloudEventsReader.resources` | Resource requests and limits | - |
 | `cloudEventsReader.nodeSelector` | Node selection criteria | - |
 
+## Container hardening
+
+Cloud Events Reader runs with UID and GID 1000 on Kubernetes. On OpenShift, the platform assigns a non-root UID while
+the workload retains primary GID 1000. The container uses a read-only root filesystem, disables privilege escalation,
+drops all Linux capabilities, and uses the `RuntimeDefault` seccomp profile. A 100 MiB `emptyDir` mounted at `/tmp`
+provides its only writable runtime path.
+
+The service account can only get, list, and watch Kubernetes Events through the `core/v1` and `events.k8s.io` APIs. It
+does not receive the built-in `view` role and cannot read pods, ConfigMaps, or Secrets.
+
 ## Use Cases
 
 - **Simple Deployment**: Standard Kubernetes clusters with default scheduling

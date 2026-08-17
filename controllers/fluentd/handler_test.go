@@ -36,44 +36,57 @@ func TestFluentdDaemonSetSecurityContext(t *testing.T) {
 			}
 
 			podSpec := daemonSet.Spec.Template.Spec
-			if podSpec.SecurityContext == nil || podSpec.SecurityContext.RunAsUser == nil ||
-				*podSpec.SecurityContext.RunAsUser != 0 || podSpec.SecurityContext.RunAsNonRoot == nil ||
-				*podSpec.SecurityContext.RunAsNonRoot || podSpec.SecurityContext.RunAsGroup == nil ||
-				*podSpec.SecurityContext.RunAsGroup != 0 || podSpec.SecurityContext.SeccompProfile == nil ||
-				podSpec.SecurityContext.SeccompProfile.Type != corev1.SeccompProfileTypeRuntimeDefault {
-				t.Error("Fluentd pod must run as root with the RuntimeDefault seccomp profile")
-			}
-
-			reloader := podSpec.Containers[0]
-			if reloader.SecurityContext == nil || reloader.SecurityContext.RunAsUser == nil ||
-				*reloader.SecurityContext.RunAsUser != 1001 || reloader.SecurityContext.RunAsNonRoot == nil ||
-				!*reloader.SecurityContext.RunAsNonRoot || reloader.SecurityContext.RunAsGroup == nil ||
-				*reloader.SecurityContext.RunAsGroup != 1001 || !isHardened(reloader.SecurityContext) {
-				t.Error("configmap-reload must use the hardened non-root security context")
-			}
-
-			fluentd := podSpec.Containers[1]
-			if fluentd.SecurityContext == nil || fluentd.SecurityContext.RunAsUser == nil ||
-				*fluentd.SecurityContext.RunAsUser != 0 || fluentd.SecurityContext.RunAsNonRoot == nil ||
-				*fluentd.SecurityContext.RunAsNonRoot || fluentd.SecurityContext.RunAsGroup == nil ||
-				*fluentd.SecurityContext.RunAsGroup != 0 || fluentd.SecurityContext.Privileged == nil ||
-				*fluentd.SecurityContext.Privileged != privileged ||
-				fluentd.SecurityContext.ReadOnlyRootFilesystem == nil ||
-				!*fluentd.SecurityContext.ReadOnlyRootFilesystem {
-				t.Error("Fluentd must retain root access and a read-only root filesystem")
-			}
-			if !privileged && !isHardened(fluentd.SecurityContext) {
-				t.Error("unprivileged Fluentd must disable escalation and drop all capabilities")
-			}
-			if !hasWritableMount(fluentd.VolumeMounts, "varlog", "/var/log") {
-				t.Error("Fluentd must mount node logs read-write to persist position files")
-			}
-			for _, container := range podSpec.Containers {
-				if !hasMount(container.VolumeMounts, "tmp", "/tmp") {
-					t.Errorf("container %s must mount the tmp volume", container.Name)
-				}
-			}
+			assertFluentdPodContext(t, podSpec.SecurityContext)
+			assertFluentdReloaderContext(t, podSpec.Containers[0].SecurityContext)
+			assertFluentdContainerSecurity(t, podSpec.Containers[1], privileged)
+			assertContainersMountTmp(t, podSpec.Containers)
 		})
+	}
+}
+
+func assertFluentdPodContext(t *testing.T, context *corev1.PodSecurityContext) {
+	t.Helper()
+	if context == nil || context.RunAsUser == nil || *context.RunAsUser != 0 || context.RunAsNonRoot == nil ||
+		*context.RunAsNonRoot || context.RunAsGroup == nil || *context.RunAsGroup != 0 ||
+		context.SeccompProfile == nil || context.SeccompProfile.Type != corev1.SeccompProfileTypeRuntimeDefault {
+		t.Error("Fluentd pod must run as root with the RuntimeDefault seccomp profile")
+	}
+}
+
+func assertFluentdReloaderContext(t *testing.T, context *corev1.SecurityContext) {
+	t.Helper()
+	if context == nil || context.RunAsUser == nil || *context.RunAsUser != 1001 || context.RunAsNonRoot == nil ||
+		!*context.RunAsNonRoot || context.RunAsGroup == nil || *context.RunAsGroup != 1001 || !isHardened(context) {
+		t.Error("configmap-reload must use the hardened non-root security context")
+	}
+}
+
+func assertFluentdContainerSecurity(t *testing.T, container corev1.Container, privileged bool) {
+	t.Helper()
+	context := container.SecurityContext
+	if context == nil {
+		t.Fatal("Fluentd security context is missing")
+	}
+	if context.RunAsUser == nil || *context.RunAsUser != 0 || context.RunAsNonRoot == nil || *context.RunAsNonRoot ||
+		context.RunAsGroup == nil || *context.RunAsGroup != 0 || context.Privileged == nil ||
+		*context.Privileged != privileged || context.ReadOnlyRootFilesystem == nil ||
+		!*context.ReadOnlyRootFilesystem {
+		t.Error("Fluentd must retain root access and a read-only root filesystem")
+	}
+	if !privileged && !isHardened(context) {
+		t.Error("unprivileged Fluentd must disable escalation and drop all capabilities")
+	}
+	if !hasWritableMount(container.VolumeMounts, "varlog", "/var/log") {
+		t.Error("Fluentd must mount node logs read-write to persist position files")
+	}
+}
+
+func assertContainersMountTmp(t *testing.T, containers []corev1.Container) {
+	t.Helper()
+	for _, container := range containers {
+		if !hasMount(container.VolumeMounts, "tmp", "/tmp") {
+			t.Errorf("container %s must mount the tmp volume", container.Name)
+		}
 	}
 }
 
@@ -98,40 +111,57 @@ func TestFluentdConfigSecretUsesLegacyPositionFiles(t *testing.T) {
 			if err != nil {
 				t.Fatalf("render Fluentd configuration Secret: %v", err)
 			}
-
-			expected := map[string]bool{
-				"/var/log/es-containers.log.pos":        false,
-				"/var/log/audit/audit.log.pos":          false,
-				"/var/log/kube-audit.log.pos":           false,
-				"/var/log/kube-apiserver.log.pos":       false,
-				"/var/log/kube-apiserver-audit.log.pos": false,
-				"/var/log/openshift-apiserver.log.pos":  false,
-				map[string]string{
-					"varlogmessages": "/var/log/messages.pos",
-					"varlogsyslog":   "/var/log/syslog.pos",
-					"systemd":        "/var/log/journal.pos",
-				}[systemLogType]: false,
-			}
-			for name, content := range secret.Data {
-				for _, line := range strings.Split(string(content), "\n") {
-					fields := strings.Fields(line)
-					if len(fields) < 2 || fields[0] != "pos_file" {
-						continue
-					}
-					if _, found := expected[fields[1]]; !found {
-						t.Errorf("Secret entry %s uses unexpected position file %q", name, fields[1])
-						continue
-					}
-					expected[fields[1]] = true
-				}
-			}
-			for path, found := range expected {
-				if !found {
-					t.Errorf("Secret does not use legacy position file %q", path)
-				}
-			}
+			assertLegacyPositionFiles(t, secret.Data, systemLogType)
 		})
 	}
+}
+
+func assertLegacyPositionFiles(t *testing.T, data map[string][]byte, systemLogType string) {
+	t.Helper()
+	expected := expectedLegacyPositionFiles(systemLogType)
+	for _, file := range positionFiles(data) {
+		if _, found := expected[file.path]; !found {
+			t.Errorf("Secret entry %s uses unexpected position file %q", file.secretEntry, file.path)
+		}
+		delete(expected, file.path)
+	}
+	for path := range expected {
+		t.Errorf("Secret does not use legacy position file %q", path)
+	}
+}
+
+func expectedLegacyPositionFiles(systemLogType string) map[string]struct{} {
+	return map[string]struct{}{
+		"/var/log/es-containers.log.pos":        {},
+		"/var/log/audit/audit.log.pos":          {},
+		"/var/log/kube-audit.log.pos":           {},
+		"/var/log/kube-apiserver.log.pos":       {},
+		"/var/log/kube-apiserver-audit.log.pos": {},
+		"/var/log/openshift-apiserver.log.pos":  {},
+		map[string]string{
+			"varlogmessages": "/var/log/messages.pos",
+			"varlogsyslog":   "/var/log/syslog.pos",
+			"systemd":        "/var/log/journal.pos",
+		}[systemLogType]: {},
+	}
+}
+
+type positionFile struct {
+	secretEntry string
+	path        string
+}
+
+func positionFiles(data map[string][]byte) []positionFile {
+	var files []positionFile
+	for name, content := range data {
+		for _, line := range strings.Split(string(content), "\n") {
+			fields := strings.Fields(line)
+			if len(fields) >= 2 && fields[0] == "pos_file" {
+				files = append(files, positionFile{secretEntry: name, path: fields[1]})
+			}
+		}
+	}
+	return files
 }
 
 func TestFluentdOpenShiftSecurityContext(t *testing.T) {

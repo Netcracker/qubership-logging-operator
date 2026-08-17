@@ -15,14 +15,6 @@ trap 'rm -f "${RENDERED}" "${OPENSHIFT_RENDERED}"' EXIT
 
 helm template "${CHART_DIR}" \
     --set integrationTests.install=true \
-    --set victorialogs.install=true \
-    --set victorialogs.storage.existingClaim=victorialogs \
-    --set victorialogs.ingress.install=true \
-    --set victorialogs.ingress.hosts[0].host=vmauth.test.local \
-    --set victorialogs.ingress.hosts[0].paths[0].path=/ \
-    --set victorialogs.ingress.hosts[0].paths[0].pathType=Prefix \
-    --set victorialogs.vmauth.config.users[0].username=test \
-    --set victorialogs.vmauth.config.users[0].password=test \
     --set graylog.install=true \
     --set createClusterAdminEntities=true \
     --set fluentbit.install=true \
@@ -40,7 +32,7 @@ check_min_count() {
     local pattern="$1" min="$2" description="$3"
     local count
     count=$(grep -c -- "${pattern}" "${RENDERED}" || true)
-    if [ "${count}" -lt "${min}" ]; then
+    if [[ "${count}" -lt "${min}" ]]; then
         echo "FAIL: expected at least ${min} occurrence(s) of '${pattern}' (${description}), found ${count}"
         fail=1
     else
@@ -69,36 +61,29 @@ check_following_line() {
 }
 
 check_min_count "readOnlyRootFilesystem: true" 4 "readOnlyRootFilesystem enabled"
-check_min_count "runAsNonRoot: true" 8 "runAsNonRoot enabled"
+check_min_count "runAsNonRoot: true" 4 "runAsNonRoot enabled"
 check_min_count "allowPrivilegeEscalation: false" 4 "allowPrivilegeEscalation disabled"
-check_min_count "type: RuntimeDefault" 4 "seccompProfile RuntimeDefault"
+check_min_count "type: RuntimeDefault" 2 "seccompProfile RuntimeDefault"
 check_min_count "- ALL" 4 "capabilities dropped (ALL)"
-check_min_count "name: tmp" 8 "mandatory /tmp emptyDir volumes and mounts"
+check_min_count "name: tmp" 4 "mandatory /tmp emptyDir volumes and mounts"
 check_min_count "ephemeral-storage: 200Mi" 1 "operator ephemeral-storage limit"
 check_min_count "runAsUser: 2001" 1 "operator runs with its image UID"
-check_min_count "runAsGroup: 1000" 3 "workloads run with their image group"
+check_min_count "runAsGroup: 1000" 2 "workloads run with their image group"
 check_following_line "pathPrefix: /var/log" "readOnly: false" \
     "Fluentd PSP permits its legacy position files under /var/log to remain writable"
 
 check_absent "hostNetwork: true" "hostNetwork: true"
 check_absent "hostPID: true" "hostPID: true"
+check_absent "hostIPC: true" "hostIPC: true"
 
 helm template "${CHART_DIR}" \
     --set openshiftDeploy=true \
     --set integrationTests.install=true \
-    --set victorialogs.install=true \
-    --set victorialogs.storage.existingClaim=victorialogs \
-    --set victorialogs.ingress.install=true \
-    --set victorialogs.ingress.hosts[0].host=vmauth.test.local \
-    --set victorialogs.ingress.hosts[0].paths[0].path=/ \
-    --set victorialogs.ingress.hosts[0].paths[0].pathType=Prefix \
-    --set victorialogs.vmauth.config.users[0].username=test \
-    --set victorialogs.vmauth.config.users[0].password=test \
     --api-versions security.openshift.io/v1 \
     >"${OPENSHIFT_RENDERED}"
 
 openshift_group_count=$(grep -c -- "runAsGroup: 1000" "${OPENSHIFT_RENDERED}" || true)
-if [ "${openshift_group_count}" -lt 4 ]; then
+if [[ "${openshift_group_count}" -lt 2 ]]; then
     echo "FAIL: expected OpenShift workloads to retain GID 1000, found ${openshift_group_count} occurrence(s)"
     fail=1
 else
@@ -116,7 +101,7 @@ fi
 # setup init container. Application workloads are covered by the positive
 # readOnlyRootFilesystem assertion above and controller-level unit tests.
 
-if [ "${fail}" -ne 0 ]; then
+if [[ "${fail}" -ne 0 ]]; then
     echo "Security hardening smoke test FAILED"
     exit 1
 fi

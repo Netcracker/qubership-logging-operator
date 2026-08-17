@@ -72,6 +72,7 @@ them as part of node maintenance after confirming that their offsets and buffere
 
 `fluentbit.db.enabled: false` disables the read offset databases for all three profiles. The remaining behavior still
 depends on each input's initial read setting and on whether the watched files are present after FluentBit restarts.
+
 ## Security Hardening Constraints
 
 FluentBit uses a read-only container root filesystem, the `RuntimeDefault` seccomp profile, and a dedicated `emptyDir`
@@ -85,26 +86,25 @@ non-root hardening profile:
 
 - They run as UID `0` because node log directories such as `/var/log/pods` can be owned by root with mode `0750`.
   A non-root process cannot traverse these directories reliably across supported platforms.
-- They mount the node `/var/log` directory as a writable `hostPath`. FluentBit reads node logs from this tree and
-  stores its existing Tail input databases there. The HA forwarder also uses `/var/log/flb-storage` for filesystem
-  buffering.
+- They mount the node `/var/log` directory as a read-only `hostPath`. The `persistent-offsets` and `node-persistent`
+  profiles add writable host paths under `/var/lib/fluent-bit` for offset databases and filesystem buffering.
 - When `fluentbit.securityContextPrivileged` is `false`, the containers drop all Linux capabilities and add only
-  `DAC_OVERRIDE`. This capability lets UID `0` update existing root-owned database files after dropping the default
-  capability set. It does not bypass a read-only volume mount.
+  `DAC_OVERRIDE`. This capability lets UID `0` read root-owned node logs after dropping the default capability set. It
+  does not bypass a read-only volume mount.
 - On OpenShift, the standard collector and HA forwarder pods use SELinux type `spc_t`. Node log and storage paths are
-  labeled `var_log_t`, and the default container type cannot update Tail databases or `/var/log/flb-storage`. The HA
-  aggregator retains the default confined container type because it does not mount node paths.
+  protected by host SELinux labels that the default container type cannot access. The HA aggregator retains the
+  default confined container type because it does not mount node paths.
 - Setting `fluentbit.securityContextPrivileged` to `true` preserves the legacy privileged mode for environments that
   require it. In this mode, the main container does not explicitly disable privilege escalation or restrict its
   capabilities. The read-only root filesystem remains enabled. Use the default value, `false`, unless the node runtime
   requires privileged access.
 
-Do not make these containers non-root, make `/var/log` read-only, remove `DAC_OVERRIDE`, or relocate the FluentBit
-databases without validating all supported node layouts and upgrade scenarios. Existing database files can have
-ownership and permissions created by an earlier deployment.
+Do not make these containers non-root, remove `DAC_OVERRIDE`, or remove their host paths without validating all
+supported node layouts and upgrade scenarios.
 
-The required `hostPath` is an explicit exception to the generic container-hardening rule that prohibits host paths.
-Removing it would prevent the DaemonSet from collecting node logs.
+The read-only `/var/log` host path is an explicit exception to the generic container-hardening rule that prohibits host
+paths. The writable `/var/lib/fluent-bit` host paths are additional exceptions for persistent storage profiles.
+Removing `/var/log` would prevent the DaemonSet from collecting node logs.
 
 ### HA aggregator
 
@@ -123,8 +123,8 @@ The default storage `emptyDir` does not define a Kubernetes `sizeLimit`. Adding 
 and disk I/O behavior, so storage sizing remains outside the container-hardening scope while that behavior is being
 investigated. Control growth through Fluent Bit buffer settings or configure a suitably sized PVC.
 
-The storage paths `/var/log/flb-storage` and `/fluent-bit/storage` are part of the existing runtime behavior. Container
-hardening does not migrate, rename, or change their persistence semantics.
+The paths `/fluent-bit/state` and `/fluent-bit/storage` are part of the storage-profile behavior. Container hardening
+does not change their persistence semantics.
 
 ### HA failover behavior
 

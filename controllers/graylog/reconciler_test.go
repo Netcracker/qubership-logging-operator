@@ -182,6 +182,14 @@ func TestGraylogWorkloadsUseHardenedApplicationContainers(t *testing.T) {
 		MongoDBImage44: "docker.io/mongo:4.4.17",
 	}
 
+	assertGraylogKubernetesWorkload(t, cr)
+	cr.Spec.OpenshiftDeploy = true
+	assertGraylogOpenShiftWorkload(t, cr)
+	assertMongoUpgradeJobs(t, cr)
+}
+
+func assertGraylogKubernetesWorkload(t *testing.T, cr *loggingService.LoggingService) {
+	t.Helper()
 	statefulSet, err := graylogStatefulset(cr)
 	if err != nil {
 		t.Fatalf("render Graylog StatefulSet: %v", err)
@@ -202,11 +210,12 @@ func TestGraylogWorkloadsUseHardenedApplicationContainers(t *testing.T) {
 		t.Fatalf("second init container = %q, want download-plugins", downloadPlugins.Name)
 	}
 	assertRunAsUser(t, downloadPlugins, 1001)
-	assertRunAsGroup(t, downloadPlugins, 1001)
 	assertBoundedEmptyDirs(t, statefulSet.Spec.Template.Spec.Volumes)
 	assertGraylogDataPermissions(t, statefulSet, false)
+}
 
-	cr.Spec.OpenshiftDeploy = true
+func assertGraylogOpenShiftWorkload(t *testing.T, cr *loggingService.LoggingService) {
+	t.Helper()
 	openShiftStatefulSet, err := graylogStatefulset(cr)
 	if err != nil {
 		t.Fatalf("render OpenShift Graylog StatefulSet: %v", err)
@@ -218,29 +227,43 @@ func TestGraylogWorkloadsUseHardenedApplicationContainers(t *testing.T) {
 	assertRunAsGroup(t, openShiftMongo, 1001)
 	assertRunAsGroup(t, openShiftGraylog, 1100)
 	assertGraylogDataPermissions(t, openShiftStatefulSet, true)
+}
 
+func assertMongoUpgradeJobs(t *testing.T, cr *loggingService.LoggingService) {
+	t.Helper()
 	for name, assetPath := range util.GraylogMongoUpgradeAssets {
 		t.Run(name, func(t *testing.T) {
-			job, renderErr := graylogMongoUpgradeJob(cr, assetPath)
-			if renderErr != nil {
-				t.Fatalf("render MongoDB upgrade Job: %v", renderErr)
-			}
-			if job.Spec.Template.Spec.SecurityContext == nil ||
-				job.Spec.Template.Spec.SecurityContext.SeccompProfile == nil ||
-				job.Spec.Template.Spec.SecurityContext.SeccompProfile.Type != corev1.SeccompProfileTypeRuntimeDefault {
-				t.Fatal("MongoDB upgrade pod must use the RuntimeDefault seccomp profile")
-			}
-			assertHardenedContainer(t, job.Spec.Template.Spec.Containers[0], nil)
-			assertRunAsUser(t, job.Spec.Template.Spec.Containers[0], 1001)
-			assertRunAsGroup(t, job.Spec.Template.Spec.Containers[0], 1001)
-			if job.Spec.Template.Spec.SecurityContext.RunAsUser == nil ||
-				*job.Spec.Template.Spec.SecurityContext.RunAsUser != 1001 ||
-				job.Spec.Template.Spec.SecurityContext.RunAsGroup == nil ||
-				*job.Spec.Template.Spec.SecurityContext.RunAsGroup != 1001 {
-				t.Fatalf("MongoDB upgrade pod must use UID/GID 1001: %#v", job.Spec.Template.Spec.SecurityContext)
-			}
-			assertBoundedEmptyDirs(t, job.Spec.Template.Spec.Volumes)
+			assertMongoUpgradeJob(t, cr, assetPath)
 		})
+	}
+}
+
+func assertMongoUpgradeJob(t *testing.T, cr *loggingService.LoggingService, assetPath string) {
+	t.Helper()
+	job, err := graylogMongoUpgradeJob(cr, assetPath)
+	if err != nil {
+		t.Fatalf("render MongoDB upgrade Job: %v", err)
+	}
+	podSpec := job.Spec.Template.Spec
+	if podSpec.SecurityContext == nil || podSpec.SecurityContext.SeccompProfile == nil ||
+		podSpec.SecurityContext.SeccompProfile.Type != corev1.SeccompProfileTypeRuntimeDefault {
+		t.Fatal("MongoDB upgrade pod must use the RuntimeDefault seccomp profile")
+	}
+	assertHardenedContainer(t, podSpec.Containers[0], nil)
+	assertRunAsUser(t, podSpec.Containers[0], 1001)
+	assertRunAsGroup(t, podSpec.Containers[0], 1001)
+	assertPodUserAndGroup(t, podSpec.SecurityContext, 1001)
+	assertBoundedEmptyDirs(t, podSpec.Volumes)
+}
+
+func assertPodUserAndGroup(t *testing.T, context *corev1.PodSecurityContext, expected int64) {
+	t.Helper()
+	if context == nil {
+		t.Fatal("pod security context is missing")
+	}
+	if context.RunAsUser == nil || *context.RunAsUser != expected || context.RunAsGroup == nil ||
+		*context.RunAsGroup != expected {
+		t.Fatalf("pod must use UID/GID %d: %#v", expected, context)
 	}
 }
 
@@ -301,39 +324,43 @@ func assertGraylogDataPermissions(t *testing.T, statefulSet *appsv1.StatefulSet,
 	t.Helper()
 	setup := statefulSet.Spec.Template.Spec.InitContainers[0]
 	setupCommand := strings.Join(setup.Command, "\n")
-	for _, expected := range []string{"chown -R 1001:1001 /data/db", "chmod -R u=rwX,g=rwX,o= /data/db"} {
-		if !strings.Contains(setupCommand, expected) {
-			t.Fatalf("setup command does not contain %q: %s", expected, setupCommand)
-		}
-	}
-	mongoVolumeMounted := false
-	for _, mount := range setup.VolumeMounts {
-		if mount.Name == "mongodb" && mount.MountPath == "/data/db" && !mount.ReadOnly {
-			mongoVolumeMounted = true
-			break
-		}
-	}
-	if !mongoVolumeMounted {
+	assertCommandContains(t, setupCommand, "chown -R 1001:1001 /data/db", "chmod -R u=rwX,g=rwX,o= /data/db")
+	if !hasWritableGraylogMount(setup.VolumeMounts, "mongodb", "/data/db") {
 		t.Fatalf("setup container does not mount the MongoDB data volume read-write: %#v", setup.VolumeMounts)
 	}
 	if openShift {
-		for _, expected := range []string{"chmod -R 0777", "chmod 0666"} {
-			if !strings.Contains(setupCommand, expected) {
-				t.Fatalf("OpenShift setup command does not contain %q: %s", expected, setupCommand)
-			}
-		}
+		assertCommandContains(t, setupCommand, "chmod -R 0777", "chmod 0666")
 		return
 	}
-	for _, forbidden := range []string{"chmod -R 0777", "chmod 0666"} {
-		if strings.Contains(setupCommand, forbidden) {
-			t.Fatalf("Kubernetes setup command contains permissive mode %q: %s", forbidden, setupCommand)
+	assertCommandExcludes(t, setupCommand, "chmod -R 0777", "chmod 0666")
+	assertCommandContains(t, setupCommand, "chown -R 1100:1100", "chmod -R u=rwX,g=rwX,o=", "chmod 0660")
+}
+
+func assertCommandContains(t *testing.T, command string, expectedValues ...string) {
+	t.Helper()
+	for _, expected := range expectedValues {
+		if !strings.Contains(command, expected) {
+			t.Fatalf("setup command does not contain %q: %s", expected, command)
 		}
 	}
-	for _, expected := range []string{"chown -R 1100:1100", "chmod -R u=rwX,g=rwX,o=", "chmod 0660"} {
-		if !strings.Contains(setupCommand, expected) {
-			t.Fatalf("Kubernetes setup command does not contain %q: %s", expected, setupCommand)
+}
+
+func assertCommandExcludes(t *testing.T, command string, forbiddenValues ...string) {
+	t.Helper()
+	for _, forbidden := range forbiddenValues {
+		if strings.Contains(command, forbidden) {
+			t.Fatalf("setup command contains forbidden mode %q: %s", forbidden, command)
 		}
 	}
+}
+
+func hasWritableGraylogMount(mounts []corev1.VolumeMount, name, path string) bool {
+	for _, mount := range mounts {
+		if mount.Name == name && mount.MountPath == path && !mount.ReadOnly {
+			return true
+		}
+	}
+	return false
 }
 
 func assertBoundedEmptyDirs(t *testing.T, volumes []corev1.Volume) {

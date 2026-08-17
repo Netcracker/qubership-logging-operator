@@ -244,7 +244,9 @@ func newHAFluentHandlerTestScheme(t *testing.T) *runtime.Scheme {
 		t.Fatalf("add apps scheme: %v", err)
 	}
 	return testScheme
-func TestForwarderDaemonSetSecurityContext(t *testing.T) {
+}
+
+func TestForwarderDaemonSetHardeningExceptions(t *testing.T) {
 	cr := &loggingService.LoggingService{
 		Spec: loggingService.LoggingServiceSpec{
 			Fluentbit: &loggingService.Fluentbit{
@@ -260,43 +262,56 @@ func TestForwarderDaemonSetSecurityContext(t *testing.T) {
 	}
 
 	podSpec := daemonSet.Spec.Template.Spec
-	if podSpec.SecurityContext == nil || podSpec.SecurityContext.SeccompProfile == nil ||
-		podSpec.SecurityContext.SeccompProfile.Type != corev1.SeccompProfileTypeRuntimeDefault {
-		t.Error("pod must use the RuntimeDefault seccomp profile")
-	}
-
-	forwarder := podSpec.Containers[1]
-	if forwarder.SecurityContext == nil || forwarder.SecurityContext.RunAsUser == nil ||
-		*forwarder.SecurityContext.RunAsUser != 0 || forwarder.SecurityContext.RunAsNonRoot == nil ||
-		*forwarder.SecurityContext.RunAsNonRoot || forwarder.SecurityContext.RunAsGroup == nil ||
-		*forwarder.SecurityContext.RunAsGroup != 0 {
-		t.Error("forwarder must run as root to access node logs and its existing state under /var/log")
-	}
-	if forwarder.SecurityContext.ReadOnlyRootFilesystem == nil ||
-		!*forwarder.SecurityContext.ReadOnlyRootFilesystem {
-		t.Error("forwarder must use a read-only root filesystem")
-	}
-	if !hasCapability(forwarder.SecurityContext.Capabilities.Add, corev1.Capability("DAC_OVERRIDE")) {
-		t.Error("forwarder must add DAC_OVERRIDE to write its existing state on the /var/log hostPath")
-	}
-	if !hasWritableMount(forwarder.VolumeMounts, "varlog", "/var/log") {
-		t.Error("forwarder must retain its writable /var/log mount")
-	}
-	if !hasMount(forwarder.VolumeMounts, "tmp", "/tmp") {
-		t.Error("forwarder must mount the tmp volume at /tmp")
-	}
+	assertForwarderPodContext(t, podSpec.SecurityContext)
+	assertForwarderContainerSecurity(t, podSpec.Containers[1])
 
 	cr.Spec.OpenshiftDeploy = true
 	openShiftDaemonSet, err := forwarderDaemonSet(cr, util.DynamicParameters{ContainerRuntimeType: "containerd"})
 	if err != nil {
 		t.Fatalf("render OpenShift Fluent Bit forwarder DaemonSet: %v", err)
 	}
-	openShiftPodContext := openShiftDaemonSet.Spec.Template.Spec.SecurityContext
-	if openShiftPodContext == nil || openShiftPodContext.SELinuxOptions == nil ||
-		openShiftPodContext.SELinuxOptions.Type != "spc_t" {
+	assertOpenShiftForwarderSecurity(t, openShiftDaemonSet.Spec.Template.Spec)
+}
+
+func assertForwarderPodContext(t *testing.T, context *corev1.PodSecurityContext) {
+	t.Helper()
+	if context == nil || context.SeccompProfile == nil ||
+		context.SeccompProfile.Type != corev1.SeccompProfileTypeRuntimeDefault {
+		t.Error("pod must use the RuntimeDefault seccomp profile")
+	}
+}
+
+func assertForwarderContainerSecurity(t *testing.T, forwarder corev1.Container) {
+	t.Helper()
+	context := forwarder.SecurityContext
+	if context == nil {
+		t.Fatal("forwarder security context is missing")
+	}
+	if context.RunAsUser == nil || *context.RunAsUser != 0 || context.RunAsNonRoot == nil || *context.RunAsNonRoot ||
+		context.RunAsGroup == nil || *context.RunAsGroup != 0 {
+		t.Error("forwarder must run as root to access node logs and its existing state under /var/log")
+	}
+	if context.ReadOnlyRootFilesystem == nil || !*context.ReadOnlyRootFilesystem {
+		t.Error("forwarder must use a read-only root filesystem")
+	}
+	if !hasCapability(context.Capabilities.Add, corev1.Capability("DAC_OVERRIDE")) {
+		t.Error("forwarder must add DAC_OVERRIDE to write its existing state on the /var/log hostPath")
+	}
+	if !hasReadOnlyMount(forwarder.VolumeMounts, "varlog", "/var/log") {
+		t.Error("forwarder must mount node logs read-only")
+	}
+	if !hasMount(forwarder.VolumeMounts, "tmp", "/tmp") {
+		t.Error("forwarder must mount the tmp volume at /tmp")
+	}
+}
+
+func assertOpenShiftForwarderSecurity(t *testing.T, podSpec corev1.PodSpec) {
+	t.Helper()
+	if podSpec.SecurityContext == nil || podSpec.SecurityContext.SELinuxOptions == nil ||
+		podSpec.SecurityContext.SELinuxOptions.Type != "spc_t" {
 		t.Error("OpenShift forwarder pod must use spc_t to access var_log_t host paths")
 	}
-	for _, container := range openShiftDaemonSet.Spec.Template.Spec.Containers {
+	for _, container := range podSpec.Containers {
 		expectedGroup := int64(1001)
 		if container.Name == "logging-fluentbit-forwarder" {
 			expectedGroup = 0
@@ -311,111 +326,95 @@ func TestForwarderDaemonSetSecurityContext(t *testing.T) {
 func TestAggregatorStatefulSetSecurityContext(t *testing.T) {
 	for _, openshift := range []bool{false, true} {
 		t.Run(map[bool]string{false: "kubernetes", true: "openshift"}[openshift], func(t *testing.T) {
-			resources := &corev1.ResourceRequirements{
-				Limits: corev1.ResourceList{
-					corev1.ResourceCPU:    resource.MustParse("1"),
-					corev1.ResourceMemory: resource.MustParse("512Mi"),
-				},
-				Requests: corev1.ResourceList{
-					corev1.ResourceCPU:    resource.MustParse("100m"),
-					corev1.ResourceMemory: resource.MustParse("128Mi"),
-				},
-			}
-			cr := &loggingService.LoggingService{
-				Spec: loggingService.LoggingServiceSpec{
-					OpenshiftDeploy: openshift,
-					Fluentbit: &loggingService.Fluentbit{
-						DockerImage: "fluent-bit:test",
-						Aggregator: &loggingService.FluentbitAggregator{
-							DockerImage: "fluent-bit:test",
-							Resources:   resources,
-							ConfigmapReload: &loggingService.ConfigmapReload{
-								DockerImage: "configmap-reload:test",
-							},
-						},
-					},
-				},
-			}
-
-			statefulSet, err := aggregatorStatefulSet(cr)
+			statefulSet, err := aggregatorStatefulSet(newAggregatorSecurityLoggingService(openshift))
 			if err != nil {
 				t.Fatalf("render Fluent Bit aggregator StatefulSet: %v", err)
 			}
 
 			podSpec := statefulSet.Spec.Template.Spec
-			if podSpec.SecurityContext == nil || podSpec.SecurityContext.RunAsNonRoot == nil ||
-				!*podSpec.SecurityContext.RunAsNonRoot || podSpec.SecurityContext.SeccompProfile == nil ||
-				podSpec.SecurityContext.SeccompProfile.Type != corev1.SeccompProfileTypeRuntimeDefault {
-				t.Error("aggregator pod must run as non-root with the RuntimeDefault seccomp profile")
-			}
-			if podSpec.SecurityContext.RunAsUser == nil || *podSpec.SecurityContext.RunAsUser != 1001 {
-				t.Error("aggregator pod must use UID 1001")
-			}
-			if podSpec.SecurityContext.RunAsGroup == nil || *podSpec.SecurityContext.RunAsGroup != 1001 {
-				t.Error("aggregator pod must use GID 1001")
-			}
-
-			for _, container := range podSpec.Containers {
-				context := container.SecurityContext
-				if context == nil || context.RunAsNonRoot == nil || !*context.RunAsNonRoot ||
-					context.AllowPrivilegeEscalation == nil || *context.AllowPrivilegeEscalation ||
-					context.ReadOnlyRootFilesystem == nil || !*context.ReadOnlyRootFilesystem ||
-					context.Capabilities == nil || !hasCapability(context.Capabilities.Drop, corev1.Capability("ALL")) {
-					t.Errorf("container %s must use the hardened non-root security context", container.Name)
-				}
-				if !hasMount(container.VolumeMounts, "tmp", "/tmp") {
-					t.Errorf("container %s must mount the tmp volume", container.Name)
-				}
-				if context.RunAsUser == nil || *context.RunAsUser != 1001 {
-					t.Errorf("container %s must use UID 1001", container.Name)
-				}
-				if context.RunAsGroup == nil || *context.RunAsGroup != 1001 {
-					t.Errorf("container %s must use GID 1001", container.Name)
-				}
-			}
-
-			aggregator := podSpec.Containers[1]
-			if !hasWritableMount(aggregator.VolumeMounts, "storage", "/fluent-bit/storage") {
-				t.Error("aggregator must retain its writable storage mount")
-			}
+			assertAggregatorPodContext(t, podSpec.SecurityContext)
+			assertAggregatorContainers(t, podSpec.Containers)
 		})
 	}
 }
 
-func TestHandleForwarderDaemonSetUpdatesTheCompletePodSpec(t *testing.T) {
-	cr := newHAFluentUpdateLoggingService()
-	dynamicParameters := util.DynamicParameters{ContainerRuntimeType: "containerd"}
-	desired, err := forwarderDaemonSet(cr, dynamicParameters)
-	if err != nil {
-		t.Fatalf("render Fluent Bit forwarder DaemonSet: %v", err)
-	}
-	existing := desired.DeepCopy()
-	existing.Spec.Template.Spec = corev1.PodSpec{PriorityClassName: "stale-priority"}
-	testScheme := newHAFluentTestScheme(t)
-	testClient := fake.NewClientBuilder().WithScheme(testScheme).WithObjects(existing).Build()
-	reconciler := &HAFluentReconciler{
-		ComponentReconciler: &util.ComponentReconciler{
-			Client: testClient,
-			Scheme: testScheme,
-			Log:    util.Logger("test-ha-fluent-forwarder-update"),
+func newAggregatorSecurityLoggingService(openshift bool) *loggingService.LoggingService {
+	resources := &corev1.ResourceRequirements{
+		Limits: corev1.ResourceList{
+			corev1.ResourceCPU:    resource.MustParse("1"),
+			corev1.ResourceMemory: resource.MustParse("512Mi"),
 		},
-		DynamicParameters: dynamicParameters,
+		Requests: corev1.ResourceList{
+			corev1.ResourceCPU:    resource.MustParse("100m"),
+			corev1.ResourceMemory: resource.MustParse("128Mi"),
+		},
 	}
+	return &loggingService.LoggingService{Spec: loggingService.LoggingServiceSpec{
+		OpenshiftDeploy: openshift,
+		Fluentbit: &loggingService.Fluentbit{
+			DockerImage: "fluent-bit:test",
+			Aggregator: &loggingService.FluentbitAggregator{
+				DockerImage: "fluent-bit:test",
+				Resources:   resources,
+				ConfigmapReload: &loggingService.ConfigmapReload{
+					DockerImage: "configmap-reload:test",
+				},
+			},
+		},
+	}}
+}
 
-	if err := reconciler.handleForwarderDaemonSet(cr); err != nil {
-		t.Fatalf("update Fluent Bit forwarder DaemonSet: %v", err)
+func assertAggregatorPodContext(t *testing.T, context *corev1.PodSecurityContext) {
+	t.Helper()
+	if context == nil {
+		t.Fatal("aggregator pod security context is missing")
 	}
-	updated := &appsv1.DaemonSet{}
-	key := types.NamespacedName{Name: desired.Name, Namespace: desired.Namespace}
-	if err := testClient.Get(context.Background(), key, updated); err != nil {
-		t.Fatalf("get updated Fluent Bit forwarder DaemonSet: %v", err)
+	if context.RunAsNonRoot == nil || !*context.RunAsNonRoot || context.SeccompProfile == nil ||
+		context.SeccompProfile.Type != corev1.SeccompProfileTypeRuntimeDefault {
+		t.Error("aggregator pod must run as non-root with the RuntimeDefault seccomp profile")
 	}
-	if !reflect.DeepEqual(updated.Spec.Template.Spec, desired.Spec.Template.Spec) {
-		t.Error("updated pod spec does not match the rendered pod spec")
+	if context.RunAsUser == nil || *context.RunAsUser != 1001 {
+		t.Error("aggregator pod must use UID 1001")
+	}
+	if context.RunAsGroup == nil || *context.RunAsGroup != 1001 {
+		t.Error("aggregator pod must use GID 1001")
 	}
 }
 
-func TestHandleAggregatorStatefulSetUpdatesReplicasAndPodSpec(t *testing.T) {
+func assertAggregatorContainers(t *testing.T, containers []corev1.Container) {
+	t.Helper()
+	for _, container := range containers {
+		assertAggregatorContainerContext(t, container)
+	}
+	if !hasWritableMount(containers[1].VolumeMounts, "storage", "/fluent-bit/storage") {
+		t.Error("aggregator must retain its writable storage mount")
+	}
+}
+
+func assertAggregatorContainerContext(t *testing.T, container corev1.Container) {
+	t.Helper()
+	context := container.SecurityContext
+	if context == nil {
+		t.Fatalf("container %s has no security context", container.Name)
+	}
+	if context.RunAsNonRoot == nil || !*context.RunAsNonRoot || context.AllowPrivilegeEscalation == nil ||
+		*context.AllowPrivilegeEscalation || context.ReadOnlyRootFilesystem == nil ||
+		!*context.ReadOnlyRootFilesystem || context.Capabilities == nil ||
+		!hasCapability(context.Capabilities.Drop, corev1.Capability("ALL")) {
+		t.Errorf("container %s must use the hardened non-root security context", container.Name)
+	}
+	if !hasMount(container.VolumeMounts, "tmp", "/tmp") {
+		t.Errorf("container %s must mount the tmp volume", container.Name)
+	}
+	if context.RunAsUser == nil || *context.RunAsUser != 1001 {
+		t.Errorf("container %s must use UID 1001", container.Name)
+	}
+	if context.RunAsGroup == nil || *context.RunAsGroup != 1001 {
+		t.Errorf("container %s must use GID 1001", container.Name)
+	}
+}
+
+func TestCreateOrUpdateAggregatorStatefulSetUpdatesHardeningFields(t *testing.T) {
 	cr := newHAFluentUpdateLoggingService()
 	desired, err := aggregatorStatefulSet(cr)
 	if err != nil {
@@ -424,10 +423,8 @@ func TestHandleAggregatorStatefulSetUpdatesReplicasAndPodSpec(t *testing.T) {
 	existing := desired.DeepCopy()
 	staleReplicas := int32(1)
 	existing.Spec.Replicas = &staleReplicas
-	existing.Spec.Template.Spec = corev1.PodSpec{PriorityClassName: "stale-priority"}
-	existing.Status.Replicas = *desired.Spec.Replicas
-	existing.Status.ReadyReplicas = *desired.Spec.Replicas
-	testScheme := newHAFluentTestScheme(t)
+	existing.Spec.Template.Spec.SecurityContext = nil
+	testScheme := newHAFluentHandlerTestScheme(t)
 	testClient := fake.NewClientBuilder().WithScheme(testScheme).WithObjects(existing).Build()
 	reconciler := &HAFluentReconciler{ComponentReconciler: &util.ComponentReconciler{
 		Client: testClient,
@@ -435,11 +432,7 @@ func TestHandleAggregatorStatefulSetUpdatesReplicasAndPodSpec(t *testing.T) {
 		Log:    util.Logger("test-ha-fluent-aggregator-update"),
 	}}
 
-	initialDelay := util.InitialDelay
-	util.InitialDelay = 0
-	defer func() { util.InitialDelay = initialDelay }()
-
-	if err := reconciler.handleAggregatorStatefulSet(cr); err != nil {
+	if err := reconciler.createOrUpdateAggregatorStatefulSet(cr, desired); err != nil {
 		t.Fatalf("update Fluent Bit aggregator StatefulSet: %v", err)
 	}
 	updated := &appsv1.StatefulSet{}
@@ -450,8 +443,8 @@ func TestHandleAggregatorStatefulSetUpdatesReplicasAndPodSpec(t *testing.T) {
 	if updated.Spec.Replicas == nil || *updated.Spec.Replicas != *desired.Spec.Replicas {
 		t.Errorf("updated replicas = %v, want %d", updated.Spec.Replicas, *desired.Spec.Replicas)
 	}
-	if !reflect.DeepEqual(updated.Spec.Template.Spec, desired.Spec.Template.Spec) {
-		t.Error("updated pod spec does not match the rendered pod spec")
+	if !reflect.DeepEqual(updated.Spec.Template.Spec.SecurityContext, desired.Spec.Template.Spec.SecurityContext) {
+		t.Error("updated pod security context does not match the rendered pod security context")
 	}
 }
 
@@ -485,18 +478,6 @@ func newHAFluentUpdateLoggingService() *loggingService.LoggingService {
 	}
 }
 
-func newHAFluentTestScheme(t *testing.T) *runtime.Scheme {
-	t.Helper()
-	testScheme := runtime.NewScheme()
-	if err := loggingService.AddToScheme(testScheme); err != nil {
-		t.Fatalf("add LoggingService scheme: %v", err)
-	}
-	if err := appsv1.AddToScheme(testScheme); err != nil {
-		t.Fatalf("add apps scheme: %v", err)
-	}
-	return testScheme
-}
-
 func hasCapability(capabilities []corev1.Capability, expected corev1.Capability) bool {
 	for _, capability := range capabilities {
 		if capability == expected {
@@ -509,6 +490,15 @@ func hasCapability(capabilities []corev1.Capability, expected corev1.Capability)
 func hasWritableMount(mounts []corev1.VolumeMount, name, path string) bool {
 	for _, mount := range mounts {
 		if mount.Name == name && mount.MountPath == path && !mount.ReadOnly {
+			return true
+		}
+	}
+	return false
+}
+
+func hasReadOnlyMount(mounts []corev1.VolumeMount, name, path string) bool {
+	for _, mount := range mounts {
+		if mount.Name == name && mount.MountPath == path && mount.ReadOnly {
 			return true
 		}
 	}

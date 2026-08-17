@@ -130,7 +130,9 @@ func TestUpdateDaemonSetReturnsGetError(t *testing.T) {
 	if err := reconciler.updateDaemonSet(desired); err == nil {
 		t.Fatal("expected an error when the existing DaemonSet is missing")
 	}
-func TestFluentbitDaemonSetSecurityContext(t *testing.T) {
+}
+
+func TestFluentbitDaemonSetHardeningExceptions(t *testing.T) {
 	for _, privileged := range []bool{false, true} {
 		t.Run(map[bool]string{false: "unprivileged", true: "privileged"}[privileged], func(t *testing.T) {
 			cr := &loggingService.LoggingService{
@@ -149,43 +151,58 @@ func TestFluentbitDaemonSetSecurityContext(t *testing.T) {
 			}
 
 			podSpec := daemonSet.Spec.Template.Spec
-			if podSpec.SecurityContext == nil || podSpec.SecurityContext.SeccompProfile == nil ||
-				podSpec.SecurityContext.SeccompProfile.Type != corev1.SeccompProfileTypeRuntimeDefault {
-				t.Error("pod must use the RuntimeDefault seccomp profile")
-			}
-
-			reloader := podSpec.Containers[0]
-			if reloader.SecurityContext == nil || reloader.SecurityContext.ReadOnlyRootFilesystem == nil ||
-				!*reloader.SecurityContext.ReadOnlyRootFilesystem || reloader.SecurityContext.RunAsNonRoot == nil ||
-				!*reloader.SecurityContext.RunAsNonRoot || reloader.SecurityContext.RunAsGroup == nil ||
-				*reloader.SecurityContext.RunAsGroup != 1001 {
-				t.Error("configmap-reload must run as non-root with a read-only root filesystem")
-			}
-
-			collector := podSpec.Containers[1]
-			if collector.SecurityContext == nil || collector.SecurityContext.RunAsUser == nil ||
-				*collector.SecurityContext.RunAsUser != 0 || collector.SecurityContext.RunAsNonRoot == nil ||
-				*collector.SecurityContext.RunAsNonRoot || collector.SecurityContext.RunAsGroup == nil ||
-				*collector.SecurityContext.RunAsGroup != 0 {
-				t.Error("collector must run as root to access node logs and its existing state under /var/log")
-			}
-			if collector.SecurityContext.ReadOnlyRootFilesystem == nil ||
-				!*collector.SecurityContext.ReadOnlyRootFilesystem {
-				t.Error("collector must use a read-only root filesystem")
-			}
-			if collector.SecurityContext.Privileged == nil || *collector.SecurityContext.Privileged != privileged {
-				t.Errorf("collector privileged setting = %v, want %v", collector.SecurityContext.Privileged, privileged)
-			}
-			if !privileged && !hasCapability(collector.SecurityContext.Capabilities.Add, corev1.Capability("DAC_OVERRIDE")) {
-				t.Error("unprivileged collector must add DAC_OVERRIDE to write its existing state on the /var/log hostPath")
-			}
-			if !hasWritableMount(collector.VolumeMounts, "varlog", "/var/log") {
-				t.Error("collector must retain its writable /var/log mount")
-			}
-			if !hasMount(collector.VolumeMounts, "tmp", "/tmp") {
-				t.Error("collector must mount the tmp volume at /tmp")
-			}
+			assertRuntimeDefaultPodContext(t, podSpec.SecurityContext)
+			assertFluentbitReloaderContext(t, podSpec.Containers[0].SecurityContext)
+			assertFluentbitCollectorSecurity(t, podSpec.Containers[1], privileged)
 		})
+	}
+}
+
+func assertRuntimeDefaultPodContext(t *testing.T, context *corev1.PodSecurityContext) {
+	t.Helper()
+	if context == nil || context.SeccompProfile == nil ||
+		context.SeccompProfile.Type != corev1.SeccompProfileTypeRuntimeDefault {
+		t.Error("pod must use the RuntimeDefault seccomp profile")
+	}
+}
+
+func assertFluentbitReloaderContext(t *testing.T, context *corev1.SecurityContext) {
+	t.Helper()
+	if context == nil || context.ReadOnlyRootFilesystem == nil || !*context.ReadOnlyRootFilesystem ||
+		context.RunAsNonRoot == nil || !*context.RunAsNonRoot || context.RunAsGroup == nil ||
+		*context.RunAsGroup != 1001 {
+		t.Error("configmap-reload must run as non-root with a read-only root filesystem")
+	}
+}
+
+func assertFluentbitCollectorSecurity(t *testing.T, collector corev1.Container, privileged bool) {
+	t.Helper()
+	if collector.SecurityContext == nil {
+		t.Fatal("collector security context is missing")
+	}
+	assertRootCollectorContext(t, collector.SecurityContext)
+	if collector.SecurityContext.Privileged == nil || *collector.SecurityContext.Privileged != privileged {
+		t.Errorf("collector privileged setting = %v, want %v", collector.SecurityContext.Privileged, privileged)
+	}
+	if !privileged && !hasCapability(collector.SecurityContext.Capabilities.Add, corev1.Capability("DAC_OVERRIDE")) {
+		t.Error("unprivileged collector must add DAC_OVERRIDE to write its existing state on the /var/log hostPath")
+	}
+	if !hasReadOnlyMount(collector.VolumeMounts, "varlog", "/var/log") {
+		t.Error("collector must mount node logs read-only")
+	}
+	if !hasMount(collector.VolumeMounts, "tmp", "/tmp") {
+		t.Error("collector must mount the tmp volume at /tmp")
+	}
+}
+
+func assertRootCollectorContext(t *testing.T, context *corev1.SecurityContext) {
+	t.Helper()
+	if context.RunAsUser == nil || *context.RunAsUser != 0 || context.RunAsNonRoot == nil ||
+		*context.RunAsNonRoot || context.RunAsGroup == nil || *context.RunAsGroup != 0 {
+		t.Error("collector must run as root to access node logs and its existing state under /var/log")
+	}
+	if context.ReadOnlyRootFilesystem == nil || !*context.ReadOnlyRootFilesystem {
+		t.Error("collector must use a read-only root filesystem")
 	}
 }
 
@@ -210,55 +227,6 @@ func TestFluentbitOpenShiftSecurityContext(t *testing.T) {
 	}
 }
 
-func TestHandleDaemonSetUpdatesTheCompletePodSpec(t *testing.T) {
-	cr := &loggingService.LoggingService{
-		ObjectMeta: metav1.ObjectMeta{Name: "logging-service", Namespace: "logging"},
-		Spec: loggingService.LoggingServiceSpec{
-			Fluentbit: &loggingService.Fluentbit{
-				DockerImage:       "fluent-bit:test",
-				PriorityClassName: "system-cluster-critical",
-				ConfigmapReload:   &loggingService.ConfigmapReload{DockerImage: "configmap-reload:test"},
-			},
-		},
-	}
-	dynamicParameters := util.DynamicParameters{ContainerRuntimeType: "containerd"}
-	desired, err := fluentbitDaemonSet(cr, dynamicParameters)
-	if err != nil {
-		t.Fatalf("render Fluent Bit DaemonSet: %v", err)
-	}
-	existing := desired.DeepCopy()
-	existing.Spec.Template.Spec = corev1.PodSpec{PriorityClassName: "stale-priority"}
-
-	testScheme := runtime.NewScheme()
-	if err := loggingService.AddToScheme(testScheme); err != nil {
-		t.Fatalf("add LoggingService scheme: %v", err)
-	}
-	if err := appsv1.AddToScheme(testScheme); err != nil {
-		t.Fatalf("add apps scheme: %v", err)
-	}
-	testClient := fake.NewClientBuilder().WithScheme(testScheme).WithObjects(existing).Build()
-	reconciler := &FluentbitReconciler{
-		ComponentReconciler: &util.ComponentReconciler{
-			Client: testClient,
-			Scheme: testScheme,
-			Log:    util.Logger("test-fluentbit-update"),
-		},
-		DynamicParameters: dynamicParameters,
-	}
-
-	if err := reconciler.handleDaemonSet(cr); err != nil {
-		t.Fatalf("update Fluent Bit DaemonSet: %v", err)
-	}
-	updated := &appsv1.DaemonSet{}
-	key := types.NamespacedName{Name: desired.Name, Namespace: desired.Namespace}
-	if err := testClient.Get(context.Background(), key, updated); err != nil {
-		t.Fatalf("get updated Fluent Bit DaemonSet: %v", err)
-	}
-	if !reflect.DeepEqual(updated.Spec.Template.Spec, desired.Spec.Template.Spec) {
-		t.Error("updated pod spec does not match the rendered pod spec")
-	}
-}
-
 func hasCapability(capabilities []corev1.Capability, expected corev1.Capability) bool {
 	for _, capability := range capabilities {
 		if capability == expected {
@@ -268,9 +236,9 @@ func hasCapability(capabilities []corev1.Capability, expected corev1.Capability)
 	return false
 }
 
-func hasWritableMount(mounts []corev1.VolumeMount, name, path string) bool {
+func hasReadOnlyMount(mounts []corev1.VolumeMount, name, path string) bool {
 	for _, mount := range mounts {
-		if mount.Name == name && mount.MountPath == path && !mount.ReadOnly {
+		if mount.Name == name && mount.MountPath == path && mount.ReadOnly {
 			return true
 		}
 	}

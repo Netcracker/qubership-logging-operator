@@ -99,7 +99,8 @@ paths use bounded `emptyDir` volumes. Graylog and MongoDB data remain on their e
 
 The Graylog container adds back only `NET_BIND_SERVICE`. The upstream Graylog image assigns
 `cap_net_bind_service=ep` to its Java binary, and Graylog exposes its default UDP input on port 514. Removing this
-capability from the bounding set prevents Java from starting.
+capability from the bounding set prevents Java from starting. Port 514 is an explicit exception to the hardening
+profile's forbidden-port rule because changing it would break the existing Graylog input contract.
 
 The `setup` init container remains root and keeps a writable image filesystem. It prepares ownership and permissions
 on existing Graylog persistent volumes before the non-root application containers start. Kubernetes

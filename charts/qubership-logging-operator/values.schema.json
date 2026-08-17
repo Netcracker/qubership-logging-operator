@@ -1170,6 +1170,56 @@
                     "description": "FluentBit custom output configuration.",
                     "type": "string"
                 },
+                "db": {
+                    "description": "Settings of the SQLite database which the input plugins use to keep the position of the read files.",
+                    "properties": {
+                        "enabled": {
+                            "default": true,
+                            "description": "Defines whether the input plugins keep the read offsets in the database file. Disabling it removes all the database writes to the storage, but FluentBit loses the read offsets on the restart.",
+                            "type": "boolean"
+                        },
+                        "journalMode": {
+                            "default": "memory",
+                            "description": "The journal mode of the database. Not applicable to the systemd input.",
+                            "enum": [
+                                "wal",
+                                "delete",
+                                "truncate",
+                                "persist",
+                                "memory",
+                                "off",
+                                "WAL",
+                                "DELETE",
+                                "TRUNCATE",
+                                "PERSIST",
+                                "MEMORY",
+                                "OFF"
+                            ],
+                            "type": "string"
+                        },
+                        "locking": {
+                            "default": true,
+                            "description": "Defines whether FluentBit acquires the exclusive access to the database file. Not applicable to the systemd input.",
+                            "type": "boolean"
+                        },
+                        "sync": {
+                            "default": "off",
+                            "description": "The synchronization mode of the database.",
+                            "enum": [
+                                "off",
+                                "normal",
+                                "full",
+                                "extra",
+                                "OFF",
+                                "NORMAL",
+                                "FULL",
+                                "EXTRA"
+                            ],
+                            "type": "string"
+                        }
+                    },
+                    "type": "object"
+                },
                 "dockerImage": {
                     "description": "A docker image to use for FluentBit daemon set.",
                     "type": "string"
@@ -1181,6 +1231,12 @@
                 "extraFields": {
                     "description": "Adds additional custom fields/labels to every log message by using filter based on record_modifier plugin.",
                     "type": "object"
+                },
+                "flush": {
+                    "default": 5,
+                    "description": "The interval in seconds to flush records to the outputs.",
+                    "minimum": 1,
+                    "type": "integer"
                 },
                 "graylogHost": {
                     "description": "Graylog host.",
@@ -1841,6 +1897,15 @@
                         }
                     },
                     "type": "object"
+                },
+                "storageType": {
+                    "default": "memory",
+                    "description": "The buffering mechanism for the input plugins. The filesystem type buffers chunks on the node disk and produces a lot of writes to the storage.",
+                    "enum": [
+                        "memory",
+                        "filesystem"
+                    ],
+                    "type": "string"
                 },
                 "systemAuditLogging": {
                     "default": true,

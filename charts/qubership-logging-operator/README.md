@@ -757,6 +757,56 @@ true
 			<td>FluentBit custom output configuration.</td>
 		</tr>
 		<tr>
+			<td>fluentbit.db</td>
+			<td>object</td>
+			<td><pre lang="json">
+{
+  "enabled": true,
+  "journalMode": "memory",
+  "locking": true,
+  "sync": "off"
+}
+</pre>
+</td>
+			<td>Settings of the SQLite database which the input plugins use to keep the position of the read files</td>
+		</tr>
+		<tr>
+			<td>fluentbit.db.enabled</td>
+			<td>bool</td>
+			<td><pre lang="json">
+true
+</pre>
+</td>
+			<td>Defines whether the input plugins keep the read offsets in the database file. Disabling it removes all the database writes to the storage, but FluentBit loses the read offsets on the restart and reads the files from the beginning.</td>
+		</tr>
+		<tr>
+			<td>fluentbit.db.journalMode</td>
+			<td>string</td>
+			<td><pre lang="json">
+"memory"
+</pre>
+</td>
+			<td>The journal mode of the database, one of `WAL`, `DELETE`, `TRUNCATE`, `PERSIST`, `MEMORY` or `OFF`. The `MEMORY` mode does not produce `.db-wal` files. Not applicable to the `systemd` input.</td>
+		</tr>
+		<tr>
+			<td>fluentbit.db.locking</td>
+			<td>bool</td>
+			<td><pre lang="json">
+true
+</pre>
+</td>
+			<td>Defines whether FluentBit acquires the exclusive access to the database file. The exclusive access reduces the amount of the produced writes. Not applicable to the `systemd` input.</td>
+		</tr>
+		<tr>
+			<td>fluentbit.db.sync</td>
+			<td>string</td>
+			<td><pre lang="json">
+"off"
+</pre>
+</td>
+			<td>The synchronization mode of the database, one of `off`, `normal`, `full` or `extra`. The `off` mode does not force the data to be flushed to the disk on every transaction.</td>
+		</tr>
+		<tr>
 			<td>fluentbit.excludePath</td>
 			<td>string</td>
 			<td><pre lang="json">
@@ -764,6 +814,15 @@ true
 </pre>
 </td>
 			<td>Allow to exclude some logs of pods/containers</td>
+		</tr>
+		<tr>
+			<td>fluentbit.flush</td>
+			<td>int</td>
+			<td><pre lang="json">
+5
+</pre>
+</td>
+			<td>The interval in seconds to flush records to the outputs. Increasing the interval reduces the amount of produced chunks and, as a result, the disk load. See Flush in https://docs.fluentbit.io/manual/administration/configuring-fluent-bit/classic-mode/configuration-file#config_section</td>
 		</tr>
 		<tr>
 			<td>fluentbit.graylogOutput</td>
@@ -1250,6 +1309,15 @@ false
 </pre>
 </td>
 			<td>Allow creating security resources as PodSecurityPolicy, SecurityContextConstraints</td>
+		</tr>
+		<tr>
+			<td>fluentbit.storageType</td>
+			<td>string</td>
+			<td><pre lang="json">
+"memory"
+</pre>
+</td>
+			<td>The buffering mechanism for the input plugins, `memory` or `filesystem`. The `filesystem` type buffers chunks on the node disk and produces a lot of writes to the storage. See https://docs.fluentbit.io/manual/administration/buffering-and-storage</td>
 		</tr>
 		<tr>
 			<td>fluentbit.systemAuditLogging</td>

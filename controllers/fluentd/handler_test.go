@@ -1,11 +1,13 @@
 package fluentd
 
 import (
+	"reflect"
 	"strings"
 	"testing"
 
 	loggingService "github.com/Netcracker/qubership-logging-operator/api/v1"
 	util "github.com/Netcracker/qubership-logging-operator/controllers/utils"
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -151,6 +153,54 @@ func TestFluentdOpenShiftSecurityContext(t *testing.T) {
 	podContext := daemonSet.Spec.Template.Spec.SecurityContext
 	if podContext == nil || podContext.SELinuxOptions == nil || podContext.SELinuxOptions.Type != "spc_t" {
 		t.Error("OpenShift Fluentd pod must use spc_t to access var_log_t host paths")
+	}
+}
+
+func TestHandleDaemonSetUpdatesTheCompletePodSpec(t *testing.T) {
+	cr := &loggingService.LoggingService{
+		ObjectMeta: metav1.ObjectMeta{Name: "logging-service", Namespace: "logging"},
+		Spec: loggingService.LoggingServiceSpec{
+			Fluentd: &loggingService.Fluentd{
+				DockerImage:       "fluentd:test",
+				PriorityClassName: "system-cluster-critical",
+				ConfigmapReload:   &loggingService.ConfigmapReload{DockerImage: "configmap-reload:test"},
+			},
+		},
+	}
+	dynamicParameters := util.DynamicParameters{ContainerRuntimeType: "containerd"}
+	desired, err := fluentdDaemonSet(cr, dynamicParameters)
+	if err != nil {
+		t.Fatalf("render FluentD DaemonSet: %v", err)
+	}
+	existing := desired.DeepCopy()
+	existing.Spec.Template.Spec = corev1.PodSpec{PriorityClassName: "stale-priority"}
+
+	testScheme := runtime.NewScheme()
+	if err := loggingService.AddToScheme(testScheme); err != nil {
+		t.Fatalf("add LoggingService scheme: %v", err)
+	}
+	if err := appsv1.AddToScheme(testScheme); err != nil {
+		t.Fatalf("add apps scheme: %v", err)
+	}
+	testClient := fake.NewClientBuilder().WithScheme(testScheme).WithObjects(existing).Build()
+	reconciler := &FluentdReconciler{
+		ComponentReconciler: &util.ComponentReconciler{
+			Client: testClient,
+			Scheme: testScheme,
+			Log:    util.Logger("test-fluentd-update"),
+		},
+		DynamicParameters: dynamicParameters,
+	}
+
+	if err := reconciler.handleDaemonSet(cr); err != nil {
+		t.Fatalf("update FluentD DaemonSet: %v", err)
+	}
+	updated := &appsv1.DaemonSet{}
+	if err := testClient.Get(t.Context(), client.ObjectKeyFromObject(desired), updated); err != nil {
+		t.Fatalf("get updated FluentD DaemonSet: %v", err)
+	}
+	if !reflect.DeepEqual(updated.Spec.Template.Spec, desired.Spec.Template.Spec) {
+		t.Errorf("updated pod spec does not match the rendered pod spec")
 	}
 }
 

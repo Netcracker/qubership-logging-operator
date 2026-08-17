@@ -74,6 +74,7 @@ check_min_count "allowPrivilegeEscalation: false" 4 "allowPrivilegeEscalation di
 check_min_count "type: RuntimeDefault" 4 "seccompProfile RuntimeDefault"
 check_min_count "- ALL" 4 "capabilities dropped (ALL)"
 check_min_count "name: tmp" 8 "mandatory /tmp emptyDir volumes and mounts"
+check_min_count "ephemeral-storage: 200Mi" 1 "operator ephemeral-storage limit"
 check_min_count "runAsUser: 2001" 1 "operator runs with its image UID"
 check_min_count "runAsGroup: 1000" 3 "workloads run with their image group"
 check_following_line "pathPrefix: /var/log" "readOnly: false" \

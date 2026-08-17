@@ -210,6 +210,55 @@ func TestFluentbitOpenShiftSecurityContext(t *testing.T) {
 	}
 }
 
+func TestHandleDaemonSetUpdatesTheCompletePodSpec(t *testing.T) {
+	cr := &loggingService.LoggingService{
+		ObjectMeta: metav1.ObjectMeta{Name: "logging-service", Namespace: "logging"},
+		Spec: loggingService.LoggingServiceSpec{
+			Fluentbit: &loggingService.Fluentbit{
+				DockerImage:       "fluent-bit:test",
+				PriorityClassName: "system-cluster-critical",
+				ConfigmapReload:   &loggingService.ConfigmapReload{DockerImage: "configmap-reload:test"},
+			},
+		},
+	}
+	dynamicParameters := util.DynamicParameters{ContainerRuntimeType: "containerd"}
+	desired, err := fluentbitDaemonSet(cr, dynamicParameters)
+	if err != nil {
+		t.Fatalf("render Fluent Bit DaemonSet: %v", err)
+	}
+	existing := desired.DeepCopy()
+	existing.Spec.Template.Spec = corev1.PodSpec{PriorityClassName: "stale-priority"}
+
+	testScheme := runtime.NewScheme()
+	if err := loggingService.AddToScheme(testScheme); err != nil {
+		t.Fatalf("add LoggingService scheme: %v", err)
+	}
+	if err := appsv1.AddToScheme(testScheme); err != nil {
+		t.Fatalf("add apps scheme: %v", err)
+	}
+	testClient := fake.NewClientBuilder().WithScheme(testScheme).WithObjects(existing).Build()
+	reconciler := &FluentbitReconciler{
+		ComponentReconciler: &util.ComponentReconciler{
+			Client: testClient,
+			Scheme: testScheme,
+			Log:    util.Logger("test-fluentbit-update"),
+		},
+		DynamicParameters: dynamicParameters,
+	}
+
+	if err := reconciler.handleDaemonSet(cr); err != nil {
+		t.Fatalf("update Fluent Bit DaemonSet: %v", err)
+	}
+	updated := &appsv1.DaemonSet{}
+	key := types.NamespacedName{Name: desired.Name, Namespace: desired.Namespace}
+	if err := testClient.Get(context.Background(), key, updated); err != nil {
+		t.Fatalf("get updated Fluent Bit DaemonSet: %v", err)
+	}
+	if !reflect.DeepEqual(updated.Spec.Template.Spec, desired.Spec.Template.Spec) {
+		t.Error("updated pod spec does not match the rendered pod spec")
+	}
+}
+
 func hasCapability(capabilities []corev1.Capability, expected corev1.Capability) bool {
 	for _, capability := range capabilities {
 		if capability == expected {

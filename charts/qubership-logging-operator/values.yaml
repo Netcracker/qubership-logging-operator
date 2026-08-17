@@ -80,6 +80,7 @@ resources:
   limits:
     cpu: 150m
     memory: 100Mi
+    ephemeral-storage: 200Mi
 
 # -- Pod monitor for logging-operator
 podMonitor:

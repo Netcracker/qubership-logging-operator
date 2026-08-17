@@ -382,6 +382,121 @@ func TestAggregatorStatefulSetSecurityContext(t *testing.T) {
 	}
 }
 
+func TestHandleForwarderDaemonSetUpdatesTheCompletePodSpec(t *testing.T) {
+	cr := newHAFluentUpdateLoggingService()
+	dynamicParameters := util.DynamicParameters{ContainerRuntimeType: "containerd"}
+	desired, err := forwarderDaemonSet(cr, dynamicParameters)
+	if err != nil {
+		t.Fatalf("render Fluent Bit forwarder DaemonSet: %v", err)
+	}
+	existing := desired.DeepCopy()
+	existing.Spec.Template.Spec = corev1.PodSpec{PriorityClassName: "stale-priority"}
+	testScheme := newHAFluentTestScheme(t)
+	testClient := fake.NewClientBuilder().WithScheme(testScheme).WithObjects(existing).Build()
+	reconciler := &HAFluentReconciler{
+		ComponentReconciler: &util.ComponentReconciler{
+			Client: testClient,
+			Scheme: testScheme,
+			Log:    util.Logger("test-ha-fluent-forwarder-update"),
+		},
+		DynamicParameters: dynamicParameters,
+	}
+
+	if err := reconciler.handleForwarderDaemonSet(cr); err != nil {
+		t.Fatalf("update Fluent Bit forwarder DaemonSet: %v", err)
+	}
+	updated := &appsv1.DaemonSet{}
+	key := types.NamespacedName{Name: desired.Name, Namespace: desired.Namespace}
+	if err := testClient.Get(context.Background(), key, updated); err != nil {
+		t.Fatalf("get updated Fluent Bit forwarder DaemonSet: %v", err)
+	}
+	if !reflect.DeepEqual(updated.Spec.Template.Spec, desired.Spec.Template.Spec) {
+		t.Error("updated pod spec does not match the rendered pod spec")
+	}
+}
+
+func TestHandleAggregatorStatefulSetUpdatesReplicasAndPodSpec(t *testing.T) {
+	cr := newHAFluentUpdateLoggingService()
+	desired, err := aggregatorStatefulSet(cr)
+	if err != nil {
+		t.Fatalf("render Fluent Bit aggregator StatefulSet: %v", err)
+	}
+	existing := desired.DeepCopy()
+	staleReplicas := int32(1)
+	existing.Spec.Replicas = &staleReplicas
+	existing.Spec.Template.Spec = corev1.PodSpec{PriorityClassName: "stale-priority"}
+	existing.Status.Replicas = *desired.Spec.Replicas
+	existing.Status.ReadyReplicas = *desired.Spec.Replicas
+	testScheme := newHAFluentTestScheme(t)
+	testClient := fake.NewClientBuilder().WithScheme(testScheme).WithObjects(existing).Build()
+	reconciler := &HAFluentReconciler{ComponentReconciler: &util.ComponentReconciler{
+		Client: testClient,
+		Scheme: testScheme,
+		Log:    util.Logger("test-ha-fluent-aggregator-update"),
+	}}
+
+	initialDelay := util.InitialDelay
+	util.InitialDelay = 0
+	defer func() { util.InitialDelay = initialDelay }()
+
+	if err := reconciler.handleAggregatorStatefulSet(cr); err != nil {
+		t.Fatalf("update Fluent Bit aggregator StatefulSet: %v", err)
+	}
+	updated := &appsv1.StatefulSet{}
+	key := types.NamespacedName{Name: desired.Name, Namespace: desired.Namespace}
+	if err := testClient.Get(context.Background(), key, updated); err != nil {
+		t.Fatalf("get updated Fluent Bit aggregator StatefulSet: %v", err)
+	}
+	if updated.Spec.Replicas == nil || *updated.Spec.Replicas != *desired.Spec.Replicas {
+		t.Errorf("updated replicas = %v, want %d", updated.Spec.Replicas, *desired.Spec.Replicas)
+	}
+	if !reflect.DeepEqual(updated.Spec.Template.Spec, desired.Spec.Template.Spec) {
+		t.Error("updated pod spec does not match the rendered pod spec")
+	}
+}
+
+func newHAFluentUpdateLoggingService() *loggingService.LoggingService {
+	return &loggingService.LoggingService{
+		ObjectMeta: metav1.ObjectMeta{Name: "logging-service", Namespace: "logging"},
+		Spec: loggingService.LoggingServiceSpec{
+			Fluentbit: &loggingService.Fluentbit{
+				DockerImage:       "fluent-bit:test",
+				PriorityClassName: "system-cluster-critical",
+				ConfigmapReload:   &loggingService.ConfigmapReload{DockerImage: "configmap-reload:test"},
+				Aggregator: &loggingService.FluentbitAggregator{
+					DockerImage:       "fluent-bit:test",
+					PriorityClassName: "system-cluster-critical",
+					Replicas:          2,
+					StartupTimeout:    1,
+					ConfigmapReload:   &loggingService.ConfigmapReload{DockerImage: "configmap-reload:test"},
+					Resources: &corev1.ResourceRequirements{
+						Limits: corev1.ResourceList{
+							corev1.ResourceCPU:    resource.MustParse("1"),
+							corev1.ResourceMemory: resource.MustParse("512Mi"),
+						},
+						Requests: corev1.ResourceList{
+							corev1.ResourceCPU:    resource.MustParse("100m"),
+							corev1.ResourceMemory: resource.MustParse("128Mi"),
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func newHAFluentTestScheme(t *testing.T) *runtime.Scheme {
+	t.Helper()
+	testScheme := runtime.NewScheme()
+	if err := loggingService.AddToScheme(testScheme); err != nil {
+		t.Fatalf("add LoggingService scheme: %v", err)
+	}
+	if err := appsv1.AddToScheme(testScheme); err != nil {
+		t.Fatalf("add apps scheme: %v", err)
+	}
+	return testScheme
+}
+
 func hasCapability(capabilities []corev1.Capability, expected corev1.Capability) bool {
 	for _, capability := range capabilities {
 		if capability == expected {

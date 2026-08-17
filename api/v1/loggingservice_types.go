@@ -610,7 +610,7 @@ func (in *LoggingService) ToParams() LoggingServiceParameters {
 }
 
 func init() {
-	SchemeBuilder.Register(&LoggingService{}, &LoggingServiceList{})
+	objectTypes = append(objectTypes, &LoggingService{}, &LoggingServiceList{})
 }
 
 func (in *Graylog) IsForceUpdate() bool {

@@ -35,7 +35,15 @@ spec:
     - 'hostPath'
   allowedHostPaths:
     - pathPrefix: "/var/log"
+      readOnly: true
     - pathPrefix: "/var/lib/docker/containers"
+      readOnly: true
+    {{- if or (eq .Values.fluentbit.storageProfile "persistent-offsets") (eq .Values.fluentbit.storageProfile "node-persistent") }}
+    - pathPrefix: "/var/lib/fluent-bit/state"
+    {{- end }}
+    {{- if eq .Values.fluentbit.storageProfile "node-persistent" }}
+    - pathPrefix: "/var/lib/fluent-bit/storage"
+    {{- end }}
     - pathPrefix: "/fluent-bit/etc"
       readOnly: true
   hostNetwork: true

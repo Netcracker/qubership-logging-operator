@@ -629,8 +629,8 @@ spec:
     {{- if .Values.fluentbit.flush }}
     flush: {{ .Values.fluentbit.flush }}
     {{- end }}
-    {{- if .Values.fluentbit.storageType }}
-    storageType: {{ .Values.fluentbit.storageType }}
+    {{- if .Values.fluentbit.storageProfile }}
+    storageProfile: {{ .Values.fluentbit.storageProfile }}
     {{- end }}
     {{- if .Values.fluentbit.db }}
     db:

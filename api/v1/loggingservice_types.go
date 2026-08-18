@@ -263,10 +263,12 @@ type Fluentbit struct {
 	// Increasing the interval reduces the amount of produced chunks and, as a result, the disk load.
 	// +kubebuilder:validation:Minimum=1
 	Flush int `json:"flush,omitempty"`
-	// StorageType is a buffering mechanism for the input plugins. Allowed values are "memory" and "filesystem".
-	// The "filesystem" type buffers chunks on the node disk and produces a lot of writes to the storage.
-	// +kubebuilder:validation:Enum=memory;filesystem
-	StorageType string `json:"storageType,omitempty"`
+	// StorageProfile selects where Fluentbit keeps input read offsets and buffered logs.
+	// The default "memory-only" profile avoids writes to the node filesystem. The "persistent-offsets"
+	// profile stores read offsets on the node and buffers logs in memory. The "node-persistent" profile
+	// stores both read offsets and buffered logs on the node.
+	// +kubebuilder:validation:Enum=memory-only;persistent-offsets;node-persistent
+	StorageProfile string `json:"storageProfile,omitempty"`
 	// DB contains settings of the SQLite database which the input plugins use to keep the read offsets
 	DB FluentbitDB `json:"db,omitempty"`
 }
@@ -303,6 +305,30 @@ func (in FluentbitDB) IsEnabled() bool {
 // The exclusive access is used unless it is explicitly disabled.
 func (in FluentbitDB) IsLocking() bool {
 	return in.Locking == nil || *in.Locking
+}
+
+const (
+	FluentbitStorageProfileMemoryOnly        = "memory-only"
+	FluentbitStorageProfilePersistentOffsets = "persistent-offsets"
+	FluentbitStorageProfileNodePersistent    = "node-persistent"
+)
+
+// EffectiveStorageProfile returns the configured storage profile and applies compatibility defaults.
+func (in Fluentbit) EffectiveStorageProfile() string {
+	if in.StorageProfile != "" {
+		return in.StorageProfile
+	}
+	return FluentbitStorageProfileMemoryOnly
+}
+
+// UsesPersistentOffsets reports whether the read offset database must survive Pod replacement on the same node.
+func (in Fluentbit) UsesPersistentOffsets() bool {
+	return in.EffectiveStorageProfile() != FluentbitStorageProfileMemoryOnly
+}
+
+// UsesFilesystemBuffer reports whether input plugins buffer records on the node filesystem.
+func (in Fluentbit) UsesFilesystemBuffer() bool {
+	return in.EffectiveStorageProfile() == FluentbitStorageProfileNodePersistent
 }
 
 // FluentbitAggregator contains Fluentbit-aggregator-specific configuration

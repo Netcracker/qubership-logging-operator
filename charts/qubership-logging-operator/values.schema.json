@@ -1898,12 +1898,13 @@
                     },
                     "type": "object"
                 },
-                "storageType": {
-                    "default": "memory",
-                    "description": "The buffering mechanism for the input plugins. The filesystem type buffers chunks on the node disk and produces a lot of writes to the storage.",
+                "storageProfile": {
+                    "default": "memory-only",
+                    "description": "Selects where FluentBit stores read offsets and buffered logs.",
                     "enum": [
-                        "memory",
-                        "filesystem"
+                        "memory-only",
+                        "persistent-offsets",
+                        "node-persistent"
                     ],
                     "type": "string"
                 },

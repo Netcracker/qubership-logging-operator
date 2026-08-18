@@ -66,7 +66,7 @@ func TestFluentbitConfigMapStorageDefaults(t *testing.T) {
 	t.Run("tail input keeps the database without disk sync", func(t *testing.T) {
 		conf := data["input-containerd.conf"]
 		for _, expected := range []string{
-			"DB                 /var/log/containers.db",
+			"DB                 /fluent-bit/state/containers.db",
 			"DB.journal_mode    memory",
 			"DB.sync            off",
 			"DB.locking         true",
@@ -79,8 +79,10 @@ func TestFluentbitConfigMapStorageDefaults(t *testing.T) {
 
 	t.Run("systemd input does not use tail-only database parameters", func(t *testing.T) {
 		conf := data["input-messages-systemd.conf"]
-		if !strings.Contains(conf, "DB.sync            off") {
-			t.Errorf("expected the database sync parameter, got:\n%s", conf)
+		for _, expected := range []string{"DB.sync            off", "Mem_Buf_Limit      10M"} {
+			if !strings.Contains(conf, expected) {
+				t.Errorf("expected %q in the systemd input config, got:\n%s", expected, conf)
+			}
 		}
 		for _, unexpected := range []string{"DB.journal_mode", "DB.locking"} {
 			if strings.Contains(conf, unexpected) {
@@ -90,12 +92,40 @@ func TestFluentbitConfigMapStorageDefaults(t *testing.T) {
 	})
 }
 
+func TestFluentbitPersistentOffsetsProfileUsesMemoryBuffer(t *testing.T) {
+	data := renderConfigMapData(t, &loggingService.Fluentbit{
+		ContainerLogging: true,
+		StorageProfile:   loggingService.FluentbitStorageProfilePersistentOffsets,
+	})
+
+	if !strings.Contains(data["input-containerd.conf"], "storage.type       memory") {
+		t.Errorf("expected memory input storage, got:\n%s", data["input-containerd.conf"])
+	}
+	if strings.Contains(data["fluent-bit.conf"], "storage.path") {
+		t.Errorf("persistent-offsets must not configure filesystem buffering, got:\n%s", data["fluent-bit.conf"])
+	}
+}
+
+func TestFluentbitNodePersistentProfileUsesFilesystemBuffer(t *testing.T) {
+	data := renderConfigMapData(t, &loggingService.Fluentbit{
+		ContainerLogging: true,
+		StorageProfile:   loggingService.FluentbitStorageProfileNodePersistent,
+	})
+
+	if !strings.Contains(data["input-containerd.conf"], "storage.type       filesystem") {
+		t.Errorf("expected filesystem input storage, got:\n%s", data["input-containerd.conf"])
+	}
+	if !strings.Contains(data["fluent-bit.conf"], "storage.path                         /fluent-bit/storage/") {
+		t.Errorf("expected dedicated filesystem buffer path, got:\n%s", data["fluent-bit.conf"])
+	}
+}
+
 func TestFluentbitConfigMapStorageOverrides(t *testing.T) {
 	disabled := false
 	data := renderConfigMapData(t, &loggingService.Fluentbit{
 		ContainerLogging: true,
 		Flush:            10,
-		StorageType:      "filesystem",
+		StorageProfile:   loggingService.FluentbitStorageProfileNodePersistent,
 		DB: loggingService.FluentbitDB{
 			JournalMode: "WAL",
 			Sync:        "normal",

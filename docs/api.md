@@ -942,14 +942,16 @@ Increasing the interval reduces the amount of produced chunks and, as a result, 
 </tr>
 <tr>
 <td>
-<code>storageType</code><br/>
+<code>storageProfile</code><br/>
 <em>
 string
 </em>
 </td>
 <td>
-<p>StorageType is a buffering mechanism for the input plugins. Allowed values are &ldquo;memory&rdquo; and &ldquo;filesystem&rdquo;.
-The &ldquo;filesystem&rdquo; type buffers chunks on the node disk and produces a lot of writes to the storage.</p>
+<p>StorageProfile selects where Fluentbit keeps input read offsets and buffered logs.
+The default &ldquo;memory-only&rdquo; profile avoids writes to the node filesystem. The &ldquo;persistent-offsets&rdquo;
+profile stores read offsets on the node and buffers logs in memory. The &ldquo;node-persistent&rdquo; profile
+stores both read offsets and buffered logs on the node.</p>
 </td>
 </tr>
 <tr>

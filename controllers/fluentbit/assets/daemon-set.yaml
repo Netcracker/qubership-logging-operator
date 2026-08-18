@@ -200,6 +200,13 @@ spec:
 {{ end }}
             - mountPath: /var/log
               name: varlog
+              readOnly: true
+            - mountPath: /fluent-bit/state
+              name: fluentbit-state
+{{- if .Values.Fluentbit.UsesFilesystemBuffer }}
+            - mountPath: /fluent-bit/storage
+              name: fluentbit-storage
+{{- end }}
             - mountPath: /fluent-bit/etc
               name: config
               readOnly: true
@@ -331,6 +338,22 @@ spec:
           hostPath:
             path: "/var/log"
             type: ""
+        - name: fluentbit-state
+{{- if .Values.Fluentbit.UsesPersistentOffsets }}
+          hostPath:
+            path: "/var/lib/fluent-bit/state"
+            type: "DirectoryOrCreate"
+{{- else }}
+          emptyDir:
+            medium: Memory
+            sizeLimit: 32Mi
+{{- end }}
+{{- if .Values.Fluentbit.UsesFilesystemBuffer }}
+        - name: fluentbit-storage
+          hostPath:
+            path: "/var/lib/fluent-bit/storage"
+            type: "DirectoryOrCreate"
+{{- end }}
         - name: config
           configMap:
             name: "logging-fluentbit"

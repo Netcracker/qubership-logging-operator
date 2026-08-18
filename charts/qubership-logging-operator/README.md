@@ -1311,13 +1311,13 @@ false
 			<td>Allow creating security resources as PodSecurityPolicy, SecurityContextConstraints</td>
 		</tr>
 		<tr>
-			<td>fluentbit.storageType</td>
+			<td>fluentbit.storageProfile</td>
 			<td>string</td>
 			<td><pre lang="json">
-"memory"
+"memory-only"
 </pre>
 </td>
-			<td>The buffering mechanism for the input plugins, `memory` or `filesystem`. The `filesystem` type buffers chunks on the node disk and produces a lot of writes to the storage. See https://docs.fluentbit.io/manual/administration/buffering-and-storage</td>
+			<td>Selects where FluentBit stores read offsets and buffered logs. Allowed values are `memory-only`, `persistent-offsets`, and `node-persistent`. See the FluentBit storage profiles in docs/examples/fluentbit.md.</td>
 		</tr>
 		<tr>
 			<td>fluentbit.systemAuditLogging</td>

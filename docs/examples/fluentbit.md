@@ -20,6 +20,36 @@ FluentBit deployment with aggregator for improved reliability and load distribut
 --8<-- "examples/fluentbit/fluentbit-with-aggragator-values.yaml"
 ```
 
+## Storage Profiles
+
+`fluentbit.storageProfile` controls the durability and disk I/O of the standard collector and the HA forwarder.
+
+| Profile | Read offset database | Input buffer | Expected node disk writes |
+| --- | --- | --- | --- |
+| `memory-only` (default) | Memory-backed `emptyDir`, limited to `32Mi` | Memory | None from the offset database or input buffer |
+| `persistent-offsets` | `/var/lib/fluent-bit/state` on the node | Memory | Offset database writes only |
+| `node-persistent` | `/var/lib/fluent-bit/state` on the node | `/var/lib/fluent-bit/storage` on the node | Offset database and buffered log writes |
+
+All profiles mount node logs at `/var/log` read-only. FluentBit accesses offset databases through
+`/fluent-bit/state`. The `node-persistent` profile also mounts its buffer at `/fluent-bit/storage`.
+
+Use `memory-only` when avoiding node filesystem writes is more important than preserving read offsets across Pod
+replacement. Its offset database survives a container restart but is lost when Kubernetes replaces the Pod. After
+that loss, each input follows its own initial read setting. For example, the container Tail input has
+`Read_from_Head True`, while the systemd input has `Read_from_Tail On`.
+
+Use `persistent-offsets` to reduce disk writes while preserving offsets when a Pod is replaced on the same node. The
+offsets do not follow a Pod to another node and are lost with the node filesystem. Use `node-persistent` when buffered
+logs must also survive Pod replacement and temporary output outages on the same node. Neither persistent profile
+protects data from node loss.
+
+The operator does not copy databases previously stored under `/var/log` into `/fluent-bit/state`. During the first
+rollout after this path change, FluentBit creates new databases and applies each input's initial read setting. Plan
+for possible duplicate records from inputs configured to read from the beginning.
+
+`fluentbit.db.enabled: false` disables the read offset databases for all three profiles. The remaining behavior still
+depends on each input's initial read setting and on whether the watched files are present after FluentBit restarts.
+
 ## Custom Lua Script Processing
 
 Advanced FluentBit configuration with custom Lua script for specialized log processing:

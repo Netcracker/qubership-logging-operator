@@ -156,3 +156,42 @@ func TestToParams(t *testing.T) {
 		t.Errorf("expected ContainerRuntimeType containerd, got %q", params.Values.ContainerRuntimeType)
 	}
 }
+
+func TestFluentbitEffectiveStorageProfile(t *testing.T) {
+	tests := []struct {
+		name        string
+		fluentbit   Fluentbit
+		wantProfile string
+		wantOffsets bool
+		wantBuffer  bool
+	}{
+		{name: "default", wantProfile: FluentbitStorageProfileMemoryOnly},
+		{
+			name:        "persistent offsets",
+			fluentbit:   Fluentbit{StorageProfile: FluentbitStorageProfilePersistentOffsets},
+			wantProfile: FluentbitStorageProfilePersistentOffsets,
+			wantOffsets: true,
+		},
+		{
+			name:        "node persistent",
+			fluentbit:   Fluentbit{StorageProfile: FluentbitStorageProfileNodePersistent},
+			wantProfile: FluentbitStorageProfileNodePersistent,
+			wantOffsets: true,
+			wantBuffer:  true,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if got := test.fluentbit.EffectiveStorageProfile(); got != test.wantProfile {
+				t.Errorf("EffectiveStorageProfile() = %q, want %q", got, test.wantProfile)
+			}
+			if got := test.fluentbit.UsesPersistentOffsets(); got != test.wantOffsets {
+				t.Errorf("UsesPersistentOffsets() = %v, want %v", got, test.wantOffsets)
+			}
+			if got := test.fluentbit.UsesFilesystemBuffer(); got != test.wantBuffer {
+				t.Errorf("UsesFilesystemBuffer() = %v, want %v", got, test.wantBuffer)
+			}
+		})
+	}
+}

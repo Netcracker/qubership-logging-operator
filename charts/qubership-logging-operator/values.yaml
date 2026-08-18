@@ -1382,9 +1382,12 @@ fluentbit:
       # -- Http port, for example: 9428
       # port: 9428
 
-      # -- Http uri to ingest logs.
-      # @default -- '/insert/jsonline?_stream_fields=stream&_msg_field=short_message&_time_field=time'
-      # uri: '/insert/jsonline?_stream_fields=stream&_msg_field=short_message&_time_field=time'
+      # -- HTTP URI to ingest logs. With the operator-managed default URI,
+      # VictoriaLogs uses the root CRI/Docker `time` field for `_time`. A
+      # colliding payload field is preserved as `parse_time`. The HTTP output
+      # does not generate an additional timestamp field.
+      # @default -- '/insert/jsonline?_stream_fields=namespace,container&_msg_field=short_message&_time_field=time'
+      # uri: '/insert/jsonline?_stream_fields=namespace,container&_msg_field=short_message&_time_field=time'
 
       # -- Payload compression mechanism for Http output. Allowed values: gzip, snappy, zstd.
       compress: gzip
@@ -1795,9 +1798,12 @@ fluentbit:
         # -- Http port
         # port: 9428
 
-        # -- Uri for Http output.
-        # @default -- '/insert/jsonline?_stream_fields=stream&_msg_field=short_message&_time_field=time'
-        # uri: '/insert/jsonline?_stream_fields=stream&_msg_field=short_message&_time_field=time'
+        # -- URI for HTTP output. With the operator-managed default URI,
+        # VictoriaLogs uses the root CRI/Docker `time` field for `_time`. A
+        # colliding payload field is preserved as `parse_time`. The HTTP output
+        # does not generate an additional timestamp field.
+        # @default -- '/insert/jsonline?_stream_fields=namespace,container&_msg_field=short_message&_time_field=time'
+        # uri: '/insert/jsonline?_stream_fields=namespace,container&_msg_field=short_message&_time_field=time'
 
         # -- Payload compression mechanism for Http output. Allowed values: gzip, snappy, zstd.
         # compress: gzip

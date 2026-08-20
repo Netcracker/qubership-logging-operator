@@ -258,6 +258,51 @@ type Fluentbit struct {
 	ContainerLogging          bool                     `json:"containerLogging,omitempty"`
 	ExcludePath               string                   `json:"excludePath,omitempty"`
 	Output                    *OutputFluentbit         `json:"output,omitempty"`
+
+	// Flush is an interval in seconds to flush records to the outputs.
+	// Increasing the interval reduces the amount of produced chunks and, as a result, the disk load.
+	// +kubebuilder:validation:Minimum=1
+	Flush int `json:"flush,omitempty"`
+	// StorageType is a buffering mechanism for the input plugins. Allowed values are "memory" and "filesystem".
+	// The "filesystem" type buffers chunks on the node disk and produces a lot of writes to the storage.
+	// +kubebuilder:validation:Enum=memory;filesystem
+	StorageType string `json:"storageType,omitempty"`
+	// DB contains settings of the SQLite database which the input plugins use to keep the read offsets
+	DB FluentbitDB `json:"db,omitempty"`
+}
+
+// FluentbitDB contains settings of the SQLite database which the Fluentbit input plugins
+// use to keep the position of the read files.
+// Details https://docs.fluentbit.io/manual/pipeline/inputs/tail
+type FluentbitDB struct {
+	// Enabled defines whether the input plugins keep the read offsets in the database file.
+	// Disabling it removes all the database writes to the storage, but Fluentbit loses the read offsets
+	// on the restart. Every input then starts from the position set by its own Read_from_Head
+	// or Read_from_Tail option: the container log inputs re-read the existing records, and the system
+	// and audit log inputs skip the records written while Fluentbit was down. Enabled by default.
+	Enabled *bool `json:"enabled,omitempty"`
+	// JournalMode sets the journal mode of the database. Allowed values are
+	// "wal", "delete", "truncate", "persist", "memory" and "off" in the lower or the upper case.
+	// +kubebuilder:validation:Enum=wal;delete;truncate;persist;memory;off;WAL;DELETE;TRUNCATE;PERSIST;MEMORY;OFF
+	JournalMode string `json:"journalMode,omitempty"`
+	// Sync sets the synchronization mode of the database. Allowed values are
+	// "off", "normal", "full" and "extra" in the lower or the upper case.
+	// +kubebuilder:validation:Enum=off;normal;full;extra;OFF;NORMAL;FULL;EXTRA
+	Sync string `json:"sync,omitempty"`
+	// Locking sets the exclusive access mode to the database file. Enabled by default.
+	Locking *bool `json:"locking,omitempty"`
+}
+
+// IsEnabled reports whether the input plugins must keep the read offsets in the database file.
+// The database is used unless it is explicitly disabled.
+func (in FluentbitDB) IsEnabled() bool {
+	return in.Enabled == nil || *in.Enabled
+}
+
+// IsLocking reports whether Fluentbit must acquire the exclusive access to the database file.
+// The exclusive access is used unless it is explicitly disabled.
+func (in FluentbitDB) IsLocking() bool {
+	return in.Locking == nil || *in.Locking
 }
 
 // FluentbitAggregator contains Fluentbit-aggregator-specific configuration
@@ -567,7 +612,7 @@ func (in *LoggingService) ToParams() LoggingServiceParameters {
 }
 
 func init() {
-	SchemeBuilder.Register(&LoggingService{}, &LoggingServiceList{})
+	objectTypes = append(objectTypes, &LoggingService{}, &LoggingServiceList{})
 }
 
 func (in *Graylog) IsForceUpdate() bool {

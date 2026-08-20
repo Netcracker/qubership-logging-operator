@@ -55,6 +55,14 @@ func TestFluentbitConfigMapStorageDefaults(t *testing.T) {
 		}
 	})
 
+	t.Run("inputs bound the memory buffer", func(t *testing.T) {
+		for _, name := range []string{"input-containerd.conf", "input-audit.conf", "input-messages-systemd.conf"} {
+			if !strings.Contains(data[name], "Mem_Buf_Limit      10M") {
+				t.Errorf("expected the memory buffer limit in %s, got:\n%s", name, data[name])
+			}
+		}
+	})
+
 	t.Run("tail input keeps the database without disk sync", func(t *testing.T) {
 		conf := data["input-containerd.conf"]
 		for _, expected := range []string{

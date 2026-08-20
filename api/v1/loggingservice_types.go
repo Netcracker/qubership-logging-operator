@@ -276,8 +276,10 @@ type Fluentbit struct {
 // Details https://docs.fluentbit.io/manual/pipeline/inputs/tail
 type FluentbitDB struct {
 	// Enabled defines whether the input plugins keep the read offsets in the database file.
-	// Disabling it removes all the database writes to the storage, but Fluentbit loses
-	// the read offsets on the restart. Enabled by default.
+	// Disabling it removes all the database writes to the storage, but Fluentbit loses the read offsets
+	// on the restart. Every input then starts from the position set by its own Read_from_Head
+	// or Read_from_Tail option: the container log inputs re-read the existing records, and the system
+	// and audit log inputs skip the records written while Fluentbit was down. Enabled by default.
 	Enabled *bool `json:"enabled,omitempty"`
 	// JournalMode sets the journal mode of the database. Allowed values are
 	// "wal", "delete", "truncate", "persist", "memory" and "off" in the lower or the upper case.

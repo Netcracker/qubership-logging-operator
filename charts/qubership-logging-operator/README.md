@@ -777,7 +777,7 @@ true
 true
 </pre>
 </td>
-			<td>Defines whether the input plugins keep the read offsets in the database file. Disabling it removes all the database writes to the storage, but FluentBit loses the read offsets on the restart and reads the files from the beginning.</td>
+			<td>Defines whether the input plugins keep the read offsets in the database file. Disabling it removes all the database writes to the storage, but FluentBit loses the read offsets on the restart. Every input then starts from the position set by its own `Read_from_Head` or `Read_from_Tail` option: the container log inputs re-read the existing records, and the system and audit log inputs skip the records written while FluentBit was down.</td>
 		</tr>
 		<tr>
 			<td>fluentbit.db.journalMode</td>

@@ -1316,8 +1316,10 @@ bool
 </td>
 <td>
 <p>Enabled defines whether the input plugins keep the read offsets in the database file.
-Disabling it removes all the database writes to the storage, but Fluentbit loses
-the read offsets on the restart. Enabled by default.</p>
+Disabling it removes all the database writes to the storage, but Fluentbit loses the read offsets
+on the restart. Every input then starts from the position set by its own Read_from_Head
+or Read_from_Tail option: the container log inputs re-read the existing records, and the system
+and audit log inputs skip the records written while Fluentbit was down. Enabled by default.</p>
 </td>
 </tr>
 <tr>

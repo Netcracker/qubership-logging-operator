@@ -24,11 +24,11 @@ FluentBit deployment with aggregator for improved reliability and load distribut
 
 `fluentbit.storageProfile` controls the durability and disk I/O of the standard collector and the HA forwarder.
 
-| Profile                 | Read offset database                        | Input buffer                              | Expected node disk writes                     |
-| ----------------------- | ------------------------------------------- | ----------------------------------------- | --------------------------------------------- |
+| Profile                 | Read offset database                                                   | Input buffer                              | Expected node disk writes                     |
+| ----------------------- | ---------------------------------------------------------------------- | ----------------------------------------- | --------------------------------------------- |
 | `memory-only` (default) | Memory-backed `emptyDir`, configurable with `memoryOnlyStateSizeLimit` | Memory                                    | None from the offset database or input buffer |
-| `persistent-offsets`    | `/var/lib/fluent-bit/state` on the node     | Memory                                    | Offset database writes only                   |
-| `node-persistent`       | `/var/lib/fluent-bit/state` on the node     | `/var/lib/fluent-bit/storage` on the node | Offset database and buffered log writes       |
+| `persistent-offsets`    | `/var/lib/fluent-bit/state` on the node                                | Memory                                    | Offset database writes only                   |
+| `node-persistent`       | `/var/lib/fluent-bit/state` on the node                                | `/var/lib/fluent-bit/storage` on the node | Offset database and buffered log writes       |
 
 All profiles mount node logs at `/var/log` read-only. FluentBit accesses offset databases through
 `/fluent-bit/state`. The `node-persistent` profile also mounts its buffer at `/fluent-bit/storage`.

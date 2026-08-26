@@ -104,6 +104,9 @@ func TestFluentbitPersistentOffsetsProfileUsesMemoryBuffer(t *testing.T) {
 	if strings.Contains(data["fluent-bit.conf"], "storage.path") {
 		t.Errorf("persistent-offsets must not configure filesystem buffering, got:\n%s", data["fluent-bit.conf"])
 	}
+	if !strings.Contains(data["filter-concat.conf"], "emitter_storage.type   memory") {
+		t.Errorf("persistent-offsets must keep multiline emitters in memory, got:\n%s", data["filter-concat.conf"])
+	}
 }
 
 func TestFluentbitNodePersistentProfileUsesFilesystemBuffer(t *testing.T) {
@@ -117,6 +120,10 @@ func TestFluentbitNodePersistentProfileUsesFilesystemBuffer(t *testing.T) {
 	}
 	if !strings.Contains(data["fluent-bit.conf"], "storage.path                         /fluent-bit/storage/") {
 		t.Errorf("expected dedicated filesystem buffer path, got:\n%s", data["fluent-bit.conf"])
+	}
+	if strings.Count(data["filter-concat.conf"], "emitter_storage.type   filesystem") != 2 {
+		t.Errorf("node-persistent must store both multiline emitters on the filesystem, got:\n%s",
+			data["filter-concat.conf"])
 	}
 }
 

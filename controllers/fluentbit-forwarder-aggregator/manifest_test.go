@@ -13,17 +13,26 @@ func TestForwarderConfigMapStorageProfiles(t *testing.T) {
 		name                  string
 		profile               string
 		wantStorageType       string
+		wantEmitterStorage    string
 		wantFilesystemStorage bool
 	}{
 		{
-			name:            "memory only",
-			profile:         loggingService.FluentbitStorageProfileMemoryOnly,
-			wantStorageType: "memory",
+			name:               "memory only",
+			profile:            loggingService.FluentbitStorageProfileMemoryOnly,
+			wantStorageType:    "memory",
+			wantEmitterStorage: "memory",
+		},
+		{
+			name:               "persistent offsets",
+			profile:            loggingService.FluentbitStorageProfilePersistentOffsets,
+			wantStorageType:    "memory",
+			wantEmitterStorage: "memory",
 		},
 		{
 			name:                  "node persistent",
 			profile:               loggingService.FluentbitStorageProfileNodePersistent,
 			wantStorageType:       "filesystem",
+			wantEmitterStorage:    "filesystem",
 			wantFilesystemStorage: true,
 		},
 	}
@@ -50,6 +59,11 @@ func TestForwarderConfigMapStorageProfiles(t *testing.T) {
 			hasStoragePath := strings.Contains(configMap.Data["fluent-bit.conf"], "storage.path")
 			if hasStoragePath != test.wantFilesystemStorage {
 				t.Errorf("filesystem storage path present = %v, want %v", hasStoragePath, test.wantFilesystemStorage)
+			}
+			wantEmitterStorage := "emitter_storage.type   " + test.wantEmitterStorage
+			if strings.Count(configMap.Data["filter-concat.conf"], wantEmitterStorage) != 2 {
+				t.Errorf("expected %q for both multiline emitters, got:\n%s", wantEmitterStorage,
+					configMap.Data["filter-concat.conf"])
 			}
 		})
 	}

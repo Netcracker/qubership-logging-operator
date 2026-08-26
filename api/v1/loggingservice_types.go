@@ -269,6 +269,9 @@ type Fluentbit struct {
 	// stores both read offsets and buffered logs on the node.
 	// +kubebuilder:validation:Enum=memory-only;persistent-offsets;node-persistent
 	StorageProfile string `json:"storageProfile,omitempty"`
+	// MemoryOnlyStateSizeLimit limits the memory-backed volume that stores read offset databases for the
+	// "memory-only" profile. The default is "32Mi".
+	MemoryOnlyStateSizeLimit string `json:"memoryOnlyStateSizeLimit,omitempty"`
 	// DB contains settings of the SQLite database which the input plugins use to keep the read offsets
 	DB FluentbitDB `json:"db,omitempty"`
 }
@@ -311,6 +314,7 @@ const (
 	FluentbitStorageProfileMemoryOnly        = "memory-only"
 	FluentbitStorageProfilePersistentOffsets = "persistent-offsets"
 	FluentbitStorageProfileNodePersistent    = "node-persistent"
+	FluentbitDefaultMemoryOnlyStateSizeLimit = "32Mi"
 )
 
 // EffectiveStorageProfile returns the configured storage profile and applies compatibility defaults.
@@ -329,6 +333,14 @@ func (in Fluentbit) UsesPersistentOffsets() bool {
 // UsesFilesystemBuffer reports whether input plugins buffer records on the node filesystem.
 func (in Fluentbit) UsesFilesystemBuffer() bool {
 	return in.EffectiveStorageProfile() == FluentbitStorageProfileNodePersistent
+}
+
+// EffectiveMemoryOnlyStateSizeLimit returns the configured memory-backed state volume limit.
+func (in Fluentbit) EffectiveMemoryOnlyStateSizeLimit() string {
+	if in.MemoryOnlyStateSizeLimit != "" {
+		return in.MemoryOnlyStateSizeLimit
+	}
+	return FluentbitDefaultMemoryOnlyStateSizeLimit
 }
 
 // FluentbitAggregator contains Fluentbit-aggregator-specific configuration

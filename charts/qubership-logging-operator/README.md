@@ -879,6 +879,15 @@ true
 			<td>The size limitation of backlog data See storage.backlog.mem_limit in https://docs.fluentbit.io/manual/administration/buffering-and-storage#service-section-configuration</td>
 		</tr>
 		<tr>
+			<td>fluentbit.memoryOnlyStateSizeLimit</td>
+			<td>string</td>
+			<td><pre lang="json">
+"32Mi"
+</pre>
+</td>
+			<td>Limits the memory-backed volume used for read offset databases by the `memory-only` storage profile. The volume counts against the FluentBit container memory limit.</td>
+		</tr>
+		<tr>
 			<td>fluentbit.multilineFirstLineRegexp</td>
 			<td>string</td>
 			<td><pre lang="json">

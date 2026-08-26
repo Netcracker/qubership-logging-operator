@@ -5707,6 +5707,11 @@ spec:
                     type: string
                   memBufLimit:
                     type: string
+                  memoryOnlyStateSizeLimit:
+                    description: |-
+                      MemoryOnlyStateSizeLimit limits the memory-backed volume that stores read offset databases for the
+                      "memory-only" profile. The default is "32Mi".
+                    type: string
                   mockKubeData:
                     type: boolean
                   multilineFirstLineRegexp:

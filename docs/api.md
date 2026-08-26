@@ -956,6 +956,18 @@ stores both read offsets and buffered logs on the node.</p>
 </tr>
 <tr>
 <td>
+<code>memoryOnlyStateSizeLimit</code><br/>
+<em>
+string
+</em>
+</td>
+<td>
+<p>MemoryOnlyStateSizeLimit limits the memory-backed volume that stores read offset databases for the
+&ldquo;memory-only&rdquo; profile. The default is &ldquo;32Mi&rdquo;.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>db</code><br/>
 <em>
 <a href="#logging.netcracker.com/v1.FluentbitDB">

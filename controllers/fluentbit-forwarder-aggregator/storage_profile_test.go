@@ -10,11 +10,23 @@ import (
 
 func TestForwarderDaemonSetStorageProfiles(t *testing.T) {
 	tests := []struct {
-		name              string
-		profile           string
-		persistentStorage bool
+		name                   string
+		profile                string
+		memoryStateSizeLimit   string
+		expectedStateSizeLimit string
+		persistentStorage      bool
 	}{
-		{name: "memory only", profile: loggingService.FluentbitStorageProfileMemoryOnly},
+		{
+			name:                   "memory only with default limit",
+			profile:                loggingService.FluentbitStorageProfileMemoryOnly,
+			expectedStateSizeLimit: loggingService.FluentbitDefaultMemoryOnlyStateSizeLimit,
+		},
+		{
+			name:                   "memory only with custom limit",
+			profile:                loggingService.FluentbitStorageProfileMemoryOnly,
+			memoryStateSizeLimit:   "96Mi",
+			expectedStateSizeLimit: "96Mi",
+		},
 		{
 			name:              "node persistent",
 			profile:           loggingService.FluentbitStorageProfileNodePersistent,
@@ -26,9 +38,10 @@ func TestForwarderDaemonSetStorageProfiles(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			cr := &loggingService.LoggingService{Spec: loggingService.LoggingServiceSpec{
 				Fluentbit: &loggingService.Fluentbit{
-					DockerImage:     "fluent-bit:test",
-					ConfigmapReload: &loggingService.ConfigmapReload{DockerImage: "configmap-reload:test"},
-					StorageProfile:  test.profile,
+					DockerImage:              "fluent-bit:test",
+					ConfigmapReload:          &loggingService.ConfigmapReload{DockerImage: "configmap-reload:test"},
+					StorageProfile:           test.profile,
+					MemoryOnlyStateSizeLimit: test.memoryStateSizeLimit,
 				},
 			}}
 
@@ -36,12 +49,14 @@ func TestForwarderDaemonSetStorageProfiles(t *testing.T) {
 			if err != nil {
 				t.Fatalf("render Fluent Bit forwarder DaemonSet: %v", err)
 			}
-			assertForwarderStorageProfile(t, daemonSet.Spec.Template.Spec, test.persistentStorage)
+			assertForwarderStorageProfile(t, daemonSet.Spec.Template.Spec, test.expectedStateSizeLimit,
+				test.persistentStorage)
 		})
 	}
 }
 
-func assertForwarderStorageProfile(t *testing.T, podSpec corev1.PodSpec, persistentStorage bool) {
+func assertForwarderStorageProfile(t *testing.T, podSpec corev1.PodSpec, expectedStateSizeLimit string,
+	persistentStorage bool) {
 	t.Helper()
 	forwarder := podSpec.Containers[1]
 	if !forwarderStorageProfileHasMount(forwarder.VolumeMounts, "varlog", "/var/log", true) {
@@ -61,7 +76,8 @@ func assertForwarderStorageProfile(t *testing.T, podSpec corev1.PodSpec, persist
 			!forwarderStorageProfileHasMount(forwarder.VolumeMounts, "fluentbit-storage", "/fluent-bit/storage", false) {
 			t.Errorf("persistent input buffer is not configured correctly: %#v", storage)
 		}
-	} else if state == nil || state.EmptyDir == nil || state.EmptyDir.Medium != corev1.StorageMediumMemory {
+	} else if state == nil || state.EmptyDir == nil || state.EmptyDir.Medium != corev1.StorageMediumMemory ||
+		state.EmptyDir.SizeLimit == nil || state.EmptyDir.SizeLimit.String() != expectedStateSizeLimit {
 		t.Errorf("unexpected memory state volume: %#v", state)
 	}
 }

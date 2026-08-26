@@ -195,3 +195,23 @@ func TestFluentbitEffectiveStorageProfile(t *testing.T) {
 		})
 	}
 }
+
+func TestFluentbitEffectiveMemoryOnlyStateSizeLimit(t *testing.T) {
+	tests := []struct {
+		name       string
+		configured string
+		want       string
+	}{
+		{name: "default", want: FluentbitDefaultMemoryOnlyStateSizeLimit},
+		{name: "configured", configured: "128Mi", want: "128Mi"},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			fluentbit := Fluentbit{MemoryOnlyStateSizeLimit: test.configured}
+			if got := fluentbit.EffectiveMemoryOnlyStateSizeLimit(); got != test.want {
+				t.Errorf("EffectiveMemoryOnlyStateSizeLimit() = %q, want %q", got, test.want)
+			}
+		})
+	}
+}

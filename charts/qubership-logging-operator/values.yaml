@@ -1136,6 +1136,10 @@ fluentbit:
   # See the FluentBit storage profiles in docs/examples/fluentbit.md.
   storageProfile: memory-only
 
+  # -- Limits the memory-backed volume used for read offset databases by the `memory-only` storage profile.
+  # The volume counts against the FluentBit container memory limit.
+  memoryOnlyStateSizeLimit: 32Mi
+
   # -- Settings of the SQLite database which the input plugins use to keep the position of the read files
   db:
     # -- Defines whether the input plugins keep the read offsets in the database file.

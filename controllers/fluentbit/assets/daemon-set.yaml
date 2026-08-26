@@ -346,7 +346,7 @@ spec:
 {{- else }}
           emptyDir:
             medium: Memory
-            sizeLimit: 32Mi
+            sizeLimit: {{ .Values.Fluentbit.EffectiveMemoryOnlyStateSizeLimit }}
 {{- end }}
 {{- if .Values.Fluentbit.UsesFilesystemBuffer }}
         - name: fluentbit-storage

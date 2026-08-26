@@ -26,7 +26,7 @@ FluentBit deployment with aggregator for improved reliability and load distribut
 
 | Profile                 | Read offset database                        | Input buffer                              | Expected node disk writes                     |
 | ----------------------- | ------------------------------------------- | ----------------------------------------- | --------------------------------------------- |
-| `memory-only` (default) | Memory-backed `emptyDir`, limited to `32Mi` | Memory                                    | None from the offset database or input buffer |
+| `memory-only` (default) | Memory-backed `emptyDir`, configurable with `memoryOnlyStateSizeLimit` | Memory                                    | None from the offset database or input buffer |
 | `persistent-offsets`    | `/var/lib/fluent-bit/state` on the node     | Memory                                    | Offset database writes only                   |
 | `node-persistent`       | `/var/lib/fluent-bit/state` on the node     | `/var/lib/fluent-bit/storage` on the node | Offset database and buffered log writes       |
 
@@ -37,6 +37,9 @@ Use `memory-only` when avoiding node filesystem writes is more important than pr
 replacement. Its offset database survives a container restart but is lost when Kubernetes replaces the Pod. After
 that loss, each input follows its own initial read setting. For example, the container Tail input has
 `Read_from_Head True`, while the systemd input has `Read_from_Tail On`.
+
+Set `fluentbit.memoryOnlyStateSizeLimit` to limit the memory-backed offset database volume. The default is `32Mi`.
+The volume counts against the FluentBit container memory limit.
 
 Use `persistent-offsets` to reduce disk writes while preserving offsets when a Pod is replaced on the same node. The
 offsets do not follow a Pod to another node and are lost with the node filesystem. Use `node-persistent` when buffered

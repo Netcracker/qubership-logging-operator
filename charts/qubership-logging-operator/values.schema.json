@@ -1908,6 +1908,11 @@
                     ],
                     "type": "string"
                 },
+                "memoryOnlyStateSizeLimit": {
+                    "default": "32Mi",
+                    "description": "Limits the memory-backed volume used for read offset databases by the memory-only storage profile.",
+                    "type": "string"
+                },
                 "systemAuditLogging": {
                     "default": true,
                     "description": "Enable input for system audit logs from /var/log/audit/audit.log.",

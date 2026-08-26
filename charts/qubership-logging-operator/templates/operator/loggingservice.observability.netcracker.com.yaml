@@ -632,6 +632,9 @@ spec:
     {{- if .Values.fluentbit.storageProfile }}
     storageProfile: {{ .Values.fluentbit.storageProfile }}
     {{- end }}
+    {{- if .Values.fluentbit.memoryOnlyStateSizeLimit }}
+    memoryOnlyStateSizeLimit: {{ .Values.fluentbit.memoryOnlyStateSizeLimit }}
+    {{- end }}
     {{- if .Values.fluentbit.db }}
     db:
       {{- if not (kindIs "invalid" .Values.fluentbit.db.enabled) }}

@@ -39,7 +39,10 @@ that loss, each input follows its own initial read setting. For example, the con
 `Read_from_Head True`, while the systemd input has `Read_from_Tail On`.
 
 Set `fluentbit.memoryOnlyStateSizeLimit` to limit the memory-backed offset database volume. The default is `32Mi`.
-The volume counts against the FluentBit container memory limit.
+The volume counts against the FluentBit container memory limit. If the volume reaches its size limit, FluentBit cannot
+update its offset databases and reports filesystem errors. If the Pod reaches its memory limit first, Kubernetes may
+terminate it with an out-of-memory error. Set both limits with enough headroom for the number of enabled inputs and
+their database growth.
 
 Use `persistent-offsets` to reduce disk writes while preserving offsets when a Pod is replaced on the same node. The
 offsets do not follow a Pod to another node and are lost with the node filesystem. Use `node-persistent` when buffered
@@ -49,6 +52,23 @@ protects data from node loss.
 The operator does not copy databases previously stored under `/var/log` into `/fluent-bit/state`. During the first
 rollout after this path change, FluentBit creates new databases and applies each input's initial read setting. Plan
 for possible duplicate records from inputs configured to read from the beginning.
+
+The upgrade also leaves the following legacy data on each node:
+
+- Offset databases and their `-shm` and `-wal` files: `/var/log/containers.db`, `/var/log/messages.db`,
+  `/var/log/syslog.db`, `/var/log/kube-apiserver.db`, `/var/log/openshift-apiserver.db`,
+  `/var/log/kube-apiserver-audit.db`, `/var/log/kube-audit.db`, `/var/log/ocp-audit.db`, and
+  `/var/log/audit/audit.db`.
+- The systemd offset database `/var/log/flb-storage/journal.db` and buffered records under `/var/log/flb-storage`.
+
+Remove the old offset databases only after the new FluentBit Pods are healthy. Treat `/var/log/flb-storage` separately:
+it may contain records that were not delivered before the upgrade, so deleting it can lose logs. The operator does not
+remove either location automatically.
+
+The `persistent-offsets` and `node-persistent` profiles create `/var/lib/fluent-bit/state` on each node. The
+`node-persistent` profile also creates `/var/lib/fluent-bit/storage`. Kubernetes does not remove these host directories
+when you switch profiles or uninstall Logging. Retain them when you plan to return to a persistent profile, or remove
+them as part of node maintenance after confirming that their offsets and buffered records are no longer needed.
 
 `fluentbit.db.enabled: false` disables the read offset databases for all three profiles. The remaining behavior still
 depends on each input's initial read setting and on whether the watched files are present after FluentBit restarts.

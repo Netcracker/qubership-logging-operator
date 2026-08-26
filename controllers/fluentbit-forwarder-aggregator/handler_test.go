@@ -1,12 +1,69 @@
 package fluentbit_forwarder_aggregator
 
 import (
+	"context"
+	"reflect"
 	"testing"
 
+	loggingService "github.com/Netcracker/qubership-logging-operator/api/v1"
 	util "github.com/Netcracker/qubership-logging-operator/controllers/utils"
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
+
+func TestHandleForwarderDaemonSetUpdatesTheCompletePodSpec(t *testing.T) {
+	cr := &loggingService.LoggingService{
+		ObjectMeta: metav1.ObjectMeta{Name: "logging-service", Namespace: "logging"},
+		Spec: loggingService.LoggingServiceSpec{
+			OpenshiftDeploy: true,
+			Fluentbit: &loggingService.Fluentbit{
+				DockerImage:       "fluent-bit:test",
+				PriorityClassName: "system-cluster-critical",
+				ConfigmapReload:   &loggingService.ConfigmapReload{DockerImage: "configmap-reload:test"},
+			},
+		},
+	}
+	dynamicParameters := util.DynamicParameters{ContainerRuntimeType: "containerd"}
+	desired, err := forwarderDaemonSet(cr, dynamicParameters)
+	if err != nil {
+		t.Fatalf("render Fluent Bit forwarder DaemonSet: %v", err)
+	}
+	existing := desired.DeepCopy()
+	existing.Spec.Template.Spec = corev1.PodSpec{PriorityClassName: "stale-priority"}
+
+	testScheme := runtime.NewScheme()
+	if err := loggingService.AddToScheme(testScheme); err != nil {
+		t.Fatalf("add LoggingService scheme: %v", err)
+	}
+	if err := appsv1.AddToScheme(testScheme); err != nil {
+		t.Fatalf("add apps scheme: %v", err)
+	}
+	testClient := fake.NewClientBuilder().WithScheme(testScheme).WithObjects(existing).Build()
+	reconciler := &HAFluentReconciler{
+		ComponentReconciler: &util.ComponentReconciler{
+			Client: testClient,
+			Scheme: testScheme,
+			Log:    util.Logger("test-ha-fluent-forwarder-update"),
+		},
+		DynamicParameters: dynamicParameters,
+	}
+
+	if err := reconciler.handleForwarderDaemonSet(cr); err != nil {
+		t.Fatalf("update Fluent Bit forwarder DaemonSet: %v", err)
+	}
+	updated := &appsv1.DaemonSet{}
+	key := types.NamespacedName{Name: desired.Name, Namespace: desired.Namespace}
+	if err := testClient.Get(context.Background(), key, updated); err != nil {
+		t.Fatalf("get updated Fluent Bit forwarder DaemonSet: %v", err)
+	}
+	if !reflect.DeepEqual(updated.Spec.Template.Spec, desired.Spec.Template.Spec) {
+		t.Error("updated pod spec does not match the rendered pod spec")
+	}
+}
 
 func newTestHAFluentReconciler() *HAFluentReconciler {
 	return &HAFluentReconciler{

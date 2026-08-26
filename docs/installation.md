@@ -527,6 +527,22 @@ considered to be whitelisted. Graylog uses the Java Pattern class to evaluate re
 
 ## Upgrade
 
+### FluentBit storage profile migration
+
+The default FluentBit storage profile changes to `memory-only`. An upgrade changes the active offset database path
+from `/var/log` to `/fluent-bit/state`, which is backed by memory for this profile. FluentBit does not migrate existing
+offsets, so inputs configured to read from the beginning may resend records during the first rollout.
+
+Set `fluentbit.storageProfile: persistent-offsets` before upgrading if new offsets must survive later Pod replacement
+on the same node. Set `fluentbit.storageProfile: node-persistent` if buffered records must also survive Pod replacement
+and output outages. Both profiles write to the node filesystem under `/var/lib/fluent-bit`; neither profile migrates
+the old offset databases during the first rollout.
+
+The upgrade does not remove legacy offset databases under `/var/log` or buffered records under
+`/var/log/flb-storage`. Remove old offset databases only after the new Pods are healthy. The legacy storage directory
+may contain undelivered records, so deleting it can lose logs. See
+[FluentBit storage profiles](./examples/fluentbit.md#storage-profiles) for the profile trade-offs and cleanup details.
+
 ## Frequently asked questions
 
 ## Footnotes

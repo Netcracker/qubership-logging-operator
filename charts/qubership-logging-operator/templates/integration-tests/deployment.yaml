@@ -74,13 +74,9 @@ spec:
               value: /run/secrets/integration-tests
             - name: GRAYLOG_INSTALL
               value: {{ .Values.graylog.install | quote }}
-          {{- $victorialogsURL := .Values.integrationTests.victorialogs.url }}
-          {{- if and .Values.victorialogs.install (empty $victorialogsURL) }}
-            {{- $victorialogsURL = printf "http://%s:%v" (include "victorialogs.fullname" .) .Values.victorialogs.service.port }}
-          {{- end }}
-          {{- if $victorialogsURL }}
+          {{- if .Values.integrationTests.victorialogs.url }}
             - name: VICTORIALOGS_URL
-              value: {{ $victorialogsURL | quote }}
+              value: {{ .Values.integrationTests.victorialogs.url | quote }}
           {{- end }}
           {{- if .Values.integrationTests.victorialogs.auth }}
           {{- if .Values.integrationTests.victorialogs.auth.token }}

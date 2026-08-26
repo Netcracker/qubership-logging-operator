@@ -507,9 +507,6 @@ spec:
       http:
       {{- if .Values.fluentd.output.http.enabled }}
         {{- $http := deepCopy .Values.fluentd.output.http }}
-        {{- if and .Values.victorialogs.install (empty $http.host) }}
-          {{- $_ := set $http "host" (printf "http://%s:%v" (include "victorialogs.fullname" .) .Values.victorialogs.service.port) }}
-        {{- end }}
         {{- if and $http.auth $http.auth.credentials }}
           {{- $defaultSecretName := include "logging.output.auth.secretName" (dict "auth" $http.auth "default" (printf "%s-fluentd-http-auth" .Release.Name)) }}
           {{- if not (or (and $http.auth.token $http.auth.token.name) (and $http.auth.user $http.auth.user.name $http.auth.password $http.auth.password.name)) }}
@@ -751,14 +748,6 @@ spec:
       http:
       {{- if .Values.fluentbit.output.http.enabled }}
         {{- $http := deepCopy .Values.fluentbit.output.http }}
-        {{- if .Values.victorialogs.install }}
-          {{- if empty $http.host }}
-            {{- $_ := set $http "host" (include "victorialogs.fullname" .) }}
-          {{- end }}
-          {{- if empty $http.port }}
-            {{- $_ := set $http "port" .Values.victorialogs.service.port }}
-          {{- end }}
-        {{- end }}
         {{- if and $http.auth $http.auth.credentials }}
           {{- $defaultSecretName := include "logging.output.auth.secretName" (dict "auth" $http.auth "default" (printf "%s-fluentbit-http-auth" .Release.Name)) }}
           {{- if not (or (and $http.auth.token $http.auth.token.name) (and $http.auth.user $http.auth.user.name $http.auth.password $http.auth.password.name)) }}
@@ -974,14 +963,6 @@ spec:
         http:
         {{- if .Values.fluentbit.aggregator.output.http.enabled }}
           {{- $http := deepCopy .Values.fluentbit.aggregator.output.http }}
-          {{- if .Values.victorialogs.install }}
-            {{- if empty $http.host }}
-              {{- $_ := set $http "host" (include "victorialogs.fullname" .) }}
-            {{- end }}
-            {{- if empty $http.port }}
-              {{- $_ := set $http "port" .Values.victorialogs.service.port }}
-            {{- end }}
-          {{- end }}
           {{- if and $http.auth $http.auth.credentials }}
             {{- $defaultSecretName := include "logging.output.auth.secretName" (dict "auth" $http.auth "default" (printf "%s-fluentbit-aggregator-http-auth" .Release.Name)) }}
             {{- if not (or (and $http.auth.token $http.auth.token.name) (and $http.auth.user $http.auth.user.name $http.auth.password $http.auth.password.name)) }}

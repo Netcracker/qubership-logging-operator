@@ -40,8 +40,6 @@ env:
   opensearch_major_version: 2
   # renovate: datasource=github-releases depName=Netcracker/qubership-monitoring-operator versioning=semver
   monitoring_version: v0.88.0
-  # renovate: datasource=github-releases depName=grafana/grafana-operator versioning=semver
-  grafana_operator_version: v5.22.0
   ## Other parameters
   opensearch_namespace: opensearch
   victorialogs_service: victorialogs
@@ -131,7 +129,6 @@ jobs:
     - name: Install required CRDs
       run: |
         kubectl create -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/tags/${{ env.monitoring_version }}/charts/qubership-monitoring-operator/charts/grafana-operator/crds/integreatly.org_grafanadashboards.yaml
-        kubectl create -f https://raw.githubusercontent.com/grafana/grafana-operator/${{ env.grafana_operator_version }}/config/crd/bases/grafana.integreatly.org_grafanadashboards.yaml
         kubectl create -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/tags/${{ env.monitoring_version }}/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_prometheusrules.yaml
         kubectl create -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/tags/${{ env.monitoring_version }}/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_servicemonitors.yaml
         kubectl create -f https://raw.githubusercontent.com/Netcracker/qubership-monitoring-operator/refs/tags/${{ env.monitoring_version }}/charts/qubership-monitoring-operator/charts/victoriametrics-operator/crds/monitoring.coreos.com_podmonitors.yaml
@@ -286,18 +283,6 @@ jobs:
       run: |
         cat <<EOF > logging_values.yaml
         operatorImage: ghcr.io/${{ env.REPOSITORY_OWNER }}/qubership-logging-operator:${{ env.TAG }}
-        victorialogs:
-          install: true
-          storage:
-            size: 5Gi
-            storageClassName: standard
-          resources:
-            limits:
-              cpu: 500m
-              memory: 256Mi
-            requests:
-              cpu: 250m
-              memory: 64Mi
         cloudEventsReader:
           install: true
           dockerImage: ghcr.io/netcracker/qubership-kube-events-reader:main
@@ -308,6 +293,8 @@ jobs:
           output:
             http:
               enabled: true
+              host: ${{ env.victorialogs_service }}.${{ env.namespace }}
+              port: ${{ env.victorialogs_port }}
               auth:
                 credentials:
                   username: admin
@@ -320,7 +307,24 @@ jobs:
           timeoutBeforeStart: 10
           image: ghcr.io/${{ env.REPOSITORY_OWNER }}/qubership-logging-integration-tests:${{ env.TAG }}
           externalGraylogServer: "false"
+          victorialogs:
+            url: http://${{ env.victorialogs_service }}.${{ env.namespace }}:${{ env.victorialogs_port }}
         EOF
+      shell: bash
+
+    - name: Install VictoriaLogs chart
+      if: matrix.backend == 'victorialogs'
+      run: |
+        helm upgrade --install victorialogs \
+          --namespace=${{ env.namespace }} \
+          --create-namespace \
+          ./qubership-logging-operator/charts/qubership-victorialogs \
+          --set victorialogs.storage.size=5Gi \
+          --set victorialogs.storage.storageClassName=standard \
+          --set victorialogs.resources.limits.cpu=500m \
+          --set victorialogs.resources.limits.memory=256Mi \
+          --set victorialogs.resources.requests.cpu=250m \
+          --set victorialogs.resources.requests.memory=64Mi
       shell: bash
 
     - name: Install qubership logging operator

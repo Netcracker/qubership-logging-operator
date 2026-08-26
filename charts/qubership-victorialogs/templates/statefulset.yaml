@@ -5,8 +5,10 @@
 {{- $_ := unset $podSecurityContext "fsGroup" }}
 {{- $_ := unset $podSecurityContext "runAsGroup" }}
 {{- $_ := unset $podSecurityContext "runAsUser" }}
+{{- $_ := unset $podSecurityContext "runAsNonRoot" }}
 {{- $_ := unset $securityContext "runAsGroup" }}
 {{- $_ := unset $securityContext "runAsUser" }}
+{{- $_ := unset $securityContext "runAsNonRoot" }}
 {{- end }}
 apiVersion: apps/v1
 kind: StatefulSet
@@ -105,6 +107,8 @@ spec:
               {{- with .Values.victorialogs.storage.subPath }}
               subPath: {{ . }}
               {{- end }}
+            - name: tmp
+              mountPath: /tmp
             {{- with .Values.victorialogs.extraVolumeMounts }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
@@ -129,6 +133,9 @@ spec:
         - name: data
           persistentVolumeClaim:
             claimName: {{ include "victorialogs.claimName" . }}
+        - name: tmp
+          emptyDir:
+            sizeLimit: {{ default "100Mi" .Values.victorialogs.tmpVolume.sizeLimit }}
         {{- with .Values.victorialogs.extraVolumes }}
         {{- toYaml . | nindent 8 }}
         {{- end }}

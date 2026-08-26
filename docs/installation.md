@@ -72,11 +72,11 @@ see the [Release notes](https://docs.redhat.com/en/documentation/openshift_conta
 
 ### Public Cloud Provider Support
 
-| Cloud Provider | Managed OpenSearch  | Graylog Support | Notes                             |
-| -------------- | ------------------- | --------------- | --------------------------------- |
-| AWS            | ✔ Yes               | ✔ Supported     | Requires minimum hardware specs   |
-| Azure          | ✘ No                | N/A             | Only custom marketplace solutions |
-| GCP            | ✘ No                | N/A             | Only custom marketplace solutions |
+| Cloud Provider | Managed OpenSearch | Graylog Support | Notes                             |
+| -------------- | ------------------ | --------------- | --------------------------------- |
+| AWS            | ✔ Yes              | ✔ Supported     | Requires minimum hardware specs   |
+| Azure          | ✘ No               | N/A             | Only custom marketplace solutions |
+| GCP            | ✘ No               | N/A             | Only custom marketplace solutions |
 
 #### Amazon Web Services (AWS)
 
@@ -107,10 +107,10 @@ in the Google marketplace from other vendors.
 
 #### Platform compatibility
 
-| Requirement       | Version/Specification                                | Notes                                                 |
-| ----------------- | ---------------------------------------------------- | ----------------------------------------------------- |
-| Kubernetes        | 1.25.x, 1.26.x, 1.28.x (recommended), 1.29.x, 1.30.x | Tested <1.29, Forward-compatible (API verified) ≥1.29 |
-| OpenShift         | 4.10+                                                | Based on Kubernetes version                           |
+| Requirement | Version/Specification                                | Notes                                                 |
+| ----------- | ---------------------------------------------------- | ----------------------------------------------------- |
+| Kubernetes  | 1.25.x, 1.26.x, 1.28.x (recommended), 1.29.x, 1.30.x | Tested <1.29, Forward-compatible (API verified) ≥1.29 |
+| OpenShift   | 4.10+                                                | Based on Kubernetes version                           |
 
 #### Tools
 
@@ -479,11 +479,14 @@ Installation consists of the following steps:
 
 ## Configuration parameters
 
+VictoriaLogs is installed from a separate Helm chart. See the
+[Qubership VictoriaLogs chart values](../charts/qubership-victorialogs/README.md#values) for its complete parameter
+reference.
+
 <!-- markdownlint-disable line-length -->
 | Level                     | Description                                                                                                 | Detailed parameters link                                                          |
 | ------------------------- | ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
 | `root`                    | Common section containing some generic parameters                                                           | [Root](./installation-parameters.md#root)                                         |
-| `victorialogs`            | Contains parameters to deploy and configure a single-node VictoriaLogs instance                             | [VictoriaLogs](./installation-parameters.md#victorialogs)                         |
 | `graylog`                 | Contains parameters to enable and configure the Graylog deployment in the cloud                             | [Graylog](./installation-parameters.md#graylog)                                   |
 | `graylog.tls`             | TLS configuration for Graylog WebUI and default Inputs                                                      | [Graylog TLS](./installation-parameters.md#graylog-tls)                           |
 | `graylog.opensearch`      | Contains the parameters required for connection to `Opensearch`                                             | [OpenSearch](./installation-parameters.md#opensearch)                             |

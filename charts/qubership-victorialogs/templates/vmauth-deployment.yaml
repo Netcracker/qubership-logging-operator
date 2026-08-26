@@ -5,8 +5,10 @@
 {{- $_ := unset $podSecurityContext "fsGroup" }}
 {{- $_ := unset $podSecurityContext "runAsGroup" }}
 {{- $_ := unset $podSecurityContext "runAsUser" }}
+{{- $_ := unset $podSecurityContext "runAsNonRoot" }}
 {{- $_ := unset $securityContext "runAsGroup" }}
 {{- $_ := unset $securityContext "runAsUser" }}
+{{- $_ := unset $securityContext "runAsNonRoot" }}
 {{- end }}
 apiVersion: apps/v1
 kind: Deployment
@@ -32,7 +34,7 @@ spec:
       labels:
         {{- include "victorialogs.vmauthPodLabels" . | nindent 8 }}
       annotations:
-        checksum/config: {{ include "victorialogs.vmauthConfig" . | sha256sum }}
+        checksum/config: {{ include "victorialogs.vmauthConfigChecksum" . }}
         {{- with .Values.victorialogs.vmauth.podAnnotations }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
@@ -99,6 +101,8 @@ spec:
             - name: config
               mountPath: /etc/vmauth
               readOnly: true
+            - name: tmp
+              mountPath: /tmp
             {{- with .Values.victorialogs.vmauth.extraVolumeMounts }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
@@ -122,7 +126,13 @@ spec:
       volumes:
         - name: config
           secret:
-            secretName: {{ include "victorialogs.vmauthFullname" . }}
+            secretName: {{ include "victorialogs.vmauthConfigSecretName" . }}
+            items:
+              - key: {{ .Values.victorialogs.vmauth.existingSecretKey | quote }}
+                path: auth.yml
+        - name: tmp
+          emptyDir:
+            sizeLimit: {{ default "100Mi" .Values.victorialogs.vmauth.tmpVolume.sizeLimit }}
         {{- with .Values.victorialogs.vmauth.extraVolumes }}
         {{- toYaml . | nindent 8 }}
         {{- end }}

@@ -6,6 +6,21 @@ Return the VictoriaLogs resource name.
 {{- end -}}
 
 {{/*
+Return common labels for standalone chart resources.
+*/}}
+{{- define "logging.labels" -}}
+{{- $ctx := index . "ctx" | default . -}}
+{{- $name := .name | default $ctx.Chart.Name -}}
+{{- $component := .component | default $ctx.Chart.Name -}}
+name: {{ $name }}
+app.kubernetes.io/name: {{ $name }}
+app.kubernetes.io/component: {{ $component }}
+app.kubernetes.io/part-of: logging-service
+app.kubernetes.io/managed-by: {{ $ctx.Release.Service }}
+helm.sh/chart: {{ printf "%s-%s" $ctx.Chart.Name $ctx.Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
+{{- end -}}
+
+{{/*
 Return the VMAuth resource name.
 */}}
 {{- define "victorialogs.vmauthFullname" -}}
@@ -25,6 +40,9 @@ true
 Render the validated VMAuth configuration and add the VictoriaLogs backend when a user does not define routing.
 */}}
 {{- define "victorialogs.vmauthConfig" -}}
+{{- if .Values.victorialogs.vmauth.existingSecret -}}
+{{- fail "victorialogs.vmauth.config cannot be rendered when victorialogs.vmauth.existingSecret is set" -}}
+{{- end -}}
 {{- $config := deepCopy (.Values.victorialogs.vmauth.config | default dict) -}}
 {{- $users := $config.users | default list -}}
 {{- if not $users -}}
@@ -49,6 +67,25 @@ Render the validated VMAuth configuration and add the VictoriaLogs backend when 
 {{- end -}}
 {{- end -}}
 {{- toYaml $config -}}
+{{- end -}}
+
+{{/*
+Return the Secret that contains the VMAuth configuration.
+*/}}
+{{- define "victorialogs.vmauthConfigSecretName" -}}
+{{- default (include "victorialogs.vmauthFullname" .) .Values.victorialogs.vmauth.existingSecret -}}
+{{- end -}}
+
+{{/*
+Return a rollout checksum for generated configuration or the existing Secret reference.
+*/}}
+{{- define "victorialogs.vmauthConfigChecksum" -}}
+{{- if .Values.victorialogs.vmauth.existingSecret -}}
+{{- $secretKey := required "victorialogs.vmauth.existingSecretKey is required when existingSecret is set" .Values.victorialogs.vmauth.existingSecretKey -}}
+{{- printf "%s/%s" .Values.victorialogs.vmauth.existingSecret $secretKey | sha256sum -}}
+{{- else -}}
+{{- include "victorialogs.vmauthConfig" . | sha256sum -}}
+{{- end -}}
 {{- end -}}
 
 {{/*

@@ -2,9 +2,20 @@
 
 # qubership-logging-operator
 
-![Version: 2.6.0](https://img.shields.io/badge/Version-2.6.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 14.31.0](https://img.shields.io/badge/AppVersion-14.31.0-informational?style=flat-square)
+
+
+![Version: 2.5.0](https://img.shields.io/badge/Version-2.5.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 14.31.0](https://img.shields.io/badge/AppVersion-14.31.0-informational?style=flat-square)
 
 A Helm chart for qubership-logging-operator
+
+
+
+
+
+
+
+
+
 
 ## Values
 
@@ -341,7 +352,7 @@ null
 {}
 </pre>
 </td>
-			<td>Authentication for Http. Inline credentials can be specified via `credentials` (chart creates the Secret automatically). Alternatively, reference pre-created secrets via `token`, `user`, `password`. If both are specified, secret references take priority.</td>
+			<td>Authentication for Http. Secret name and key in the secret storing the parameter should be provided. Username/password or token can be stored in different secrets. </td>
 		</tr>
 		<tr>
 			<td>fluentbit.aggregator.output.http.enabled</td>
@@ -416,7 +427,7 @@ true
 {}
 </pre>
 </td>
-			<td>Authentication for Loki. Inline credentials can be specified via `credentials` (chart creates the Secret automatically). Alternatively, reference pre-created secrets via `token`, `user`, `password`. If both are specified, secret references take priority.</td>
+			<td>Authentication for Loki.</td>
 		</tr>
 		<tr>
 			<td>fluentbit.aggregator.output.loki.enabled</td>
@@ -499,7 +510,7 @@ false
 {}
 </pre>
 </td>
-			<td>Authentication for Otel. Inline credentials can be specified via `credentials` (chart creates the Secret automatically). Alternatively, reference pre-created secrets via `token`, `user`, `password`. If both are specified, secret references take priority.</td>
+			<td>Authentication for Otel. Secret name and key in the secret storing the parameter should be provided. Username/password or token can be stored in different secrets.</td>
 		</tr>
 		<tr>
 			<td>fluentbit.aggregator.output.otel.compress</td>
@@ -589,7 +600,7 @@ false
 			<td>object</td>
 			<td><pre lang="json">
 {
-  "install": true,
+  "install": false,
   "name": "logging-fluentbit-aggregator"
 }
 </pre>
@@ -964,7 +975,7 @@ null
 {}
 </pre>
 </td>
-			<td>Authentication for Http. Inline credentials can be specified via `credentials` (chart creates the Secret automatically). Alternatively, reference pre-created secrets via `token`, `user`, `password`. If both are specified, secret references take priority.</td>
+			<td>Authentication for Http.</td>
 		</tr>
 		<tr>
 			<td>fluentbit.output.http.compress</td>
@@ -1048,7 +1059,7 @@ false
 {}
 </pre>
 </td>
-			<td>Authentication for Loki. Inline credentials can be specified via `credentials` (chart creates the Secret automatically). Alternatively, reference pre-created secrets via `token`, `user`, `password`. If both are specified, secret references take priority.</td>
+			<td>Authentication for Loki.</td>
 		</tr>
 		<tr>
 			<td>fluentbit.output.loki.enabled</td>
@@ -1141,7 +1152,7 @@ true
 {}
 </pre>
 </td>
-			<td>Authentication for Otel. Inline credentials can be specified via `credentials` (chart creates the Secret automatically). Alternatively, reference pre-created secrets via `token`, `user`, `password`. If both are specified, secret references take priority.</td>
+			<td>Authentication for Otel. Secret name and key in the secret storing the parameter should be provided. Username/password or token can be stored in different secrets.</td>
 		</tr>
 		<tr>
 			<td>fluentbit.output.otel.compress</td>
@@ -1301,7 +1312,7 @@ false
 			<td>object</td>
 			<td><pre lang="json">
 {
-  "install": true,
+  "install": false,
   "name": "logging-fluentbit"
 }
 </pre>
@@ -1600,7 +1611,7 @@ true
 {}
 </pre>
 </td>
-			<td>Authentication for HTTP output. Inline credentials can be specified via `credentials` (chart creates the Secret automatically). Alternatively, reference pre-created secrets via `token`, `user`, `password`. If both are specified, secret references take priority.</td>
+			<td>Authentication for HTTP output. Secret name and key in the secret storing the parameter should be provided. Username/password or token can be stored in different secrets.</td>
 		</tr>
 		<tr>
 			<td>fluentd.output.http.compress</td>
@@ -1684,7 +1695,7 @@ false
 {}
 </pre>
 </td>
-			<td>Authentication for Loki. Inline credentials can be specified via `credentials` (chart creates the Secret automatically). Alternatively, reference pre-created secrets via `token`, `user`, `password`. If both are specified, secret references take priority.</td>
+			<td>Authentication for Loki.</td>
 		</tr>
 		<tr>
 			<td>fluentd.output.loki.enabled</td>
@@ -1815,7 +1826,7 @@ false
 			<td>object</td>
 			<td><pre lang="json">
 {
-  "install": true,
+  "install": false,
   "name": "logging-fluentd"
 }
 </pre>
@@ -2634,7 +2645,7 @@ false
 			<td>object</td>
 			<td><pre lang="json">
 {
-  "install": true,
+  "install": false,
   "name": "logging-graylog"
 }
 </pre>
@@ -2936,7 +2947,7 @@ false
 ""
 </pre>
 </td>
-			<td>The user for SSH login to the external Graylog VM. Used only by archiving-plugin integration tests.</td>
+			<td>The user for SSH login to the external Graylog VM. Used only by archiving-plugin integration tests. Example: ubuntu</td>
 		</tr>
 		<tr>
 			<td>ipv6</td>
@@ -3163,822 +3174,6 @@ true
 </pre>
 </td>
 			<td>Resources for logging-operator</td>
-		</tr>
-		<tr>
-			<td>victorialogs</td>
-			<td>object</td>
-			<td><pre lang="json">
-{
-  "addIngressIgnoreAnnotation": true,
-  "affinity": {},
-  "annotations": {},
-  "dashboard": {
-    "allowCrossNamespaceImport": true,
-    "annotations": {},
-    "install": true,
-    "instanceSelector": {
-      "matchLabels": {
-        "app.kubernetes.io/component": "grafana",
-        "app.kubernetes.io/part-of": "monitoring"
-      }
-    },
-    "labels": {}
-  },
-  "env": [],
-  "envFrom": [],
-  "extraArgs": {
-    "envflag.enable": true,
-    "envflag.prefix": "VM_",
-    "http.shutdownDelay": "15s",
-    "loggerFormat": "json"
-  },
-  "extraVolumeMounts": [],
-  "extraVolumes": [],
-  "httpRoute": {
-    "annotations": {},
-    "hostnames": [],
-    "install": false,
-    "labels": {},
-    "parentRefs": []
-  },
-  "imagePullPolicy": "IfNotPresent",
-  "imagePullSecrets": [],
-  "ingress": {
-    "annotations": {},
-    "hosts": [],
-    "ingressClassName": "",
-    "install": false,
-    "labels": {},
-    "tls": []
-  },
-  "install": false,
-  "labels": {},
-  "livenessProbe": {
-    "failureThreshold": 10,
-    "initialDelaySeconds": 30,
-    "periodSeconds": 30,
-    "tcpSocket": {
-      "port": "http"
-    },
-    "timeoutSeconds": 5
-  },
-  "nameOverride": "",
-  "nodeSelector": {},
-  "podAnnotations": {},
-  "podLabels": {},
-  "podManagementPolicy": "OrderedReady",
-  "podSecurityContext": {
-    "fsGroup": 2000,
-    "runAsNonRoot": true,
-    "runAsUser": 1000
-  },
-  "port": 9428,
-  "priorityClassName": "",
-  "readinessProbe": {
-    "failureThreshold": 3,
-    "httpGet": {
-      "path": "/health",
-      "port": "http",
-      "scheme": "HTTP"
-    },
-    "initialDelaySeconds": 5,
-    "periodSeconds": 5,
-    "timeoutSeconds": 5
-  },
-  "resources": {},
-  "retentionPeriod": "1",
-  "securityContext": {
-    "allowPrivilegeEscalation": false,
-    "capabilities": {
-      "drop": [
-        "ALL"
-      ]
-    },
-    "readOnlyRootFilesystem": true
-  },
-  "service": {
-    "annotations": {},
-    "labels": {},
-    "port": 9428
-  },
-  "serviceMonitor": {
-    "annotations": {},
-    "install": true,
-    "labels": {},
-    "metricRelabelings": [],
-    "relabelings": [],
-    "scrapeInterval": "30s",
-    "scrapeTimeout": "10s"
-  },
-  "startupProbe": {},
-  "storage": {
-    "accessModes": [
-      "ReadWriteOnce"
-    ],
-    "annotations": {},
-    "existingClaim": "",
-    "labels": {},
-    "mountPath": "/storage",
-    "persistentVolume": "",
-    "size": "10Gi",
-    "storageClassName": "",
-    "subPath": ""
-  },
-  "terminationGracePeriodSeconds": 60,
-  "tolerations": [],
-  "topologySpreadConstraints": [],
-  "updateStrategy": {
-    "type": "RollingUpdate"
-  },
-  "vmauth": {
-    "affinity": {},
-    "annotations": {},
-    "config": {
-      "users": []
-    },
-    "env": [],
-    "envFrom": [],
-    "extraArgs": {
-      "configCheckInterval": "1m",
-      "envflag.enable": true,
-      "envflag.prefix": "VM_",
-      "loggerFormat": "json"
-    },
-    "extraVolumeMounts": [],
-    "extraVolumes": [],
-    "imagePullPolicy": "IfNotPresent",
-    "imagePullSecrets": [],
-    "livenessProbe": {
-      "initialDelaySeconds": 5,
-      "periodSeconds": 15,
-      "tcpSocket": {
-        "port": "http"
-      },
-      "timeoutSeconds": 5
-    },
-    "nodeSelector": {},
-    "podAnnotations": {},
-    "podLabels": {},
-    "podSecurityContext": {
-      "runAsNonRoot": true,
-      "runAsUser": 1000
-    },
-    "port": 8427,
-    "priorityClassName": "",
-    "readinessProbe": {
-      "initialDelaySeconds": 5,
-      "periodSeconds": 15,
-      "tcpSocket": {
-        "port": "http"
-      }
-    },
-    "replicaCount": 1,
-    "resources": {},
-    "securityContext": {
-      "allowPrivilegeEscalation": false,
-      "capabilities": {
-        "drop": [
-          "ALL"
-        ]
-      },
-      "readOnlyRootFilesystem": true,
-      "runAsNonRoot": true
-    },
-    "service": {
-      "annotations": {},
-      "labels": {},
-      "port": 8427
-    },
-    "startupProbe": {},
-    "terminationGracePeriodSeconds": 30,
-    "tolerations": [],
-    "topologySpreadConstraints": []
-  }
-}
-</pre>
-</td>
-			<td>VictoriaLogs single-node instance.</td>
-		</tr>
-		<tr>
-			<td>victorialogs.addIngressIgnoreAnnotation</td>
-			<td>bool</td>
-			<td><pre lang="json">
-true
-</pre>
-</td>
-			<td>Add an ignore annotation to Ingress when HTTPRoute is enabled to prevent duplicate route conversion.</td>
-		</tr>
-		<tr>
-			<td>victorialogs.affinity</td>
-			<td>object</td>
-			<td><pre lang="json">
-{}
-</pre>
-</td>
-			<td>Pod scheduling constraints.</td>
-		</tr>
-		<tr>
-			<td>victorialogs.dashboard</td>
-			<td>object</td>
-			<td><pre lang="json">
-{
-  "allowCrossNamespaceImport": true,
-  "annotations": {},
-  "install": true,
-  "instanceSelector": {
-    "matchLabels": {
-      "app.kubernetes.io/component": "grafana",
-      "app.kubernetes.io/part-of": "monitoring"
-    }
-  },
-  "labels": {}
-}
-</pre>
-</td>
-			<td>Grafana Operator dashboard configuration.</td>
-		</tr>
-		<tr>
-			<td>victorialogs.dashboard.allowCrossNamespaceImport</td>
-			<td>bool</td>
-			<td><pre lang="json">
-true
-</pre>
-</td>
-			<td>Allow the dashboard in the logging namespace to target a Grafana instance in another namespace.</td>
-		</tr>
-		<tr>
-			<td>victorialogs.dashboard.install</td>
-			<td>bool</td>
-			<td><pre lang="json">
-true
-</pre>
-</td>
-			<td>Create a GrafanaDashboard v5 resource. The Grafana Operator v5 CRDs must be installed.</td>
-		</tr>
-		<tr>
-			<td>victorialogs.dashboard.instanceSelector</td>
-			<td>object</td>
-			<td><pre lang="json">
-{
-  "matchLabels": {
-    "app.kubernetes.io/component": "grafana",
-    "app.kubernetes.io/part-of": "monitoring"
-  }
-}
-</pre>
-</td>
-			<td>Select the Grafana v5 instance that imports the dashboard.</td>
-		</tr>
-		<tr>
-			<td>victorialogs.env</td>
-			<td>list</td>
-			<td><pre lang="json">
-[]
-</pre>
-</td>
-			<td>Additional non-sensitive environment variables for the VictoriaLogs container.</td>
-		</tr>
-		<tr>
-			<td>victorialogs.envFrom</td>
-			<td>list</td>
-			<td><pre lang="json">
-[]
-</pre>
-</td>
-			<td>Sources for additional non-sensitive VictoriaLogs environment variables.</td>
-		</tr>
-		<tr>
-			<td>victorialogs.extraArgs</td>
-			<td>object</td>
-			<td><pre lang="json">
-{
-  "envflag.enable": true,
-  "envflag.prefix": "VM_",
-  "http.shutdownDelay": "15s",
-  "loggerFormat": "json"
-}
-</pre>
-</td>
-			<td>Additional VictoriaLogs command-line arguments.</td>
-		</tr>
-		<tr>
-			<td>victorialogs.extraVolumeMounts</td>
-			<td>list</td>
-			<td><pre lang="json">
-[]
-</pre>
-</td>
-			<td>Additional VictoriaLogs volume mounts.</td>
-		</tr>
-		<tr>
-			<td>victorialogs.extraVolumes</td>
-			<td>list</td>
-			<td><pre lang="json">
-[]
-</pre>
-</td>
-			<td>Additional Pod volumes.</td>
-		</tr>
-		<tr>
-			<td>victorialogs.httpRoute</td>
-			<td>object</td>
-			<td><pre lang="json">
-{
-  "annotations": {},
-  "hostnames": [],
-  "install": false,
-  "labels": {},
-  "parentRefs": []
-}
-</pre>
-</td>
-			<td>Gateway API HTTPRoute configuration for the VictoriaLogs HTTP endpoint and web UI.</td>
-		</tr>
-		<tr>
-			<td>victorialogs.httpRoute.install</td>
-			<td>bool</td>
-			<td><pre lang="json">
-false
-</pre>
-</td>
-			<td>Create an HTTPRoute backed by VMAuth. Configure at least one authenticated VMAuth user.</td>
-		</tr>
-		<tr>
-			<td>victorialogs.imagePullPolicy</td>
-			<td>string</td>
-			<td><pre lang="json">
-"IfNotPresent"
-</pre>
-</td>
-			<td>Image pull policy for the VictoriaLogs container.</td>
-		</tr>
-		<tr>
-			<td>victorialogs.imagePullSecrets</td>
-			<td>list</td>
-			<td><pre lang="json">
-[]
-</pre>
-</td>
-			<td>Image pull secrets for the VictoriaLogs Pod.</td>
-		</tr>
-		<tr>
-			<td>victorialogs.ingress</td>
-			<td>object</td>
-			<td><pre lang="json">
-{
-  "annotations": {},
-  "hosts": [],
-  "ingressClassName": "",
-  "install": false,
-  "labels": {},
-  "tls": []
-}
-</pre>
-</td>
-			<td>Ingress configuration for the VictoriaLogs HTTP endpoint and web UI.</td>
-		</tr>
-		<tr>
-			<td>victorialogs.ingress.install</td>
-			<td>bool</td>
-			<td><pre lang="json">
-false
-</pre>
-</td>
-			<td>Create an Ingress backed by VMAuth. Configure at least one authenticated VMAuth user.</td>
-		</tr>
-		<tr>
-			<td>victorialogs.install</td>
-			<td>bool</td>
-			<td><pre lang="json">
-false
-</pre>
-</td>
-			<td>Deploy VictoriaLogs as part of the logging Helm release.</td>
-		</tr>
-		<tr>
-			<td>victorialogs.labels</td>
-			<td>object</td>
-			<td><pre lang="json">
-{}
-</pre>
-</td>
-			<td>Labels and annotations for VictoriaLogs resources.</td>
-		</tr>
-		<tr>
-			<td>victorialogs.livenessProbe</td>
-			<td>object</td>
-			<td><pre lang="json">
-{
-  "failureThreshold": 10,
-  "initialDelaySeconds": 30,
-  "periodSeconds": 30,
-  "tcpSocket": {
-    "port": "http"
-  },
-  "timeoutSeconds": 5
-}
-</pre>
-</td>
-			<td>Liveness probe configuration.</td>
-		</tr>
-		<tr>
-			<td>victorialogs.nameOverride</td>
-			<td>string</td>
-			<td><pre lang="json">
-""
-</pre>
-</td>
-			<td>Override the VictoriaLogs resource name.</td>
-		</tr>
-		<tr>
-			<td>victorialogs.podManagementPolicy</td>
-			<td>string</td>
-			<td><pre lang="json">
-"OrderedReady"
-</pre>
-</td>
-			<td>Pod creation order for the VictoriaLogs StatefulSet.</td>
-		</tr>
-		<tr>
-			<td>victorialogs.podSecurityContext</td>
-			<td>object</td>
-			<td><pre lang="json">
-{
-  "fsGroup": 2000,
-  "runAsNonRoot": true,
-  "runAsUser": 1000
-}
-</pre>
-</td>
-			<td>Pod security context.</td>
-		</tr>
-		<tr>
-			<td>victorialogs.port</td>
-			<td>int</td>
-			<td><pre lang="json">
-9428
-</pre>
-</td>
-			<td>HTTP listen port exposed by the container and Service.</td>
-		</tr>
-		<tr>
-			<td>victorialogs.priorityClassName</td>
-			<td>string</td>
-			<td><pre lang="json">
-""
-</pre>
-</td>
-			<td>PriorityClass assigned to the VictoriaLogs Pod.</td>
-		</tr>
-		<tr>
-			<td>victorialogs.readinessProbe</td>
-			<td>object</td>
-			<td><pre lang="json">
-{
-  "failureThreshold": 3,
-  "httpGet": {
-    "path": "/health",
-    "port": "http",
-    "scheme": "HTTP"
-  },
-  "initialDelaySeconds": 5,
-  "periodSeconds": 5,
-  "timeoutSeconds": 5
-}
-</pre>
-</td>
-			<td>Readiness probe configuration.</td>
-		</tr>
-		<tr>
-			<td>victorialogs.resources</td>
-			<td>object</td>
-			<td><pre lang="json">
-{}
-</pre>
-</td>
-			<td>Compute resources for the VictoriaLogs container.</td>
-		</tr>
-		<tr>
-			<td>victorialogs.retentionPeriod</td>
-			<td>string</td>
-			<td><pre lang="json">
-"1"
-</pre>
-</td>
-			<td>Data retention period. Supported units are h, d, w, and y. A value without a unit means months.</td>
-		</tr>
-		<tr>
-			<td>victorialogs.securityContext</td>
-			<td>object</td>
-			<td><pre lang="json">
-{
-  "allowPrivilegeEscalation": false,
-  "capabilities": {
-    "drop": [
-      "ALL"
-    ]
-  },
-  "readOnlyRootFilesystem": true
-}
-</pre>
-</td>
-			<td>Container security context.</td>
-		</tr>
-		<tr>
-			<td>victorialogs.service</td>
-			<td>object</td>
-			<td><pre lang="json">
-{
-  "annotations": {},
-  "labels": {},
-  "port": 9428
-}
-</pre>
-</td>
-			<td>Service configuration.</td>
-		</tr>
-		<tr>
-			<td>victorialogs.serviceMonitor</td>
-			<td>object</td>
-			<td><pre lang="json">
-{
-  "annotations": {},
-  "install": true,
-  "labels": {},
-  "metricRelabelings": [],
-  "relabelings": [],
-  "scrapeInterval": "30s",
-  "scrapeTimeout": "10s"
-}
-</pre>
-</td>
-			<td>Prometheus Operator ServiceMonitor configuration.</td>
-		</tr>
-		<tr>
-			<td>victorialogs.serviceMonitor.install</td>
-			<td>bool</td>
-			<td><pre lang="json">
-true
-</pre>
-</td>
-			<td>Create a ServiceMonitor resource. The Prometheus Operator CRDs must be installed.</td>
-		</tr>
-		<tr>
-			<td>victorialogs.startupProbe</td>
-			<td>object</td>
-			<td><pre lang="json">
-{}
-</pre>
-</td>
-			<td>Optional startup probe configuration.</td>
-		</tr>
-		<tr>
-			<td>victorialogs.storage</td>
-			<td>object</td>
-			<td><pre lang="json">
-{
-  "accessModes": [
-    "ReadWriteOnce"
-  ],
-  "annotations": {},
-  "existingClaim": "",
-  "labels": {},
-  "mountPath": "/storage",
-  "persistentVolume": "",
-  "size": "10Gi",
-  "storageClassName": "",
-  "subPath": ""
-}
-</pre>
-</td>
-			<td>Persistent storage configuration. The chart retains generated PVCs after uninstall or storage reconfiguration.</td>
-		</tr>
-		<tr>
-			<td>victorialogs.storage.accessModes</td>
-			<td>list</td>
-			<td><pre lang="json">
-[
-  "ReadWriteOnce"
-]
-</pre>
-</td>
-			<td>Access modes for the generated PVC.</td>
-		</tr>
-		<tr>
-			<td>victorialogs.storage.annotations</td>
-			<td>object</td>
-			<td><pre lang="json">
-{}
-</pre>
-</td>
-			<td>Annotations for the generated PVC.</td>
-		</tr>
-		<tr>
-			<td>victorialogs.storage.existingClaim</td>
-			<td>string</td>
-			<td><pre lang="json">
-""
-</pre>
-</td>
-			<td>Mount this PVC instead of creating one.</td>
-		</tr>
-		<tr>
-			<td>victorialogs.storage.labels</td>
-			<td>object</td>
-			<td><pre lang="json">
-{}
-</pre>
-</td>
-			<td>Labels for the generated PVC.</td>
-		</tr>
-		<tr>
-			<td>victorialogs.storage.mountPath</td>
-			<td>string</td>
-			<td><pre lang="json">
-"/storage"
-</pre>
-</td>
-			<td>Data volume mount path.</td>
-		</tr>
-		<tr>
-			<td>victorialogs.storage.persistentVolume</td>
-			<td>string</td>
-			<td><pre lang="json">
-""
-</pre>
-</td>
-			<td>Bind the generated PVC to a specific persistent volume.</td>
-		</tr>
-		<tr>
-			<td>victorialogs.storage.size</td>
-			<td>string</td>
-			<td><pre lang="json">
-"10Gi"
-</pre>
-</td>
-			<td>Requested storage capacity for the generated PVC.</td>
-		</tr>
-		<tr>
-			<td>victorialogs.storage.storageClassName</td>
-			<td>string</td>
-			<td><pre lang="json">
-""
-</pre>
-</td>
-			<td>StorageClass for the generated PVC.</td>
-		</tr>
-		<tr>
-			<td>victorialogs.storage.subPath</td>
-			<td>string</td>
-			<td><pre lang="json">
-""
-</pre>
-</td>
-			<td>Optional subpath within the data volume.</td>
-		</tr>
-		<tr>
-			<td>victorialogs.terminationGracePeriodSeconds</td>
-			<td>int</td>
-			<td><pre lang="json">
-60
-</pre>
-</td>
-			<td>Grace period for VictoriaLogs shutdown.</td>
-		</tr>
-		<tr>
-			<td>victorialogs.updateStrategy</td>
-			<td>object</td>
-			<td><pre lang="json">
-{
-  "type": "RollingUpdate"
-}
-</pre>
-</td>
-			<td>Update strategy for the VictoriaLogs StatefulSet.</td>
-		</tr>
-		<tr>
-			<td>victorialogs.vmauth</td>
-			<td>object</td>
-			<td><pre lang="json">
-{
-  "affinity": {},
-  "annotations": {},
-  "config": {
-    "users": []
-  },
-  "env": [],
-  "envFrom": [],
-  "extraArgs": {
-    "configCheckInterval": "1m",
-    "envflag.enable": true,
-    "envflag.prefix": "VM_",
-    "loggerFormat": "json"
-  },
-  "extraVolumeMounts": [],
-  "extraVolumes": [],
-  "imagePullPolicy": "IfNotPresent",
-  "imagePullSecrets": [],
-  "livenessProbe": {
-    "initialDelaySeconds": 5,
-    "periodSeconds": 15,
-    "tcpSocket": {
-      "port": "http"
-    },
-    "timeoutSeconds": 5
-  },
-  "nodeSelector": {},
-  "podAnnotations": {},
-  "podLabels": {},
-  "podSecurityContext": {
-    "runAsNonRoot": true,
-    "runAsUser": 1000
-  },
-  "port": 8427,
-  "priorityClassName": "",
-  "readinessProbe": {
-    "initialDelaySeconds": 5,
-    "periodSeconds": 15,
-    "tcpSocket": {
-      "port": "http"
-    }
-  },
-  "replicaCount": 1,
-  "resources": {},
-  "securityContext": {
-    "allowPrivilegeEscalation": false,
-    "capabilities": {
-      "drop": [
-        "ALL"
-      ]
-    },
-    "readOnlyRootFilesystem": true,
-    "runAsNonRoot": true
-  },
-  "service": {
-    "annotations": {},
-    "labels": {},
-    "port": 8427
-  },
-  "startupProbe": {},
-  "terminationGracePeriodSeconds": 30,
-  "tolerations": [],
-  "topologySpreadConstraints": []
-}
-</pre>
-</td>
-			<td>VMAuth configuration. VMAuth is deployed when VictoriaLogs Ingress or HTTPRoute is enabled.</td>
-		</tr>
-		<tr>
-			<td>victorialogs.vmauth.config</td>
-			<td>object</td>
-			<td><pre lang="json">
-{
-  "users": []
-}
-</pre>
-</td>
-			<td>Native VMAuth configuration stored in a Kubernetes Secret and mounted read-only. Define at least one user before enabling external access. Each user must contain exactly one authentication method: non-empty username and password, or non-empty bearer_token. The chart writes the complete configuration, including credentials, to the mounted Secret file.</td>
-		</tr>
-		<tr>
-			<td>victorialogs.vmauth.env</td>
-			<td>list</td>
-			<td><pre lang="json">
-[]
-</pre>
-</td>
-			<td>Additional non-sensitive environment variables for the VMAuth container.</td>
-		</tr>
-		<tr>
-			<td>victorialogs.vmauth.envFrom</td>
-			<td>list</td>
-			<td><pre lang="json">
-[]
-</pre>
-</td>
-			<td>Sources for additional non-sensitive VMAuth environment variables.</td>
-		</tr>
-		<tr>
-			<td>victorialogs.vmauth.extraArgs</td>
-			<td>object</td>
-			<td><pre lang="json">
-{
-  "configCheckInterval": "1m",
-  "envflag.enable": true,
-  "envflag.prefix": "VM_",
-  "loggerFormat": "json"
-}
-</pre>
-</td>
-			<td>Additional VMAuth command-line arguments.</td>
-		</tr>
-		<tr>
-			<td>victorialogs.vmauth.imagePullPolicy</td>
-			<td>string</td>
-			<td><pre lang="json">
-"IfNotPresent"
-</pre>
-</td>
-			<td>VMAuth image. The default matches victoria-metrics-auth chart 0.36.0. dockerImage: docker.io/victoriametrics/vmauth:v1.147.0</td>
 		</tr>
 	</tbody>
 </table>

@@ -1,0 +1,52 @@
+# Qubership VictoriaLogs chart
+
+This chart deploys a single-node VictoriaLogs instance without VictoriaMetrics Operator. It can also create VMAuth,
+Ingress, HTTPRoute, ServiceMonitor, and GrafanaDashboard resources.
+
+## Install
+
+```bash
+helm upgrade --install victorialogs charts/qubership-victorialogs \
+  --namespace logging \
+  --create-namespace
+```
+
+The client Service is `victorialogs` by default and listens on port `9428`. Configure logging collectors with the
+in-cluster endpoint `victorialogs.logging:9428` when both releases use the `logging` namespace.
+
+The generated PVC has the Helm `keep` policy. Back up its data and delete it manually after uninstalling the release.
+Changing `victorialogs.nameOverride` or `victorialogs.storage.existingClaim` does not migrate existing data.
+
+On OpenShift, the selected Security Context Constraint controls the container UID, GID, and non-root policy. The chart
+omits its default identity constraints while retaining its capability, privilege-escalation, and filesystem controls.
+
+## External access
+
+Ingress and HTTPRoute send traffic through VMAuth. Store the complete VMAuth `auth.yml` in an existing Secret to keep
+credentials out of Helm values:
+
+```yaml
+victorialogs:
+  ingress:
+    install: true
+    hosts:
+      - host: logs.example.org
+  vmauth:
+    existingSecret: victorialogs-auth
+    existingSecretKey: auth.yml
+```
+
+If `ingress.hosts` or `httpRoute.hostnames` is empty, set the root-level `CLOUD_PUBLIC_HOST` value. The chart generates
+`vmauth-<namespace>.<CLOUD_PUBLIC_HOST>`.
+
+You can instead set `victorialogs.vmauth.config.users` and let the chart create a Secret. Each user must use exactly one
+authentication method: a non-empty `username` and `password` pair, or a non-empty `bearer_token`.
+
+## Optional operator resources
+
+`victorialogs.serviceMonitor.install` and `victorialogs.dashboard.install` default to `false`. Enable them only when the
+corresponding Prometheus Operator or Grafana Operator v5 CRDs are installed.
+
+<!-- markdownlint-disable line-length -->
+{{ template "chart.valuesSection" . }}
+<!-- markdownlint-enable line-length -->

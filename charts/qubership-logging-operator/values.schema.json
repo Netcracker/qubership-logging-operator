@@ -1910,7 +1910,7 @@
                 },
                 "memoryOnlyStateSizeLimit": {
                     "default": "32Mi",
-                    "description": "Limits the memory-backed volume used for read offset databases by the memory-only storage profile.",
+                    "description": "Sets the maximum size of the memory-backed volume that stores read offset databases for the memory-only profile. The volume consumes memory from the FluentBit container limit.",
                     "type": "string"
                 },
                 "systemAuditLogging": {

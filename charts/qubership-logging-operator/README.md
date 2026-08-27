@@ -885,7 +885,7 @@ true
 "32Mi"
 </pre>
 </td>
-			<td>Limits the memory-backed volume used for read offset databases by the `memory-only` storage profile. The volume counts against the FluentBit container memory limit.</td>
+			<td>Sets the maximum size of the memory-backed volume that stores read offset databases for the `memory-only` profile. The volume consumes memory from the FluentBit container limit.</td>
 		</tr>
 		<tr>
 			<td>fluentbit.multilineFirstLineRegexp</td>

@@ -38,29 +38,32 @@ func (r *HAFluentReconciler) handleForwarderDaemonSet(cr *loggingService.Logging
 		return err
 	}
 
-	if err = r.CreateResource(cr, m); err != nil {
-		if api_errors.IsAlreadyExists(err) {
-			e := &appsv1.DaemonSet{ObjectMeta: m.ObjectMeta}
-			if err = r.GetResource(e); err != nil {
-				return err
-			}
-
-			//Set parameters
-			if e.Labels == nil && m.Labels != nil {
-				e.SetLabels(m.Labels)
-			} else {
-				maps.Copy(e.Labels, m.Labels)
-			}
-			e.Spec.Template.SetLabels(m.Spec.Template.GetLabels())
-			e.Spec.Template.Spec = m.Spec.Template.Spec
-			if err = r.UpdateResource(e); err != nil {
-				return err
-			}
-		} else {
-			return err
-		}
+	err = r.CreateResource(cr, m)
+	if err == nil {
+		return nil
 	}
-	return nil
+	if !api_errors.IsAlreadyExists(err) {
+		return err
+	}
+
+	return r.updateForwarderDaemonSet(m)
+}
+
+func (r *HAFluentReconciler) updateForwarderDaemonSet(desired *appsv1.DaemonSet) error {
+	existing := &appsv1.DaemonSet{ObjectMeta: desired.ObjectMeta}
+	if err := r.GetResource(existing); err != nil {
+		return err
+	}
+
+	if existing.Labels == nil && desired.Labels != nil {
+		existing.SetLabels(desired.Labels)
+	} else {
+		maps.Copy(existing.Labels, desired.Labels)
+	}
+	existing.Spec.Template.SetLabels(desired.Spec.Template.GetLabels())
+	existing.Spec.Template.Spec = desired.Spec.Template.Spec
+
+	return r.UpdateResource(existing)
 }
 
 func (r *HAFluentReconciler) handleForwarderService(cr *loggingService.LoggingService) error {
@@ -147,33 +150,45 @@ func (r *HAFluentReconciler) handleAggregatorStatefulSet(cr *loggingService.Logg
 		return err
 	}
 
-	if err = r.CreateResource(cr, ss); err != nil {
-		if api_errors.IsAlreadyExists(err) {
-			e := &appsv1.StatefulSet{ObjectMeta: ss.ObjectMeta}
-			if err = r.GetResource(e); err != nil {
-				return err
-			}
-
-			//Set parameters
-			if e.Labels == nil && ss.Labels != nil {
-				e.SetLabels(ss.Labels)
-			} else {
-				maps.Copy(e.Labels, ss.Labels)
-			}
-			e.Spec.Template.SetLabels(ss.Spec.Template.GetLabels())
-			e.Spec.Template.Spec.Containers = ss.Spec.Template.Spec.Containers
-			e.Spec.Template.Spec.ServiceAccountName = ss.Spec.Template.Spec.ServiceAccountName
-			e.Spec.Template.Spec.NodeSelector = ss.Spec.Template.Spec.NodeSelector
-			e.Spec.Template.Spec.Volumes = ss.Spec.Template.Spec.Volumes
-			e.Spec.Template.Spec.Tolerations = ss.Spec.Template.Spec.Tolerations
-			e.Spec.Template.Spec.Affinity = ss.Spec.Template.Spec.Affinity
-			if err = r.UpdateResource(e); err != nil {
-				return err
-			}
-		} else {
-			return err
-		}
+	if err = r.createOrUpdateAggregatorStatefulSet(cr, ss); err != nil {
+		return err
 	}
+
+	return r.waitForAggregator(cr)
+}
+
+func (r *HAFluentReconciler) createOrUpdateAggregatorStatefulSet(cr *loggingService.LoggingService,
+	desired *appsv1.StatefulSet) error {
+	err := r.CreateResource(cr, desired)
+	if err == nil {
+		return nil
+	}
+	if !api_errors.IsAlreadyExists(err) {
+		return err
+	}
+
+	existing := &appsv1.StatefulSet{ObjectMeta: desired.ObjectMeta}
+	if err = r.GetResource(existing); err != nil {
+		return err
+	}
+
+	if existing.Labels == nil && desired.Labels != nil {
+		existing.SetLabels(desired.Labels)
+	} else {
+		maps.Copy(existing.Labels, desired.Labels)
+	}
+	existing.Spec.Template.SetLabels(desired.Spec.Template.GetLabels())
+	existing.Spec.Template.Spec.Containers = desired.Spec.Template.Spec.Containers
+	existing.Spec.Template.Spec.ServiceAccountName = desired.Spec.Template.Spec.ServiceAccountName
+	existing.Spec.Template.Spec.NodeSelector = desired.Spec.Template.Spec.NodeSelector
+	existing.Spec.Template.Spec.Volumes = desired.Spec.Template.Spec.Volumes
+	existing.Spec.Template.Spec.Tolerations = desired.Spec.Template.Spec.Tolerations
+	existing.Spec.Template.Spec.Affinity = desired.Spec.Template.Spec.Affinity
+
+	return r.UpdateResource(existing)
+}
+
+func (r *HAFluentReconciler) waitForAggregator(cr *loggingService.LoggingService) error {
 	// Delay to allow time for the deploy to be updated
 	time.Sleep(util.InitialDelay)
 

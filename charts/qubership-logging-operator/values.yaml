@@ -1131,10 +1131,14 @@ fluentbit:
   # See Flush in https://docs.fluentbit.io/manual/administration/configuring-fluent-bit/classic-mode/configuration-file#config_section
   flush: 5
 
-  # -- The buffering mechanism for the input plugins, `memory` or `filesystem`.
-  # The `filesystem` type buffers chunks on the node disk and produces a lot of writes to the storage.
-  # See https://docs.fluentbit.io/manual/administration/buffering-and-storage
-  storageType: memory
+  # -- Selects where FluentBit stores read offsets and buffered logs.
+  # Allowed values are `memory-only`, `persistent-offsets`, and `node-persistent`.
+  # See the FluentBit storage profiles in docs/examples/fluentbit.md.
+  storageProfile: memory-only
+
+  # -- Sets the maximum size of the memory-backed volume that stores read offset databases for the `memory-only`
+  # profile. The volume consumes memory from the FluentBit container limit.
+  memoryOnlyStateSizeLimit: 32Mi
 
   # -- Settings of the SQLite database which the input plugins use to keep the position of the read files
   db:

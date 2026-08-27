@@ -37,6 +37,15 @@ spec:
     spec:
       terminationGracePeriodSeconds: 30
       serviceAccountName: logging-fluentbit
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+{{- if .Values.OpenshiftDeploy }}
+        # OpenShift protects node logs and persistent state with host SELinux labels.
+        # The collector needs spc_t to read node logs and use persistent storage profiles.
+        seLinuxOptions:
+          type: spc_t
+{{- end }}
       tolerations:
         - key: node-role.kubernetes.io/master
           operator: Exists
@@ -56,6 +65,8 @@ spec:
             - mountPath: /fluent-bit/etc
               name: config
               readOnly: true
+            - mountPath: /tmp
+              name: tmp
           {{- if .Values.Fluentbit.ConfigmapReload.Resources }}
           resources:
             limits:
@@ -70,14 +81,31 @@ spec:
               name: reload-metrics
           securityContext:
             allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
             capabilities:
               drop:
                 - ALL
+            runAsNonRoot: true
+            runAsUser: 1001
+            runAsGroup: 1001
         - name: logging-fluentbit
           image: {{ .Values.Fluentbit.DockerImage }}
           imagePullPolicy: IfNotPresent
           securityContext:
             privileged: {{ .Values.Fluentbit.SecurityContextPrivileged }}
+            readOnlyRootFilesystem: true
+            # Node log directories are root-owned and use mode 0750.
+            runAsNonRoot: false
+            runAsUser: 0
+            runAsGroup: 0
+{{- if not .Values.Fluentbit.SecurityContextPrivileged }}
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+              add:
+                - DAC_OVERRIDE
+{{- end }}
           ports:
             - containerPort: 2020
               protocol: TCP
@@ -200,9 +228,18 @@ spec:
 {{ end }}
             - mountPath: /var/log
               name: varlog
+              readOnly: true
+            - mountPath: /fluent-bit/state
+              name: fluentbit-state
+{{- if .Values.Fluentbit.UsesFilesystemBuffer }}
+            - mountPath: /fluent-bit/storage
+              name: fluentbit-storage
+{{- end }}
             - mountPath: /fluent-bit/etc
               name: config
               readOnly: true
+            - mountPath: /tmp
+              name: tmp
 {{ if .Values.Fluentbit.TLS }}
 {{ if and .Values.Fluentbit.TLS.GenerateCerts .Values.Fluentbit.TLS.GenerateCerts.Enabled }}
             - mountPath: /fluent-bit/tls/ca.crt
@@ -331,10 +368,29 @@ spec:
           hostPath:
             path: "/var/log"
             type: ""
+        - name: fluentbit-state
+{{- if .Values.Fluentbit.UsesPersistentOffsets }}
+          hostPath:
+            path: "/var/lib/fluent-bit/state"
+            type: "DirectoryOrCreate"
+{{- else }}
+          emptyDir:
+            medium: Memory
+            sizeLimit: {{ .Values.Fluentbit.EffectiveMemoryOnlyStateSizeLimit }}
+{{- end }}
+{{- if .Values.Fluentbit.UsesFilesystemBuffer }}
+        - name: fluentbit-storage
+          hostPath:
+            path: "/var/lib/fluent-bit/storage"
+            type: "DirectoryOrCreate"
+{{- end }}
         - name: config
           configMap:
             name: "logging-fluentbit"
             defaultMode: 420 # RW grants for config map files
+        - name: tmp
+          emptyDir:
+            sizeLimit: 100Mi
 {{ if .Values.Fluentbit.TLS }}
 {{ if and .Values.Fluentbit.TLS.GenerateCerts .Values.Fluentbit.TLS.GenerateCerts.Enabled }}
         - name: tls-ca

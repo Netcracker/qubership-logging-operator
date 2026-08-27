@@ -879,6 +879,15 @@ true
 			<td>The size limitation of backlog data See storage.backlog.mem_limit in https://docs.fluentbit.io/manual/administration/buffering-and-storage#service-section-configuration</td>
 		</tr>
 		<tr>
+			<td>fluentbit.memoryOnlyStateSizeLimit</td>
+			<td>string</td>
+			<td><pre lang="json">
+"32Mi"
+</pre>
+</td>
+			<td>Sets the maximum size of the memory-backed volume that stores read offset databases for the `memory-only` profile. The volume consumes memory from the FluentBit container limit.</td>
+		</tr>
+		<tr>
 			<td>fluentbit.multilineFirstLineRegexp</td>
 			<td>string</td>
 			<td><pre lang="json">
@@ -1311,13 +1320,13 @@ false
 			<td>Allow creating security resources as PodSecurityPolicy, SecurityContextConstraints</td>
 		</tr>
 		<tr>
-			<td>fluentbit.storageType</td>
+			<td>fluentbit.storageProfile</td>
 			<td>string</td>
 			<td><pre lang="json">
-"memory"
+"memory-only"
 </pre>
 </td>
-			<td>The buffering mechanism for the input plugins, `memory` or `filesystem`. The `filesystem` type buffers chunks on the node disk and produces a lot of writes to the storage. See https://docs.fluentbit.io/manual/administration/buffering-and-storage</td>
+			<td>Selects where FluentBit stores read offsets and buffered logs. Allowed values are `memory-only`, `persistent-offsets`, and `node-persistent`. See the FluentBit storage profiles in docs/examples/fluentbit.md.</td>
 		</tr>
 		<tr>
 			<td>fluentbit.systemAuditLogging</td>

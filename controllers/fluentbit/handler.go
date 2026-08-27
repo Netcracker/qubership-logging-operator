@@ -20,34 +20,32 @@ func (r *FluentbitReconciler) handleDaemonSet(cr *loggingService.LoggingService)
 		return err
 	}
 
-	if err = r.CreateResource(cr, m); err != nil {
-		if errors.IsAlreadyExists(err) {
-			e := &appsv1.DaemonSet{ObjectMeta: m.ObjectMeta}
-			if err = r.GetResource(e); err != nil {
-				return err
-			}
-
-			//Set parameters
-			if e.Labels == nil && m.Labels != nil {
-				e.SetLabels(m.Labels)
-			} else {
-				maps.Copy(e.Labels, m.Labels)
-			}
-			e.Spec.Template.SetLabels(m.Spec.Template.GetLabels())
-			e.Spec.Template.Spec.Containers = m.Spec.Template.Spec.Containers
-			e.Spec.Template.Spec.ServiceAccountName = m.Spec.Template.Spec.ServiceAccountName
-			e.Spec.Template.Spec.NodeSelector = m.Spec.Template.Spec.NodeSelector
-			e.Spec.Template.Spec.Volumes = m.Spec.Template.Spec.Volumes
-			e.Spec.Template.Spec.Tolerations = m.Spec.Template.Spec.Tolerations
-			e.Spec.Template.Spec.Affinity = m.Spec.Template.Spec.Affinity
-			if err = r.UpdateResource(e); err != nil {
-				return err
-			}
-		} else {
-			return err
-		}
+	err = r.CreateResource(cr, m)
+	if err == nil {
+		return nil
 	}
-	return nil
+	if !errors.IsAlreadyExists(err) {
+		return err
+	}
+
+	return r.updateDaemonSet(m)
+}
+
+func (r *FluentbitReconciler) updateDaemonSet(desired *appsv1.DaemonSet) error {
+	existing := &appsv1.DaemonSet{ObjectMeta: desired.ObjectMeta}
+	if err := r.GetResource(existing); err != nil {
+		return err
+	}
+
+	if existing.Labels == nil && desired.Labels != nil {
+		existing.SetLabels(desired.Labels)
+	} else {
+		maps.Copy(existing.Labels, desired.Labels)
+	}
+	existing.Spec.Template.SetLabels(desired.Spec.Template.GetLabels())
+	existing.Spec.Template.Spec = desired.Spec.Template.Spec
+
+	return r.UpdateResource(existing)
 }
 
 func (r *FluentbitReconciler) handleService(cr *loggingService.LoggingService) error {

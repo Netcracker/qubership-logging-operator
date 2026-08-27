@@ -5707,6 +5707,11 @@ spec:
                     type: string
                   memBufLimit:
                     type: string
+                  memoryOnlyStateSizeLimit:
+                    description: |-
+                      MemoryOnlyStateSizeLimit limits the memory-backed volume that stores read offset databases for the
+                      "memory-only" profile. The default is "32Mi".
+                    type: string
                   mockKubeData:
                     type: boolean
                   multilineFirstLineRegexp:
@@ -6168,13 +6173,16 @@ spec:
                     type: object
                   securityContextPrivileged:
                     type: boolean
-                  storageType:
+                  storageProfile:
                     description: |-
-                      StorageType is a buffering mechanism for the input plugins. Allowed values are "memory" and "filesystem".
-                      The "filesystem" type buffers chunks on the node disk and produces a lot of writes to the storage.
+                      StorageProfile selects where Fluentbit keeps input read offsets and buffered logs.
+                      The default "memory-only" profile avoids writes to the node filesystem. The "persistent-offsets"
+                      profile stores read offsets on the node and buffers logs in memory. The "node-persistent" profile
+                      stores both read offsets and buffered logs on the node.
                     enum:
-                    - memory
-                    - filesystem
+                    - memory-only
+                    - persistent-offsets
+                    - node-persistent
                     type: string
                   systemAuditLogging:
                     type: boolean

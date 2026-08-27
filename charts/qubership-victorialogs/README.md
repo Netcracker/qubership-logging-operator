@@ -48,6 +48,7 @@ authentication method: a non-empty `username` and `password` pair, or a non-empt
 corresponding Prometheus Operator or Grafana Operator v5 CRDs are installed.
 
 <!-- markdownlint-disable line-length -->
+<!-- --8<-- [start:values] -->
 ## Values
 
 | Key | Type | Default | Description |
@@ -160,4 +161,5 @@ corresponding Prometheus Operator or Grafana Operator v5 CRDs are installed.
 | victorialogs.vmauth.tmpVolume.sizeLimit | string | `"100Mi"` | Maximum capacity of the VMAuth `/tmp` volume. |
 | victorialogs.vmauth.tolerations | list | `[]` | Tolerations for VMAuth Pods. |
 | victorialogs.vmauth.topologySpreadConstraints | list | `[]` | Topology spread constraints for VMAuth Pods. |
+<!-- --8<-- [end:values] -->
 <!-- markdownlint-enable line-length -->

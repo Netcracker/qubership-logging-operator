@@ -93,7 +93,9 @@ markdown_extensions:
       noclasses: false
   - pymdownx.inlinehilite
   - pymdownx.snippets:
-      base_path: docs
+      base_path:
+        - docs
+        - .
 
   # Mermaid diagrams support
   - pymdownx.superfences:
@@ -139,6 +141,7 @@ nav:
   - Configuration:
       - graylog-configuration.md
       - installation-parameters.md
+      - VictoriaLogs chart parameters: victorialogs-chart-parameters.md
       - log-location.md
       - Configuration Examples:
           - Overview: examples.md

@@ -107,7 +107,13 @@ victorialogs:
     # -- Sources for additional VMAuth environment variables.
     envFrom: []
     # -- Compute resources for the VMAuth container.
-    resources: {}
+    resources:
+      requests:
+        cpu: 20m
+        memory: 32Mi
+        ephemeral-storage: 100Mi
+      limits:
+        memory: 128Mi
     # -- Annotations for the VMAuth Deployment.
     annotations: {}
     # -- Annotations for VMAuth Pods.
@@ -239,7 +245,13 @@ victorialogs:
     annotations: {}
 
   # -- Compute resources for the VictoriaLogs container.
-  resources: {}
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+      ephemeral-storage: 100Mi
+    limits:
+      memory: 512Mi
   # -- Security context for the VictoriaLogs container.
   securityContext:
     allowPrivilegeEscalation: false

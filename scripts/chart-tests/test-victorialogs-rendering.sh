@@ -42,8 +42,8 @@ expect_schema_failure() {
     assert_contains "$expected_error" "$validation_output" "the schema validation error"
 }
 
-expect_schema_failure "additional properties 'storge' not allowed" \
-    --set victorialogs.storge.size=1Gi
+expect_schema_failure "additional properties 'storageConfig' not allowed" \
+    --set victorialogs.storageConfig.size=1Gi
 expect_schema_failure "at '/victorialogs/service/port': got string, want integer" \
     --set-string victorialogs.service.port=not-a-port
 expect_schema_failure "additional properties 'limit' not allowed" \
@@ -76,6 +76,10 @@ assert_count 1 'allowPrivilegeEscalation: false' "$statefulset" "the StatefulSet
 assert_count 1 'readOnlyRootFilesystem: true' "$statefulset" "the StatefulSet container security context"
 assert_count 1 'mountPath: /tmp' "$statefulset" "the StatefulSet temporary volume mount"
 assert_count 1 'sizeLimit: 100Mi' "$statefulset" "the StatefulSet temporary volume"
+assert_count 1 'cpu: 50m' "$statefulset" "the StatefulSet CPU request"
+assert_count 1 'memory: 64Mi' "$statefulset" "the StatefulSet memory request"
+assert_count 1 'ephemeral-storage: 100Mi' "$statefulset" "the StatefulSet storage request"
+assert_count 1 'memory: 512Mi' "$statefulset" "the StatefulSet memory limit"
 if grep -Fq 'app.kubernetes.io/component: invalid' <<<"$statefulset"; then
     echo "Selector label app.kubernetes.io/component was overridden by podLabels."
     exit 1
@@ -147,6 +151,10 @@ assert_count 1 'allowPrivilegeEscalation: false' "$vmauth" "the VMAuth container
 assert_count 1 'readOnlyRootFilesystem: true' "$vmauth" "the VMAuth container security context"
 assert_count 1 'mountPath: /tmp' "$vmauth" "the VMAuth temporary volume mount"
 assert_count 1 'sizeLimit: 100Mi' "$vmauth" "the VMAuth temporary volume"
+assert_count 1 'cpu: 20m' "$vmauth" "the VMAuth CPU request"
+assert_count 1 'memory: 32Mi' "$vmauth" "the VMAuth memory request"
+assert_count 1 'ephemeral-storage: 100Mi' "$vmauth" "the VMAuth storage request"
+assert_count 1 'memory: 128Mi' "$vmauth" "the VMAuth memory limit"
 if grep -Eq '^[[:space:]]+env(From)?:' <<<"$vmauth"; then
     echo "VMAuth rendered environment variables instead of a read-only Secret file."
     exit 1

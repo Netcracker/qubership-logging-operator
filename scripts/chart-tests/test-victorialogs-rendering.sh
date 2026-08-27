@@ -80,6 +80,7 @@ assert_count 1 'cpu: 50m' "$statefulset" "the StatefulSet CPU request"
 assert_count 1 'memory: 64Mi' "$statefulset" "the StatefulSet memory request"
 assert_count 1 'ephemeral-storage: 100Mi' "$statefulset" "the StatefulSet storage request"
 assert_count 1 'memory: 512Mi' "$statefulset" "the StatefulSet memory limit"
+assert_count 1 'ephemeral-storage: 200Mi' "$statefulset" "the StatefulSet storage limit"
 if grep -Fq 'app.kubernetes.io/component: invalid' <<<"$statefulset"; then
     echo "Selector label app.kubernetes.io/component was overridden by podLabels."
     exit 1
@@ -155,6 +156,7 @@ assert_count 1 'cpu: 20m' "$vmauth" "the VMAuth CPU request"
 assert_count 1 'memory: 32Mi' "$vmauth" "the VMAuth memory request"
 assert_count 1 'ephemeral-storage: 100Mi' "$vmauth" "the VMAuth storage request"
 assert_count 1 'memory: 128Mi' "$vmauth" "the VMAuth memory limit"
+assert_count 1 'ephemeral-storage: 200Mi' "$vmauth" "the VMAuth storage limit"
 if grep -Eq '^[[:space:]]+env(From)?:' <<<"$vmauth"; then
     echo "VMAuth rendered environment variables instead of a read-only Secret file."
     exit 1

@@ -480,8 +480,9 @@ Installation consists of the following steps:
 ## Configuration parameters
 
 VictoriaLogs is installed from a separate Helm chart. See the
-[Qubership VictoriaLogs chart values](../charts/qubership-victorialogs/README.md#values) for its complete parameter
-reference.
+[Qubership VictoriaLogs chart values][vl-values] for its complete parameter reference.
+
+[vl-values]: https://github.com/Netcracker/qubership-logging-operator/tree/main/charts/qubership-victorialogs#values
 
 <!-- markdownlint-disable line-length -->
 | Level                     | Description                                                                                                 | Detailed parameters link                                                          |

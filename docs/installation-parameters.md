@@ -3,7 +3,9 @@
 The configurable parameters for installation are described below.
 
 VictoriaLogs uses a separate Helm chart. See the
-[Qubership VictoriaLogs chart values](../charts/qubership-victorialogs/README.md#values) for its parameter reference.
+[Qubership VictoriaLogs chart values][vl-values] for its parameter reference.
+
+[vl-values]: https://github.com/Netcracker/qubership-logging-operator/tree/main/charts/qubership-victorialogs#values
 
 ## Table of Contents
 

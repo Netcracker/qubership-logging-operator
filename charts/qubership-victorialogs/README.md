@@ -96,7 +96,7 @@ corresponding Prometheus Operator or Grafana Operator v5 CRDs are installed.
 | victorialogs.port | int | `9428` | HTTP listen port exposed by the VictoriaLogs container. |
 | victorialogs.priorityClassName | string | `""` | PriorityClass assigned to the VictoriaLogs Pod. |
 | victorialogs.readinessProbe | object | `{"failureThreshold":3,"httpGet":{"path":"/health","port":"http","scheme":"HTTP"},"initialDelaySeconds":5,"periodSeconds":5,"timeoutSeconds":5}` | Readiness probe for the VictoriaLogs container. |
-| victorialogs.resources | object | `{"limits":{"memory":"512Mi"},"requests":{"cpu":"50m","ephemeral-storage":"100Mi","memory":"64Mi"}}` | Compute resources for the VictoriaLogs container. |
+| victorialogs.resources | object | `{"limits":{"ephemeral-storage":"200Mi","memory":"512Mi"},"requests":{"cpu":"50m","ephemeral-storage":"100Mi","memory":"64Mi"}}` | Compute resources for the VictoriaLogs container. |
 | victorialogs.retentionPeriod | string | `"1"` | Data retention period. Supported units are h, d, w, and y. A value without a unit means months. |
 | victorialogs.securityContext | object | `{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":true,"runAsNonRoot":true}` | Security context for the VictoriaLogs container. |
 | victorialogs.service | object | `{"annotations":{},"labels":{},"port":9428}` | VictoriaLogs client Service configuration. |
@@ -148,7 +148,7 @@ corresponding Prometheus Operator or Grafana Operator v5 CRDs are installed.
 | victorialogs.vmauth.priorityClassName | string | `""` | PriorityClass assigned to VMAuth Pods. |
 | victorialogs.vmauth.readinessProbe | object | `{"initialDelaySeconds":5,"periodSeconds":15,"tcpSocket":{"port":"http"}}` | Readiness probe for the VMAuth container. |
 | victorialogs.vmauth.replicaCount | int | `1` | Number of VMAuth replicas. |
-| victorialogs.vmauth.resources | object | `{"limits":{"memory":"128Mi"},"requests":{"cpu":"20m","ephemeral-storage":"100Mi","memory":"32Mi"}}` | Compute resources for the VMAuth container. |
+| victorialogs.vmauth.resources | object | `{"limits":{"ephemeral-storage":"200Mi","memory":"128Mi"},"requests":{"cpu":"20m","ephemeral-storage":"100Mi","memory":"32Mi"}}` | Compute resources for the VMAuth container. |
 | victorialogs.vmauth.securityContext | object | `{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":true,"runAsNonRoot":true}` | Security context for the VMAuth container. |
 | victorialogs.vmauth.service | object | `{"annotations":{},"labels":{},"port":8427}` | VMAuth Service configuration. |
 | victorialogs.vmauth.service.annotations | object | `{}` | Annotations for the VMAuth Service. |

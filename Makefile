@@ -27,6 +27,8 @@ HELM_DIR=$(BUILD_DIR)/_helm
 
 # Documents folders
 PUBLIC_DOC_FOLDER := docs
+DOC_FOLDER := docs
+SITE_FOLDER := site
 CRD_FOLDER=$(HELM_FOLDER)/crds
 CRD_PUBLIC_DOC_FOLDER=$(PUBLIC_DOC_FOLDER)/crds
 
@@ -254,6 +256,30 @@ endif
 docs/crds:
 	rm -rf $(CRD_PUBLIC_DOC_FOLDER)/*.yaml
 	cp $(CRD_FOLDER)/* $(CRD_PUBLIC_DOC_FOLDER)/
+
+#################
+# Building docs #
+#################
+
+# Install the dependencies
+.PHONY: install-site-dependencies
+install-site-dependencies:
+	echo "=> Install site dependencies ..."
+	pip install -r $(SITE_FOLDER)/requirements.txt
+
+# Prepare the docs directory
+.PHONY: prepare-site-directory
+prepare-site-directory:
+	echo "=> Prepare site directory ..."
+	rm -rf $(SITE_FOLDER)/docs
+	mkdir -p $(SITE_FOLDER)
+	cp -rL $(DOC_FOLDER) $(SITE_FOLDER)/
+
+# Build the docs
+.PHONY: build-site
+build-site: prepare-site-directory install-site-dependencies
+	echo "=> Build site ..."
+	zensical build -f $(SITE_FOLDER)/mkdocs.yml --clean
 
 ##########################
 # Update CRDs Helm chart #

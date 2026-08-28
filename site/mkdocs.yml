@@ -1,4 +1,6 @@
 site_name: Qubership Logging Operator
+# Zensical accepts the compact indentation used by the existing navigation tree.
+# yamllint disable rule:indentation
 site_description: Kubernetes Operator for deploying logging stack (Graylog, FluentD, FluentBit, K8S Events Reader)
 site_url: https://netcracker.github.io/qubership-logging-operator
 
@@ -6,6 +8,10 @@ site_url: https://netcracker.github.io/qubership-logging-operator
 repo_name: Netcracker/qubership-logging-operator
 repo_url: https://github.com/Netcracker/qubership-logging-operator
 edit_uri: edit/main/docs/
+
+# Paths (config lives in site/, content lives in docs/, build output goes to public/)
+docs_dir: docs
+site_dir: public
 
 # Configuration
 theme:
@@ -93,9 +99,7 @@ markdown_extensions:
       noclasses: false
   - pymdownx.inlinehilite
   - pymdownx.snippets:
-      base_path:
-        - docs
-        - .
+      base_path: ../docs
 
   # Mermaid diagrams support
   - pymdownx.superfences:

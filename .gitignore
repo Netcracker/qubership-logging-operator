@@ -16,11 +16,13 @@ venv/
 __pycache__/
 *.py[cod]
 
-# MkDocs
-site/
-
 # Claude Code local settings
 .claude/
 
 # Local deploy env files
 deploy/**/.env
+
+# mkdocs/zensical build output
+site/docs/
+site/public/
+site/.cache/

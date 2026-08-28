@@ -95,7 +95,7 @@ func (r *HAFluentReconciler) handleForwarderService(cr *loggingService.LoggingSe
 	return nil
 }
 
-func (r *HAFluentReconciler) Equal(source *corev1.ConfigMap, target *corev1.ConfigMap) bool {
+func (r *HAFluentReconciler) Equal(source, target *corev1.ConfigMap) bool {
 	return cmp.Equal(source.Data, target.Data) &&
 		cmp.Equal(source.BinaryData, target.BinaryData) &&
 		cmp.Equal(source.GetLabels(), target.GetLabels())
@@ -127,20 +127,57 @@ func (r *HAFluentReconciler) CreateOrUpdate(cr *loggingService.LoggingService, c
 	return true, false, nil
 }
 
-func (r *HAFluentReconciler) handleAggregatorConfigMap(cr *loggingService.LoggingService) error {
-	m, err := aggregatorConfigMap(cr, r.DynamicParameters)
+func (r *HAFluentReconciler) handleAggregatorConfigSecret(cr *loggingService.LoggingService) error {
+	credentials, err := r.resolveAggregatorOutputCredentials(cr)
 	if err != nil {
-		r.Log.Error(err, "Failed creating ConfigMap manifest")
+		r.Log.Error(err, "Failed to resolve aggregator output credentials")
 		return err
 	}
 
-	_, err = r.updateConfigMap(cr, m)
+	m, err := aggregatorConfigSecret(cr, r.DynamicParameters, credentials)
 	if err != nil {
-		r.Log.Error(err, fmt.Sprintf("Cannot create or update config map %s", m.Name))
+		r.Log.Error(err, "Failed creating Secret manifest")
+		return err
+	}
+
+	_, err = r.CreateOrUpdateConfigSecret(cr, m)
+	if err != nil {
+		r.Log.Error(err, fmt.Sprintf("Cannot create or update config secret %s", m.Name))
+		return err
+	}
+
+	if err = r.DeleteLegacyConfigMap(cr.GetNamespace(), util.AggregatorFluentbitComponentName); err != nil {
+		r.Log.Error(err, fmt.Sprintf("Cannot delete the legacy config map %s", util.AggregatorFluentbitComponentName))
 		return err
 	}
 
 	return nil
+}
+
+// resolveAggregatorOutputCredentials reads the Secrets referenced by the enabled
+// aggregator outputs and returns their values so that they can be inlined into the
+// configuration Secret instead of being exposed as environment variables or
+// persisted on the CR.
+func (r *HAFluentReconciler) resolveAggregatorOutputCredentials(cr *loggingService.LoggingService) (aggregatorOutputCredentials, error) {
+	credentials := aggregatorOutputCredentials{}
+	if cr.Spec.Fluentbit == nil || cr.Spec.Fluentbit.Aggregator == nil || cr.Spec.Fluentbit.Aggregator.Output == nil {
+		return credentials, nil
+	}
+	output := cr.Spec.Fluentbit.Aggregator.Output
+	outputs := make([]util.OutputAuth, 0, 3)
+	if output.Loki != nil {
+		outputs = append(outputs, util.OutputAuth{Values: &credentials.Loki, Enabled: output.Loki.Enabled, Auth: output.Loki.Auth})
+	}
+	if output.Http != nil {
+		outputs = append(outputs, util.OutputAuth{Values: &credentials.Http, Enabled: output.Http.Enabled, Auth: output.Http.Auth})
+	}
+	if output.Otel != nil {
+		outputs = append(outputs, util.OutputAuth{Values: &credentials.Otel, Enabled: output.Otel.Enabled, Auth: output.Otel.Auth})
+	}
+	if err := r.ResolveFluentbitOutputAuth(cr.GetNamespace(), outputs...); err != nil {
+		return aggregatorOutputCredentials{}, err
+	}
+	return credentials, nil
 }
 
 func (r *HAFluentReconciler) handleAggregatorStatefulSet(cr *loggingService.LoggingService) error {
@@ -339,4 +376,23 @@ func (r *HAFluentReconciler) updateConfigMap(cr *loggingService.LoggingService, 
 	}
 
 	return true, nil
+}
+
+func (r *HAFluentReconciler) deleteSecret(cr *loggingService.LoggingService, name string) error {
+	e := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: cr.GetNamespace(),
+		},
+	}
+	if err := r.GetResource(e); err != nil {
+		if api_errors.IsNotFound(err) {
+			return nil
+		}
+		return err
+	}
+	if err := r.DeleteResource(e); err != nil {
+		return err
+	}
+	return nil
 }

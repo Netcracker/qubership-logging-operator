@@ -202,8 +202,46 @@ func TestMapSecretToLoggingServices(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	referenced := &loggingService.LoggingService{
-		ObjectMeta: metav1.ObjectMeta{Name: "referenced", Namespace: "logging"},
+	referencedByMain := &loggingService.LoggingService{
+		ObjectMeta: metav1.ObjectMeta{Name: "referenced-main", Namespace: "logging"},
+		Spec: loggingService.LoggingServiceSpec{
+			Fluentbit: &loggingService.Fluentbit{
+				Output: &loggingService.OutputFluentbit{
+					Http: &loggingService.HttpFluentbit{
+						Enabled: true,
+						Auth: &loggingService.Auth{
+							Password: &corev1.SecretKeySelector{
+								LocalObjectReference: corev1.LocalObjectReference{Name: "output-auth"},
+								Key:                  "password",
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	referencedByAggregator := &loggingService.LoggingService{
+		ObjectMeta: metav1.ObjectMeta{Name: "referenced-aggregator", Namespace: "logging"},
+		Spec: loggingService.LoggingServiceSpec{
+			Fluentbit: &loggingService.Fluentbit{
+				Aggregator: &loggingService.FluentbitAggregator{
+					Output: &loggingService.OutputFluentbit{
+						Loki: &loggingService.LokiFluentbit{
+							Enabled: true,
+							Auth: &loggingService.Auth{
+								Token: &corev1.SecretKeySelector{
+									LocalObjectReference: corev1.LocalObjectReference{Name: "output-auth"},
+									Key:                  "token",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	referencedByFluentd := &loggingService.LoggingService{
+		ObjectMeta: metav1.ObjectMeta{Name: "referenced-fluentd", Namespace: "logging"},
 		Spec: loggingService.LoggingServiceSpec{
 			Fluentd: &loggingService.Fluentd{
 				Output: &loggingService.OutputFluentd{
@@ -223,6 +261,19 @@ func TestMapSecretToLoggingServices(t *testing.T) {
 	unrelated := &loggingService.LoggingService{
 		ObjectMeta: metav1.ObjectMeta{Name: "unrelated", Namespace: "logging"},
 		Spec: loggingService.LoggingServiceSpec{
+			Fluentbit: &loggingService.Fluentbit{
+				Output: &loggingService.OutputFluentbit{
+					Loki: &loggingService.LokiFluentbit{
+						Enabled: true,
+						Auth: &loggingService.Auth{
+							Token: &corev1.SecretKeySelector{
+								LocalObjectReference: corev1.LocalObjectReference{Name: "another-secret"},
+								Key:                  "token",
+							},
+						},
+					},
+				},
+			},
 			Fluentd: &loggingService.Fluentd{
 				Output: &loggingService.OutputFluentd{
 					Loki: &loggingService.LokiFluentd{
@@ -239,15 +290,26 @@ func TestMapSecretToLoggingServices(t *testing.T) {
 		},
 	}
 	reconciler := &LoggingServiceReconciler{
-		Client: fake.NewClientBuilder().WithScheme(testScheme).WithObjects(referenced, unrelated).Build(),
-		Log:    util.Logger("test-logging-service"),
+		Client: fake.NewClientBuilder().WithScheme(testScheme).
+			WithObjects(referencedByMain, referencedByAggregator, referencedByFluentd, unrelated).Build(),
+		Log: util.Logger("test-logging-service"),
 	}
 
 	requests := reconciler.mapSecretToLoggingServices(context.Background(), &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{Name: "output-auth", Namespace: "logging"},
 	})
-	if len(requests) != 1 || requests[0].Name != "referenced" || requests[0].Namespace != "logging" {
+	if len(requests) != 3 {
 		t.Fatalf("unexpected reconcile requests: %#v", requests)
+	}
+	names := make(map[string]bool, len(requests))
+	for _, request := range requests {
+		if request.Namespace != "logging" {
+			t.Fatalf("unexpected request namespace: %#v", request)
+		}
+		names[request.Name] = true
+	}
+	if !names["referenced-main"] || !names["referenced-aggregator"] || !names["referenced-fluentd"] {
+		t.Fatalf("expected requests for all referencing Logging Services, got: %#v", requests)
 	}
 }
 

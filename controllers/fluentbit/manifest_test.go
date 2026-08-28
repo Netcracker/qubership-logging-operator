@@ -21,17 +21,22 @@ func newTestLoggingService(fluentbit *loggingService.Fluentbit) *loggingService.
 	}
 }
 
-func renderConfigMapData(t *testing.T, fluentbit *loggingService.Fluentbit) map[string]string {
+func renderConfigData(t *testing.T, fluentbit *loggingService.Fluentbit) map[string]string {
 	t.Helper()
-	cm, err := fluentbitConfigMap(newTestLoggingService(fluentbit), util.DynamicParameters{ContainerRuntimeType: "containerd"})
+	secret, err := fluentbitConfigSecret(newTestLoggingService(fluentbit),
+		util.DynamicParameters{ContainerRuntimeType: "containerd"}, outputCredentials{})
 	if err != nil {
-		t.Fatalf("cannot build the ConfigMap: %v", err)
+		t.Fatalf("cannot build the config Secret: %v", err)
 	}
-	return cm.Data
+	data := make(map[string]string, len(secret.Data))
+	for key, value := range secret.Data {
+		data[key] = string(value)
+	}
+	return data
 }
 
-func TestFluentbitConfigMapStorageDefaults(t *testing.T) {
-	data := renderConfigMapData(t, &loggingService.Fluentbit{
+func TestFluentbitConfigStorageDefaults(t *testing.T) {
+	data := renderConfigData(t, &loggingService.Fluentbit{
 		ContainerLogging:   true,
 		SystemAuditLogging: true,
 		SystemLogging:      true,
@@ -93,7 +98,7 @@ func TestFluentbitConfigMapStorageDefaults(t *testing.T) {
 }
 
 func TestFluentbitPersistentOffsetsProfileUsesMemoryBuffer(t *testing.T) {
-	data := renderConfigMapData(t, &loggingService.Fluentbit{
+	data := renderConfigData(t, &loggingService.Fluentbit{
 		ContainerLogging: true,
 		StorageProfile:   loggingService.FluentbitStorageProfilePersistentOffsets,
 	})
@@ -110,7 +115,7 @@ func TestFluentbitPersistentOffsetsProfileUsesMemoryBuffer(t *testing.T) {
 }
 
 func TestFluentbitNodePersistentProfileUsesFilesystemBuffer(t *testing.T) {
-	data := renderConfigMapData(t, &loggingService.Fluentbit{
+	data := renderConfigData(t, &loggingService.Fluentbit{
 		ContainerLogging: true,
 		StorageProfile:   loggingService.FluentbitStorageProfileNodePersistent,
 	})
@@ -127,9 +132,9 @@ func TestFluentbitNodePersistentProfileUsesFilesystemBuffer(t *testing.T) {
 	}
 }
 
-func TestFluentbitConfigMapStorageOverrides(t *testing.T) {
+func TestFluentbitConfigStorageOverrides(t *testing.T) {
 	disabled := false
-	data := renderConfigMapData(t, &loggingService.Fluentbit{
+	data := renderConfigData(t, &loggingService.Fluentbit{
 		ContainerLogging: true,
 		Flush:            10,
 		StorageProfile:   loggingService.FluentbitStorageProfileNodePersistent,
@@ -157,9 +162,9 @@ func TestFluentbitConfigMapStorageOverrides(t *testing.T) {
 	}
 }
 
-func TestFluentbitConfigMapDisabledDB(t *testing.T) {
+func TestFluentbitConfigDisabledDB(t *testing.T) {
 	disabled := false
-	data := renderConfigMapData(t, &loggingService.Fluentbit{
+	data := renderConfigData(t, &loggingService.Fluentbit{
 		ContainerLogging:   true,
 		SystemAuditLogging: true,
 		SystemLogging:      true,

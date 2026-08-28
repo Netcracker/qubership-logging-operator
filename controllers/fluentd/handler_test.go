@@ -7,60 +7,11 @@ import (
 	loggingService "github.com/Netcracker/qubership-logging-operator/api/v1"
 	util "github.com/Netcracker/qubership-logging-operator/controllers/utils"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
-
-func newTestFluentdReconciler() *FluentdReconciler {
-	return &FluentdReconciler{
-		ComponentReconciler: &util.ComponentReconciler{
-			Log: util.Logger("test-fluentd"),
-		},
-	}
-}
-
-func TestFluentdEqual(t *testing.T) {
-	r := newTestFluentdReconciler()
-
-	t.Run("same data and labels returns true", func(t *testing.T) {
-		a := &corev1.Secret{
-			ObjectMeta: metav1.ObjectMeta{Labels: map[string]string{"app": "fluentd"}},
-			Data:       map[string][]byte{"key": []byte("value")},
-		}
-		b := &corev1.Secret{
-			ObjectMeta: metav1.ObjectMeta{Labels: map[string]string{"app": "fluentd"}},
-			Data:       map[string][]byte{"key": []byte("value")},
-		}
-		if !r.Equal(a, b) {
-			t.Error("expected equal for same data and labels")
-		}
-	})
-
-	t.Run("different data returns false", func(t *testing.T) {
-		a := &corev1.Secret{Data: map[string][]byte{"key": []byte("value1")}}
-		b := &corev1.Secret{Data: map[string][]byte{"key": []byte("value2")}}
-		if r.Equal(a, b) {
-			t.Error("expected not equal for different data")
-		}
-	})
-
-	t.Run("different labels returns false (fluentd checks labels)", func(t *testing.T) {
-		a := &corev1.Secret{
-			ObjectMeta: metav1.ObjectMeta{Labels: map[string]string{"env": "prod"}},
-			Data:       map[string][]byte{"key": []byte("value")},
-		}
-		b := &corev1.Secret{
-			ObjectMeta: metav1.ObjectMeta{Labels: map[string]string{"env": "dev"}},
-			Data:       map[string][]byte{"key": []byte("value")},
-		}
-		if r.Equal(a, b) {
-			t.Error("fluentd Equal should detect label changes, but it didn't")
-		}
-	})
-}
 
 func TestResolveOutputCredentials(t *testing.T) {
 	scheme := runtime.NewScheme()
@@ -150,7 +101,7 @@ func TestCreateOrUpdateConfigSecret(t *testing.T) {
 		Data:       map[string][]byte{"fluent.conf": []byte("new")},
 	}
 
-	updated, err := reconciler.createOrUpdateConfigSecret(cr, desired)
+	updated, err := reconciler.CreateOrUpdateConfigSecret(cr, desired)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -250,40 +201,5 @@ func TestFluentdConfigSecretCredentialsAreNotInterpolated(t *testing.T) {
 		if strings.Contains(rendered, `password "`) || strings.Contains(rendered, `password   "`) {
 			t.Errorf("%s must not render the password as a double-quoted string, got:\n%s", file, rendered)
 		}
-	}
-}
-
-func TestDeleteLegacyConfigMap(t *testing.T) {
-	scheme := runtime.NewScheme()
-	if err := corev1.AddToScheme(scheme); err != nil {
-		t.Fatal(err)
-	}
-	legacy := &corev1.ConfigMap{
-		ObjectMeta: metav1.ObjectMeta{Name: util.FluentdComponentName, Namespace: "logging"},
-		Data:       map[string]string{"fluent.conf": "old"},
-	}
-	fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithObjects(legacy).Build()
-	reconciler := &FluentdReconciler{
-		ComponentReconciler: &util.ComponentReconciler{
-			Client: fakeClient,
-			Scheme: scheme,
-			Log:    util.Logger("test-fluentd"),
-		},
-	}
-	cr := &loggingService.LoggingService{
-		ObjectMeta: metav1.ObjectMeta{Name: "logging-service", Namespace: "logging"},
-	}
-
-	if err := reconciler.deleteLegacyConfigMap(cr); err != nil {
-		t.Fatal(err)
-	}
-	err := fakeClient.Get(t.Context(), client.ObjectKeyFromObject(legacy), &corev1.ConfigMap{})
-	if !errors.IsNotFound(err) {
-		t.Fatalf("the legacy ConfigMap must be deleted, got error %v", err)
-	}
-
-	// Deleting an already absent ConfigMap is a no-op.
-	if err := reconciler.deleteLegacyConfigMap(cr); err != nil {
-		t.Fatalf("deleting an absent ConfigMap must not fail: %v", err)
 	}
 }

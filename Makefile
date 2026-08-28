@@ -279,7 +279,7 @@ prepare-site-directory:
 .PHONY: build-site
 build-site: prepare-site-directory install-site-dependencies
 	echo "=> Build site ..."
-	zensical build -f $(SITE_FOLDER)/mkdocs.yml --clean
+	mkdocs build --config-file $(SITE_FOLDER)/mkdocs.yml --strict
 
 ##########################
 # Update CRDs Helm chart #

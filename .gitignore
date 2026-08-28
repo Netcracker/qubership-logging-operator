@@ -22,7 +22,7 @@ __pycache__/
 # Local deploy env files
 deploy/**/.env
 
-# mkdocs/zensical build output
+# MkDocs build output
 site/docs/
 site/public/
-site/.cache/
+.cache/

@@ -40,7 +40,8 @@ spec:
       volumes:
 {{- if and .Values.Fluentbit.Aggregator.Volume .Values.Fluentbit.Aggregator.Volume.Bind }}{{- else }}
         - name: storage
-          emptyDir: {}
+          emptyDir:
+            sizeLimit: {{ .Values.Fluentbit.Aggregator.EffectiveStorageSizeLimit }}
 {{- end }}
         - name: config
           secret:

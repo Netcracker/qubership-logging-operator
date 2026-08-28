@@ -338,6 +338,41 @@ func TestAggregatorStatefulSetSecurityContext(t *testing.T) {
 	}
 }
 
+func TestAggregatorStatefulSetStorageSizeLimit(t *testing.T) {
+	tests := []struct {
+		name       string
+		configured string
+		want       string
+	}{
+		{name: "default", want: loggingService.FluentbitAggregatorDefaultStorageSizeLimit},
+		{name: "configured", configured: "6Gi", want: "6Gi"},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			cr := newAggregatorSecurityLoggingService(false)
+			cr.Spec.Fluentbit.Aggregator.StorageSizeLimit = test.configured
+			statefulSet, err := aggregatorStatefulSet(cr)
+			if err != nil {
+				t.Fatalf("render Fluent Bit aggregator StatefulSet: %v", err)
+			}
+
+			var storage *corev1.Volume
+			for index := range statefulSet.Spec.Template.Spec.Volumes {
+				volume := &statefulSet.Spec.Template.Spec.Volumes[index]
+				if volume.Name == "storage" {
+					storage = volume
+					break
+				}
+			}
+			if storage == nil || storage.EmptyDir == nil || storage.EmptyDir.SizeLimit == nil ||
+				storage.EmptyDir.SizeLimit.String() != test.want {
+				t.Errorf("unexpected aggregator storage volume: %#v", storage)
+			}
+		})
+	}
+}
+
 func newAggregatorSecurityLoggingService(openshift bool) *loggingService.LoggingService {
 	resources := &corev1.ResourceRequirements{
 		Limits: corev1.ResourceList{

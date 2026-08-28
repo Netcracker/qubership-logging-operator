@@ -1624,6 +1624,10 @@ fluentbit:
       # @default -- 2Gi
       # storageSize: 2Gi
 
+    # -- Maximum size of the ephemeral aggregator buffer volume when PVC storage is disabled.
+    # Keep it above the combined enabled output buffer limits plus filesystem overhead.
+    storageSizeLimit: 2Gi
+
     # -- The resources describe to compute resource requests and limits for single Pods.
     # Ref: https://kubernetes.io/docs/user-guide/compute-resources/
     resources:

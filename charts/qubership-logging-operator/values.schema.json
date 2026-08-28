@@ -1063,6 +1063,11 @@
                             "description": "The size limitation of output buffer",
                             "type": "string"
                         },
+                        "storageSizeLimit": {
+                            "default": "2Gi",
+                            "description": "Maximum size of the ephemeral aggregator buffer volume when PVC storage is disabled.",
+                            "type": "string"
+                        },
                         "volume": {
                             "properties": {
                                 "bind": {

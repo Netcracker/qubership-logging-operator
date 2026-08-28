@@ -871,6 +871,7 @@ spec:
       {{- if .Values.fluentbit.aggregator.totalLimitSize }}
       totalLimitSize: {{ .Values.fluentbit.aggregator.totalLimitSize }}
       {{- end }}
+      storageSizeLimit: {{ default "2Gi" .Values.fluentbit.aggregator.storageSizeLimit }}
       customFilterConf: |-
         {{ default "" .Values.fluentbit.aggregator.customFilterConf | nindent 8 }}
       customOutputConf: |-

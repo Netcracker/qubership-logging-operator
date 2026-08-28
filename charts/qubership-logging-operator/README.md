@@ -674,6 +674,15 @@ false
 			<td>The size limitation of output buffer</td>
 		</tr>
 		<tr>
+			<td>fluentbit.aggregator.storageSizeLimit</td>
+			<td>string</td>
+			<td><pre lang="json">
+"2Gi"
+</pre>
+</td>
+			<td>Maximum size of the ephemeral aggregator buffer volume when PVC storage is disabled.</td>
+		</tr>
+		<tr>
 			<td>fluentbit.aggregator.volume</td>
 			<td>object</td>
 			<td><pre lang="json">

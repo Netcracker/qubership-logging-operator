@@ -119,9 +119,13 @@ existing `storage` volume:
 - The default configuration uses an `emptyDir` for each aggregator replica.
 - Enabling `fluentbit.aggregator.volume.bind` uses a per-replica PersistentVolumeClaim.
 
-The default storage `emptyDir` does not define a Kubernetes `sizeLimit`. Adding a volume limit could change buffering
-and disk I/O behavior, so storage sizing remains outside the container-hardening scope while that behavior is being
-investigated. Control growth through Fluent Bit buffer settings or configure a suitably sized PVC.
+The default `emptyDir` has a `2Gi` limit. Set `fluentbit.aggregator.storageSizeLimit` to change it. The default
+accommodates the `1024M` Graylog output buffer plus chunk metadata and filesystem overhead. Increase the volume limit
+when enabling outputs with higher buffer limits or increasing `totalLimitSize`. Size the volume above the combined
+enabled output buffer limits plus filesystem overhead.
+
+The `storageSizeLimit` setting applies only to `emptyDir`. When PVC storage is enabled, use
+`fluentbit.aggregator.volume.storageSize` instead.
 
 The paths `/fluent-bit/state` and `/fluent-bit/storage` are part of the storage-profile behavior. Container hardening
 does not change their persistence semantics.

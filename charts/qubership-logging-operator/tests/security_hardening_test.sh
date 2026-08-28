@@ -67,6 +67,7 @@ check_min_count "type: RuntimeDefault" 2 "seccompProfile RuntimeDefault"
 check_min_count "- ALL" 4 "capabilities dropped (ALL)"
 check_min_count "name: tmp" 4 "mandatory /tmp emptyDir volumes and mounts"
 check_min_count "ephemeral-storage: 200Mi" 1 "operator ephemeral-storage limit"
+check_min_count "storageSizeLimit: 2Gi" 1 "FluentBit aggregator ephemeral storage limit"
 check_min_count "runAsUser: 2001" 1 "operator runs with its image UID"
 check_min_count "runAsGroup: 1000" 2 "workloads run with their image group"
 check_following_line "pathPrefix: /var/log" "readOnly: false" \

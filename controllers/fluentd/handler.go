@@ -13,20 +13,74 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (r *FluentdReconciler) handleConfigMap(cr *loggingService.LoggingService) error {
-	m, err := fluentdConfigMap(cr, r.DynamicParameters)
+func (r *FluentdReconciler) handleConfigSecret(cr *loggingService.LoggingService) error {
+	credentials, err := r.resolveOutputCredentials(cr)
 	if err != nil {
-		r.Log.Error(err, "Failed creating ConfigMap manifest")
+		r.Log.Error(err, "Failed to resolve Fluentd output credentials")
 		return err
 	}
 
-	_, err = r.updateConfigMap(cr, m)
+	secret, err := fluentdConfigSecret(cr, r.DynamicParameters, credentials)
 	if err != nil {
-		r.Log.Error(err, fmt.Sprintf("Cannot create or update config map %s", m.Name))
+		r.Log.Error(err, "Failed creating Secret manifest")
+		return err
+	}
+
+	_, err = r.createOrUpdateConfigSecret(cr, secret)
+	if err != nil {
+		r.Log.Error(err, fmt.Sprintf("Cannot create or update config secret %s", secret.Name))
+		return err
+	}
+
+	if err = r.deleteLegacyConfigMap(cr); err != nil {
+		r.Log.Error(err, fmt.Sprintf("Cannot delete the legacy config map %s", util.FluentdComponentName))
 		return err
 	}
 
 	return nil
+}
+
+// deleteLegacyConfigMap removes the ConfigMap that stored the FluentD configuration
+// before it moved into the configuration Secret. Releases upgraded from those versions
+// would otherwise keep an orphaned copy of the old configuration in the namespace.
+func (r *FluentdReconciler) deleteLegacyConfigMap(cr *loggingService.LoggingService) error {
+	e := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      util.FluentdComponentName,
+			Namespace: cr.GetNamespace(),
+		},
+	}
+	if err := r.GetResource(e); err != nil {
+		if errors.IsNotFound(err) {
+			return nil
+		}
+		return err
+	}
+	return r.DeleteResource(e)
+}
+
+func (r *FluentdReconciler) resolveOutputCredentials(cr *loggingService.LoggingService) (outputCredentials, error) {
+	credentials := outputCredentials{}
+	if cr.Spec.Fluentd == nil || cr.Spec.Fluentd.Output == nil {
+		return credentials, nil
+	}
+	namespace := cr.GetNamespace()
+	output := cr.Spec.Fluentd.Output
+	if output.Loki != nil && output.Loki.Enabled && output.Loki.Auth != nil {
+		values, err := r.ResolveAuthValues(namespace, output.Loki.Auth)
+		if err != nil {
+			return outputCredentials{}, err
+		}
+		credentials.Loki = values
+	}
+	if output.Http != nil && output.Http.Enabled && output.Http.Auth != nil {
+		values, err := r.ResolveAuthValues(namespace, output.Http.Auth)
+		if err != nil {
+			return outputCredentials{}, err
+		}
+		credentials.Http = values
+	}
+	return credentials, nil
 }
 
 func (r *FluentdReconciler) handleDaemonSet(cr *loggingService.LoggingService) error {
@@ -114,8 +168,8 @@ func (r *FluentdReconciler) deleteDaemonSet(cr *loggingService.LoggingService) e
 	return nil
 }
 
-func (r *FluentdReconciler) deleteConfigMap(cr *loggingService.LoggingService) error {
-	e := &corev1.ConfigMap{
+func (r *FluentdReconciler) deleteConfigSecret(cr *loggingService.LoggingService) error {
+	e := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      util.FluentdComponentName,
 			Namespace: cr.GetNamespace(),
@@ -130,7 +184,7 @@ func (r *FluentdReconciler) deleteConfigMap(cr *loggingService.LoggingService) e
 	if err := r.DeleteResource(e); err != nil {
 		return err
 	}
-	return nil
+	return r.deleteLegacyConfigMap(cr)
 }
 
 func (r *FluentdReconciler) deleteService(cr *loggingService.LoggingService) error {
@@ -152,29 +206,29 @@ func (r *FluentdReconciler) deleteService(cr *loggingService.LoggingService) err
 	return nil
 }
 
-func (r *FluentdReconciler) Equal(source *corev1.ConfigMap, target *corev1.ConfigMap) bool {
+func (r *FluentdReconciler) Equal(source, target *corev1.Secret) bool {
 	return cmp.Equal(source.Data, target.Data) &&
-		cmp.Equal(source.BinaryData, target.BinaryData) &&
 		cmp.Equal(source.GetLabels(), target.GetLabels())
 }
 
-func (r *FluentdReconciler) updateConfigMap(cr *loggingService.LoggingService, configMap *corev1.ConfigMap) (updated bool, err error) {
-	if err = r.CreateResource(cr, configMap); err != nil {
+func (r *FluentdReconciler) createOrUpdateConfigSecret(cr *loggingService.LoggingService, secret *corev1.Secret) (created bool, err error) {
+	if err = r.CreateResource(cr, secret); err != nil {
 		if errors.IsAlreadyExists(err) {
-			existedConfigMap := &corev1.ConfigMap{ObjectMeta: configMap.ObjectMeta}
-			if err = r.GetResource(existedConfigMap); err != nil {
+			existedSecret := &corev1.Secret{ObjectMeta: secret.ObjectMeta}
+			if err = r.GetResource(existedSecret); err != nil {
 				return false, err
 			}
 
-			if !r.Equal(existedConfigMap, configMap) {
-				if err = r.UpdateResource(configMap); err != nil {
+			if !r.Equal(existedSecret, secret) {
+				secret.SetResourceVersion(existedSecret.GetResourceVersion())
+				if err = r.UpdateResource(secret); err != nil {
 					return false, err
 				}
 
 				return true, nil
 			}
 
-			r.Log.Info("The config map is not changed")
+			r.Log.Info("The config secret is not changed")
 			return false, nil
 		}
 

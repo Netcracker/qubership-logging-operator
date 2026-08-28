@@ -488,7 +488,7 @@ not completed startup. The probe error alone does not prove a repository or imag
 
 1. Inspect current and previous FluentD container logs from the same pod. Find the first startup error before the probe
    failures.
-2. Inspect the generated `logging-fluentd` ConfigMap and compare custom fragments with the authoritative values.
+2. Inspect the generated `logging-fluentd` Secret and compare custom fragments with the authoritative values.
 3. Inspect pod events, exit code, restart count, image, and resource limits.
 4. Confirm whether port `24220` ever appears as listening in FluentD startup logs; do not execute into the pod merely to
    test a hypothesis when logs already prove startup failed.

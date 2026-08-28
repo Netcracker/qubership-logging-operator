@@ -93,7 +93,7 @@ spec:
             - name: OPERATION_RETRY_INTERVAL
               value: {{ .Values.integrationTests.operationRetryInterval | default "5s" | quote }}
             - name: OPERATION_RETRY_COUNT
-              value: {{ .Values.integrationTests.operationRetryInterval | default "60x" | quote }}
+              value: {{ .Values.integrationTests.operationRetryCount | default "60x" | quote }}
             - name: OPENSHIFT_DEPLOY
               value: {{ (.Capabilities.APIVersions.Has "security.openshift.io/v1") | default "false" | quote }}
             - name: STATUS_WRITING_ENABLED

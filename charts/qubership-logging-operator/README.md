@@ -28,6 +28,15 @@ A Helm chart for qubership-logging-operator
 	</thead>
 	<tbody>
 		<tr>
+			<td>CLOUD_PUBLIC_HOST</td>
+			<td>string</td>
+			<td><pre lang="json">
+""
+</pre>
+</td>
+			<td>Public DNS suffix used to generate component hosts when an explicit host is not set.</td>
+		</tr>
+		<tr>
 			<td>affinity</td>
 			<td>object</td>
 			<td><pre lang="json">

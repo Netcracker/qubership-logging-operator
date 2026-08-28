@@ -1,0 +1,324 @@
+# Default values for the standalone VictoriaLogs chart.
+
+# -- Public DNS suffix used to generate external hosts when an explicit host is not set.
+CLOUD_PUBLIC_HOST: ""
+
+# -- Labels applied to all VictoriaLogs and VMAuth resources.
+labels: {}
+
+# -- Annotations applied to VictoriaLogs and VMAuth workloads.
+annotations: {}
+
+# VictoriaLogs single-node instance.
+victorialogs:
+  # -- Deploy VictoriaLogs resources.
+  install: true
+
+  # -- Override the VictoriaLogs resource name.
+  nameOverride: ""
+
+  # -- VictoriaLogs image. The chart uses docker.io/victoriametrics/victoria-logs:v1.51.0 when empty.
+  dockerImage: ""
+  # -- Image pull policy for the VictoriaLogs container.
+  imagePullPolicy: IfNotPresent
+  # -- Image pull Secrets for the VictoriaLogs Pod.
+  imagePullSecrets: []
+
+  # -- Data retention period. Supported units are h, d, w, and y. A value without a unit means months.
+  retentionPeriod: "1"
+  # -- HTTP listen port exposed by the VictoriaLogs container.
+  port: 9428
+  # -- Pod creation order for the VictoriaLogs StatefulSet.
+  podManagementPolicy: OrderedReady
+  # -- Update strategy for the VictoriaLogs StatefulSet.
+  updateStrategy:
+    type: RollingUpdate
+  # -- Additional VictoriaLogs command-line arguments.
+  extraArgs:
+    envflag.enable: true
+    envflag.prefix: VM_
+    loggerFormat: json
+    http.shutdownDelay: 15s
+
+  # Persistent storage configuration. The chart retains generated PVCs after uninstall or reconfiguration.
+  storage:
+    # The generated PVC is retained after upgrades and uninstall. Delete it manually after backing up the data.
+    # Changing nameOverride or existingClaim does not migrate data from the retained PVC.
+    # -- Mount this PVC instead of creating one.
+    existingClaim: ""
+    # -- Bind the generated PVC to this persistent volume.
+    persistentVolume: ""
+    # -- StorageClass for the generated PVC.
+    storageClassName: ""
+    # -- Access modes for the generated PVC.
+    accessModes:
+      - ReadWriteOnce
+    # -- Requested storage capacity for the generated PVC.
+    size: 10Gi
+    # -- Data volume mount path.
+    mountPath: /storage
+    # -- Optional subpath within the data volume.
+    subPath: ""
+    # -- Labels for the generated PVC.
+    labels: {}
+    # -- Annotations for the generated PVC.
+    annotations: {}
+
+  # -- VictoriaLogs client Service configuration.
+  service:
+    # -- Port exposed by the VictoriaLogs client Service.
+    port: 9428
+    # -- Additional labels for the VictoriaLogs client Service.
+    labels: {}
+    # -- Annotations for the VictoriaLogs client and headless Services.
+    annotations: {}
+
+  # VMAuth is deployed when Ingress or HTTPRoute is enabled.
+  vmauth:
+    # -- VMAuth image. The chart uses docker.io/victoriametrics/vmauth:v1.147.0 when empty.
+    dockerImage: ""
+    # -- Image pull policy for the VMAuth container.
+    imagePullPolicy: IfNotPresent
+    # -- Image pull Secrets for VMAuth Pods.
+    imagePullSecrets: []
+    # -- Number of VMAuth replicas.
+    replicaCount: 1
+    # -- HTTP listen port exposed by the VMAuth container.
+    port: 8427
+
+    # -- Name of an existing Secret that contains `auth.yml`. When empty, the chart generates a Secret from `config`.
+    existingSecret: ""
+    # -- Key in `existingSecret` that contains the native VMAuth configuration.
+    existingSecretKey: auth.yml
+
+    # -- Native VMAuth configuration used to generate a Secret.
+    # Define at least one user before enabling external access unless existingSecret is set.
+    config:
+      users: []
+
+    # -- Additional VMAuth command-line arguments.
+    extraArgs:
+      configCheckInterval: 1m
+      envflag.enable: true
+      envflag.prefix: VM_
+      loggerFormat: json
+    # -- Additional environment variables for the VMAuth container.
+    env: []
+    # -- Sources for additional VMAuth environment variables.
+    envFrom: []
+    # -- Compute resources for the VMAuth container.
+    resources:
+      requests:
+        cpu: 20m
+        memory: 32Mi
+        ephemeral-storage: 100Mi
+      limits:
+        memory: 128Mi
+        ephemeral-storage: 200Mi
+    # -- Annotations for the VMAuth Deployment.
+    annotations: {}
+    # -- Annotations for VMAuth Pods.
+    podAnnotations: {}
+    # -- Additional labels for VMAuth Pods. Selector labels take precedence.
+    podLabels: {}
+
+    # -- VMAuth Service configuration.
+    service:
+      # -- Port exposed by the VMAuth Service.
+      port: 8427
+      # -- Additional labels for the VMAuth Service.
+      labels: {}
+      # -- Annotations for the VMAuth Service.
+      annotations: {}
+
+    # -- Security context for the VMAuth container.
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+    # -- Security context for VMAuth Pods.
+    podSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      runAsGroup: 1000
+      seccompProfile:
+        type: RuntimeDefault
+    # -- Temporary volume configuration for VMAuth.
+    tmpVolume:
+      # -- Maximum capacity of the VMAuth `/tmp` volume.
+      sizeLimit: 100Mi
+    # -- Readiness probe for the VMAuth container.
+    readinessProbe:
+      tcpSocket:
+        port: http
+      initialDelaySeconds: 5
+      periodSeconds: 15
+    # -- Liveness probe for the VMAuth container.
+    livenessProbe:
+      tcpSocket:
+        port: http
+      initialDelaySeconds: 5
+      periodSeconds: 15
+      timeoutSeconds: 5
+    # -- Optional startup probe for the VMAuth container.
+    startupProbe: {}
+    # -- Grace period for VMAuth shutdown.
+    terminationGracePeriodSeconds: 30
+    # -- PriorityClass assigned to VMAuth Pods.
+    priorityClassName: ""
+    # -- Affinity and anti-affinity rules for VMAuth Pods.
+    affinity: {}
+    # -- Node selector for VMAuth Pods.
+    nodeSelector: {}
+    # -- Tolerations for VMAuth Pods.
+    tolerations: []
+    # -- Topology spread constraints for VMAuth Pods.
+    topologySpreadConstraints: []
+    # -- Additional volumes for VMAuth Pods.
+    extraVolumes: []
+    # -- Additional volume mounts for the VMAuth container.
+    extraVolumeMounts: []
+
+  # -- Add the gateway converter ignore annotation to Ingress when HTTPRoute is enabled.
+  addIngressIgnoreAnnotation: true
+  # -- Ingress configuration for external access through VMAuth.
+  ingress:
+    # -- Create an Ingress backed by VMAuth. Configure an authenticated user or `existingSecret`.
+    install: false
+    # -- IngressClass assigned to the Ingress.
+    ingressClassName: ""
+    # -- Additional labels for the Ingress.
+    labels: {}
+    # -- Annotations for the Ingress.
+    annotations: {}
+    # -- Ingress hosts and paths. An empty list uses `vmauth-<namespace>.<CLOUD_PUBLIC_HOST>`.
+    hosts: []
+    # -- TLS configuration for the Ingress.
+    tls: []
+
+  # -- Gateway API HTTPRoute configuration for external access through VMAuth.
+  httpRoute:
+    # -- Create an HTTPRoute backed by VMAuth. Configure an authenticated user or `existingSecret`.
+    install: false
+    # -- Additional labels for the HTTPRoute.
+    labels: {}
+    # -- Annotations for the HTTPRoute.
+    annotations: {}
+    # -- HTTPRoute hostnames. An empty list uses `vmauth-<namespace>.<CLOUD_PUBLIC_HOST>`.
+    hostnames: []
+    # -- Gateway listeners that accept the HTTPRoute.
+    parentRefs: []
+
+  # Prometheus Operator ServiceMonitor configuration.
+  serviceMonitor:
+    # -- Create a ServiceMonitor. The Prometheus Operator CRDs must be installed.
+    install: false
+    # -- Prometheus scrape interval.
+    scrapeInterval: 30s
+    # -- Prometheus scrape timeout.
+    scrapeTimeout: 10s
+    # -- Additional labels for the ServiceMonitor.
+    labels: {}
+    # -- Annotations for the ServiceMonitor.
+    annotations: {}
+    # -- Prometheus target relabeling rules.
+    relabelings: []
+    # -- Prometheus metric relabeling rules.
+    metricRelabelings: []
+
+  # Grafana Operator dashboard configuration.
+  dashboard:
+    # -- Create a GrafanaDashboard v5 resource. The Grafana Operator v5 CRDs must be installed.
+    install: false
+    # -- Allow the dashboard to target a Grafana instance in another namespace.
+    allowCrossNamespaceImport: true
+    # -- Label selector for the Grafana v5 instance that imports the dashboard.
+    instanceSelector:
+      matchLabels:
+        app.kubernetes.io/component: grafana
+        app.kubernetes.io/part-of: monitoring
+    # -- Additional labels for the GrafanaDashboard.
+    labels: {}
+    # -- Annotations for the GrafanaDashboard.
+    annotations: {}
+
+  # -- Compute resources for the VictoriaLogs container.
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+      ephemeral-storage: 100Mi
+    limits:
+      memory: 512Mi
+      ephemeral-storage: 200Mi
+  # -- Security context for the VictoriaLogs container.
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+  # -- Security context for the VictoriaLogs Pod.
+  podSecurityContext:
+    fsGroup: 2000
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    seccompProfile:
+      type: RuntimeDefault
+  # -- Temporary volume configuration for VictoriaLogs.
+  tmpVolume:
+    # -- Maximum capacity of the VictoriaLogs `/tmp` volume.
+    sizeLimit: 100Mi
+  # -- Readiness probe for the VictoriaLogs container.
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: http
+      scheme: HTTP
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    timeoutSeconds: 5
+    failureThreshold: 3
+  # -- Liveness probe for the VictoriaLogs container.
+  livenessProbe:
+    tcpSocket:
+      port: http
+    initialDelaySeconds: 30
+    periodSeconds: 30
+    timeoutSeconds: 5
+    failureThreshold: 10
+  # -- Optional startup probe for the VictoriaLogs container.
+  startupProbe: {}
+  # -- Grace period for VictoriaLogs shutdown.
+  terminationGracePeriodSeconds: 60
+  # -- PriorityClass assigned to the VictoriaLogs Pod.
+  priorityClassName: ""
+  # -- Affinity and anti-affinity rules for the VictoriaLogs Pod.
+  affinity: {}
+  # -- Node selector for the VictoriaLogs Pod.
+  nodeSelector: {}
+  # -- Tolerations for the VictoriaLogs Pod.
+  tolerations: []
+  # -- Topology spread constraints for the VictoriaLogs Pod.
+  topologySpreadConstraints: []
+  # -- Additional environment variables for the VictoriaLogs container.
+  env: []
+  # -- Sources for additional VictoriaLogs environment variables.
+  envFrom: []
+  # -- Additional volumes for the VictoriaLogs Pod.
+  extraVolumes: []
+  # -- Additional volume mounts for the VictoriaLogs container.
+  extraVolumeMounts: []
+  # -- Additional labels for VictoriaLogs resources.
+  labels: {}
+  # -- Annotations for the VictoriaLogs StatefulSet.
+  annotations: {}
+  # -- Additional labels for the VictoriaLogs Pod. Selector labels take precedence.
+  podLabels: {}
+  # -- Annotations for the VictoriaLogs Pod.
+  podAnnotations: {}

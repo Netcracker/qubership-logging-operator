@@ -13,14 +13,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
-func newTestFluentdReconciler() *FluentdReconciler {
-	return &FluentdReconciler{
-		ComponentReconciler: &util.ComponentReconciler{
-			Log: util.Logger("test-fluentd"),
-		},
-	}
-}
-
 func TestResolveOutputCredentials(t *testing.T) {
 	scheme := runtime.NewScheme()
 	if err := corev1.AddToScheme(scheme); err != nil {

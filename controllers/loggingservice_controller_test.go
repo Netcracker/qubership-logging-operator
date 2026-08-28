@@ -269,4 +269,19 @@ func TestCredentialSecretChangedPredicate(t *testing.T) {
 	if !predicate.Update(event.UpdateEvent{ObjectOld: oldSecret, ObjectNew: dataChanged}) {
 		t.Fatal("Secret data update must trigger reconciliation")
 	}
+
+	if !predicate.Create(event.CreateEvent{Object: oldSecret}) {
+		t.Fatal("Secret creation must trigger reconciliation")
+	}
+	if !predicate.Delete(event.DeleteEvent{Object: oldSecret}) {
+		t.Fatal("Secret deletion must trigger reconciliation")
+	}
+	if predicate.Generic(event.GenericEvent{Object: oldSecret}) {
+		t.Fatal("generic Secret events must not trigger reconciliation")
+	}
+
+	configMap := &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Name: "logging-fluentd", Namespace: "logging"}}
+	if predicate.Create(event.CreateEvent{Object: configMap}) {
+		t.Fatal("non-Secret objects must not trigger reconciliation")
+	}
 }

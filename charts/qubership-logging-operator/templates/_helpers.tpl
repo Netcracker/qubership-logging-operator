@@ -31,25 +31,6 @@ Create chart name and version as used by the chart label.
   {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
-{{/*
-Add Authorization header if Bearer Token authorization enabled for http output in fluentd.
-*/}}
-{{- define "fluentd.output.http.headers" -}}
-{{- $http := .Values.fluentd.output.http -}}
-{{- $headers := dict }}
-{{- if $http.headers }}
-  {{- $headers = $http.headers }}
-{{- else }}
-  {{- $headers := dict "VL-Msg-Field" "log" "VL-Time-Field" "time" "VL-Stream-Fields" "stream" }}
-{{- end }}
-{{- if and $http.auth $http.auth.token $http.auth.token.name $http.auth.token.key }}
-  {{- $_ := set $headers "Authorization" "Bearer #{ENV['HTTP_TOKEN']}" }}
-{{- else if and $http.auth $http.auth.credentials $http.auth.credentials.token }}
-  {{- $_ := set $headers "Authorization" "Bearer #{ENV['HTTP_TOKEN']}" }}
-{{- end }}
-{{- toYaml $headers }}
-{{- end -}}
-
 {{/* Base resource labels: pass full chart context as ., or dict with "ctx" and optional "name" / "component". */}}
 {{- define "logging.labels" -}}
 {{- $ctx := index . "ctx" | default . -}}

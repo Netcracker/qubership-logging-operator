@@ -32,7 +32,31 @@ func (r *FluentdReconciler) handleConfigSecret(cr *loggingService.LoggingService
 		return err
 	}
 
+	if err = r.deleteLegacyConfigMap(cr); err != nil {
+		r.Log.Error(err, fmt.Sprintf("Cannot delete the legacy config map %s", util.FluentdComponentName))
+		return err
+	}
+
 	return nil
+}
+
+// deleteLegacyConfigMap removes the ConfigMap that stored the FluentD configuration
+// before it moved into the configuration Secret. Releases upgraded from those versions
+// would otherwise keep an orphaned copy of the old configuration in the namespace.
+func (r *FluentdReconciler) deleteLegacyConfigMap(cr *loggingService.LoggingService) error {
+	e := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      util.FluentdComponentName,
+			Namespace: cr.GetNamespace(),
+		},
+	}
+	if err := r.GetResource(e); err != nil {
+		if errors.IsNotFound(err) {
+			return nil
+		}
+		return err
+	}
+	return r.DeleteResource(e)
 }
 
 func (r *FluentdReconciler) resolveOutputCredentials(cr *loggingService.LoggingService) (outputCredentials, error) {
@@ -160,7 +184,7 @@ func (r *FluentdReconciler) deleteConfigSecret(cr *loggingService.LoggingService
 	if err := r.DeleteResource(e); err != nil {
 		return err
 	}
-	return nil
+	return r.deleteLegacyConfigMap(cr)
 }
 
 func (r *FluentdReconciler) deleteService(cr *loggingService.LoggingService) error {

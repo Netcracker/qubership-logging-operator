@@ -241,12 +241,27 @@ func authReferencesSecret(auth *loggingService.Auth, secretName string) bool {
 		(auth.Password != nil && auth.Password.Name == secretName)
 }
 
+// credentialSecretChangedPredicate keeps only the Secret events that can change a
+// generated FluentD configuration: creation of a referenced Secret, deletion of one,
+// and updates that touch the Secret data. Metadata-only updates and generic events are
+// dropped so that unrelated Secrets in the namespace do not trigger a reconcile.
 func credentialSecretChangedPredicate() predicate.Predicate {
 	return predicate.Funcs{
+		CreateFunc: func(e event.CreateEvent) bool {
+			_, ok := e.Object.(*corev1.Secret)
+			return ok
+		},
+		DeleteFunc: func(e event.DeleteEvent) bool {
+			_, ok := e.Object.(*corev1.Secret)
+			return ok
+		},
 		UpdateFunc: func(e event.UpdateEvent) bool {
 			oldSecret, oldOK := e.ObjectOld.(*corev1.Secret)
 			newSecret, newOK := e.ObjectNew.(*corev1.Secret)
 			return oldOK && newOK && !reflect.DeepEqual(oldSecret.Data, newSecret.Data)
+		},
+		GenericFunc: func(event.GenericEvent) bool {
+			return false
 		},
 	}
 }

@@ -3,6 +3,7 @@ package utils
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	loggingService "github.com/Netcracker/qubership-logging-operator/api/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -69,4 +70,16 @@ func (r *ComponentReconciler) ResolveAuthValues(namespace string, auth *loggingS
 		}
 	}
 	return values, nil
+}
+
+// FluentdQuote renders a value as a single-quoted FluentD string literal.
+//
+// FluentD evaluates embedded Ruby expressions (#{...}) inside double-quoted
+// strings, so a credential containing that sequence would either break the
+// configuration or run arbitrary code in the FluentD process. Single-quoted
+// literals are taken verbatim and recognize only the \' and \\ escapes.
+func FluentdQuote(value string) string {
+	escaped := strings.ReplaceAll(value, `\`, `\\`)
+	escaped = strings.ReplaceAll(escaped, `'`, `\'`)
+	return "'" + escaped + "'"
 }

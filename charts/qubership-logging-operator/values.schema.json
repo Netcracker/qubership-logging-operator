@@ -16,6 +16,10 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "description": "Schema for Logging Service values configuration",
     "properties": {
+        "CLOUD_PUBLIC_HOST": {
+            "description": "Public DNS suffix used to generate component hosts when an explicit host is not set.",
+            "type": "string"
+        },
         "affinity": {
             "description": "Pod's scheduling constraints. More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#affinity-v1-core",
             "type": "object"

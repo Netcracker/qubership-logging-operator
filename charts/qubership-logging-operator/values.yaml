@@ -11,6 +11,9 @@ createClusterAdminEntities: true
 # -- Cloud address. Openshift cloud may require to set the current host address.
 cloudURL: "https://kubernetes.default.svc"
 
+# -- Public DNS suffix used to generate component hosts when an explicit host is not set.
+CLOUD_PUBLIC_HOST: ""
+
 # -- Operating system kind on cloud nodes: centos/rhel/oracle/ubuntu
 osKind: centos
 

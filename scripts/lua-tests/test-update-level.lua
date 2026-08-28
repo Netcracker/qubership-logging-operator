@@ -131,14 +131,16 @@ local function normalize_levels(level)
       detected = "error"
     end
   else
-    return "info", "info", true
+    return normalized, detected, true
   end
 
   return normalized, detected, false
 end
 
 function update_level(tag, timestamp, record)
-  record["source_level"] = record["level"]
+  if record["source_level"] == nil then
+    record["source_level"] = record["level"] or ""
+  end
   local level_unknown
   record["level"], record["detected_level"], level_unknown = normalize_levels(record["level"])
   if level_unknown then

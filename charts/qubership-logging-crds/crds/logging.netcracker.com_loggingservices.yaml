@@ -5624,6 +5624,55 @@ spec:
                     type: object
                   customOutputConf:
                     type: string
+                  db:
+                    description: DB contains settings of the SQLite database which
+                      the input plugins use to keep the read offsets
+                    properties:
+                      enabled:
+                        description: |-
+                          Enabled defines whether the input plugins keep the read offsets in the database file.
+                          Disabling it removes all the database writes to the storage, but Fluentbit loses the read offsets
+                          on the restart. Every input then starts from the position set by its own Read_from_Head
+                          or Read_from_Tail option: the container log inputs re-read the existing records, and the system
+                          and audit log inputs skip the records written while Fluentbit was down. Enabled by default.
+                        type: boolean
+                      journalMode:
+                        description: |-
+                          JournalMode sets the journal mode of the database. Allowed values are
+                          "wal", "delete", "truncate", "persist", "memory" and "off" in the lower or the upper case.
+                        enum:
+                        - wal
+                        - delete
+                        - truncate
+                        - persist
+                        - memory
+                        - "off"
+                        - WAL
+                        - DELETE
+                        - TRUNCATE
+                        - PERSIST
+                        - MEMORY
+                        - "OFF"
+                        type: string
+                      locking:
+                        description: Locking sets the exclusive access mode to the
+                          database file. Enabled by default.
+                        type: boolean
+                      sync:
+                        description: |-
+                          Sync sets the synchronization mode of the database. Allowed values are
+                          "off", "normal", "full" and "extra" in the lower or the upper case.
+                        enum:
+                        - "off"
+                        - normal
+                        - full
+                        - extra
+                        - "OFF"
+                        - NORMAL
+                        - FULL
+                        - EXTRA
+                        type: string
+                    type: object
                   dockerImage:
                     type: string
                   excludePath:
@@ -5632,6 +5681,12 @@ spec:
                     additionalProperties:
                       type: string
                     type: object
+                  flush:
+                    description: |-
+                      Flush is an interval in seconds to flush records to the outputs.
+                      Increasing the interval reduces the amount of produced chunks and, as a result, the disk load.
+                    minimum: 1
+                    type: integer
                   graylogHost:
                     type: string
                   graylogOutput:
@@ -5651,6 +5706,11 @@ spec:
                   logLevel:
                     type: string
                   memBufLimit:
+                    type: string
+                  memoryOnlyStateSizeLimit:
+                    description: |-
+                      MemoryOnlyStateSizeLimit limits the memory-backed volume that stores read offset databases for the
+                      "memory-only" profile. The default is "32Mi".
                     type: string
                   mockKubeData:
                     type: boolean
@@ -6113,6 +6173,17 @@ spec:
                     type: object
                   securityContextPrivileged:
                     type: boolean
+                  storageProfile:
+                    description: |-
+                      StorageProfile selects where Fluentbit keeps input read offsets and buffered logs.
+                      The default "memory-only" profile avoids writes to the node filesystem. The "persistent-offsets"
+                      profile stores read offsets on the node and buffers logs in memory. The "node-persistent" profile
+                      stores both read offsets and buffered logs on the node.
+                    enum:
+                    - memory-only
+                    - persistent-offsets
+                    - node-persistent
+                    type: string
                   systemAuditLogging:
                     type: boolean
                   systemLogType:

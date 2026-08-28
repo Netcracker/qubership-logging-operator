@@ -121,7 +121,7 @@ graylog:
   replicas: 1
 
   # -- A docker image of MongoDB to use for graylog deployment.
-  # mongodbImage: mongo:5.0.19
+  # mongodbImage: mongo:5.0.33
 
   # -- A docker image to initialize plugins for Graylog
   # initContainerDockerImage: ghcr.io/netcracker/graylog-plugins-init-container:main
@@ -662,7 +662,7 @@ fluentd:
 
   # -- A docker image to use for fluent daemon set.
   # renovate: datasource=github-releases depName=Netcracker/qubership-fluentd versioning=loose
-  # dockerImage: ghcr.io/netcracker/qubership-fluentd:1.19.2-2
+  # dockerImage: ghcr.io/netcracker/qubership-fluentd:1.19.3-1
 
   # -- If specified, the pod's scheduling constraints. Ref: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
   affinity: {}
@@ -791,7 +791,7 @@ fluentd:
 
   configmapReload:
     # -- A docker image for configmap-reload.
-    # dockerImage: ghcr.io/jimmidyson/configmap-reload:v0.13.1
+    # dockerImage: ghcr.io/jimmidyson/configmap-reload:v0.15.0
 
     # The resources describe to compute resource requests and limits for single Pods. Ref: https://kubernetes.io/docs/user-guide/compute-resources/
     resources:
@@ -1060,11 +1060,11 @@ fluentbit:
   install: false
 
   # -- A docker image to use for FluentBit daemon set.
-  # dockerImage: fluent/fluent-bit:3.0.6
+  # dockerImage: fluent/fluent-bit:5.1.0
 
   configmapReload:
     # -- A docker image to use for ConfigMap Reload daemon set.
-    # dockerImage: ghcr.io/jimmidyson/configmap-reload:v0.13.1
+    # dockerImage: ghcr.io/jimmidyson/configmap-reload:v0.15.0
 
     # The resources describe to compute resource requests and limits for single Pods.
     # Ref: https://kubernetes.io/docs/user-guide/compute-resources/
@@ -1125,6 +1125,40 @@ fluentbit:
   # -- The size limitation of backlog data
   # See storage.backlog.mem_limit in https://docs.fluentbit.io/manual/administration/buffering-and-storage#service-section-configuration
   memBufLimit: 5M
+
+  # -- The interval in seconds to flush records to the outputs.
+  # Increasing the interval reduces the amount of produced chunks and, as a result, the disk load.
+  # See Flush in https://docs.fluentbit.io/manual/administration/configuring-fluent-bit/classic-mode/configuration-file#config_section
+  flush: 5
+
+  # -- Selects where FluentBit stores read offsets and buffered logs.
+  # Allowed values are `memory-only`, `persistent-offsets`, and `node-persistent`.
+  # See the FluentBit storage profiles in docs/examples/fluentbit.md.
+  storageProfile: memory-only
+
+  # -- Sets the maximum size of the memory-backed volume that stores read offset databases for the `memory-only`
+  # profile. The volume consumes memory from the FluentBit container limit.
+  memoryOnlyStateSizeLimit: 32Mi
+
+  # -- Settings of the SQLite database which the input plugins use to keep the position of the read files
+  db:
+    # -- Defines whether the input plugins keep the read offsets in the database file.
+    # Disabling it removes all the database writes to the storage, but FluentBit loses the read offsets
+    # on the restart. Every input then starts from the position set by its own `Read_from_Head`
+    # or `Read_from_Tail` option: the container log inputs re-read the existing records,
+    # and the system and audit log inputs skip the records written while FluentBit was down.
+    enabled: true
+    # -- The journal mode of the database, one of `WAL`, `DELETE`, `TRUNCATE`, `PERSIST`, `MEMORY` or `OFF`.
+    # The `MEMORY` mode does not produce `.db-wal` files.
+    # Not applicable to the `systemd` input.
+    journalMode: memory
+    # -- The synchronization mode of the database, one of `off`, `normal`, `full` or `extra`.
+    # The `off` mode does not force the data to be flushed to the disk on every transaction.
+    sync: "off"
+    # -- Defines whether FluentBit acquires the exclusive access to the database file.
+    # The exclusive access reduces the amount of the produced writes.
+    # Not applicable to the `systemd` input.
+    locking: true
 
   # -- Adds additional custom fields/labels to every log message by using filter based on record_modifier plugin.
   # This filter works after all other filters except the custom filter.
@@ -1530,11 +1564,11 @@ fluentbit:
     install: false
 
     # -- A docker image to use for FluentBit aggregator deployment.
-    # dockerImage: fluent/fluent-bit:3.0.6
+    # dockerImage: fluent/fluent-bit:5.1.0
 
     configmapReload:
       # -- A docker image to use for FluentBit aggregator configmap reload sidecar.
-      # dockerImage: ghcr.io/jimmidyson/configmap-reload:v0.13.1
+      # dockerImage: ghcr.io/jimmidyson/configmap-reload:v0.15.0
 
       # -- The resources describe to compute resource requests and limits for single Pods.
       # Ref: https://kubernetes.io/docs/user-guide/compute-resources/

@@ -33,7 +33,7 @@ func fluentbitDaemonSet(cr *loggingService.LoggingService, dynamicParameters uti
 		}
 		util.SetLabelsForWorkload(&daemonSet, &daemonSet.Spec.Template.Labels, util.LabelInput{
 			Name:            daemonSet.GetName(),
-			Component:       "fluentbit",
+			Component:       util.ComponentBackend,
 			Instance:        util.GetInstanceLabel(daemonSet.GetName(), daemonSet.GetNamespace()),
 			Version:         util.GetTagFromImage(cr.Spec.Fluentbit.DockerImage),
 			Technology:      "c",
@@ -87,7 +87,7 @@ func fluentbitService(cr *loggingService.LoggingService, dynamicParameters util.
 	}
 	util.SetLabelsForResource(&service, util.LabelInput{
 		Name:            service.GetName(),
-		Component:       "fluentbit",
+		Component:       util.ComponentBackend,
 		ComponentLabels: cr.Spec.Fluentbit.Labels,
 	}, nil)
 	return &service, nil
@@ -144,7 +144,7 @@ func fluentbitConfigMap(cr *loggingService.LoggingService, dynamicParameters uti
 	}
 	util.SetLabelsForResource(&configMap, util.LabelInput{
 		Name:            util.FluentbitComponentName,
-		Component:       "fluentbit",
+		Component:       util.ComponentBackend,
 		ComponentLabels: cr.Spec.Fluentbit.Labels,
 	}, map[string]string{"k8s-app": "fluent-bit"})
 	return &configMap, nil

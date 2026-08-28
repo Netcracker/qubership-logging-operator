@@ -1170,6 +1170,56 @@
                     "description": "FluentBit custom output configuration.",
                     "type": "string"
                 },
+                "db": {
+                    "description": "Settings of the SQLite database which the input plugins use to keep the position of the read files.",
+                    "properties": {
+                        "enabled": {
+                            "default": true,
+                            "description": "Defines whether the input plugins keep the read offsets in the database file. Disabling it removes all the database writes to the storage, but FluentBit loses the read offsets on the restart. Every input then starts from the position set by its own Read_from_Head or Read_from_Tail option: the container log inputs re-read the existing records, and the system and audit log inputs skip the records written while FluentBit was down.",
+                            "type": "boolean"
+                        },
+                        "journalMode": {
+                            "default": "memory",
+                            "description": "The journal mode of the database. Not applicable to the systemd input.",
+                            "enum": [
+                                "wal",
+                                "delete",
+                                "truncate",
+                                "persist",
+                                "memory",
+                                "off",
+                                "WAL",
+                                "DELETE",
+                                "TRUNCATE",
+                                "PERSIST",
+                                "MEMORY",
+                                "OFF"
+                            ],
+                            "type": "string"
+                        },
+                        "locking": {
+                            "default": true,
+                            "description": "Defines whether FluentBit acquires the exclusive access to the database file. Not applicable to the systemd input.",
+                            "type": "boolean"
+                        },
+                        "sync": {
+                            "default": "off",
+                            "description": "The synchronization mode of the database.",
+                            "enum": [
+                                "off",
+                                "normal",
+                                "full",
+                                "extra",
+                                "OFF",
+                                "NORMAL",
+                                "FULL",
+                                "EXTRA"
+                            ],
+                            "type": "string"
+                        }
+                    },
+                    "type": "object"
+                },
                 "dockerImage": {
                     "description": "A docker image to use for FluentBit daemon set.",
                     "type": "string"
@@ -1181,6 +1231,12 @@
                 "extraFields": {
                     "description": "Adds additional custom fields/labels to every log message by using filter based on record_modifier plugin.",
                     "type": "object"
+                },
+                "flush": {
+                    "default": 5,
+                    "description": "The interval in seconds to flush records to the outputs.",
+                    "minimum": 1,
+                    "type": "integer"
                 },
                 "graylogHost": {
                     "description": "Graylog host.",
@@ -1841,6 +1897,21 @@
                         }
                     },
                     "type": "object"
+                },
+                "storageProfile": {
+                    "default": "memory-only",
+                    "description": "Selects where FluentBit stores read offsets and buffered logs.",
+                    "enum": [
+                        "memory-only",
+                        "persistent-offsets",
+                        "node-persistent"
+                    ],
+                    "type": "string"
+                },
+                "memoryOnlyStateSizeLimit": {
+                    "default": "32Mi",
+                    "description": "Sets the maximum size of the memory-backed volume that stores read offset databases for the memory-only profile. The volume consumes memory from the FluentBit container limit.",
+                    "type": "string"
                 },
                 "systemAuditLogging": {
                     "default": true,

@@ -66,7 +66,7 @@ func fluentdConfigSecret(cr *loggingService.LoggingService, dynamicParameters ut
 	}
 	util.SetLabelsForResource(&secret, util.LabelInput{
 		Name:            util.FluentdComponentName,
-		Component:       "fluentd",
+		Component:       util.ComponentBackend,
 		ComponentLabels: cr.Spec.Fluentd.Labels,
 	}, nil)
 	return &secret, nil
@@ -85,7 +85,7 @@ func fluentdDaemonSet(cr *loggingService.LoggingService, dynamicParameters util.
 	if cr.Spec.Fluentd != nil {
 		util.SetLabelsForWorkload(&daemonSet, &daemonSet.Spec.Template.Labels, util.LabelInput{
 			Name:            daemonSet.GetName(),
-			Component:       "fluentd",
+			Component:       util.ComponentBackend,
 			Instance:        util.GetInstanceLabel(daemonSet.GetName(), daemonSet.GetNamespace()),
 			Version:         util.GetTagFromImage(cr.Spec.Fluentd.DockerImage),
 			Technology:      "ruby",
@@ -137,7 +137,7 @@ func fluentdService(cr *loggingService.LoggingService, dynamicParameters util.Dy
 	}
 	util.SetLabelsForResource(&service, util.LabelInput{
 		Name:            service.GetName(),
-		Component:       "fluentd",
+		Component:       util.ComponentBackend,
 		ComponentLabels: cr.Spec.Fluentd.Labels,
 	}, nil)
 	return &service, nil

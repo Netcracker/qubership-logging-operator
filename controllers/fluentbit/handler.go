@@ -6,7 +6,6 @@ import (
 
 	loggingService "github.com/Netcracker/qubership-logging-operator/api/v1"
 	util "github.com/Netcracker/qubership-logging-operator/controllers/utils"
-	"github.com/google/go-cmp/cmp"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -90,9 +89,14 @@ func (r *FluentbitReconciler) handleConfigSecret(cr *loggingService.LoggingServi
 		return err
 	}
 
-	_, err = r.CreateOrUpdate(cr, secret)
+	_, err = r.CreateOrUpdateConfigSecret(cr, secret)
 	if err != nil {
 		r.Log.Error(err, fmt.Sprintf("Cannot create or update config secret %s", secret.Name))
+		return err
+	}
+
+	if err = r.DeleteLegacyConfigMap(cr.GetNamespace(), util.FluentbitComponentName); err != nil {
+		r.Log.Error(err, fmt.Sprintf("Cannot delete the legacy config map %s", util.FluentbitComponentName))
 		return err
 	}
 
@@ -107,28 +111,19 @@ func (r *FluentbitReconciler) resolveOutputCredentials(cr *loggingService.Loggin
 	if cr.Spec.Fluentbit == nil || cr.Spec.Fluentbit.Output == nil {
 		return credentials, nil
 	}
-	namespace := cr.GetNamespace()
 	output := cr.Spec.Fluentbit.Output
-	if output.Loki != nil && output.Loki.Enabled && output.Loki.Auth != nil {
-		values, err := r.ResolveAuthValues(namespace, output.Loki.Auth)
-		if err != nil {
-			return outputCredentials{}, err
-		}
-		credentials.Loki = values
+	outputs := make([]util.OutputAuth, 0, 3)
+	if output.Loki != nil {
+		outputs = append(outputs, util.OutputAuth{Values: &credentials.Loki, Enabled: output.Loki.Enabled, Auth: output.Loki.Auth})
 	}
-	if output.Http != nil && output.Http.Enabled && output.Http.Auth != nil {
-		values, err := r.ResolveAuthValues(namespace, output.Http.Auth)
-		if err != nil {
-			return outputCredentials{}, err
-		}
-		credentials.Http = values
+	if output.Http != nil {
+		outputs = append(outputs, util.OutputAuth{Values: &credentials.Http, Enabled: output.Http.Enabled, Auth: output.Http.Auth})
 	}
-	if output.Otel != nil && output.Otel.Enabled && output.Otel.Auth != nil {
-		values, err := r.ResolveAuthValues(namespace, output.Otel.Auth)
-		if err != nil {
-			return outputCredentials{}, err
-		}
-		credentials.Otel = values
+	if output.Otel != nil {
+		outputs = append(outputs, util.OutputAuth{Values: &credentials.Otel, Enabled: output.Otel.Enabled, Auth: output.Otel.Auth})
+	}
+	if err := r.ResolveFluentbitOutputAuth(cr.GetNamespace(), outputs...); err != nil {
+		return outputCredentials{}, err
 	}
 	return credentials, nil
 }
@@ -188,35 +183,4 @@ func (r *FluentbitReconciler) deleteService(cr *loggingService.LoggingService) e
 		return err
 	}
 	return nil
-}
-
-func (r *FluentbitReconciler) Equal(source, target *corev1.Secret) bool {
-	return cmp.Equal(source.Data, target.Data)
-}
-
-func (r *FluentbitReconciler) CreateOrUpdate(cr *loggingService.LoggingService, secret *corev1.Secret) (created bool, err error) {
-	if err = r.CreateResource(cr, secret); err != nil {
-		if errors.IsAlreadyExists(err) {
-			existedSecret := &corev1.Secret{ObjectMeta: secret.ObjectMeta}
-			if err = r.GetResource(existedSecret); err != nil {
-				return false, err
-			}
-
-			if !r.Equal(existedSecret, secret) {
-				secret.SetResourceVersion(existedSecret.GetResourceVersion())
-				if err = r.UpdateResource(secret); err != nil {
-					return false, err
-				}
-
-				return true, nil
-			}
-
-			r.Log.Info("The config secret is not changed")
-			return false, nil
-		}
-
-		return false, err
-	}
-
-	return true, nil
 }

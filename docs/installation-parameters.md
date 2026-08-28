@@ -924,6 +924,11 @@ Fluent Bit output authentication values are read from the referenced Kubernetes 
 generated Fluent Bit configuration Secret. The operator watches these credential Secrets and regenerates the
 configuration after their data changes.
 
+Each credential is rendered into a single configuration directive, so a value must not contain a line break, a NUL
+byte, or the `${` sequence that Fluent Bit expands as an environment variable reference. The operator rejects such a
+value and reports the offending Secret and key instead of writing a broken configuration. Watch for the trailing
+newline that `kubectl create secret --from-file` adds; use `--from-literal` or `printf` without a trailing newline.
+
 Examples:
 
 **Note:** This is only an example of the parameters format, not a recommended value.
@@ -1289,6 +1294,8 @@ fluentbit:
 Fluent Bit aggregator output authentication values are read from the referenced Kubernetes Secrets and written
 only to the generated Fluent Bit aggregator configuration Secret. The operator watches these credential Secrets
 and regenerates the configuration after their data changes.
+
+The credential value restrictions of the Fluent Bit outputs apply to the aggregator outputs as well.
 
 Examples:
 
@@ -1705,6 +1712,11 @@ fluentd:
 FluentD output authentication values are read from the referenced Kubernetes Secrets and written only to the generated
 FluentD configuration Secret. The operator watches these credential Secrets and regenerates the configuration after
 their data changes.
+
+Each credential is rendered into a single configuration directive, so a value must not contain a line break or a NUL
+byte. The operator rejects such a value and reports the offending Secret and key instead of writing a broken
+configuration. Watch for the trailing newline that `kubectl create secret --from-file` adds; use `--from-literal` or
+`printf` without a trailing newline.
 
 Examples:
 

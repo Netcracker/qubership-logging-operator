@@ -10,6 +10,7 @@ import (
 	util "github.com/Netcracker/qubership-logging-operator/controllers/utils"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -139,40 +140,6 @@ func newTestFluentbitReconciler() *FluentbitReconciler {
 	}
 }
 
-func TestFluentbitEqual(t *testing.T) {
-	r := newTestFluentbitReconciler()
-
-	t.Run("same data returns true", func(t *testing.T) {
-		a := &corev1.Secret{Data: map[string][]byte{"key": []byte("value")}}
-		b := &corev1.Secret{Data: map[string][]byte{"key": []byte("value")}}
-		if !r.Equal(a, b) {
-			t.Error("expected equal for same data")
-		}
-	})
-
-	t.Run("different data returns false", func(t *testing.T) {
-		a := &corev1.Secret{Data: map[string][]byte{"key": []byte("value1")}}
-		b := &corev1.Secret{Data: map[string][]byte{"key": []byte("value2")}}
-		if r.Equal(a, b) {
-			t.Error("expected not equal for different data")
-		}
-	})
-
-	t.Run("different labels still returns true (fluentbit ignores labels)", func(t *testing.T) {
-		a := &corev1.Secret{
-			ObjectMeta: metav1.ObjectMeta{Labels: map[string]string{"env": "prod"}},
-			Data:       map[string][]byte{"key": []byte("value")},
-		}
-		b := &corev1.Secret{
-			ObjectMeta: metav1.ObjectMeta{Labels: map[string]string{"env": "dev"}},
-			Data:       map[string][]byte{"key": []byte("value")},
-		}
-		if !r.Equal(a, b) {
-			t.Error("fluentbit Equal should ignore labels, but it didn't")
-		}
-	})
-}
-
 // Verifies that resolveOutputCredentials correctly resolves Auth references
 // (SecretKeySelector for username/password/token) into actual values from a Kubernetes
 // Secret, and that these values are inlined into the rendered config Secret
@@ -268,7 +235,7 @@ func TestCreateOrUpdateConfigSecret(t *testing.T) {
 		Data:       map[string][]byte{"fluent-bit.conf": []byte("new")},
 	}
 
-	updated, err := reconciler.CreateOrUpdate(cr, desired)
+	updated, err := reconciler.CreateOrUpdateConfigSecret(cr, desired)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -281,5 +248,52 @@ func TestCreateOrUpdateConfigSecret(t *testing.T) {
 	}
 	if string(actual.Data["fluent-bit.conf"]) != "new" {
 		t.Fatalf("unexpected Secret data: %q", actual.Data["fluent-bit.conf"])
+	}
+}
+
+// Upgrades from releases that stored the Fluent Bit configuration in a ConfigMap must
+// not leave that ConfigMap behind, because nothing reads or deletes it afterwards.
+func TestHandleConfigSecretRemovesLegacyConfigMap(t *testing.T) {
+	scheme := runtime.NewScheme()
+	if err := corev1.AddToScheme(scheme); err != nil {
+		t.Fatal(err)
+	}
+	if err := loggingService.AddToScheme(scheme); err != nil {
+		t.Fatal(err)
+	}
+	legacy := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{Name: util.FluentbitComponentName, Namespace: "logging"},
+		Data:       map[string]string{"fluent-bit.conf": "old"},
+	}
+	fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithObjects(legacy).Build()
+	reconciler := &FluentbitReconciler{
+		ComponentReconciler: &util.ComponentReconciler{
+			Client: fakeClient,
+			Scheme: scheme,
+			Log:    util.Logger("test-fluentbit"),
+		},
+	}
+	cr := &loggingService.LoggingService{
+		TypeMeta:   metav1.TypeMeta{APIVersion: loggingService.GroupVersion.String(), Kind: "LoggingService"},
+		ObjectMeta: metav1.ObjectMeta{Name: "logging-service", Namespace: "logging", UID: "test-uid"},
+		Spec: loggingService.LoggingServiceSpec{
+			Fluentbit: &loggingService.Fluentbit{ContainerLogging: true},
+		},
+	}
+
+	if err := reconciler.handleConfigSecret(cr); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := fakeClient.Get(t.Context(), client.ObjectKeyFromObject(legacy), &corev1.ConfigMap{}); !errors.IsNotFound(err) {
+		t.Fatalf("the legacy ConfigMap must be deleted, got error %v", err)
+	}
+	configSecret := &corev1.Secret{}
+	key := types.NamespacedName{Name: util.FluentbitComponentName, Namespace: "logging"}
+	if err := fakeClient.Get(t.Context(), key, configSecret); err != nil {
+		t.Fatalf("the config Secret must be created: %v", err)
+	}
+	if len(configSecret.Data["fluent-bit.conf"]) == 0 {
+		t.Error("the config Secret must carry the rendered configuration")
 	}
 }

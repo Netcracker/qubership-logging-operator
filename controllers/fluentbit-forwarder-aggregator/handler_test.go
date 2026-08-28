@@ -10,6 +10,7 @@ import (
 	util "github.com/Netcracker/qubership-logging-operator/controllers/utils"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	api_errors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -389,7 +390,7 @@ func TestUpdateSecret(t *testing.T) {
 		Data:       map[string][]byte{"fluent-bit.conf": []byte("new")},
 	}
 
-	updated, err := reconciler.updateSecret(cr, desired)
+	updated, err := reconciler.CreateOrUpdateConfigSecret(cr, desired)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -402,5 +403,51 @@ func TestUpdateSecret(t *testing.T) {
 	}
 	if string(actual.Data["fluent-bit.conf"]) != "new" {
 		t.Fatalf("unexpected Secret data: %q", actual.Data["fluent-bit.conf"])
+	}
+}
+
+// Upgrades from releases that stored the aggregator configuration in a ConfigMap must
+// not leave that ConfigMap behind, because nothing reads or deletes it afterwards.
+func TestHandleAggregatorConfigSecretRemovesLegacyConfigMap(t *testing.T) {
+	scheme := runtime.NewScheme()
+	if err := corev1.AddToScheme(scheme); err != nil {
+		t.Fatal(err)
+	}
+	if err := loggingService.AddToScheme(scheme); err != nil {
+		t.Fatal(err)
+	}
+	legacy := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{Name: util.AggregatorFluentbitComponentName, Namespace: "logging"},
+		Data:       map[string]string{"fluent-bit.conf": "old"},
+	}
+	fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithObjects(legacy).Build()
+	reconciler := &HAFluentReconciler{
+		ComponentReconciler: &util.ComponentReconciler{
+			Client: fakeClient,
+			Scheme: scheme,
+			Log:    util.Logger("test-ha-fluent"),
+		},
+	}
+	cr := &loggingService.LoggingService{
+		TypeMeta:   metav1.TypeMeta{APIVersion: loggingService.GroupVersion.String(), Kind: "LoggingService"},
+		ObjectMeta: metav1.ObjectMeta{Name: "logging-service", Namespace: "logging", UID: "test-uid"},
+		Spec: loggingService.LoggingServiceSpec{
+			Fluentbit: &loggingService.Fluentbit{
+				ContainerLogging: true,
+				Aggregator:       &loggingService.FluentbitAggregator{Install: true},
+			},
+		},
+	}
+
+	if err := reconciler.handleAggregatorConfigSecret(cr); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := fakeClient.Get(t.Context(), client.ObjectKeyFromObject(legacy), &corev1.ConfigMap{}); !api_errors.IsNotFound(err) {
+		t.Fatalf("the legacy ConfigMap must be deleted, got error %v", err)
+	}
+	key := types.NamespacedName{Name: util.AggregatorFluentbitComponentName, Namespace: "logging"}
+	if err := fakeClient.Get(t.Context(), key, &corev1.Secret{}); err != nil {
+		t.Fatalf("the config Secret must be created: %v", err)
 	}
 }

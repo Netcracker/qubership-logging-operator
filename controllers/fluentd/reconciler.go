@@ -68,6 +68,9 @@ func (r *FluentdReconciler) uninstall(cr *loggingService.LoggingService) {
 	if err := r.deleteConfigSecret(cr); err != nil {
 		r.Log.Error(err, "Can not delete configuration Secret")
 	}
+	if err := r.DeleteLegacyConfigMap(cr.GetNamespace(), util.FluentdComponentName); err != nil {
+		r.Log.Error(err, "Can not delete the legacy Config Map")
+	}
 	if err := r.deleteService(cr); err != nil {
 		r.Log.Error(err, "Can not delete Service")
 	}

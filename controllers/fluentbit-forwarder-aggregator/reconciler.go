@@ -101,6 +101,9 @@ func (r *HAFluentReconciler) uninstall(cr *loggingService.LoggingService) {
 	if err := r.deleteSecret(cr, util.AggregatorFluentbitComponentName); err != nil {
 		r.Log.Error(err, "Can not delete config Secret")
 	}
+	if err := r.DeleteLegacyConfigMap(cr.GetNamespace(), util.AggregatorFluentbitComponentName); err != nil {
+		r.Log.Error(err, "Can not delete the legacy Config Map")
+	}
 	if err := r.deleteService(cr, util.AggregatorFluentbitComponentName); err != nil {
 		r.Log.Error(err, "Can not delete Service")
 	}

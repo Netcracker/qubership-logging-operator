@@ -632,6 +632,9 @@ spec:
     {{- if .Values.fluentbit.storageType }}
     storageType: {{ .Values.fluentbit.storageType }}
     {{- end }}
+    {{- if .Values.fluentbit.inputMemBufLimit }}
+    inputMemBufLimit: {{ .Values.fluentbit.inputMemBufLimit }}
+    {{- end }}
     {{- if .Values.fluentbit.db }}
     db:
       {{- if not (kindIs "invalid" .Values.fluentbit.db.enabled) }}

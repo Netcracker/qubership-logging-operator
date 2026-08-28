@@ -954,6 +954,21 @@ The &ldquo;filesystem&rdquo; type buffers chunks on the node disk and produces a
 </tr>
 <tr>
 <td>
+<code>inputMemBufLimit</code><br/>
+<em>
+string
+</em>
+</td>
+<td>
+<p>InputMemBufLimit is the amount of memory a single input plugin may hold for the records
+which are not flushed to the outputs yet. The input pauses reading when it reaches the limit.
+Size it so that the sum over the enabled inputs fits into the container memory limit together
+with the emitter buffers of the multiline filters and the base memory footprint of Fluentbit.
+See Mem_Buf_Limit in <a href="https://docs.fluentbit.io/manual/pipeline/inputs/tail">https://docs.fluentbit.io/manual/pipeline/inputs/tail</a></p>
+</td>
+</tr>
+<tr>
+<td>
 <code>db</code><br/>
 <em>
 <a href="#logging.netcracker.com/v1.FluentbitDB">

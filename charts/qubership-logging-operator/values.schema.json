@@ -1256,6 +1256,11 @@
                     "description": "Graylog protocol: tcp/udp/etc",
                     "type": "string"
                 },
+                "inputMemBufLimit": {
+                    "default": "10M",
+                    "description": "The amount of memory a single input plugin may hold for the records which are not flushed to the outputs yet. The input pauses reading when it reaches the limit.",
+                    "type": "string"
+                },
                 "install": {
                     "description": "Allow disabling create FluentBit during deploy",
                     "type": "boolean"
@@ -1272,7 +1277,7 @@
                 },
                 "memBufLimit": {
                     "default": "5M",
-                    "description": "The size limitation of backlog data",
+                    "description": "The size limitation of backlog data. It applies to the chunks left on the disk by the previous run, so it takes effect only together with storageType: filesystem.",
                     "type": "string"
                 },
                 "multilineFirstLineRegexp": {

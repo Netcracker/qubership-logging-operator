@@ -267,6 +267,12 @@ type Fluentbit struct {
 	// The "filesystem" type buffers chunks on the node disk and produces a lot of writes to the storage.
 	// +kubebuilder:validation:Enum=memory;filesystem
 	StorageType string `json:"storageType,omitempty"`
+	// InputMemBufLimit is the amount of memory a single input plugin may hold for the records
+	// which are not flushed to the outputs yet. The input pauses reading when it reaches the limit.
+	// Size it so that the sum over the enabled inputs fits into the container memory limit together
+	// with the emitter buffers of the multiline filters and the base memory footprint of Fluentbit.
+	// See Mem_Buf_Limit in https://docs.fluentbit.io/manual/pipeline/inputs/tail
+	InputMemBufLimit string `json:"inputMemBufLimit,omitempty"`
 	// DB contains settings of the SQLite database which the input plugins use to keep the read offsets
 	DB FluentbitDB `json:"db,omitempty"`
 }

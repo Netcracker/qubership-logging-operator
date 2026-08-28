@@ -843,6 +843,15 @@ true
 			<td>Graylog protocol: tcp/udp/etc</td>
 		</tr>
 		<tr>
+			<td>fluentbit.inputMemBufLimit</td>
+			<td>string</td>
+			<td><pre lang="json">
+"10M"
+</pre>
+</td>
+			<td>The amount of memory a single input plugin may hold for the records which are not flushed to the outputs yet. The input pauses reading when it reaches the limit. Size it so that the sum over the enabled inputs fits into `resources.limits.memory` together with the emitter buffers of the multiline filters and the base memory footprint of FluentBit. See Mem_Buf_Limit in https://docs.fluentbit.io/manual/pipeline/inputs/tail</td>
+		</tr>
+		<tr>
 			<td>fluentbit.install</td>
 			<td>bool</td>
 			<td><pre lang="json">
@@ -876,7 +885,7 @@ true
 "5M"
 </pre>
 </td>
-			<td>The size limitation of backlog data See storage.backlog.mem_limit in https://docs.fluentbit.io/manual/administration/buffering-and-storage#service-section-configuration</td>
+			<td>The size limitation of backlog data. It applies to the chunks left on the disk by the previous run, so it takes effect only together with `storageType: filesystem`. It does not limit the input plugins; use `inputMemBufLimit` for that. See storage.backlog.mem_limit in https://docs.fluentbit.io/manual/administration/buffering-and-storage#service-section-configuration</td>
 		</tr>
 		<tr>
 			<td>fluentbit.multilineFirstLineRegexp</td>
@@ -1282,7 +1291,7 @@ false
   },
   "requests": {
     "cpu": "50m",
-    "memory": "128Mi"
+    "memory": "256Mi"
   }
 }
 </pre>

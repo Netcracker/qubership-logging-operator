@@ -175,7 +175,7 @@ not set
 }
 </pre>
 </td>
-			<td>A docker image to use for FluentBit aggregator deployment. dockerImage: fluent/fluent-bit:3.0.6</td>
+			<td>A docker image to use for FluentBit aggregator deployment. dockerImage: fluent/fluent-bit:5.1.0</td>
 		</tr>
 		<tr>
 			<td>fluentbit.aggregator.configmapReload.resources</td>
@@ -691,7 +691,7 @@ false
 }
 </pre>
 </td>
-			<td>A docker image to use for FluentBit daemon set. dockerImage: fluent/fluent-bit:3.0.6</td>
+			<td>A docker image to use for FluentBit daemon set. dockerImage: fluent/fluent-bit:5.1.0</td>
 		</tr>
 		<tr>
 			<td>fluentbit.configmapReload.resources</td>
@@ -709,7 +709,7 @@ false
 }
 </pre>
 </td>
-			<td>A docker image to use for ConfigMap Reload daemon set. dockerImage: ghcr.io/jimmidyson/configmap-reload:v0.13.1 The resources describe to compute resource requests and limits for single Pods. Ref: https://kubernetes.io/docs/user-guide/compute-resources/</td>
+			<td>A docker image to use for ConfigMap Reload daemon set. dockerImage: ghcr.io/jimmidyson/configmap-reload:v0.15.0 The resources describe to compute resource requests and limits for single Pods. Ref: https://kubernetes.io/docs/user-guide/compute-resources/</td>
 		</tr>
 		<tr>
 			<td>fluentbit.containerLogging</td>
@@ -757,6 +757,56 @@ true
 			<td>FluentBit custom output configuration.</td>
 		</tr>
 		<tr>
+			<td>fluentbit.db</td>
+			<td>object</td>
+			<td><pre lang="json">
+{
+  "enabled": true,
+  "journalMode": "memory",
+  "locking": true,
+  "sync": "off"
+}
+</pre>
+</td>
+			<td>Settings of the SQLite database which the input plugins use to keep the position of the read files</td>
+		</tr>
+		<tr>
+			<td>fluentbit.db.enabled</td>
+			<td>bool</td>
+			<td><pre lang="json">
+true
+</pre>
+</td>
+			<td>Defines whether the input plugins keep the read offsets in the database file. Disabling it removes all the database writes to the storage, but FluentBit loses the read offsets on the restart. Every input then starts from the position set by its own `Read_from_Head` or `Read_from_Tail` option: the container log inputs re-read the existing records, and the system and audit log inputs skip the records written while FluentBit was down.</td>
+		</tr>
+		<tr>
+			<td>fluentbit.db.journalMode</td>
+			<td>string</td>
+			<td><pre lang="json">
+"memory"
+</pre>
+</td>
+			<td>The journal mode of the database, one of `WAL`, `DELETE`, `TRUNCATE`, `PERSIST`, `MEMORY` or `OFF`. The `MEMORY` mode does not produce `.db-wal` files. Not applicable to the `systemd` input.</td>
+		</tr>
+		<tr>
+			<td>fluentbit.db.locking</td>
+			<td>bool</td>
+			<td><pre lang="json">
+true
+</pre>
+</td>
+			<td>Defines whether FluentBit acquires the exclusive access to the database file. The exclusive access reduces the amount of the produced writes. Not applicable to the `systemd` input.</td>
+		</tr>
+		<tr>
+			<td>fluentbit.db.sync</td>
+			<td>string</td>
+			<td><pre lang="json">
+"off"
+</pre>
+</td>
+			<td>The synchronization mode of the database, one of `off`, `normal`, `full` or `extra`. The `off` mode does not force the data to be flushed to the disk on every transaction.</td>
+		</tr>
+		<tr>
 			<td>fluentbit.excludePath</td>
 			<td>string</td>
 			<td><pre lang="json">
@@ -764,6 +814,15 @@ true
 </pre>
 </td>
 			<td>Allow to exclude some logs of pods/containers</td>
+		</tr>
+		<tr>
+			<td>fluentbit.flush</td>
+			<td>int</td>
+			<td><pre lang="json">
+5
+</pre>
+</td>
+			<td>The interval in seconds to flush records to the outputs. Increasing the interval reduces the amount of produced chunks and, as a result, the disk load. See Flush in https://docs.fluentbit.io/manual/administration/configuring-fluent-bit/classic-mode/configuration-file#config_section</td>
 		</tr>
 		<tr>
 			<td>fluentbit.graylogOutput</td>
@@ -818,6 +877,15 @@ true
 </pre>
 </td>
 			<td>The size limitation of backlog data See storage.backlog.mem_limit in https://docs.fluentbit.io/manual/administration/buffering-and-storage#service-section-configuration</td>
+		</tr>
+		<tr>
+			<td>fluentbit.memoryOnlyStateSizeLimit</td>
+			<td>string</td>
+			<td><pre lang="json">
+"32Mi"
+</pre>
+</td>
+			<td>Sets the maximum size of the memory-backed volume that stores read offset databases for the `memory-only` profile. The volume consumes memory from the FluentBit container limit.</td>
 		</tr>
 		<tr>
 			<td>fluentbit.multilineFirstLineRegexp</td>
@@ -1252,6 +1320,15 @@ false
 			<td>Allow creating security resources as PodSecurityPolicy, SecurityContextConstraints</td>
 		</tr>
 		<tr>
+			<td>fluentbit.storageProfile</td>
+			<td>string</td>
+			<td><pre lang="json">
+"memory-only"
+</pre>
+</td>
+			<td>Selects where FluentBit stores read offsets and buffered logs. Allowed values are `memory-only`, `persistent-offsets`, and `node-persistent`. See the FluentBit storage profiles in docs/examples/fluentbit.md.</td>
+		</tr>
+		<tr>
 			<td>fluentbit.systemAuditLogging</td>
 			<td>bool</td>
 			<td><pre lang="json">
@@ -1391,7 +1468,7 @@ not set
 }
 </pre>
 </td>
-			<td>A docker image for configmap-reload. dockerImage: ghcr.io/jimmidyson/configmap-reload:v0.13.1 The resources describe to compute resource requests and limits for single Pods. Ref: https://kubernetes.io/docs/user-guide/compute-resources/</td>
+			<td>A docker image for configmap-reload. dockerImage: ghcr.io/jimmidyson/configmap-reload:v0.15.0 The resources describe to compute resource requests and limits for single Pods. Ref: https://kubernetes.io/docs/user-guide/compute-resources/</td>
 		</tr>
 		<tr>
 			<td>fluentd.containerLogging</td>

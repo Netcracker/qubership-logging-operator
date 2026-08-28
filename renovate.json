@@ -1,28 +1,15 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended",
-    "schedule:weekly"
-  ],
-  "labels": [
-    "dependencies"
+    "github>Netcracker/renovate-config:base",
+    "github>Netcracker/renovate-config:github-actions",
+    "github>Netcracker/renovate-config:go",
+    "github>Netcracker/renovate-config:netcracker-dependencies",
+    "github>Netcracker/renovate-config:annotated-versions"
   ],
   "prConcurrentLimit": 20,
-  "customManagers": [
-    {
-      "customType": "regex",
-      "description": "Update versions via inline renovate annotation comments",
-      "managerFilePatterns": [
-        "/controllers/fluentd/fluentd\\.configmap/conf\\.d/outputs/output-prometheus\\.conf/",
-        "/charts/qubership-logging-operator/templates/_helpers\\.tpl/",
-        "/charts/qubership-logging-operator/values\\.yaml/",
-        "/.github/workflows/integration-tests\\.yml/"
-      ],
-      "matchStrings": [
-        "# renovate: datasource=(?<datasource>[a-z-]+?) depName=(?<depName>[^\\s]+)(?: versioning=(?<versioning>[a-z-0-9]+))?[^\\n]*\\n[^\\n]*?(?<currentValue>[0-9][^\\s\"'\\n<]*)"
-      ],
-      "extractVersionTemplate": "^v?(?<version>.+)$"
-    }
+  "ignorePaths": [
+    "deploy/kind/helmfile.yaml.gotmpl"
   ],
   "packageRules": [
     {
@@ -45,6 +32,12 @@
       ],
       "ignoreUnstable": false,
       "groupName": "netcracker-deps"
+    },
+    {
+      "matchManagers": ["custom.regex"],
+      "matchPackageNames": ["graylog/graylog"],
+      "matchCurrentVersion": "/^5\\./",
+      "allowedVersions": ">=5.0.0 <6.0.0"
     },
     {
       "matchManagers": ["custom.regex"],
@@ -82,28 +75,17 @@
       "groupName": "third-party-images"
     },
     {
-      "matchManagers": ["github-actions"],
-      "groupName": "actions-deps",
-      "matchPackageNames": ["*"]
-    },
-    {
-      "matchManagers": ["gomod"],
-      "groupName": "k8s.io",
-      "matchPackageNames": ["k8s.io/{/,}**"]
-    },
-    {
-      "matchManagers": ["gomod"],
-      "groupName": "go.opentelemetry.io",
-      "matchPackageNames": ["go.opentelemetry.io/{/,}**"]
-    },
-    {
       "matchManagers": ["dockerfile"],
       "groupName": "docker-deps",
       "matchFileNames": [
-        "Dockerfile",
-        "tests/robot-tests/Dockerfile"
+        "Dockerfile"
       ],
-      "matchPackageNames": ["*"]
+      "matchPackageNames": [
+        "!golang",
+        "!docker.io/library/golang",
+        "!index.docker.io/library/golang",
+        "!registry-1.docker.io/library/golang"
+      ]
     }
   ]
 }

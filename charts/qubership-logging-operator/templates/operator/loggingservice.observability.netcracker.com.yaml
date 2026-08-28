@@ -626,6 +626,30 @@ spec:
     {{- if .Values.fluentbit.memBufLimit }}
     memBufLimit: {{ .Values.fluentbit.memBufLimit }}
     {{- end }}
+    {{- if .Values.fluentbit.flush }}
+    flush: {{ .Values.fluentbit.flush }}
+    {{- end }}
+    {{- if .Values.fluentbit.storageProfile }}
+    storageProfile: {{ .Values.fluentbit.storageProfile }}
+    {{- end }}
+    {{- if .Values.fluentbit.memoryOnlyStateSizeLimit }}
+    memoryOnlyStateSizeLimit: {{ .Values.fluentbit.memoryOnlyStateSizeLimit }}
+    {{- end }}
+    {{- if .Values.fluentbit.db }}
+    db:
+      {{- if not (kindIs "invalid" .Values.fluentbit.db.enabled) }}
+      enabled: {{ .Values.fluentbit.db.enabled }}
+      {{- end }}
+      {{- if .Values.fluentbit.db.journalMode }}
+      journalMode: {{ .Values.fluentbit.db.journalMode }}
+      {{- end }}
+      {{- if .Values.fluentbit.db.sync }}
+      sync: {{ .Values.fluentbit.db.sync | quote }}
+      {{- end }}
+      {{- if not (kindIs "invalid" .Values.fluentbit.db.locking) }}
+      locking: {{ .Values.fluentbit.db.locking }}
+      {{- end }}
+    {{- end }}
     {{- if .Values.fluentbit.totalLimitSize }}
     totalLimitSize: {{ .Values.fluentbit.totalLimitSize }}
     {{- end }}

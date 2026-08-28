@@ -204,8 +204,8 @@ func (r *LoggingServiceReconciler) SetupWithManager(mgr ctrl.Manager) error {
 }
 
 // mapSecretToLoggingServices enqueues a reconcile request for every LoggingService in the
-// changed Secret's namespace whose Fluent Bit output Auth references that Secret, so that
-// credential rotation is picked up without waiting for the next spec-driven reconcile.
+// changed Secret's namespace whose FluentD or Fluent Bit output Auth references that Secret,
+// so that credential rotation is picked up without waiting for the next spec-driven reconcile.
 func (r *LoggingServiceReconciler) mapSecretToLoggingServices(ctx context.Context, object client.Object) []reconcile.Request {
 	loggingServices := &loggingService.LoggingServiceList{}
 	if err := r.Client.List(ctx, loggingServices, client.InNamespace(object.GetNamespace())); err != nil {
@@ -216,7 +216,8 @@ func (r *LoggingServiceReconciler) mapSecretToLoggingServices(ctx context.Contex
 	requests := make([]reconcile.Request, 0, len(loggingServices.Items))
 	for i := range loggingServices.Items {
 		loggingServiceInstance := &loggingServices.Items[i]
-		if fluentbitReferencesSecret(loggingServiceInstance, object.GetName()) {
+		if fluentbitReferencesSecret(loggingServiceInstance, object.GetName()) ||
+			fluentdReferencesSecret(loggingServiceInstance, object.GetName()) {
 			requests = append(requests, reconcile.Request{
 				NamespacedName: client.ObjectKeyFromObject(loggingServiceInstance),
 			})
@@ -249,6 +250,18 @@ func outputReferencesSecret(output *loggingService.OutputFluentbit, secretName s
 		(output.Otel != nil && output.Otel.Enabled && authReferencesSecret(output.Otel.Auth, secretName))
 }
 
+// fluentdReferencesSecret reports whether a FluentD output has an Auth field pointing at
+// the given Secret.
+func fluentdReferencesSecret(cr *loggingService.LoggingService, secretName string) bool {
+	if cr.Spec.Fluentd == nil || cr.Spec.Fluentd.Output == nil {
+		return false
+	}
+
+	output := cr.Spec.Fluentd.Output
+	return (output.Loki != nil && output.Loki.Enabled && authReferencesSecret(output.Loki.Auth, secretName)) ||
+		(output.Http != nil && output.Http.Enabled && authReferencesSecret(output.Http.Auth, secretName))
+}
+
 func authReferencesSecret(auth *loggingService.Auth, secretName string) bool {
 	if auth == nil {
 		return false
@@ -258,15 +271,27 @@ func authReferencesSecret(auth *loggingService.Auth, secretName string) bool {
 		(auth.Password != nil && auth.Password.Name == secretName)
 }
 
-// credentialSecretChangedPredicate fires only when a Secret's Data changes, so that
-// unrelated metadata churn (labels, annotations, resourceVersion bumps) does not trigger
-// a Logging Service reconcile storm.
+// credentialSecretChangedPredicate keeps only the Secret events that can change a
+// generated component configuration: creation of a referenced Secret, deletion of one,
+// and updates that touch the Secret data. Metadata-only updates and generic events are
+// dropped so that unrelated Secrets in the namespace do not trigger a reconcile.
 func credentialSecretChangedPredicate() predicate.Predicate {
 	return predicate.Funcs{
+		CreateFunc: func(e event.CreateEvent) bool {
+			_, ok := e.Object.(*corev1.Secret)
+			return ok
+		},
+		DeleteFunc: func(e event.DeleteEvent) bool {
+			_, ok := e.Object.(*corev1.Secret)
+			return ok
+		},
 		UpdateFunc: func(e event.UpdateEvent) bool {
 			oldSecret, oldOK := e.ObjectOld.(*corev1.Secret)
 			newSecret, newOK := e.ObjectNew.(*corev1.Secret)
 			return oldOK && newOK && !reflect.DeepEqual(oldSecret.Data, newSecret.Data)
+		},
+		GenericFunc: func(event.GenericEvent) bool {
+			return false
 		},
 	}
 }

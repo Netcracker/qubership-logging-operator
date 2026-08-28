@@ -17,8 +17,8 @@ graylog:
   contentDeployPolicy: force-update
 
   mongoUpgrade: true
-  mongoDBImage: mongo:5.0.19
+  mongoDBImage: mongo:5.0.33
   mongoDBUpgrade:
     mongoDBImage40: mongo:4.0.28
-    mongoDBImage42: mongo:4.2.22
-    mongoDBImage44: mongo:4.4.17
+    mongoDBImage42: mongo:4.2.24
+    mongoDBImage44: mongo:4.4.30

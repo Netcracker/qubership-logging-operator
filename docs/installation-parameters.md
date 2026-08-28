@@ -198,12 +198,12 @@ graylog:
       memory: 256Mi
 
   # MongoDB sidecar settings
-  mongoDBImage: mongo:5.0.31
+  mongoDBImage: mongo:5.0.33
   mongoUpgrade: true
   mongoDBUpgrade:
     mongoDBImage40: mongo:4.0.28
-    mongoDBImage42: mongo:4.2.22
-    mongoDBImage44: mongo:4.4.17
+    mongoDBImage42: mongo:4.2.24
+    mongoDBImage44: mongo:4.4.30
   mongoPersistentVolume: pv-mongodb
   mongoStorageClassName: cinder
   mongoResources:
@@ -831,6 +831,13 @@ fluentbit:
 | `containerLogging`                | boolean                                                                                                                           | no        | `true`                                                                                          | Enables input for container logs from `/var/logs/containers` for Docker or `/var/log/pods` for other engines.                                                                            |
 | `totalLimitSize`                  | string                                                                                                                            | no        | `1024M`                                                                                         | The size limitation of output buffer                                                                                                                                                     |
 | `memBufLimit`                     | string                                                                                                                            | no        | `1024M`                                                                                         | Limit of allowed storage for chucks of logs before sending                                                                                                                               |
+| `flush`                           | integer                                                                                                                           | no        | `5`                                                                                             | The interval in seconds to flush records to the outputs. Increasing the interval reduces the amount of produced chunks and, as a result, the disk load.                                  |
+| `storageProfile`                  | string                                                                                                                            | no        | `memory-only`                                                                                   | Selects where FluentBit stores read offsets and buffered logs. Possible values: `memory-only`, `persistent-offsets`, `node-persistent`.                                                  |
+| `memoryOnlyStateSizeLimit`        | string                                                                                                                            | no        | `32Mi`                                                                                          | Sets the maximum size of the memory-backed volume that stores read offset databases for the `memory-only` profile. The volume consumes memory from the FluentBit container limit.        |
+| `db.enabled`                      | boolean                                                                                                                           | no        | `true`                                                                                          | Enables the SQLite database that stores the input read offsets. Without it FluentBit loses them on restart and each input starts at its `Read_from_Head` or `Read_from_Tail` position.   |
+| `db.journalMode`                  | string                                                                                                                            | no        | `memory`                                                                                        | The journal mode of the database. Possible values: `WAL`, `DELETE`, `TRUNCATE`, `PERSIST`, `MEMORY`, `OFF`. Not applicable to the `systemd` input.                                       |
+| `db.sync`                         | string                                                                                                                            | no        | `off`                                                                                           | The synchronization mode of the database. Possible values: `off`, `normal`, `full`, `extra`.                                                                                             |
+| `db.locking`                      | boolean                                                                                                                           | no        | `true`                                                                                          | Enables the exclusive access of FluentBit to the database file. Not applicable to the `systemd` input.                                                                                   |
 | `additionalVolumes`               | [core/v1.PersistentVolumeSpec](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#persistentvolumespec-v1-core) | no        | `{}`                                                                                            | Additional volumes for FluentBit                                                                                                                                                         |
 | `additionalVolumeMounts`          | [core/v1.VolumeMount](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#volumemount-v1-core)                   | no        | `{}`                                                                                            | Allows volume-mounts for FluentBit                                                                                                                                                       |
 | `securityResources.install`       | boolean                                                                                                                           | no        | `false`                                                                                         | Enables creating security resources as `PodSecurityPolicy`, `SecurityContextConstraints`                                                                                                 |
@@ -924,7 +931,7 @@ Examples:
 ```yaml
 fluentbit:
   install: true
-  dockerImage: fluent/fluent-bit:4.0.0
+  dockerImage: fluent/fluent-bit:5.1.0
 
   graylogOutput: true
   graylogHost: graylog.logging.svc
@@ -980,6 +987,14 @@ fluentbit:
 
   totalLimitSize: 1024M
   memBufLimit: 1024M
+  flush: 5
+  storageProfile: memory-only
+  memoryOnlyStateSizeLimit: 32Mi
+  db:
+    enabled: true
+    journalMode: memory
+    sync: "off"
+    locking: true
 
   # FluentBit additional volumes
   additionalVolumes:
@@ -1002,7 +1017,7 @@ Example of FluentBit configuration with Loki output enabled:
 ```yaml
 fluentbit:
   install: true
-  dockerImage: fluent/fluent-bit:4.0.0
+  dockerImage: fluent/fluent-bit:5.1.0
 
   graylogOutput: false
 
@@ -1063,7 +1078,7 @@ Example of FluentBit configuration with HTTP output enabled:
 ```yaml
 fluentbit:
   install: true
-  dockerImage: fluent/fluent-bit:4.0.0
+  dockerImage: fluent/fluent-bit:5.1.0
 
   graylogOutput: false
 
@@ -1107,7 +1122,7 @@ Example of FluentBit configuration with Opentelemetry output enabled:
 ```yaml
 fluentbit:
   install: true
-  dockerImage: fluent/fluent-bit:4.0.0
+  dockerImage: fluent/fluent-bit:5.1.0
 
   graylogOutput: false
 
@@ -1283,7 +1298,7 @@ Examples:
 fluentbit:
   aggregator:
     install: true
-    dockerImage: fluent/fluent-bit:4.0.0
+    dockerImage: fluent/fluent-bit:5.1.0
     replicas: 2
 
     tolerations:
@@ -1337,11 +1352,11 @@ Example of FluentBit HA configuration with Loki output enabled:
 ```yaml
 fluentbit:
   install: true
-  dockerImage: fluent/fluent-bit:4.0.0
+  dockerImage: fluent/fluent-bit:5.1.0
 
   aggregator:
     install: true
-    dockerImage: fluent/fluent-bit:4.0.0
+    dockerImage: fluent/fluent-bit:5.1.0
     replicas: 2
     graylogOutput: false
     output:
@@ -1401,11 +1416,11 @@ Example of FluentBit HA configuration with HTTP output enabled:
 ```yaml
 fluentbit:
   install: true
-  dockerImage: fluent/fluent-bit:4.0.0
+  dockerImage: fluent/fluent-bit:5.1.0
 
   aggregator:
     install: true
-    dockerImage: fluent/fluent-bit:4.0.0
+    dockerImage: fluent/fluent-bit:5.1.0
     replicas: 2
     graylogOutput: false
     output:
@@ -1449,11 +1464,11 @@ Example of FluentBit HA configuration with Opentelemetry output enabled:
 ```yaml
 fluentbit:
   install: true
-  dockerImage: fluent/fluent-bit:4.0.0
+  dockerImage: fluent/fluent-bit:5.1.0
 
   aggregator:
     install: true
-    dockerImage: fluent/fluent-bit:4.0.0
+    dockerImage: fluent/fluent-bit:5.1.0
     replicas: 2
     graylogOutput: false
     output:
@@ -1686,6 +1701,10 @@ fluentd:
 | `output.http.extraParams`               | string                                                                                                                            | no        | `-`                                                                              | Additional configuration parameters for Http output. Buffer can be configured here and other available parameters of FluentD Http output plugin. See all the parameters in [Fluentd Http Output Plugin](https://docs.fluentd.org/output/http)                                                          |
 
 <!-- markdownlint-enable line-length -->
+
+FluentD output authentication values are read from the referenced Kubernetes Secrets and written only to the generated
+FluentD configuration Secret. The operator watches these credential Secrets and regenerates the configuration after
+their data changes.
 
 Examples:
 

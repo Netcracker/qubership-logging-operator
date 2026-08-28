@@ -3,6 +3,7 @@ package utils
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	loggingService "github.com/Netcracker/qubership-logging-operator/api/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -28,8 +29,8 @@ func StringMapToByteMap(in map[string]string) map[string][]byte {
 
 // ResolveSecretKeyValue reads a single key from a Secret in the given namespace
 // and returns its value as a string. It is used to inline sensitive output
-// credentials into the generated Fluent Bit configuration Secret instead of
-// exposing them through environment variables.
+// credentials into the generated configuration Secret instead of exposing them
+// through environment variables.
 func (r *ComponentReconciler) ResolveSecretKeyValue(namespace string, selector *corev1.SecretKeySelector) (string, error) {
 	if selector == nil {
 		return "", nil
@@ -46,9 +47,9 @@ func (r *ComponentReconciler) ResolveSecretKeyValue(namespace string, selector *
 }
 
 // ResolveAuthValues resolves the Secrets referenced by an Auth block and returns
-// their plain values so they can be inlined into the generated Fluent Bit
-// configuration Secret instead of being exposed as environment variables. Nil
-// auth or nil selectors are skipped. The resolved values are never logged.
+// their plain values so they can be inlined into the generated configuration
+// Secret instead of being exposed as environment variables. Nil auth or nil
+// selectors are skipped. The resolved values are never logged.
 func (r *ComponentReconciler) ResolveAuthValues(namespace string, auth *loggingService.Auth) (AuthValues, error) {
 	if auth == nil {
 		return AuthValues{}, nil
@@ -76,4 +77,16 @@ func (r *ComponentReconciler) ResolveAuthValues(namespace string, auth *loggingS
 		}
 	}
 	return values, nil
+}
+
+// FluentdQuote renders a value as a single-quoted FluentD string literal.
+//
+// FluentD evaluates embedded Ruby expressions (#{...}) inside double-quoted
+// strings, so a credential containing that sequence would either break the
+// configuration or run arbitrary code in the FluentD process. Single-quoted
+// literals are taken verbatim and recognize only the \' and \\ escapes.
+func FluentdQuote(value string) string {
+	escaped := strings.ReplaceAll(value, `\`, `\\`)
+	escaped = strings.ReplaceAll(escaped, `'`, `\'`)
+	return "'" + escaped + "'"
 }

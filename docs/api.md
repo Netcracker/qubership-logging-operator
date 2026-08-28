@@ -928,6 +928,57 @@ OutputFluentbit
 <td>
 </td>
 </tr>
+<tr>
+<td>
+<code>flush</code><br/>
+<em>
+int
+</em>
+</td>
+<td>
+<p>Flush is an interval in seconds to flush records to the outputs.
+Increasing the interval reduces the amount of produced chunks and, as a result, the disk load.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>storageProfile</code><br/>
+<em>
+string
+</em>
+</td>
+<td>
+<p>StorageProfile selects where Fluentbit keeps input read offsets and buffered logs.
+The default &ldquo;memory-only&rdquo; profile avoids writes to the node filesystem. The &ldquo;persistent-offsets&rdquo;
+profile stores read offsets on the node and buffers logs in memory. The &ldquo;node-persistent&rdquo; profile
+stores both read offsets and buffered logs on the node.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>memoryOnlyStateSizeLimit</code><br/>
+<em>
+string
+</em>
+</td>
+<td>
+<p>MemoryOnlyStateSizeLimit limits the memory-backed volume that stores read offset databases for the
+&ldquo;memory-only&rdquo; profile. The default is &ldquo;32Mi&rdquo;.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>db</code><br/>
+<em>
+<a href="#logging.netcracker.com/v1.FluentbitDB">
+FluentbitDB
+</a>
+</em>
+</td>
+<td>
+<p>DB contains settings of the SQLite database which the input plugins use to keep the read offsets</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="logging.netcracker.com/v1.FluentbitAggregator">FluentbitAggregator
@@ -1248,6 +1299,76 @@ OutputFluentbit
 </em>
 </td>
 <td>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="logging.netcracker.com/v1.FluentbitDB">FluentbitDB
+</h3>
+<p>
+(<em>Appears on:</em><a href="#logging.netcracker.com/v1.Fluentbit">Fluentbit</a>)
+</p>
+<div>
+<p>FluentbitDB contains settings of the SQLite database which the Fluentbit input plugins
+use to keep the position of the read files.
+Details <a href="https://docs.fluentbit.io/manual/pipeline/inputs/tail">https://docs.fluentbit.io/manual/pipeline/inputs/tail</a></p>
+</div>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>enabled</code><br/>
+<em>
+bool
+</em>
+</td>
+<td>
+<p>Enabled defines whether the input plugins keep the read offsets in the database file.
+Disabling it removes all the database writes to the storage, but Fluentbit loses the read offsets
+on the restart. Every input then starts from the position set by its own Read_from_Head
+or Read_from_Tail option: the container log inputs re-read the existing records, and the system
+and audit log inputs skip the records written while Fluentbit was down. Enabled by default.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>journalMode</code><br/>
+<em>
+string
+</em>
+</td>
+<td>
+<p>JournalMode sets the journal mode of the database. Allowed values are
+&ldquo;wal&rdquo;, &ldquo;delete&rdquo;, &ldquo;truncate&rdquo;, &ldquo;persist&rdquo;, &ldquo;memory&rdquo; and &ldquo;off&rdquo; in the lower or the upper case.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>sync</code><br/>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Sync sets the synchronization mode of the database. Allowed values are
+&ldquo;off&rdquo;, &ldquo;normal&rdquo;, &ldquo;full&rdquo; and &ldquo;extra&rdquo; in the lower or the upper case.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>locking</code><br/>
+<em>
+bool
+</em>
+</td>
+<td>
+<p>Locking sets the exclusive access mode to the database file. Enabled by default.</p>
 </td>
 </tr>
 </tbody>
@@ -2826,6 +2947,16 @@ string
 <tr>
 <td>
 <code>initSetupImage</code><br/>
+<em>
+string
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>-</code><br/>
 <em>
 string
 </em>

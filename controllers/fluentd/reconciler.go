@@ -27,7 +27,7 @@ func NewFluentdReconciler(client client.Client, scheme *runtime.Scheme, updater 
 }
 
 // Run reconciles fluentd custom resource.
-// Creates new DaemonSet, ConfigMap, Service if its don't exist.
+// Creates a DaemonSet, configuration Secret, and Service if they do not exist.
 func (r *FluentdReconciler) Run(cr *loggingService.LoggingService) error {
 	if !r.StatusUpdater.IsStatusFailed(util.FluentdStatus) {
 		r.StatusUpdater.UpdateStatus(util.FluentdStatus, util.InProgress, false, "Start reconcile of Fluentd")
@@ -35,7 +35,7 @@ func (r *FluentdReconciler) Run(cr *loggingService.LoggingService) error {
 	r.Log.Info("Start Fluentd reconciliation")
 
 	if cr.Spec.Fluentd != nil && cr.Spec.Fluentd.IsInstall() {
-		if err := r.handleConfigMap(cr); err != nil {
+		if err := r.handleConfigSecret(cr); err != nil {
 			return err
 		}
 		if err := r.handleDaemonSet(cr); err != nil {
@@ -65,8 +65,8 @@ func (r *FluentdReconciler) uninstall(cr *loggingService.LoggingService) {
 	if err := r.deleteDaemonSet(cr); err != nil {
 		r.Log.Error(err, "Can not delete DaemonSet")
 	}
-	if err := r.deleteConfigMap(cr); err != nil {
-		r.Log.Error(err, "Can not delete ConfigMap")
+	if err := r.deleteConfigSecret(cr); err != nil {
+		r.Log.Error(err, "Can not delete configuration Secret")
 	}
 	if err := r.deleteService(cr); err != nil {
 		r.Log.Error(err, "Can not delete Service")

@@ -240,6 +240,24 @@ func TestMapSecretToLoggingServices(t *testing.T) {
 			},
 		},
 	}
+	referencedByFluentd := &loggingService.LoggingService{
+		ObjectMeta: metav1.ObjectMeta{Name: "referenced-fluentd", Namespace: "logging"},
+		Spec: loggingService.LoggingServiceSpec{
+			Fluentd: &loggingService.Fluentd{
+				Output: &loggingService.OutputFluentd{
+					Http: &loggingService.HttpFluentd{
+						Enabled: true,
+						Auth: &loggingService.Auth{
+							Password: &corev1.SecretKeySelector{
+								LocalObjectReference: corev1.LocalObjectReference{Name: "output-auth"},
+								Key:                  "password",
+							},
+						},
+					},
+				},
+			},
+		},
+	}
 	unrelated := &loggingService.LoggingService{
 		ObjectMeta: metav1.ObjectMeta{Name: "unrelated", Namespace: "logging"},
 		Spec: loggingService.LoggingServiceSpec{
@@ -256,22 +274,42 @@ func TestMapSecretToLoggingServices(t *testing.T) {
 					},
 				},
 			},
+			Fluentd: &loggingService.Fluentd{
+				Output: &loggingService.OutputFluentd{
+					Loki: &loggingService.LokiFluentd{
+						Enabled: true,
+						Auth: &loggingService.Auth{
+							Token: &corev1.SecretKeySelector{
+								LocalObjectReference: corev1.LocalObjectReference{Name: "another-secret"},
+								Key:                  "token",
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 	reconciler := &LoggingServiceReconciler{
-		Client: fake.NewClientBuilder().WithScheme(testScheme).WithObjects(referencedByMain, referencedByAggregator, unrelated).Build(),
-		Log:    util.Logger("test-logging-service"),
+		Client: fake.NewClientBuilder().WithScheme(testScheme).
+			WithObjects(referencedByMain, referencedByAggregator, referencedByFluentd, unrelated).Build(),
+		Log: util.Logger("test-logging-service"),
 	}
 
 	requests := reconciler.mapSecretToLoggingServices(context.Background(), &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{Name: "output-auth", Namespace: "logging"},
 	})
-	if len(requests) != 2 {
+	if len(requests) != 3 {
 		t.Fatalf("unexpected reconcile requests: %#v", requests)
 	}
-	names := map[string]bool{requests[0].Name: true, requests[1].Name: true}
-	if !names["referenced-main"] || !names["referenced-aggregator"] {
-		t.Fatalf("expected requests for both referencing Logging Services, got: %#v", requests)
+	names := make(map[string]bool, len(requests))
+	for _, request := range requests {
+		if request.Namespace != "logging" {
+			t.Fatalf("unexpected request namespace: %#v", request)
+		}
+		names[request.Name] = true
+	}
+	if !names["referenced-main"] || !names["referenced-aggregator"] || !names["referenced-fluentd"] {
+		t.Fatalf("expected requests for all referencing Logging Services, got: %#v", requests)
 	}
 }
 
@@ -292,5 +330,20 @@ func TestCredentialSecretChangedPredicate(t *testing.T) {
 	dataChanged.Data["password"] = []byte("new")
 	if !predicate.Update(event.UpdateEvent{ObjectOld: oldSecret, ObjectNew: dataChanged}) {
 		t.Fatal("Secret data update must trigger reconciliation")
+	}
+
+	if !predicate.Create(event.CreateEvent{Object: oldSecret}) {
+		t.Fatal("Secret creation must trigger reconciliation")
+	}
+	if !predicate.Delete(event.DeleteEvent{Object: oldSecret}) {
+		t.Fatal("Secret deletion must trigger reconciliation")
+	}
+	if predicate.Generic(event.GenericEvent{Object: oldSecret}) {
+		t.Fatal("generic Secret events must not trigger reconciliation")
+	}
+
+	configMap := &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Name: "logging-fluentd", Namespace: "logging"}}
+	if predicate.Create(event.CreateEvent{Object: configMap}) {
+		t.Fatal("non-Secret objects must not trigger reconciliation")
 	}
 }

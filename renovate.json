@@ -13,6 +13,14 @@
   ],
   "packageRules": [
     {
+      "description": "Automerge Go and GitHub Actions updates: covered by the CI Gate and Lint Gate required checks",
+      "matchManagers": ["gomod", "github-actions"],
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "automerge": true
+    },
+    {
+      "description": "Automerge container image updates, including the Dockerfile manager and the docker-annotated custom.regex entries",
+      "matchDatasources": ["docker"],
       "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
       "automerge": true
     },

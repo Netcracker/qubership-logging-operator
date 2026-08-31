@@ -217,7 +217,7 @@ spec:
           imagePullPolicy: "IfNotPresent"
           volumeMounts:
             - name: plugins
-              mountPath: /opt/plugins
+              mountPath: /usr/share/graylog/plugin
           env:
             - name: CUSTOM_PLUGINS
               {{- if .Values.Graylog.CustomPluginsPaths }}

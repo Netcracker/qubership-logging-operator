@@ -39,7 +39,7 @@ env:
   opensearch_image_version: 3.4.0
   opensearch_major_version: 2
   # renovate: datasource=github-releases depName=Netcracker/qubership-monitoring-operator versioning=semver
-  monitoring_version: v0.88.0
+  monitoring_version: v0.88.1
   ## Other parameters
   opensearch_namespace: opensearch
   victorialogs_service: victorialogs

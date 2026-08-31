@@ -13,6 +13,10 @@
   ],
   "packageRules": [
     {
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "automerge": true
+    },
+    {
       "matchManagers": ["custom.regex"],
       "matchPackageNames": [
         "Netcracker/qubership-opensearch",
@@ -87,5 +91,6 @@
         "!registry-1.docker.io/library/golang"
       ]
     }
-  ]
+  ],
+  "platformAutomerge": true
 }

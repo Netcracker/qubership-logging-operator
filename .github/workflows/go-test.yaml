@@ -1,6 +1,7 @@
 name: Go test with Sonar
 on:
-  push: {}
+  push:
+    branches: [ main ]
   pull_request:
     types: [ opened, synchronize, reopened ]
 
@@ -52,3 +53,15 @@ jobs:
       contents: read
       pull-requests: write
       packages: write
+
+  ci-gate:
+    name: CI Gate
+    needs: [prepare, test]
+    # Runs even when a dependency fails, so the check resolves instead of being skipped.
+    if: always()
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Fail if any dependency failed
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        run: exit 1

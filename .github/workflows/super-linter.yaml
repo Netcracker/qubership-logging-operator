@@ -25,12 +25,11 @@ on:
         default: false
         required: false
         description: "Lint all codebase"
-permissions:
-  contents: read
-
 jobs:
   prepare-configs:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
     - name: "Get the common linters configuration"
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

@@ -332,7 +332,7 @@ Image can be found from:
     {{- printf "%s" .Values.fluentbit.dockerImage -}}
   {{- else -}}
     {{- /* # renovate: datasource=docker depName=fluent/fluent-bit */ -}}
-    {{- print "docker.io/fluent/fluent-bit:5.1.0" -}}
+    {{- print "docker.io/fluent/fluent-bit:5.1.1" -}}
   {{- end -}}
 {{- end -}}
 

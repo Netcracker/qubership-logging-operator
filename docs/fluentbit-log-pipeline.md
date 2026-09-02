@@ -10,10 +10,10 @@ It supports multiple log formats and dynamically selects parsers based on pod an
 Fluent Bit can parse logs in the following formats:
 
 <!-- markdownlint-disable line-length -->
-| Format      | Description                                                                                                                                                                                |
-| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `logfmt`    | Key-value structured logs. See more details in [logfmt](https://brandur.org/logfmt).                                                                                                       |
-| `json`      | Standard JSON format. For better readability, it's recommended to use only flattened JSON without nested structures. See more details in [JSON logs](./cookbook/log-formats.md#json-logs). |
+| Format      | Description                                                                                                                                                                                            |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `logfmt`    | Key-value structured logs. See more details in [logfmt](https://brandur.org/logfmt).                                                                                                                   |
+| `json`      | Standard JSON format. For better readability, it's recommended to use only flattened JSON without nested structures. See more details in [JSON logs](./cookbook/log-formats.md#json-logs).             |
 | `qubership` | The generalized bracketed format with a timestamp, severity level, optional `[key=value]` fields, and an optional message. See [Qubership log format](./cookbook/log-formats.md#qubership-log-format). |
 <!-- markdownlint-enable line-length -->
 

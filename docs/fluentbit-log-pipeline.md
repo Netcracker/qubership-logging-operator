@@ -14,7 +14,7 @@ Fluent Bit can parse logs in the following formats:
 | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `logfmt`    | Key-value structured logs. See more details in [logfmt](https://brandur.org/logfmt).                                                                                                       |
 | `json`      | Standard JSON format. For better readability, it's recommended to use only flattened JSON without nested structures. See more details in [JSON logs](./cookbook/log-formats.md#json-logs). |
-| `qubership` | The unified logging format used by **Qubership Cloud** microservices. See more details in [Qubership log format](./cookbook/log-formats.md#qubership-log-format)                           |
+| `qubership` | The generalized bracketed format with a timestamp, severity level, optional `[key=value]` fields, and an optional message. See [Qubership log format](./cookbook/log-formats.md#qubership-log-format). |
 <!-- markdownlint-enable line-length -->
 
 ## Third-Party Log Formats
@@ -134,7 +134,7 @@ the following fields must always be present in the resulting log output:
 3) parse_status – Indicates whether the log was successfully parsed.
    Possible values: success, failed.
 4) parse_format – The detected original log format.
-   Possible values: `json`, `logfmt`, `klog`, `qubership`, `java`, `opensearch`, and other third-party formats.
+   Possible values: `json`, `logfmt`, `klog`, `qubership`, `opensearch`, and other third-party formats.
 5) log_category – The source type of the log. Possible values: container, audit, system, k8s_events.
 6) parse_level_unknown – Indicates that the original severity level could not be detected
    or did not match any known severity levels.

@@ -90,7 +90,9 @@
       "matchManagers": ["dockerfile"],
       "groupName": "docker-deps",
       "matchFileNames": [
-        "Dockerfile"
+        "Dockerfile",
+        "docker-transfer/Dockerfile",
+        "test/robot-tests/Dockerfile"
       ],
       "matchPackageNames": [
         "!golang",

@@ -1,4 +1,6 @@
+.github/pull_request_template.md
+charts/*
+docs/api.md
+AGENTS.md
 CLAUDE.md
 CODE-OF-CONDUCT.md
-docs/api.md
-charts/*

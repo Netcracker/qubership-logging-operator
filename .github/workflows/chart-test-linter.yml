@@ -10,13 +10,19 @@ on:
     paths:
       - 'charts/**'
       - 'scripts/chart-tests/**'
+      - '.github/workflows/chart-test-linter.yml'
   push:
     branches:
       - main
     paths:
       - 'charts/**'
       - 'scripts/chart-tests/**'
+      - '.github/workflows/chart-test-linter.yml'
   workflow_dispatch: null
+
+concurrency:
+  group: helm-chart-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   lint-test:

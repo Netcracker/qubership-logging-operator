@@ -1,7 +1,19 @@
 name: Go test with Sonar
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
+    tags:
+      - 'v*'
+    paths:
+      - .github/workflows/go-test.yaml
+      - .github/config/build-config.yaml
+      - api/**
+      - cmd/**
+      - controllers/**
+      - go.*
+      - Makefile
+      - test/envtests/**
   pull_request:
     types: [ opened, synchronize, reopened ]
 

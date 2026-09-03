@@ -181,7 +181,7 @@ function execute_real_func_test()
 end
 
 -- source_level must survive a second update_level call (forwarder + aggregator both run this script).
-function test_reinitialization_preserves_source_level()
+local function test_reinitialization_preserves_source_level()
     local record = { level = "warn" }
 
     update_level("test", 1, record)

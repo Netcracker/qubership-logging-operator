@@ -35,6 +35,15 @@ func renderConfigData(t *testing.T, fluentbit *loggingService.Fluentbit) map[str
 	return data
 }
 
+func assertRawLogFallbackAfterPlaceholder(t *testing.T, normalizedConfig, originalConfig string) {
+	t.Helper()
+	placeholderIndex := strings.Index(normalizedConfig, `Set short_message "<Empty message>"`)
+	copyIndex := strings.Index(normalizedConfig, "Copy log short_message")
+	if placeholderIndex == -1 || copyIndex <= placeholderIndex {
+		t.Errorf("expected the raw-log fallback after the Qubership placeholder, got:\n%s", originalConfig)
+	}
+}
+
 func TestFluentbitConfigStorageDefaults(t *testing.T) {
 	data := renderConfigData(t, &loggingService.Fluentbit{
 		ContainerLogging:   true,
@@ -234,9 +243,5 @@ func TestGeneralizedQubershipParserAndEmptyMessagePlaceholder(t *testing.T) {
 			t.Errorf("unexpected %q in the post-generic config:\n%s", unexpected, postGenericConfig)
 		}
 	}
-	placeholderIndex := strings.Index(normalizedPostGenericConfig, `Set short_message "<Empty message>"`)
-	copyIndex := strings.Index(normalizedPostGenericConfig, "Copy log short_message")
-	if placeholderIndex == -1 || copyIndex <= placeholderIndex {
-		t.Errorf("expected the raw-log fallback after the Qubership placeholder, got:\n%s", postGenericConfig)
-	}
+	assertRawLogFallbackAfterPlaceholder(t, normalizedPostGenericConfig, postGenericConfig)
 }

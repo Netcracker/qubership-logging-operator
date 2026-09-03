@@ -1,0 +1,60 @@
+apiVersion: logging.netcracker.com/v1
+kind: LoggingService
+metadata:
+  name: logging-service
+spec:
+  openshiftDeploy: false
+  containerRuntimeType: containerd
+  cloudEventsReader:
+    install: true
+  fluentd:
+    logLevel: warn
+
+    systemLogging: true
+    systemLogType: varlogsyslog
+    cloudEventsReaderFormat: json
+    containerLogging: true
+    systemAuditLogging: true
+    kubeAuditLogging: true
+    kubeApiserverAuditLogging: true
+    billCycleConf: true
+
+    watchKubernetesMetadata: true
+    mockKubeData: true
+
+    multilineFirstLineRegexp: "/(^\\[\\d{4}\\-\\d{2}\\-\\d{2})|(^\\{\")|(^*0m\\d{2}\\:\\d{2}\\:\\d{2})/"
+
+    # Disable Graylog output because we will print data in the file
+    graylogOutput: false
+
+    # Custom filters for tests
+    customFilterConf: |-
+      <filter {parsed.var.log.syslog**,parsed.var.log.audit.audit**}>
+        @type parser
+        key_name message
+        reserve_data true
+        <parse>
+          @type regexp
+          expression .*logId=\"(?<logId>[a-z0-9_\-]+).*
+        </parse>
+      </filter>
+    customOutputConf: |-
+      <match parsed.**>
+        @type file
+        path /fluentd-output/${hostname}
+        append true
+        <inject>
+          time_key fluentd_time
+          time_type string
+          time_format %Y-%m-%dT%H:%M:%S.%LZ
+        </inject>
+        <format>
+          @type json
+        </format>
+        <buffer hostname>
+          flush_mode interval
+          flush_interval 5
+          timekey 1s
+          timekey_wait 0s
+        </buffer>
+      </match>

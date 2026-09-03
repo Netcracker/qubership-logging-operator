@@ -1,0 +1,1 @@
+type=AVC msg=audit(1718796465.028:930955): apparmor="DENIED" operation="ptrace" profile="cri-containerd.apparmor.d" pid=106437 comm="node_exporter" requested_mask="read" denied_mask="read" peer="unconfined" logId="os-audit-1"

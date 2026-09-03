@@ -1,0 +1,91 @@
+[
+  {
+    "_test_id": "bill-cycle-1-1",
+    "parse_status": "success",
+    "time": "2024-07-20T11:51:31.234007468Z",
+    "detected_level": "info",
+    "labels": {
+      "metadata.app": "fluent-pipeline-test",
+      "metadata.app.kubernetes.io/version": "0.1.0"
+    },
+    "nodename": "fake-node",
+    "namespace": "fake-namespace",
+    "level": "info",
+    "short_message": "[\"app.qubership.org/application=app\"] [logId=bill-cycle-1] it is example of bill cycle log message",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "parse_field_count": 11,
+    "hostname": "fake-fluent",
+    "container": "fake-container",
+    "logId": "bill-cycle-1",
+    "date": "2024-07-20T11:51:31.234",
+    "source_level": "INFO",
+    "parse_format": "unknown"
+  },
+  {
+    "_test_id": "bill-cycle-2-1",
+    "parse_status": "success",
+    "time": "2024-07-20T11:51:32.234007468Z",
+    "detected_level": "info",
+    "labels": {
+      "metadata.app": "fluent-pipeline-test",
+      "metadata.app.kubernetes.io/version": "0.1.0"
+    },
+    "nodename": "fake-node",
+    "namespace": "fake-namespace",
+    "level": "info",
+    "short_message": "[\"app.kubernetes.io/part-of=app\"] [logId=bill-cycle-2] it is example of bill cycle log message",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "parse_field_count": 11,
+    "hostname": "fake-fluent",
+    "container": "fake-container",
+    "logId": "bill-cycle-2",
+    "date": "2024-07-20T11:51:32.234",
+    "source_level": "INFO",
+    "parse_format": "unknown"
+  },
+  {
+    "_test_id": "bill-cycle-3-1",
+    "parse_status": "success",
+    "time": "2024-07-20T11:51:33.234007468Z",
+    "detected_level": "warn",
+    "labels": {
+      "metadata.app": "fluent-pipeline-test",
+      "metadata.app.kubernetes.io/version": "0.1.0"
+    },
+    "nodename": "fake-node",
+    "namespace": "fake-namespace",
+    "level": "warning",
+    "short_message": "[logId=bill-cycle-3] [\"app.kubernetes.io/part-of=app\"] it is example of bill cycle log message",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "parse_field_count": 11,
+    "hostname": "fake-fluent",
+    "container": "fake-container",
+    "logId": "bill-cycle-3",
+    "date": "2024-07-20T11:51:33.234",
+    "source_level": "WARN",
+    "parse_format": "unknown"
+  },
+  {
+    "_test_id": "bill-cycle-4-1",
+    "detected_level": "warn",
+    "parse_status": "success",
+    "time": "2024-07-20T11:51:34.234007468Z",
+    "logId": "bill-cycle-4",
+    "labels": {
+      "metadata.app": "fluent-pipeline-test",
+      "metadata.app.kubernetes.io/version": "0.1.0"
+    },
+    "namespace": "fake-namespace",
+    "short_message": "[logId=bill-cycle-4] [app.kubernetes.io/part-of=app] it is example of bill cycle log message but without quotes inside the label part-of",
+    "level": "warning",
+    "date": "2024-07-20T11:51:34.234",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "parse_field_count": 11,
+    "hostname": "fake-fluent",
+    "container": "fake-container",
+    "app.kubernetes.io/part-of": "app",
+    "nodename": "fake-node",
+    "source_level": "WARN",
+    "parse_format": "unknown"
+  }
+]

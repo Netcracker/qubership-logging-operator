@@ -1,0 +1,40 @@
+[
+  {
+    "_test_id": "klog-1-1",
+    "time": "2023-04-17T09:54:26.268079468Z",
+    "log": "W0417 09:54:26.268079       7 reflector.go:424] [logId=klog-1] pkg/mod/k8s.io/client-go@v0.26.11/tools/cache/reflector.go:169: failed to list *unstructured.Unstructured: failed to list applications: applications.argoproj.io is forbidden: User \"system:serviceaccount:argocd:argocd-notifications-controller\" cannot list resource \"applications\" in API group \"argoproj.io\" at the cluster scope",
+    "hostname": "fake-fluent",
+    "level": "warning",
+    "thread": "7",
+    "class": "reflector.go:424",
+    "source_level": "W",
+    "parse_level_unknown": "false",
+    "namespace": "fake-namespace",
+    "container": "fake-container",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "labels": "{\"app\" : \"fluent-pipeline-test\", \"app.kubernetes.io_version\" : \"0.1.0\"}",
+    "logId": "klog-1",
+    "kubernetes_host": "fake-node",
+    "nc_audit_label": "false",
+    "fluentd_time": "2023-04-17T09:54:26.268Z"
+  },
+  {
+    "_test_id": "klog-2-1",
+    "time": "2023-06-14T08:33:57.629400468Z",
+    "log": "W0614 08:33:57.629400       7 controller.go:1213] [logId=klog-2] Service \\\"dev-profiler-opensearch/esc-ui-service\\\" does not have any active Endpoint.",
+    "hostname": "fake-fluent",
+    "level": "warning",
+    "thread": "7",
+    "class": "controller.go:1213",
+    "source_level": "W",
+    "parse_level_unknown": "false",
+    "namespace": "fake-namespace",
+    "container": "fake-container",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "labels": "{\"app\" : \"fluent-pipeline-test\", \"app.kubernetes.io_version\" : \"0.1.0\"}",
+    "logId": "klog-2",
+    "kubernetes_host": "fake-node",
+    "nc_audit_label": "false",
+    "fluentd_time": "2023-06-14T08:33:57.629Z"
+  }
+]

@@ -1,0 +1,114 @@
+2023-03-08T09:57:38.903007468Z stdout F [2023-03-08T09:57:38.903+0000] {cli_action_loggers.py:135} WARNING - Failed to log action (psycopg2.OperationalError) connection to server at "pg-patroni.postgres.svc" (172.30.9.242), port 5432 failed: FATAL:  password authentication failed for user "airflowdb"
+2023-03-08T09:57:38.903007468Z stdout F 
+2023-03-08T09:57:38.903007468Z stdout F (Background on this error at: https://sqlalche.me/e/14/e3q8)
+2023-03-08T09:57:38.903007468Z stdout F Traceback (most recent call last):
+2023-03-08T09:57:38.903007468Z stdout F   File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/engine/base.py", line 3361, in _wrap_pool_connect[logId=py-airflow-scheduler-1]
+2023-03-08T09:57:38.903007468Z stdout F     return fn()
+2023-03-08T09:57:38.903007468Z stdout F   File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 327, in connect
+2023-03-08T09:57:38.903007468Z stdout F     return _ConnectionFairy._checkout(self)
+2023-03-08T09:57:38.903007468Z stdout F   File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 894, in _checkout
+2023-03-08T09:57:38.903007468Z stdout F     fairy = _ConnectionRecord.checkout(pool)
+2023-03-08T09:57:38.903007468Z stdout F   File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 493, in checkout
+2023-03-08T09:57:38.903007468Z stdout F     rec = pool._do_get()
+2023-03-08T09:57:38.903007468Z stdout F   File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/pool/impl.py", line 146, in _do_get
+2023-03-08T09:57:38.903007468Z stdout F     self._dec_overflow()
+2023-03-08T09:57:38.903007468Z stdout F   File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/util/langhelpers.py", line 70, in __exit__
+2023-03-08T09:57:38.903007468Z stdout F     compat.raise_(
+2023-03-08T09:57:38.903007468Z stdout F   File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+2023-03-08T09:57:38.903007468Z stdout F     raise exception
+2023-03-08T09:57:38.903007468Z stdout F   File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/pool/impl.py", line 143, in _do_get
+2023-03-08T09:57:38.903007468Z stdout F     return self._create_connection()
+2023-03-08T09:57:38.903007468Z stdout F   File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 273, in _create_connection
+2023-03-08T09:57:38.903007468Z stdout F     return _ConnectionRecord(self)
+2023-03-08T09:57:38.903007468Z stdout F   File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 388, in __init__
+2023-03-08T09:57:38.903007468Z stdout F     self.__connect()
+2023-03-08T09:57:38.903007468Z stdout F   File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 691, in __connect
+2023-03-08T09:57:38.903007468Z stdout F     pool.logger.debug("Error on connect(): %s", e)
+2023-03-08T09:57:38.903007468Z stdout F   File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/util/langhelpers.py", line 70, in __exit__
+2023-03-08T09:57:38.903007468Z stdout F     compat.raise_(
+2023-03-08T09:57:38.903007468Z stdout F   File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+2023-03-08T09:57:38.903007468Z stdout F     raise exception
+2023-03-08T09:57:38.903007468Z stdout F   File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 686, in __connect
+2023-03-08T09:57:38.903007468Z stdout F     self.dbapi_connection = connection = pool._invoke_creator(self)
+2023-03-08T09:57:38.903007468Z stdout F   File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/engine/create.py", line 578, in connect
+2023-03-08T09:57:38.903007468Z stdout F     return dialect.connect(*cargs, **cparams)
+2023-03-08T09:57:38.903007468Z stdout F   File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/engine/default.py", line 598, in connect
+2023-03-08T09:57:38.903007468Z stdout F     return self.dbapi.connect(*cargs, **cparams)
+2023-03-08T09:57:38.903007468Z stdout F   File "/home/airflow/.local/lib/python3.9/site-packages/psycopg2/__init__.py", line 122, in connect
+2023-03-08T09:57:38.903007468Z stdout F     conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+2023-03-08T09:57:38.903007468Z stdout F psycopg2.OperationalError: connection to server at "pg-patroni.postgres.svc" (172.30.9.242), port 5432 failed: FATAL:  password authentication failed for user "airflowdb"
+2023-03-08T09:57:38.903007468Z stdout F 
+2023-03-08T09:57:38.903007468Z stdout F 
+2023-03-08T09:57:38.903007468Z stdout F The above exception was the direct cause of the following exception:
+2023-03-08T09:57:38.903007468Z stdout F 
+2023-03-08T09:57:38.903007468Z stdout F Traceback (most recent call last):
+2023-03-08T09:57:38.903007468Z stdout F   File "/home/airflow/.local/bin/airflow", line 8, in <module>
+2023-03-08T09:57:38.903007468Z stdout F     sys.exit(main())
+2023-03-08T09:57:38.903007468Z stdout F   File "/home/airflow/.local/lib/python3.9/site-packages/airflow/__main__.py", line 39, in main
+2023-03-08T09:57:38.903007468Z stdout F     args.func(args)
+2023-03-08T09:57:38.903007468Z stdout F   File "/home/airflow/.local/lib/python3.9/site-packages/airflow/cli/cli_parser.py", line 52, in command
+2023-03-08T09:57:38.903007468Z stdout F     return func(*args, **kwargs)
+2023-03-08T09:57:38.903007468Z stdout F   File "/home/airflow/.local/lib/python3.9/site-packages/airflow/utils/cli.py", line 108, in wrapper
+2023-03-08T09:57:38.903007468Z stdout F     return f(*args, **kwargs)
+2023-03-08T09:57:38.903007468Z stdout F   File "/home/airflow/.local/lib/python3.9/site-packages/airflow/cli/commands/db_command.py", line 192, in check
+2023-03-08T09:57:38.903007468Z stdout F     db.check()
+2023-03-08T09:57:38.903007468Z stdout F   File "/home/airflow/.local/lib/python3.9/site-packages/airflow/utils/session.py", line 75, in wrapper
+2023-03-08T09:57:38.903007468Z stdout F     return func(*args, session=session, **kwargs)
+2023-03-08T09:57:38.903007468Z stdout F   File "/home/airflow/.local/lib/python3.9/site-packages/airflow/utils/db.py", line 1720, in check
+2023-03-08T09:57:38.903007468Z stdout F     session.execute("select 1 as is_alive;")
+2023-03-08T09:57:38.903007468Z stdout F   File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/orm/session.py", line 1713, in execute
+2023-03-08T09:57:38.903007468Z stdout F     conn = self._connection_for_bind(bind)
+2023-03-08T09:57:38.903007468Z stdout F   File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/orm/session.py", line 1552, in _connection_for_bind
+2023-03-08T09:57:38.903007468Z stdout F     return self._transaction._connection_for_bind(
+2023-03-08T09:57:38.903007468Z stdout F   File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/orm/session.py", line 747, in _connection_for_bind
+2023-03-08T09:57:38.903007468Z stdout F     conn = bind.connect()
+2023-03-08T09:57:38.903007468Z stdout F   File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/engine/base.py", line 3315, in connect
+2023-03-08T09:57:38.903007468Z stdout F     return self._connection_cls(self, close_with_result=close_with_result)
+2023-03-08T09:57:38.903007468Z stdout F   File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/engine/base.py", line 96, in __init__
+2023-03-08T09:57:38.903007468Z stdout F     else engine.raw_connection()
+2023-03-08T09:57:38.903007468Z stdout F   File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/engine/base.py", line 3394, in raw_connection
+2023-03-08T09:57:38.903007468Z stdout F     return self._wrap_pool_connect(self.pool.connect, _connection)
+2023-03-08T09:57:38.903007468Z stdout F   File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/engine/base.py", line 3364, in _wrap_pool_connect
+2023-03-08T09:57:38.903007468Z stdout F     Connection._handle_dbapi_exception_noconnection(
+2023-03-08T09:57:38.903007468Z stdout F   File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/engine/base.py", line 2198, in _handle_dbapi_exception_noconnection
+2023-03-08T09:57:38.903007468Z stdout F     util.raise_(
+2023-03-08T09:57:38.903007468Z stdout F   File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+2023-03-08T09:57:38.903007468Z stdout F     raise exception
+2023-03-08T09:57:38.903007468Z stdout F   File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/engine/base.py", line 3361, in _wrap_pool_connect
+2023-03-08T09:57:38.903007468Z stdout F     return fn()
+2023-03-08T09:57:38.903007468Z stdout F   File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 327, in connect
+2023-03-08T09:57:38.903007468Z stdout F     return _ConnectionFairy._checkout(self)
+2023-03-08T09:57:38.903007468Z stdout F   File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 894, in _checkout
+2023-03-08T09:57:38.903007468Z stdout F     fairy = _ConnectionRecord.checkout(pool)
+2023-03-08T09:57:38.903007468Z stdout F   File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 493, in checkout
+2023-03-08T09:57:38.903007468Z stdout F     rec = pool._do_get()
+2023-03-08T09:57:38.903007468Z stdout F   File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/pool/impl.py", line 146, in _do_get
+2023-03-08T09:57:38.903007468Z stdout F     self._dec_overflow()
+2023-03-08T09:57:38.903007468Z stdout F   File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/util/langhelpers.py", line 70, in __exit__
+2023-03-08T09:57:38.903007468Z stdout F     compat.raise_(
+2023-03-08T09:57:38.903007468Z stdout F   File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+2023-03-08T09:57:38.903007468Z stdout F     raise exception
+2023-03-08T09:57:38.903007468Z stdout F   File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/pool/impl.py", line 143, in _do_get
+2023-03-08T09:57:38.903007468Z stdout F     return self._create_connection()
+2023-03-08T09:57:38.903007468Z stdout F   File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 273, in _create_connection
+2023-03-08T09:57:38.903007468Z stdout F     return _ConnectionRecord(self)
+2023-03-08T09:57:38.903007468Z stdout F   File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 388, in __init__
+2023-03-08T09:57:38.903007468Z stdout F     self.__connect()
+2023-03-08T09:57:38.903007468Z stdout F   File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 691, in __connect
+2023-03-08T09:57:38.903007468Z stdout F     pool.logger.debug("Error on connect(): %s", e)
+2023-03-08T09:57:38.903007468Z stdout F   File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/util/langhelpers.py", line 70, in __exit__
+2023-03-08T09:57:38.903007468Z stdout F     compat.raise_(
+2023-03-08T09:57:38.903007468Z stdout F   File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/util/compat.py", line 211, in raise_
+2023-03-08T09:57:38.903007468Z stdout F     raise exception
+2023-03-08T09:57:38.903007468Z stdout F   File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 686, in __connect
+2023-03-08T09:57:38.903007468Z stdout F     self.dbapi_connection = connection = pool._invoke_creator(self)
+2023-03-08T09:57:38.903007468Z stdout F   File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/engine/create.py", line 578, in connect
+2023-03-08T09:57:38.903007468Z stdout F     return dialect.connect(*cargs, **cparams)
+2023-03-08T09:57:38.903007468Z stdout F   File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/engine/default.py", line 598, in connect
+2023-03-08T09:57:38.903007468Z stdout F     return self.dbapi.connect(*cargs, **cparams)
+2023-03-08T09:57:38.903007468Z stdout F   File "/home/airflow/.local/lib/python3.9/site-packages/psycopg2/__init__.py", line 122, in connect
+2023-03-08T09:57:38.903007468Z stdout F     conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+2023-03-08T09:57:38.903007468Z stdout F sqlalchemy.exc.OperationalError: (psycopg2.OperationalError) connection to server at "pg-patroni.postgres.svc" (172.30.9.242), port 5432 failed: FATAL:  password authentication failed for user "airflowdb"
+2023-03-08T09:57:38.903007468Z stdout F 
+2023-03-08T09:57:38.903007468Z stdout F (Background on this error at: https://sqlalche.me/e/14/e3q8)
+2023-03-08T09:57:38.903007468Z stdout F 

@@ -1,0 +1,68 @@
+[
+  {
+    "_test_id": "syslog-1-1",
+    "detected_level": "error",
+    "nodename": "fake-node",
+    "source_level": "error",
+    "hostname": "fake-fluent",
+    "tag": "/var/log/syslog",
+    "logId": "syslog-1",
+    "log": "ExecSync for \\\"19b3f48daf9bb763447c267a7bd04a3e56f5373ded797a4414ad71b8cff34726\\\" failed\" error=\"rpc error: code = DeadlineExceeded desc = failed to exec in container: timeout 5s exceeded: context deadline exceeded\" logId=\"syslog-1",
+    "level": "err"
+  },
+  {
+    "_test_id": "syslog-2-1",
+    "detected_level": "info",
+    "nodename": "fake-node",
+    "parse_level_unknown": "true",
+    "hostname": "fake-fluent",
+    "tag": "/var/log/syslog",
+    "logId": "syslog-2",
+    "log": "Jun 19 11:28:46 master-1 kubelet[126456]: E0619 11:28:46.458513  126456 remote_runtime.go:496] \"ExecSync cmd from runtime service failed\" err=\"rpc error: code = DeadlineExceeded desc = failed to exec in container: timeout 5s exceeded: context deadline exceeded\" containerID=\"19b3f48daf9bb763447c267a7bd04a3e56f5373ded797a4414ad71b8cff34726\" cmd=[\"bin/bash\",\"-c\",\"\\nif [ -f /var/lib/rabbitmq/started_at_least_once ]; then\\n    echo \\\"executing rabbitmq-diagnostics ping -q\\\"\\n    rabbitmq-diagnostics ping -q;\\nelif rabbitmqctl await_online_nodes $(( ( $(echo -n ${MY_POD_NAME##*-}) + 1 ) / 2 + 1 )) -t 1 ; then\\n    echo \\\"awaiting nodes succeeded\\\"\\n    touch /var/lib/rabbitmq/started_at_least_once\\nelse\\n    echo \\\"probe failed\\\"\\n    exit 1\\nfi\\n\"] logId=\"syslog-2\"",
+    "level": "info"
+  },
+  {
+    "_test_id": "syslog-3-1",
+    "detected_level": "info",
+    "nodename": "fake-node",
+    "parse_level_unknown": "true",
+    "hostname": "fake-fluent",
+    "tag": "/var/log/syslog",
+    "logId": "syslog-3",
+    "log": "Jun 19 11:28:47 master-1 kubelet[126456]: I0619 11:28:47.936617  126456 scope.go:117] \"RemoveContainer\" containerID=\"74876df305763a9e69838e2135cbecc1c3740f2970f30fa67ad3058da4b0abc1\" logId=\"syslog-3\"",
+    "level": "info"
+  },
+  {
+    "_test_id": "syslog-4-1",
+    "detected_level": "info",
+    "nodename": "fake-node",
+    "parse_level_unknown": "true",
+    "hostname": "fake-fluent",
+    "tag": "/var/log/syslog",
+    "logId": "syslog-4",
+    "log": "Jun 19 11:28:47 master-1 kubelet[126456]: E0619 11:28:47.937640  126456 pod_workers.go:1298] \"Error syncing pod, skipping\" err=\"failed to \\\"StartContainer\\\" for \\\"nc-dbaas-clickhouse-adapter\\\" with CrashLoopBackOff: \\\"back-off 5m0s restarting failed container=nc-dbaas-clickhouse-adapter pod=nc-dbaas-clickhouse-adapter-7d46f8df76-ssj56_clickhouse-jyya(00000000-0000-0000-0000-000000000000)\\\"\" pod=\"clickhouse-jyya/nc-dbaas-clickhouse-adapter-7d46f8df76-ssj56\" podUID=\"00000000-0000-0000-0000-000000000000\"  logId=\"syslog-4\"",
+    "level": "info"
+  },
+  {
+    "_test_id": "syslog-5-1",
+    "detected_level": "info",
+    "nodename": "fake-node",
+    "parse_level_unknown": "true",
+    "hostname": "fake-fluent",
+    "tag": "/var/log/syslog",
+    "logId": "syslog-5",
+    "log": "Jun 19 11:28:49 master-1 systemd[1]: run-containerd-runc-k8s.io-2f0a9bca0e081ef88fecfe56f81e0531c3c156d7848a40e87d2f8d9416ca0b7d-runc.ozV1ed.mount: Deactivated successfully. logId=\"syslog-5\"",
+    "level": "info"
+  },
+  {
+    "_test_id": "syslog-6-1",
+    "detected_level": "info",
+    "nodename": "fake-node",
+    "parse_level_unknown": "true",
+    "hostname": "fake-fluent",
+    "tag": "/var/log/syslog",
+    "logId": "syslog-6",
+    "log": "Jun 19 11:28:51 master-1 kubelet[126456]: E0619 11:28:51.938462  126456 pod_workers.go:1298] \"Error syncing pod, skipping\" err=\"failed to \\\"StartContainer\\\" for \\\"esc-collector-service\\\" with ImagePullBackOff: \\\"Back-off pulling image \\\\\\\"docker.io/cloud-diagnostic-toolset/esc-collector-service-assembly-bugfix-cpdev-93288:build2\\\\\\\"\\\"\" pod=\"profiler/esc-collector-service-5d557698f-pvmhx\" podUID=\"00000000-0000-0000-0000-000000000000\" logId=\"syslog-6\"",
+    "level": "info"
+  }
+]

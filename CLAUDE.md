@@ -22,10 +22,13 @@ make run              # Run operator locally against ~/.kube/config
 ```bash
 make test                              # Alias for unit-test
 make unit-test                         # go test -race with shuffle, excludes e2e-tests
+make test-fluent-pipeline              # Run the Fluent Bit pipeline test
+make test-fluent-pipeline FLUENT_PIPELINE_SCENARIO=fluentbit-ha  # Run another pipeline scenario
 go test -race -run TestName ./controllers/...  # Run a single test
 ```
 
-Integration tests use Robot Framework in `test/robot-tests/` and run via GitHub Actions.
+Fluent pipeline tests support the `fluentbit`, `fluentbit-ha`, and `fluentd` scenarios. Integration tests use Robot
+Framework in `test/robot-tests/` and run via GitHub Actions.
 
 ### Documentation
 ```bash

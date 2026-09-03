@@ -29,15 +29,19 @@ Integration tests use Robot Framework in `test/robot-tests/` and run via GitHub 
 
 ### Documentation
 ```bash
-make docs             # Generate API docs and copy CRDs to docs/
+make docs             # Generate API docs (crd-ref-docs) and copy CRDs to docs/
 ```
 
 ## Architecture
 
 ### Go Module Structure
-The project uses Go workspaces (`go.work`) with two modules:
+The project has two Go modules:
 - `.` — main operator module (`github.com/Netcracker/qubership-logging-operator`)
 - `./api` — CRD types module (independently versioned)
+
+The main module consumes `./api` through a `replace` directive in `go.mod`, so local changes to
+the CRD types take effect without publishing a new `api` version. Run `go mod tidy` in each
+module directory separately.
 
 ### Entry Point
 `cmd/operator/main.go` — sets up controller-runtime manager, scoped to `WATCH_NAMESPACE` env var (defaults to `"logging"`). Exposes metrics on `:8383` and optional pprof on `:9180`.

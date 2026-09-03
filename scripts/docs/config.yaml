@@ -1,0 +1,20 @@
+# Configuration for crd-ref-docs (https://github.com/elastic/crd-ref-docs).
+# Used by the `make docs/api.md` target to render docs/api.md from api/v1.
+processor:
+  # RE2 patterns, matched against the fully qualified type name, for types that
+  # are left out of the generated documentation.
+  ignoreTypes:
+    - "ParseError$"
+    - "List$"
+    - "Interface$"
+  # RE2 patterns for fields that are left out of the generated documentation.
+  # Each pattern is matched against "<fully qualified type>.<rendered field name>".
+  ignoreFields:
+    - "\\.TypeMeta$"
+    - "\\.username$"
+    - "\\.password$"
+    - "\\.token$"
+
+render:
+  # Kubernetes version used to build links to the upstream API reference.
+  kubernetesVersion: 1.35

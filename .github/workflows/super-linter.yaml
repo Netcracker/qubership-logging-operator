@@ -91,12 +91,13 @@ jobs:
     - name: Setup Go
       uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
       with:
-        go-version-file: go.work
+        go-version-file: go.mod
         check-latest: true
-    - name: Prepare workspace
+    - name: Download dependencies
       shell: bash
       run: |
-        go work sync
+        go mod download
+        cd api && go mod download
 
     - name: Lint Code Base
       uses: super-linter/super-linter/slim@4ce20838b8ab83717e78138c5b3a1407148e0918 # v8.7.0

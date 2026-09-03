@@ -34,11 +34,10 @@ CRD_PUBLIC_DOC_FOLDER=$(PUBLIC_DOC_FOLDER)/crds
 
 # Directories to generate API documentation
 TYPES_V1_TARGET=api/v1/loggingservice_types.go
-API_DOC_GEN_BINARY_DIR?=$(shell pwd)/api
 
 # Tools
 CONTROLLER_GEN_PACKAGE=sigs.k8s.io/controller-tools/cmd/controller-gen@v0.20.1
-GEN_CRD_API_PACKAGE=github.com/ahmetb/gen-crd-api-reference-docs@v0.3.0
+CRD_REF_DOCS_PACKAGE=github.com/elastic/crd-ref-docs@v0.3.0
 HELM_DOCS_PACKAGE=github.com/norwoodj/helm-docs/cmd/helm-docs@v1.14.2
 
 # Detect the build environment, local or Jenkins builder
@@ -77,6 +76,9 @@ TEST_RUN_ARGS=-vet=off --shuffle=on
 
 # List of packages, exclude integration tests that require "envtest"
 pkgs = $(shell go list ./... | grep -v /e2e-tests)
+
+# The api module is a separate Go module, so its packages need a separate test run
+api_pkgs = $(shell cd api && go list ./...)
 
 # Container name
 CONTAINER_CLI?=docker
@@ -194,6 +196,8 @@ test: unit-test python-test
 unit-test:
 	echo "=> Run Golang unit-tests ..."
 	go test -race -cover $(TEST_RUN_ARGS) $(pkgs) -count=1 -v
+	echo "=> Run Golang unit-tests for the api module ..."
+	cd api && go test -race -cover $(TEST_RUN_ARGS) $(api_pkgs) -count=1 -v
 
 .PHONY: python-test
 python-test:
@@ -229,27 +233,26 @@ else
 HELM_DOCS=$(shell which helm-docs)
 endif
 
-# Run gen-crd-api-reference-docs to generate API documents by operator API
-docs/api.md: docs/api/gen $(TYPES_V1_TARGET)
-	cd $(API_DOC_GEN_BINARY_DIR) \
-	&& $(API_DOC_GEN_BINARY) -api-dir "./v1/" \
-							-config "../scripts/docs/config.json" \
-							-template-dir "../scripts/docs/templates" \
-							-out-file "../docs/api.md" \
-	&& rm -rf $(API_DOC_GEN_BINARY)
+# Run crd-ref-docs to generate API documents by operator API
+docs/api.md: crd-ref-docs $(TYPES_V1_TARGET)
+	$(CRD_REF_DOCS) --source-path "./api/v1" \
+					--config "./scripts/docs/config.yaml" \
+					--renderer markdown \
+					--output-path "./docs/api.md"
 	chmod +x ./scripts/build/append-markdown-linter-comments.sh
 	./scripts/build/append-markdown-linter-comments.sh
 
-# Find or download gen-crd-api-reference-docs, download gen-crd-api-reference-docs if necessary
-docs/api/gen:
-ifeq (, $(shell which ./gen-crd-api-reference-docs))
+# Find or download crd-ref-docs, download crd-ref-docs if necessary
+.PHONY: crd-ref-docs
+crd-ref-docs:
+ifeq (, $(shell which crd-ref-docs))
 	@{ \
 		set -e ;\
-		GOBIN=$(API_DOC_GEN_BINARY_DIR) go install $(GEN_CRD_API_PACKAGE) ;\
+		go install $(CRD_REF_DOCS_PACKAGE) ;\
 	}
-API_DOC_GEN_BINARY=./gen-crd-api-reference-docs
+CRD_REF_DOCS=$(GOBIN)/crd-ref-docs
 else
-API_DOC_GEN_BINARY=$(shell which gen-crd-api-reference-docs)
+CRD_REF_DOCS=$(shell which crd-ref-docs)
 endif
 
 # Copy CRDs from qubership-logging-operator Helm chart to documentation directory

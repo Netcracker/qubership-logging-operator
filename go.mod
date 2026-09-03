@@ -10,7 +10,7 @@ require (
 	github.com/go-logr/zapr v1.3.0
 	github.com/google/go-cmp v0.7.0
 	go.uber.org/zap v1.27.1
-	golang.org/x/crypto v0.55.0 // indirect
+	golang.org/x/crypto v0.56.0 // indirect
 	k8s.io/api v0.36.3
 	k8s.io/apimachinery v0.36.3
 	k8s.io/client-go v0.36.3

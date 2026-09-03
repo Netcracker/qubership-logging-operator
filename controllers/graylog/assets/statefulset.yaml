@@ -29,7 +29,11 @@ spec:
           persistentVolumeClaim:
             claimName: graylog-claim
         - name: plugins
-          emptyDir: {}
+          emptyDir:
+            sizeLimit: 100Mi
+        - name: plugins-merged
+          emptyDir:
+            sizeLimit: 100Mi
         - name: mongodb
           persistentVolumeClaim:
             claimName: mongo-claim
@@ -54,6 +58,9 @@ spec:
               - key: node-id
                 path: node-id
             defaultMode: 0666
+        - name: tmp
+          emptyDir:
+            sizeLimit: 100Mi
         - name: graylog-credentials-files
           secret:
             secretName: {{ .Values.Graylog.GraylogSecretName }}
@@ -181,24 +188,42 @@ spec:
             - name: data
               mountPath: /usr/share/graylog/data
               readOnly: false
+            - name: mongodb
+              mountPath: /data/db
+              readOnly: false
           # Graylog journal will recursive in every subdirectories. Any invalid format directories will cause errors
           command:
             - /bin/sh
             - -c
             - |
+              chown -R 1001:1001 /data/db
+              chmod -R u=rwX,g=rwX,o= /data/db
+              {{ if .Values.OpenshiftDeploy }}
               chmod -R 0777 /usr/share/graylog/data/
               chown -R 1100:1100 /usr/share/graylog/data
-              mkdir /usr/share/graylog/data/archives
+              mkdir -p /usr/share/graylog/data/archives
               chown -R 1100:1100 /usr/share/graylog/data/archives
-              mkdir /usr/share/graylog/data/config
+              mkdir -p /usr/share/graylog/data/config
               touch /usr/share/graylog/data/config/directories.json
               chmod 0666 /usr/share/graylog/data/config/directories.json
               chown 1100:1100 /usr/share/graylog/data/config/directories.json
-              echo "{}" >> /usr/share/graylog/data/config/directories.json
-              {{ if and .Values.Graylog.TLS .Values.Graylog.TLS.HTTP }}
-              mkdir /usr/share/graylog/data/ssl
+              printf '{}\n' > /usr/share/graylog/data/config/directories.json
+              {{ if and .Values.Graylog.TLS .Values.Graylog.TLS.HTTP .Values.Graylog.TLS.HTTP.Enabled }}
+              mkdir -p /usr/share/graylog/data/ssl
               chmod -R 0777 /usr/share/graylog/data/ssl
               chown -R 1100:1100 /usr/share/graylog/data/ssl
+              {{ end }}
+              {{ else }}
+              mkdir -p /usr/share/graylog/data/archives
+              mkdir -p /usr/share/graylog/data/config
+              touch /usr/share/graylog/data/config/directories.json
+              {{ if and .Values.Graylog.TLS .Values.Graylog.TLS.HTTP .Values.Graylog.TLS.HTTP.Enabled }}
+              mkdir -p /usr/share/graylog/data/ssl
+              {{ end }}
+              chown -R 1100:1100 /usr/share/graylog/data
+              chmod -R u=rwX,g=rwX,o= /usr/share/graylog/data
+              chmod 0660 /usr/share/graylog/data/config/directories.json
+              printf '{}\n' > /usr/share/graylog/data/config/directories.json
               {{ end }}
           securityContext:
             runAsNonRoot: false
@@ -239,10 +264,11 @@ spec:
 {{- end }}
 {{- end }}
       securityContext:
-        runAsNonRoot: false
-        runAsUser: 0
+        runAsNonRoot: true
         fsGroup: 1001
         fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: mongo
           image: {{ .Values.Graylog.MongoDBImage }}
@@ -256,6 +282,8 @@ spec:
             - name: mongodb
               mountPath: /data/db
               readOnly: false
+            - name: tmp
+              mountPath: /tmp
           ports:
             - name: mongo
               containerPort: 27017
@@ -269,11 +297,15 @@ spec:
               cpu: {{ resIndex .Values.Graylog.MongoResources.Requests "cpu" }}
               memory: {{ resIndex .Values.Graylog.MongoResources.Requests "memory" }}
 {{- end }}
-{{ if not .Values.OpenshiftDeploy }}
           securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
             runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL
             runAsUser: 1001
-{{ end }}
+            runAsGroup: 1001
         - name: graylog
           image: {{ .Values.Graylog.DockerImage }}
           command:
@@ -283,7 +315,7 @@ spec:
               if [ -f /tmp/kafka-logs/.lock ] ; then
                   rm /tmp/kafka-logs/.lock
               fi
-{{ if and .Values.Graylog.TLS .Values.Graylog.TLS.HTTP }}
+{{ if and .Values.Graylog.TLS .Values.Graylog.TLS.HTTP .Values.Graylog.TLS.HTTP.Enabled }}
               cp -a "/opt/java/openjdk/lib/security/cacerts" "/usr/share/graylog/data/ssl/cacerts.jks"
               keytool -importcert -keystore /usr/share/graylog/data/ssl/cacerts.jks -storepass changeit -alias graylog-tls-ca -file /usr/share/graylog/data/ssl/http/tls.crt -noprompt
 {{ if and .Values.Graylog.TLS.HTTP.GenerateCerts .Values.Graylog.TLS.HTTP.GenerateCerts.Enabled }}
@@ -302,7 +334,7 @@ spec:
 {{- else }}
                 -Xms1024m -Xmx1024m -Djna.tmpdir=/usr/share/graylog/data/plugin
 {{- end }}
-{{ if and .Values.Graylog.TLS .Values.Graylog.TLS.HTTP }}
+{{ if and .Values.Graylog.TLS .Values.Graylog.TLS.HTTP .Values.Graylog.TLS.HTTP.Enabled }}
                 -Djavax.net.ssl.trustStore=/usr/share/graylog/data/ssl/cacerts.jks
 {{ end }}
             - name: GRAYLOG_ELASTICSEARCH_HOSTS__FILE
@@ -355,6 +387,8 @@ spec:
               readOnly: false
             - name: plugins
               mountPath: /usr/share/graylog/plugin
+            - name: plugins-merged
+              mountPath: /usr/share/graylog/plugins-merged
             - name: logsconf
               mountPath: /usr/share/graylog/data/config/log4j2.xml
               subPath: log4j2.xml
@@ -364,6 +398,8 @@ spec:
             - name: nodeid
               mountPath: /usr/share/graylog/data/config/node-id
               subPath: node-id
+            - name: tmp
+              mountPath: /tmp
 {{ if .Values.Graylog.TLS }}
 {{ if .Values.Graylog.TLS.HTTP }}
 {{ if and .Values.Graylog.TLS.HTTP.GenerateCerts .Values.Graylog.TLS.HTTP.GenerateCerts.Enabled }}
@@ -455,11 +491,20 @@ spec:
               cpu: {{ resIndex .Values.Graylog.GraylogResources.Requests "cpu" }}
               memory: {{ resIndex .Values.Graylog.GraylogResources.Requests "memory" }}
 {{- end }}
-{{ if not .Values.OpenshiftDeploy }}
           securityContext:
+            # The upstream Java binary has cap_net_bind_service=ep and cannot be executed with an
+            # empty capability bounding set. Retain only that capability so Graylog can also bind
+            # its default UDP input to port 514.
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
             runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL
+              add:
+                - NET_BIND_SERVICE
             runAsUser: 1100
-{{ end }}
+            runAsGroup: 1100
 {{ if .Values.Graylog.AuthProxy }}
 {{ if .Values.Graylog.AuthProxy.Install }}
         - name: graylog-auth-proxy
@@ -470,6 +515,9 @@ spec:
             - |
               python /usr/src/app/graylog_auth_proxy.py --config "./config.yaml"
           imagePullPolicy: IfNotPresent
+          env:
+            - name: PYTHONDONTWRITEBYTECODE
+              value: "1"
           volumeMounts:
             - name: graylog-auth-proxy-config
               mountPath: /usr/src/app/config.yaml
@@ -479,6 +527,8 @@ spec:
               mountPath: /usr/src/app/.htpasswd
               subPath: {{ .Values.Graylog.AuthProxy.BindPasswordSecret.Key }}
               readOnly: true
+            - name: tmp
+              mountPath: /tmp
 {{ if .Values.Graylog.TLS }}
 {{ if .Values.Graylog.TLS.HTTP }}
 {{ if and .Values.Graylog.TLS.HTTP.GenerateCerts .Values.Graylog.TLS.HTTP.GenerateCerts.Enabled }}
@@ -554,10 +604,14 @@ spec:
               cpu: {{ resIndex .Values.Graylog.AuthProxy.Resources.Requests "cpu" }}
               memory: {{ resIndex .Values.Graylog.AuthProxy.Resources.Requests "memory" }}
 {{- end }}
-{{ if not .Values.OpenshiftDeploy }}
           securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
             runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL
             runAsUser: 1001
-{{ end }}
+            runAsGroup: 1001
 {{ end }}
 {{ end }}

@@ -19,7 +19,7 @@ metadata:
     {{- toYaml .Values.fluentbit.annotations | nindent 4 }}
   {{- end }}
 allowPrivilegedContainer: false
-allowHostDirVolumePlugin: true
+allowHostDirVolumePlugin: false
 runAsUser:
   type: RunAsAny
 seLinuxContext:
@@ -39,7 +39,6 @@ volumes:
   - configMap
   - downwardAPI
   - emptyDir
-  - hostPath
   - persistentVolumeClaim
   - projected
   - secret
@@ -47,7 +46,7 @@ allowHostNetwork: false
 allowHostPorts: false
 allowHostPID: false
 allowHostIPC: false
-readOnlyRootFilesystem: false
+readOnlyRootFilesystem: true
 {{- end }}
 {{- end }}
 {{- end }}

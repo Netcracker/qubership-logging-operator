@@ -12,41 +12,43 @@ import (
 )
 
 func (r *EventsReaderReconciler) handleDeployment(cr *loggingService.LoggingService) error {
-	m, err := eventsReaderDeployment(cr)
+	desired, err := eventsReaderDeployment(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Deployment manifest")
 		return err
 	}
 
-	if err = r.CreateResource(cr, m); err != nil {
-		if errors.IsAlreadyExists(err) {
-			e := &appsv1.Deployment{ObjectMeta: m.ObjectMeta}
-			if err = r.GetResource(e); err != nil {
-				return err
-			}
-
-			//Set parameters
-			if e.Labels == nil && m.Labels != nil {
-				e.SetLabels(m.Labels)
-			} else {
-				maps.Copy(e.Labels, m.Labels)
-			}
-			e.Spec.Selector = m.Spec.Selector
-			e.Spec.Template.SetLabels(m.Spec.Template.GetLabels())
-			e.Spec.Template.Spec.SecurityContext = m.Spec.Template.Spec.SecurityContext
-			e.Spec.Template.Spec.Containers = m.Spec.Template.Spec.Containers
-			e.Spec.Template.Spec.ServiceAccountName = m.Spec.Template.Spec.ServiceAccountName
-			e.Spec.Template.Spec.NodeSelector = m.Spec.Template.Spec.NodeSelector
-			e.Spec.Template.Spec.Affinity = m.Spec.Template.Spec.Affinity
-
-			if err = r.UpdateResource(e); err != nil {
-				return err
-			}
-		} else {
-			return err
-		}
+	if err = r.CreateResource(cr, desired); err == nil {
+		return nil
 	}
-	return nil
+	if !errors.IsAlreadyExists(err) {
+		return err
+	}
+	return r.updateDeployment(desired)
+}
+
+func (r *EventsReaderReconciler) updateDeployment(desired *appsv1.Deployment) error {
+	existing := &appsv1.Deployment{ObjectMeta: desired.ObjectMeta}
+	if err := r.GetResource(existing); err != nil {
+		return err
+	}
+
+	if existing.Labels == nil && desired.Labels != nil {
+		existing.SetLabels(desired.Labels)
+	} else {
+		maps.Copy(existing.Labels, desired.Labels)
+	}
+	existing.Spec.Selector = desired.Spec.Selector
+	existing.Spec.Template.SetLabels(desired.Spec.Template.GetLabels())
+	existing.Spec.Template.Spec.SecurityContext = desired.Spec.Template.Spec.SecurityContext
+	existing.Spec.Template.Spec.Containers = desired.Spec.Template.Spec.Containers
+	existing.Spec.Template.Spec.Volumes = desired.Spec.Template.Spec.Volumes
+	existing.Spec.Template.Spec.ServiceAccountName = desired.Spec.Template.Spec.ServiceAccountName
+	existing.Spec.Template.Spec.NodeSelector = desired.Spec.Template.Spec.NodeSelector
+	existing.Spec.Template.Spec.Affinity = desired.Spec.Template.Spec.Affinity
+	existing.Spec.Template.Spec.PriorityClassName = desired.Spec.Template.Spec.PriorityClassName
+
+	return r.UpdateResource(existing)
 }
 
 func (r *EventsReaderReconciler) handleService(cr *loggingService.LoggingService) error {

@@ -73,6 +73,74 @@ them as part of node maintenance after confirming that their offsets and buffere
 `fluentbit.db.enabled: false` disables the read offset databases for all three profiles. The remaining behavior still
 depends on each input's initial read setting and on whether the watched files are present after FluentBit restarts.
 
+## Security Hardening Constraints
+
+FluentBit uses a read-only container root filesystem, the `RuntimeDefault` seccomp profile, and a dedicated `emptyDir`
+mounted at `/tmp`. These controls do not make mounted volumes read-only. The log collectors retain the access required
+to read node logs and update their existing state files.
+
+### Node log collector and HA forwarder
+
+The standard FluentBit collector and the HA forwarder have the following intentional exceptions to the default
+non-root hardening profile:
+
+- They run as UID `0` because node log directories such as `/var/log/pods` can be owned by root with mode `0750`.
+  A non-root process cannot traverse these directories reliably across supported platforms.
+- They mount the node `/var/log` directory as a read-only `hostPath`. The `persistent-offsets` and `node-persistent`
+  profiles add writable host paths under `/var/lib/fluent-bit` for offset databases and filesystem buffering.
+- When `fluentbit.securityContextPrivileged` is `false`, the containers drop all Linux capabilities and add only
+  `DAC_OVERRIDE`. This capability lets UID `0` read root-owned node logs after dropping the default capability set. It
+  does not bypass a read-only volume mount.
+- On OpenShift, the standard collector and HA forwarder pods use SELinux type `spc_t`. Node log and storage paths are
+  protected by host SELinux labels that the default container type cannot access. The HA aggregator retains the
+  default confined container type because it does not mount node paths.
+- Setting `fluentbit.securityContextPrivileged` to `true` preserves the legacy privileged mode for environments that
+  require it. In this mode, the main container does not explicitly disable privilege escalation or restrict its
+  capabilities. The read-only root filesystem remains enabled. Use the default value, `false`, unless the node runtime
+  requires privileged access.
+
+Do not make these containers non-root, remove `DAC_OVERRIDE`, or remove their host paths without validating all
+supported node layouts and upgrade scenarios.
+
+The read-only `/var/log` host path is an explicit exception to the generic container-hardening rule that prohibits host
+paths. The writable `/var/lib/fluent-bit` host paths are additional exceptions for persistent storage profiles.
+Removing `/var/log` would prevent the DaemonSet from collecting node logs.
+
+### HA aggregator
+
+The HA aggregator does not read node files and has no `hostPath` exception. Its main container and config reload
+sidecar run as non-root, disable privilege escalation, use a read-only root filesystem, and drop all Linux
+capabilities. Kubernetes and OpenShift deployments use UID `1001`. The OpenShift UID must be explicit because the
+upstream Fluent Bit image declares root as its default user; `runAsNonRoot: true` alone makes the kubelet reject it.
+
+The aggregator keeps its filesystem buffer under `/fluent-bit/storage`. This path remains writable through the
+existing `storage` volume:
+
+- The default configuration uses an `emptyDir` for each aggregator replica.
+- Enabling `fluentbit.aggregator.volume.bind` uses a per-replica PersistentVolumeClaim.
+
+The default `emptyDir` has a `2Gi` limit. Set `fluentbit.aggregator.storageSizeLimit` to change it. The default
+accommodates the `1024M` Graylog output buffer plus chunk metadata and filesystem overhead. Increase the volume limit
+when enabling outputs with higher buffer limits or increasing `totalLimitSize`. Size the volume above the combined
+enabled output buffer limits plus filesystem overhead.
+
+The `storageSizeLimit` setting applies only to `emptyDir`. When PVC storage is enabled, use
+`fluentbit.aggregator.volume.storageSize` instead.
+
+The paths `/fluent-bit/state` and `/fluent-bit/storage` are part of the storage-profile behavior. Container hardening
+does not change their persistence semantics.
+
+### HA failover behavior
+
+The forwarder sends records to the individual StatefulSet replicas through pod-specific DNS names. If an aggregator
+pod is deleted or unavailable, FluentBit can log temporary DNS, connection, and chunk retry messages for that replica.
+The remaining replica continues to receive records, and the forwarder retries buffered chunks until the unavailable
+replica and its DNS record return.
+
+Treat short-lived retry messages during a rollout or failover as expected. Investigate them when both aggregator
+replicas are ready and the messages continue, the forwarder storage backlog keeps growing, or records stop reaching
+the configured output.
+
 ## Custom Lua Script Processing
 
 Advanced FluentBit configuration with custom Lua script for specialized log processing:

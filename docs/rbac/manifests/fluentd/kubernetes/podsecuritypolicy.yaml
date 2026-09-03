@@ -17,11 +17,24 @@ spec:
   # but we can provide it for defense in depth.
   requiredDropCapabilities:
     - ALL
+  allowedHostPaths:
+    - pathPrefix: /etc/sysconfig/docker
+      readOnly: true
+    - pathPrefix: /etc/docker/daemon.json
+      readOnly: true
+    - pathPrefix: /etc/hostname
+      readOnly: true
+    - pathPrefix: /var/log
+      readOnly: false
+    - pathPrefix: /var/lib/docker/containers
+      readOnly: true
   # Allow core volume types.
   volumes:
     - 'configMap'
     - 'secret'
     - 'hostPath'
+    - 'emptyDir'
+    - 'projected'
   hostNetwork: false
   hostIPC: false
   hostPID: false
@@ -43,4 +56,4 @@ spec:
       # Allow adding the root group.
       - min: 0
         max: 65535
-  readOnlyRootFilesystem: false
+  readOnlyRootFilesystem: true

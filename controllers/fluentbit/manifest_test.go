@@ -245,3 +245,12 @@ func TestGeneralizedQubershipParserAndEmptyMessagePlaceholder(t *testing.T) {
 	}
 	assertRawLogFallbackAfterPlaceholder(t, normalizedPostGenericConfig, postGenericConfig)
 }
+
+func TestQubershipKeyValueParserGuard(t *testing.T) {
+	data := renderConfigData(t, &loggingService.Fluentbit{ContainerLogging: true})
+	script := data["parse_key_value.lua"]
+
+	if !strings.Contains(script, `if record["qubership_candidate"] == nil then`) {
+		t.Errorf("expected key-value parsing to require a Qubership parser marker, got:\n%s", script)
+	}
+}

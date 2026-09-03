@@ -141,3 +141,18 @@ func TestAggregatorGeneralizedQubershipParserAndEmptyMessagePlaceholder(t *testi
 	}
 	assertRawLogFallbackAfterPlaceholder(t, normalizedPostGenericConfig, postGenericConfig)
 }
+
+func TestAggregatorQubershipKeyValueParserGuard(t *testing.T) {
+	cr := &loggingService.LoggingService{Spec: loggingService.LoggingServiceSpec{
+		Fluentbit: &loggingService.Fluentbit{Aggregator: &loggingService.FluentbitAggregator{}},
+	}}
+	secret, err := aggregatorConfigSecret(cr, util.DynamicParameters{}, aggregatorOutputCredentials{})
+	if err != nil {
+		t.Fatalf("render Fluent Bit aggregator config Secret: %v", err)
+	}
+	script := string(secret.Data["parse_key_value.lua"])
+
+	if !strings.Contains(script, `if record["qubership_candidate"] == nil then`) {
+		t.Errorf("expected key-value parsing to require a Qubership parser marker, got:\n%s", script)
+	}
+}

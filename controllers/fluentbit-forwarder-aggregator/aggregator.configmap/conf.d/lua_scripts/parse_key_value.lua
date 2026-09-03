@@ -1,12 +1,11 @@
 -- input: https://docs.fluentbit.io/manual/pipeline/filters/lua#function-arguments
 -- output: https://docs.fluentbit.io/manual/pipeline/filters/lua#return-values
 function kv_parse(tag, timestamp, record)
-    -- Skip processing if this log was marked as logfmt candidate
-    -- to avoid conflicts between logfmt parser and key-value parsing
-    if record["logfmt_candidate"] == "true" then
+    -- Process key-value pairs only in records matched by the Qubership parser.
+    if record["qubership_candidate"] == nil then
         return 0, timestamp, record
     end
-    if record["log"] ~= nil and type(record["log"]) ~= "table" and record["parse_status"] == "success" then
+    if record["log"] ~= nil and type(record["log"]) ~= "table" then
         -- regex to find the end of key=value string in the original string
         -- this regex search the place:
         -- * start from ]
@@ -16,11 +15,13 @@ function kv_parse(tag, timestamp, record)
         local regex_kvs_end = "]%s*[^%[][%w%-%{%}%\\%/%.%,%!%@%#%$%%%^%&%*%(%)]%s*"
         local regex_kvs = "%[([^=%[%]\"]+)=(%w*(.[^%[%]\"]*))%]"
         local s = record["log"]
+
         -- find the end position of [key=value] pairs
         -- and copy from original string only this string part, for example:
         -- [<time>] [INFO] [key1=value1][key2=value2] ... [keyN=valueN]
         local kvs_position = string.find(s, regex_kvs_end, 1)
         local kvs = string.sub(s, 0, kvs_position)
+
         if kvs ~= nil then
             local trimmed_v
             for k, v in string.gmatch(kvs, regex_kvs) do
@@ -33,6 +34,7 @@ function kv_parse(tag, timestamp, record)
             -- return 0, that means the record will not be modified
             return 0, timestamp, record
         end
+
         -- return 2, that means the original timestamp is not modified and the record has been modified
         -- so it must be replaced by the returned values from the record
         return 2, timestamp, record

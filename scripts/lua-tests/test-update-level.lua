@@ -180,7 +180,29 @@ function execute_real_func_test()
     end
 end
 
+-- source_level must survive a second update_level call (forwarder + aggregator both run this script).
+function test_reinitialization_preserves_source_level()
+    local record = { level = "warn" }
+
+    update_level("test", 1, record)
+    local first_source_level = record["source_level"]
+
+    update_level("test", 2, record)
+    local second_source_level = record["source_level"]
+
+    assert(second_source_level == first_source_level,
+        "source_level must survive a second update_level call: got " ..
+        tostring(second_source_level) .. ", expected " .. tostring(first_source_level))
+
+    print("Reinitialization check passed: source_level stayed", first_source_level)
+end
+
 print("====================================================================")
 print("Run test to check function which will use Fluent")
 print("====================================================================")
 execute_real_func_test()
+
+print("====================================================================")
+print("Run test to check source_level survives a second update_level call")
+print("====================================================================")
+test_reinitialization_preserves_source_level()

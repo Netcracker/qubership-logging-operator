@@ -82,46 +82,6 @@ func TestSaveDataToDirectory(t *testing.T) {
 	}
 }
 
-func TestMakeGeneratedLogsWritable(t *testing.T) {
-	t.Parallel()
-
-	root := filepath.Join(t.TempDir(), "pods")
-	nested := filepath.Join(root, "namespace_pod_uid", "container")
-	if err := os.MkdirAll(nested, 0o700); err != nil {
-		t.Fatalf("create generated log directory: %v", err)
-	}
-	logPath := filepath.Join(nested, "0.log")
-	if err := os.WriteFile(logPath, []byte("log"), 0o600); err != nil {
-		t.Fatalf("write generated log: %v", err)
-	}
-
-	if err := makeGeneratedLogsWritable(root); err != nil {
-		t.Fatalf("makeGeneratedLogsWritable returned error: %v", err)
-	}
-
-	dirInfo, err := os.Stat(nested)
-	if err != nil {
-		t.Fatalf("stat generated log directory: %v", err)
-	}
-	if got := dirInfo.Mode().Perm(); got != 0o777 {
-		t.Fatalf("generated log directory permissions = %o, want 777", got)
-	}
-	logInfo, err := os.Stat(logPath)
-	if err != nil {
-		t.Fatalf("stat generated log: %v", err)
-	}
-	if got := logInfo.Mode().Perm(); got != 0o666 {
-		t.Fatalf("generated log permissions = %o, want 666", got)
-	}
-}
-
-func TestMakeGeneratedLogsWritableAllowsMissingDirectory(t *testing.T) {
-	missing := filepath.Join(t.TempDir(), "missing")
-	if err := makeGeneratedLogsWritable(missing); err != nil {
-		t.Fatalf("makeGeneratedLogsWritable(%q): %v", missing, err)
-	}
-}
-
 func TestFillConfigurationTemplatesMissingDirectory(t *testing.T) {
 	t.Parallel()
 

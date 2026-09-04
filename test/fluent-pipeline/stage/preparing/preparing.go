@@ -58,28 +58,7 @@ func PrepareTestLogs(targetDir string) {
 		slog.Error("Error occurred when preparing logs", "err", err)
 		os.Exit(1)
 	}
-	err = makeGeneratedLogsWritable(filepath.Join(targetDir, "var", "log", "pods"))
-	if err != nil {
-		slog.Error("Error occurred when updating generated log permissions", "err", err)
-		os.Exit(1)
-	}
 	slog.Info("Input logs are ready")
-}
-
-func makeGeneratedLogsWritable(root string) error {
-	err := filepath.WalkDir(root, func(path string, entry fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-		if entry.IsDir() {
-			return os.Chmod(path, 0777)
-		}
-		return os.Chmod(path, 0666)
-	})
-	if os.IsNotExist(err) {
-		return nil
-	}
-	return err
 }
 
 func readInputLogs(targetDir string) error {
@@ -101,7 +80,7 @@ func readInputLogs(targetDir string) error {
 				slog.Info("Ignoring file", "file", path)
 				return nil
 			}
-			err = os.MkdirAll(filepath.Join(targetDir, targetFilePath), 0777)
+			err = os.MkdirAll(filepath.Join(targetDir, targetFilePath), 0o755)
 			if err != nil {
 				return err
 			}

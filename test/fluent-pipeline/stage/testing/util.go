@@ -32,6 +32,9 @@ func getTestMetadata(expected map[string]interface{}) (testMetadata, bool) {
 	return metadata, true
 }
 
+// findActualRecord returns the output record that belongs to an expected record, whether more than
+// one output record matched, and whether the identifier is test metadata that the pipeline does not
+// carry. Selectors are tried from the most explicit to the most permissive one.
 func findActualRecord(actualRecords []map[string]interface{}, expected map[string]interface{}) (
 	map[string]interface{}, bool, bool,
 ) {
@@ -42,39 +45,12 @@ func findActualRecord(actualRecords []map[string]interface{}, expected map[strin
 		return record, duplicated, true
 	}
 
-	logID := expected["logId"]
-	if logID == nil {
-		logID = expected["_test_id"]
-	}
+	logID := expectedLogID(expected)
 	if logID != nil {
-		matches := matchingRecords(actualRecords, func(actual map[string]interface{}) bool {
-			return actual["logId"] == logID
-		})
-		matches = refineByTimestamp(matches, expected)
-		if record, duplicated := singleRecord(matches); record != nil || duplicated {
+		if record, duplicated, found := findByLogIDField(actualRecords, expected, logID); found {
 			return record, duplicated, false
 		}
-	}
-
-	if logID != nil {
-		markers := [][]byte{
-			[]byte("[logId=" + fmt.Sprint(logID) + "]"),
-			[]byte("logId=" + fmt.Sprint(logID)),
-		}
-		matches := matchingRecords(actualRecords, func(actual map[string]interface{}) bool {
-			encoded, err := json.Marshal(actual)
-			if err != nil {
-				return false
-			}
-			for _, marker := range markers {
-				if bytes.Contains(encoded, marker) {
-					return true
-				}
-			}
-			return false
-		})
-		matches = refineByTimestamp(matches, expected)
-		if record, duplicated := singleRecord(matches); record != nil || duplicated {
+		if record, duplicated, found := findByLogIDMarker(actualRecords, expected, logID); found {
 			return record, duplicated, true
 		}
 	}
@@ -85,6 +61,53 @@ func findActualRecord(actualRecords []map[string]interface{}, expected map[strin
 		return expected["time"] != nil && actual["time"] == expected["time"]
 	}))
 	return record, duplicated, record != nil
+}
+
+func expectedLogID(expected map[string]interface{}) interface{} {
+	if logID := expected["logId"]; logID != nil {
+		return logID
+	}
+	return expected["_test_id"]
+}
+
+// findByLogIDField matches the output records that kept the extracted logId field.
+func findByLogIDField(actualRecords []map[string]interface{}, expected map[string]interface{}, logID interface{}) (
+	map[string]interface{}, bool, bool,
+) {
+	matches := matchingRecords(actualRecords, func(actual map[string]interface{}) bool {
+		return actual["logId"] == logID
+	})
+	record, duplicated := singleRecord(refineByTimestamp(matches, expected))
+	return record, duplicated, record != nil || duplicated
+}
+
+// findByLogIDMarker matches the output records that keep the marker inside the message because the
+// parser did not extract it into a field.
+func findByLogIDMarker(actualRecords []map[string]interface{}, expected map[string]interface{}, logID interface{}) (
+	map[string]interface{}, bool, bool,
+) {
+	markers := [][]byte{
+		[]byte("[logId=" + fmt.Sprint(logID) + "]"),
+		[]byte("logId=" + fmt.Sprint(logID)),
+	}
+	matches := matchingRecords(actualRecords, func(actual map[string]interface{}) bool {
+		encoded, err := json.Marshal(actual)
+		if err != nil {
+			return false
+		}
+		return containsAnyMarker(encoded, markers)
+	})
+	record, duplicated := singleRecord(refineByTimestamp(matches, expected))
+	return record, duplicated, record != nil || duplicated
+}
+
+func containsAnyMarker(encoded []byte, markers [][]byte) bool {
+	for _, marker := range markers {
+		if bytes.Contains(encoded, marker) {
+			return true
+		}
+	}
+	return false
 }
 
 func compareRecord(expected, actual map[string]interface{}) (bool, error) {
@@ -193,7 +216,7 @@ func ignoreFluentdTimeFunc(ignoreFluentdTimeFiles string) RecordModifyFunc {
 	}
 }
 
-func GetModificationFuncs(agent string, ignoreFluentdTimeFiles string) (rmFuncs []RecordModifyFunc) {
+func GetModificationFuncs(agent, ignoreFluentdTimeFiles string) (rmFuncs []RecordModifyFunc) {
 	if strings.EqualFold(agent, "fluentd") && len(ignoreFluentdTimeFiles) > 0 {
 		rmFuncs = append(rmFuncs, ignoreFluentdTimeFunc(ignoreFluentdTimeFiles))
 	}

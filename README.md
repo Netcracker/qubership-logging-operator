@@ -26,8 +26,8 @@ and K8S Events Reader.
   * [Architecture](#architecture)
     * [System Overview](#system-overview)
   * [Testing](#testing)
-    * [Integration Tests](#integration-tests)
-    * [Robot Framework Tests](#robot-framework-tests)
+    * [Fluent pipeline tests](#fluent-pipeline-tests)
+    * [Robot Framework tests](#robot-framework-tests)
   * [Contributing](#contributing)
   * [License](#license)
 

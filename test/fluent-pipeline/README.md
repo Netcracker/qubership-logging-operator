@@ -75,17 +75,21 @@ test/fluent-pipeline/run.sh fluentd
 The runner stores generated configuration and actual output in `build/fluent-pipeline` by default. Set
 `TEST_CONTENT_PATH` to use another directory.
 
-The following environment variables override the default images and timeouts:
+The following environment variables override the defaults:
 
 | Variable                     | Default                                         |
 | ---------------------------- | ----------------------------------------------- |
 | `FLUENTBIT_IMAGE`            | `docker.io/fluent/fluent-bit:5.1.0`             |
 | `FLUENTD_IMAGE`              | `ghcr.io/netcracker/qubership-fluentd:1.19.3-1` |
 | `FLUENT_PIPELINE_TEST_IMAGE` | `qubership-fluent-pipeline-tests:local`         |
+| `HELPER_USER`                | `$(id -u):$(id -g)`                             |
 | `CFG_TIMEOUT`                | `2` seconds                                     |
 | `PARSE_TIMEOUT`              | `20` seconds                                    |
 | `PARSER_CONTRACT_TIMEOUT`    | `5` seconds                                     |
 | `INT_TESTS_IGNORE`           | Empty                                           |
+
+The runner starts the helper container as `HELPER_USER`, so the rendered configuration and the generated container logs
+belong to the calling user. The logging agents run as root and read those files without extra permissions.
 
 ## Add a test case
 

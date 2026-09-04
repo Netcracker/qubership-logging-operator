@@ -23,15 +23,13 @@ concurrency:
   group: fluent-pipeline-${{ github.ref }}
   cancel-in-progress: true
 
-permissions:
-  contents: read
-  packages: read
-
 jobs:
   runtime-test:
     name: ${{ matrix.agent }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:

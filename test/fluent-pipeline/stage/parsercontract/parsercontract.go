@@ -32,12 +32,7 @@ func Prepare(manifestPath, parsersPath, targetDir string) error {
 		return err
 	}
 	for _, name := range []string{"input", "expected", "output"} {
-		directory := filepath.Join(targetDir, name)
-		if err := os.MkdirAll(directory, 0o777); err != nil {
-			return err
-		}
-		// The helper and logging-agent containers use different UIDs. These directories contain disposable test artifacts.
-		if err := os.Chmod(directory, 0o777); err != nil {
+		if err := os.MkdirAll(filepath.Join(targetDir, name), 0o755); err != nil {
 			return err
 		}
 	}

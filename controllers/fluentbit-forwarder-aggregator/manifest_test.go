@@ -101,7 +101,7 @@ func TestAggregatorGeneralizedQubershipParserAndEmptyMessagePlaceholder(t *testi
 	if strings.Contains(parsersConfig, "\n    Name        java\n") {
 		t.Errorf("unexpected separate Java parser definition:\n%s", parsersConfig)
 	}
-	if !strings.Contains(parsersConfig, `(?<qubership_candidate>\[)`) {
+	if !strings.Contains(parsersConfig, `(?<__qubership_candidate>\[)`) {
 		t.Errorf("expected the Qubership parser to emit a match marker, got:\n%s", parsersConfig)
 	}
 	if !strings.Contains(parsersConfig, `(?<short_message>[\s\S]*)`) {
@@ -114,12 +114,12 @@ func TestAggregatorGeneralizedQubershipParserAndEmptyMessagePlaceholder(t *testi
 	postGenericConfig := string(secret.Data["filter-post-generic.conf"])
 	normalizedPostGenericConfig := strings.Join(strings.Fields(postGenericConfig), " ")
 	for _, expected := range []string{
-		"Condition Key_exists qubership_candidate",
+		"Condition Key_exists __qubership_candidate",
 		"Condition Key_value_equals parse_format qubership",
 		"Condition Key_does_not_exist short_message",
 		`Set short_message "<Empty message>"`,
 		"Copy log short_message",
-		"Remove_key qubership_candidate",
+		"Remove_key __qubership_candidate",
 	} {
 		if !strings.Contains(normalizedPostGenericConfig, expected) {
 			t.Errorf("expected %q in the post-generic config, got:\n%s", expected, postGenericConfig)
@@ -152,7 +152,7 @@ func TestAggregatorQubershipKeyValueParserGuard(t *testing.T) {
 	}
 	script := string(secret.Data["parse_key_value.lua"])
 
-	if !strings.Contains(script, `if record["qubership_candidate"] == nil then`) {
+	if !strings.Contains(script, `if record["__qubership_candidate"] == nil then`) {
 		t.Errorf("expected key-value parsing to require a Qubership parser marker, got:\n%s", script)
 	}
 }

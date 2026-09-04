@@ -1,0 +1,5 @@
+2023-11-15T08:30:47.456007468Z stdout F [2023/11/15 08:30:47] [ warn] [engine] [logId=fluentbit-1] buffer overflow detected, old records will be dropped
+2023-11-15T08:30:48.456007468Z stdout F [2023/11/15 08:30:48] [debug] [http_client] [logId=fluentbit-2] HTTP Status=200 URL=http://example.com/api
+2023-11-15T08:30:49.456007468Z stdout F [2023/11/15 08:30:49] [ info] [filter] [logId=fluentbit-3] Filter plugin 'grep' initialized
+2023-11-15T08:30:50.456007468Z stdout F [2023/11/15 08:30:50] [error] [output:es] [logId=fluentbit-4] Elasticsearch connection failed, retrying in 30 seconds
+2023-11-15T08:30:52.456007468Z stdout F [2023/11/15 08:30:52] [critical] [engine] [logId=fluentbit-5] Unexpected signal 11 (Segmentation fault) received

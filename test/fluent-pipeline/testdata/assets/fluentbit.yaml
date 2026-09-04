@@ -1,0 +1,47 @@
+apiVersion: logging.netcracker.com/v1
+kind: LoggingService
+metadata:
+  name: logging-service
+spec:
+  openshiftDeploy: false
+  containerRuntimeType: containerd
+  cloudEventsReader:
+    install: true
+  fluentbit:
+    logLevel: warn
+
+    systemLogging: true
+    systemLogType: varlogsyslog
+    containerLogging: true
+    systemAuditLogging: true
+    kubeAuditLogging: true
+    kubeApiserverAuditLogging: true
+    billCycleConf: false
+
+    watchKubernetesMetadata: true
+    mockKubeData: true
+    db:
+      enabled: false
+
+    multilineFirstLineRegexp: "/^(\\[\\d{4}\\-\\d{2}\\-\\d{2}).*/"
+    multilineOtherLinesRegexp: "/^(?!\\[\\d{4}\\-\\d{2}\\-\\d{2}).*/"
+
+    # Disable Graylog output because we will print data in the file
+    graylogOutput: false
+
+    # Custom filters for tests
+    customFilterConf: |-
+      [FILTER]
+          Name          parser
+          Match_Regex   audit.var.log.audit.audit.*|system.var.log.syslog
+          Key_Name      log
+          Parser        logId-test
+          Reserve_Data  On
+          Preserve_Key  On
+    customOutputConf: |-
+      [OUTPUT]
+          Name         file
+          Match        *
+          Format       plain
+          Path         /fluentbit-output
+          File         output-log

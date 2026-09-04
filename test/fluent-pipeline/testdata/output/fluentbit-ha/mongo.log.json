@@ -1,0 +1,86 @@
+[
+  {
+    "_test_id": "mongo-1-1",
+    "date": "2025-07-08T10:53:16.089+00:00",
+    "time": "2025-07-08T10:53:16.090040268Z",
+    "id": 22315,
+    "context": "initandlisten",
+    "short_message": "Opening WiredTiger",
+    "attributes": {
+      "config": "create,cache_size=256M,session_max=33000,eviction=(threads_min=4,threads_max=4),config_base=false,statistics=(fast),log=(enabled=true,archive=true,path=journal,compressor=snappy),builtin_extension_config=(zstd=(compression_level=6)),file_manager=(close_idle_time=600,close_scan_interval=10,close_handle_minimum=2000),statistics_log=(wait=0),verbose=[recovery_progress,checkpoint_progress,compact_progress],cache_size=512M"
+    },
+    "nodename": "fake-node",
+    "labels": {
+      "metadata.app": "fluent-pipeline-test",
+      "metadata.app.kubernetes.io/version": "0.1.0"
+    },
+    "namespace": "fake-namespace",
+    "parse_field_count": 16,
+    "hostname": "fake-fluent",
+    "container": "fake-container",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "detected_level": "info",
+    "logId": "mongo-1",
+    "source_level": "I",
+    "parse_status": "success",
+    "level": "info",
+    "component": "STORAGE",
+    "parse_format": "mongodb_structured"
+  },
+  {
+    "_test_id": "mongo-2-1",
+    "date": "2025-07-08T10:53:18.438+00:00",
+    "time": "2025-07-08T10:53:18.438549961Z",
+    "id": 22430,
+    "context": "initandlisten",
+    "short_message": "WiredTiger message",
+    "attributes": {
+      "message": "[1751971998:438095][11:0x7f96eed86c80], txn-recover: [WT_VERB_RECOVERY_PROGRESS] recovery log replay has successfully finished and ran for 0 milliseconds"
+    },
+    "nodename": "fake-node",
+    "labels": {
+      "metadata.app": "fluent-pipeline-test",
+      "metadata.app.kubernetes.io/version": "0.1.0"
+    },
+    "namespace": "fake-namespace",
+    "parse_field_count": 16,
+    "hostname": "fake-fluent",
+    "container": "fake-container",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "detected_level": "info",
+    "logId": "mongo-2",
+    "source_level": "I",
+    "parse_status": "success",
+    "level": "info",
+    "component": "STORAGE",
+    "parse_format": "mongodb_structured"
+  },
+  {
+    "_test_id": "mongo-3-1",
+    "date": "2025-07-08T10:53:18.438+00:00",
+    "time": "2025-07-08T10:53:18.438611709Z",
+    "id": 22430,
+    "context": "initandlisten",
+    "short_message": "WiredTiger message",
+    "attributes": {
+      "message": "[1751971998:438325][11:0x7f96eed86c80], txn-recover: [WT_VERB_RECOVERY_PROGRESS] recovery was completed successfully and took 0ms, including 0ms for the log replay, 0ms for the rollback to stable, and 0ms for the checkpoint."
+    },
+    "nodename": "fake-node",
+    "labels": {
+      "metadata.app": "fluent-pipeline-test",
+      "metadata.app.kubernetes.io/version": "0.1.0"
+    },
+    "namespace": "fake-namespace",
+    "parse_field_count": 16,
+    "hostname": "fake-fluent",
+    "container": "fake-container",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "detected_level": "info",
+    "logId": "mongo-3",
+    "source_level": "I",
+    "parse_status": "success",
+    "level": "info",
+    "component": "STORAGE",
+    "parse_format": "mongodb_structured"
+  }
+]

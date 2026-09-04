@@ -1,0 +1,13 @@
+2024-03-15T08:12:33.456007468Z stdout F [2024-03-15T08:12:33.456Z] [ERROR] [request_id=8a7b6c5d-4e3f] [tenant_id=t1] [thread=main] [class=app.Main] [logId=qubership-kv-1] NullPointerException
+2024-03-15T08:12:33.456007802Z stdout F     at com.example.app.Main.processRequest(Main.java:42)
+2024-03-15T08:12:33.456008136Z stdout F     at com.example.app.Main.main(Main.java:17)
+2024-03-15T08:12:33.456008470Z stdout F Caused by: java.lang.NullPointerException: Cannot invoke "String.length()" because "input" is null
+2024-03-15T08:12:33.456008804Z stdout F     at com.example.app.Utils.validateInput(Utils.java:89)
+2024-03-15T09:15:23.200008804Z stdout F [2024-03-15T09:15:23.200Z] [DEBUG] [request_id=5f6e7d8c-9a0b] [tenant_id=-] [thread=Worker-5] [class=o.apa.kaf.cli.NetworkClient] [logId=qubership-kv-2] Sending payload: size=2KB
+2024-03-15T09:15:26.500008804Z stdout F [2024-03-15T09:15:26.500Z] [TRACE] [request_id=0q1w2e3r-4t5y] [tenant_id=a5b6] [thread=AsyncIO-3] [class=service.Payment] [logId=qubership-kv-3] Processing transaction: amount=29.99USD
+2024-03-15T09:15:31.000008804Z stdout F [2024-03-15T09:15:31.000Z] [WARN] [request_id=2k3l4m5n-6o7p] [tenant_id=-] [thread=HTTP-Listener] [class=util.Config] [logId=qubership-kv-4] Deprecated config key used: "legacy_mode"
+2024-03-15T10:20:42.345008804Z stdout F [2024-03-15T10:20:42.345Z] [ERROR] [request_id=8t9u0v1w-2x3y] [tenant_id=-] [thread=main] [class=util.Config] [logId=qubership-kv-5] Invalid configuration
+2024-03-15T10:20:42.345009012Z stdout F     at com.example.util.Config.validate(Config.java:145)
+2024-03-15T10:20:42.345009360Z stdout F     at com.example.util.Config.load(Config.java:78)
+2024-03-15T10:20:42.345009705Z stdout F Caused by: java.lang.IllegalArgumentException: Port must be between 1 and 65535
+2024-03-15T10:20:42.345010060Z stdout F     at com.example.util.Config.parsePort(Config.java:201)

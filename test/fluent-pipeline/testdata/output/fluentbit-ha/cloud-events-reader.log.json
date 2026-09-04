@@ -1,0 +1,27 @@
+[
+  {
+    "_test_id": "cloud-events-reader-1",
+    "parse_status": "success",
+    "time": "2024-06-11T07:40:20.272007468Z",
+    "involvedObjectName": "rabbitmq-operator-59d457d796-xh27k",
+    "involvedObjectUid": "00000000-0000-0000-0000-000000000000",
+    "involvedObjectApiVersion": "v1",
+    "type": "Normal",
+    "reason": "BackOff",
+    "message": "Back-off pulling image \"ghcr.io/netcracker/qubership-disaster-recovery-daemon:v0.4.5\"",
+    "kind": "KubernetesEvent",
+    "nodename": "fake-node",
+    "namespace": "fake-namespace",
+    "involvedObjectKind": "Pod",
+    "parse_level_unknown": "true",
+    "level": "info",
+    "detected_level": "info",
+    "involvedObjectNamespace": "rabbitmq",
+    "parse_field_count": 16,
+    "hostname": "fake-fluent",
+    "short_message": "{\"time\":\"2024-06-11T07:40:20\",\"logId\":\"cloud-events-reader\",\"involvedObjectKind\":\"Pod\",\"involvedObjectNamespace\":\"rabbitmq\",\"involvedObjectName\":\"rabbitmq-operator-59d457d796-xh27k\",\"involvedObjectUid\":\"00000000-0000-0000-0000-000000000000\",\"involvedObjectApiVersion\":\"v1\",\"involvedObjectResourceVersion\":\"105845519\",\"reason\":\"BackOff\",\"type\":\"Normal\",\"message\":\"Back-off pulling image \\\"ghcr.io/netcracker/qubership-disaster-recovery-daemon:v0.4.5\\\"\",\"kind\":\"KubernetesEvent\"}",
+    "logId": "cloud-events-reader",
+    "involvedObjectResourceVersion": "105845519",
+    "parse_format": "unknown"
+  }
+]

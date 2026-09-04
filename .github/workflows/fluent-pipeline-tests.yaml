@@ -1,0 +1,75 @@
+---
+name: 'Tests: Fluent pipeline'
+
+on:
+  pull_request:
+    branches:
+    - '**'
+    types: [opened, synchronize, reopened]
+    paths:
+    - .github/workflows/fluent-pipeline-tests.yaml
+    - api/**
+    - controllers/fluentbit/**
+    - controllers/fluentbit-forwarder-aggregator/**
+    - controllers/fluentd/**
+    - go.mod
+    - go.sum
+    - go.work
+    - go.work.sum
+    - test/fluent-pipeline/**
+  workflow_dispatch: {}
+
+concurrency:
+  group: fluent-pipeline-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  runtime-test:
+    name: ${{ matrix.agent }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        agent:
+        - fluentbit
+        - fluentbit-ha
+        - fluentd
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
+
+    - name: Build the pipeline test image
+      run: >-
+        docker build
+        --tag qubership-fluent-pipeline-tests:local
+        --file test/fluent-pipeline/Dockerfile
+        .
+
+    - name: Run the ${{ matrix.agent }} pipeline
+      env:
+        TEST_CONTENT_PATH: ${{ runner.temp }}/fluent-pipeline-${{ matrix.agent }}
+      run: test/fluent-pipeline/run.sh '${{ matrix.agent }}'
+
+    - name: Upload pipeline output
+      if: failure()
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      with:
+        name: fluent-pipeline-${{ matrix.agent }}-output
+        path: ${{ runner.temp }}/fluent-pipeline-${{ matrix.agent }}
+        if-no-files-found: ignore
+
+  fluent-pipeline-gate:
+    name: Fluent Pipeline Gate
+    needs: runtime-test
+    if: always()
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+    - name: Fail if a runtime test failed
+      if: needs.runtime-test.result != 'success'
+      run: exit 1

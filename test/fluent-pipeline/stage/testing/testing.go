@@ -154,7 +154,6 @@ func testJson(ignore string, agent agent.Agent, modificationFuncs []RecordModify
 								return err
 							}
 						}
-						actualRecord = nil
 						continue
 					} else {
 						//check failed

@@ -77,15 +77,15 @@ The runner stores generated configuration and actual output in `build/fluent-pip
 
 The following environment variables override the default images and timeouts:
 
-| Variable                     | Default                                                |
-| ---------------------------- | ------------------------------------------------------ |
-| `FLUENTBIT_IMAGE`            | `docker.io/fluent/fluent-bit:5.1.0`                    |
-| `FLUENTD_IMAGE`              | `ghcr.io/netcracker/qubership-fluentd:1.19.3-1`        |
-| `FLUENT_PIPELINE_TEST_IMAGE` | `qubership-fluent-pipeline-tests:local`                 |
-| `CFG_TIMEOUT`                | `2` seconds                                            |
-| `PARSE_TIMEOUT`              | `20` seconds                                           |
-| `PARSER_CONTRACT_TIMEOUT`    | `5` seconds                                            |
-| `INT_TESTS_IGNORE`           | Empty                                                  |
+| Variable                     | Default                                         |
+| ---------------------------- | ----------------------------------------------- |
+| `FLUENTBIT_IMAGE`            | `docker.io/fluent/fluent-bit:5.1.0`             |
+| `FLUENTD_IMAGE`              | `ghcr.io/netcracker/qubership-fluentd:1.19.3-1` |
+| `FLUENT_PIPELINE_TEST_IMAGE` | `qubership-fluent-pipeline-tests:local`         |
+| `CFG_TIMEOUT`                | `2` seconds                                     |
+| `PARSE_TIMEOUT`              | `20` seconds                                    |
+| `PARSER_CONTRACT_TIMEOUT`    | `5` seconds                                     |
+| `INT_TESTS_IGNORE`           | Empty                                           |
 
 ## Add a test case
 

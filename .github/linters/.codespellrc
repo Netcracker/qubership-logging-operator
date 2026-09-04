@@ -1,2 +1,2 @@
 [codespell]
-skip = */crds/*.yaml,*go.sum,*go.work.sum
+skip = */crds/*.yaml,*go.sum,*go.work.sum,*/test/fluent-pipeline/testdata/*

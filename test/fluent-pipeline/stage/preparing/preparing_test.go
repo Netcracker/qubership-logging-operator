@@ -9,10 +9,11 @@ import (
 	"github.com/Netcracker/qubership-logging-operator/test/fluent-pipeline/agent"
 )
 
-func TestReadCustomResource(t *testing.T) {
-	t.Parallel()
-
-	crPath := writeLoggingServiceCR(t, `
+// loggingServiceCR is the minimal custom resource the tests render configuration from.
+// YAML indents with spaces, so the editorconfig indentation check does not apply here.
+//
+// editorconfig-checker-disable
+const loggingServiceCR = `
 apiVersion: logging.netcracker.com/v1
 kind: LoggingService
 metadata:
@@ -22,7 +23,14 @@ spec:
     customInputConf: input
     customFilterConf: filter
     customOutputConf: output
-`)
+`
+
+// editorconfig-checker-enable
+
+func TestReadCustomResource(t *testing.T) {
+	t.Parallel()
+
+	crPath := writeLoggingServiceCR(t, loggingServiceCR)
 	cr, err := readCustomResource(crPath)
 	if err != nil {
 		t.Fatalf("readCustomResource returned error: %v", err)
@@ -135,17 +143,7 @@ func TestGetConfigurationAddsAgentSpecificFiles(t *testing.T) {
 	sourceConfigPath = dir
 	t.Cleanup(func() { sourceConfigPath = originalSourceConfigPath })
 
-	crPath := writeLoggingServiceCR(t, `
-apiVersion: logging.netcracker.com/v1
-kind: LoggingService
-metadata:
-  name: logging-service
-spec:
-  fluentbit:
-    customInputConf: input
-    customFilterConf: filter
-    customOutputConf: output
-`)
+	crPath := writeLoggingServiceCR(t, loggingServiceCR)
 	cr, err := readCustomResource(crPath)
 	if err != nil {
 		t.Fatalf("readCustomResource returned error: %v", err)

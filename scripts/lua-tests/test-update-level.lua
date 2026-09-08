@@ -1,208 +1,78 @@
--- different test strings
-local test_strings = {
-    -- correct: valid syslog levels, from 0 to 7
-    "emerg",
-    "alert",
-    "crit",
-    "err",
-    "warning",
-    "notice",
-    "info",
-    "debug",
-    -- correct: full level names
-    "emergency",
-    "alert",
-    "critical",
-    "error",
-    "warning",
-    "notice",
-    "info",
-    "debug",
-    -- correct: levels using capital letters
-    "EMERG",
-    "ALERT",
-    "CRTI",
-    "ERR",
-    "WARNING",
-    "NOTICE",
-    "INFO",
-    "DEBUG",
-    -- correct: full level names using upper case
-    "EMERGENCY",
-    "ALERT",
-    "CRITICAL",
-    "ERROR",
-    "WARNING",
-    "NOTICE",
-    "INFO",
-    "DEBUG",
-    -- correct: other short or full level names forms
-    "warn",
-    "fatal",
-    "trace",
-    -- incorrect: short level names
-    "emg",
-    "alrt",
-    "art",
-    "alt",
-    "crt",
-    "wrg",
-    "wrn",
-    "inf",
-    "dbg",
-    -- incorrect: various combinations of levels
-    "er",
-    "E",
-    "wa",
-    "war",
-    "W",
-    "ntc",
-    "noti",
-    "N",
-    "in",
-    "I",
-    "deb",
-    "D",
-    "fat",
-    "F",
-    -- incorrect: words which were parsed as levels
-    "number",
+-- Run from the repository root with Lua 5.1+ or LuaJIT.
+local script_paths = {
+    "controllers/fluentbit/fluentbit.configmap/conf.d/lua_scripts/update_level_syslog.lua",
+    "controllers/fluentbit-forwarder-aggregator/aggregator.configmap/conf.d/lua_scripts/update_level_syslog.lua",
 }
 
--- Fluent Bit supports only next levels:
--- "emerg", "alert", "crit", "err", "warning", "notice", "info", "debug"
--- Fluent Bit source code of gelf output:
--- https://github.com/fluent/fluent-bit/blob/master/src/flb_pack_gelf.c#L563-L592
--- this script marks non supported levels with syslog codes
--- input: https://docs.fluentbit.io/manual/pipeline/filters/lua#function-arguments
--- output: https://docs.fluentbit.io/manual/pipeline/filters/lua#return-values
-local function normalize_levels(level)
-  local normalized = "info"
-  local detected = "info"
+local level_cases = {
+    { inputs = { "0", "panic", "emerg", "emergency", "EMERG" }, normalized = "emerg", detected = "critical" },
+    { inputs = { "1", "alert", "Fatal", "severe" }, normalized = "alert", detected = "critical" },
+    { inputs = { "2", "crit", "critical", "CRITICAL" }, normalized = "crit", detected = "critical" },
+    { inputs = { "3", "err", "error", "ERROR", "er", "E" }, normalized = "err", detected = "error" },
+    { inputs = { "4", "warn", "WARN", "warning", "  WARN  " }, normalized = "warning", detected = "warn" },
+    { inputs = { "5", "notice", "NOTICE" }, normalized = "notice", detected = "info" },
+    { inputs = { "6", "info", "INFO" }, normalized = "info", detected = "info" },
+    { inputs = { "7", "debug", "DEBUG", "verbose", "V" }, normalized = "debug", detected = "debug" },
+    { inputs = { "trace", "TRACE", "  trace  " }, normalized = "debug", detected = "trace" },
+    { inputs = { "", "   ", "???", "unknown", "8" }, normalized = "info", detected = "info", unknown = "true" },
+}
 
-  if level == nil then
-    return normalized, detected, true
-  end
+local function assert_equal(actual, expected, context)
+    assert(actual == expected,
+        context .. ": expected " .. tostring(expected) .. ", got " .. tostring(actual))
+end
 
-  level = string.lower(level):gsub("^%s*(.-)%s*$", "%1")
-  local first_ch = string.sub(level, 1, 1)
-
-  -- p = panic
-  if first_ch == '0' or first_ch == 'p' then
-    normalized = "emerg"
-    detected = "critical"
-  -- a = alert, f = fatal, s = severe
-  elseif first_ch == '1' or first_ch == 'a' or first_ch == 'f' or first_ch == 's' then
-    normalized = "alert"
-    detected = "critical"
-  -- c = crit
-  elseif first_ch == '2' or first_ch == 'c' then
-    normalized = "crit"
-    detected = "critical"
-  elseif first_ch == '3' then
-    normalized = "err"
-    detected = "error"
-  -- w = warning
-  elseif first_ch == '4' or first_ch == 'w' then
-    normalized = "warning"
-    detected = "warn"
-  -- n = notice
-  elseif first_ch == '5' or first_ch == 'n' then
-    normalized = "notice"
-    detected = "info"
-  -- i = info
-  elseif first_ch == '6' or first_ch == 'i' then
-    normalized = "info"
-    detected = "info"
-  -- d = debug, v = verbose
-  elseif first_ch == '7' or first_ch == 'd' or first_ch == 'v' then
-    normalized = "debug"
-    detected = "debug"
-  elseif first_ch == 't' then
-    normalized = "debug"
-    detected = "trace"
-  -- e, er = err, e(~=r) = emerg
-  elseif first_ch == 'e' then
-    if string.len(level) >=2 and string.sub(level, 2, 2) ~= 'r' then
-      normalized = "emerg"
-      detected = "critical"
-    else
-      normalized = "err"
-      detected = "error"
+local function check(update, record, expected, context)
+    local timestamp = 1234567890.125
+    local code, result_timestamp, result = update("custom.application", timestamp, record)
+    assert_equal(code, 2, context .. " return code")
+    assert_equal(result_timestamp, timestamp, context .. " timestamp")
+    assert_equal(result, record, context .. " record identity")
+    for _, field in ipairs({ "level", "detected_level", "source_level", "parse_level_unknown" }) do
+        assert_equal(result[field], expected[field], context .. " " .. field)
     end
-  else
-    return normalized, detected, true
-  end
-
-  return normalized, detected, false
+    assert_equal(result.message, "unchanged", context .. " message")
 end
 
-function update_level(tag, timestamp, record)
-  if record["source_level"] == nil then
-    record["source_level"] = record["level"] or ""
-  end
-  local level_unknown
-  record["level"], record["detected_level"], level_unknown = normalize_levels(record["level"])
-  if level_unknown then
-    record["parse_level_unknown"] = "true"
-  end
+for _, path in ipairs(script_paths) do
+    -- Reset the callback so a script that stops defining it cannot reuse the previous copy.
+    update_level = nil
+    dofile(path)
+    assert(type(update_level) == "function", path .. ": missing update_level callback")
+    local update = update_level
+    local count = 0
 
-  -- return 2, that means the original timestamp is not modified and the record has been modified
-  return 2, timestamp, record
-end
-
--- test functions
--- call "like real" functions
-function execute_real_func_test()
-    for i, test_string in ipairs(test_strings) do
-        local test_structure = {}
-        test_structure["level"] = test_string
-
-        local start_time = os.time()
-        local code, time, new_test_structure = update_level("test", i, test_structure)
-        local end_time = os.time()
-
-        for k,v in pairs(new_test_structure) do
-            if (k == "level" and code == 2) then
-                print("Original string:", test_string)
-                print("Call kv_parse = ", start_time)
-                print("Complete update_level = ", end_time, "Execution time =", end_time - start_time)
-                print("Code:", code, "Processing order:", time)
-                print("Update level:", test_string, "=>", v)
-                print("Detected level:", test_string, "=>", new_test_structure["detected_level"])
-                print("------------------------------------------------------------------------")
-            end
-            if (k == "level" and code == 0) then
-                -- although this level can be ignore by script, but this level will validate by regex
-                print ("Level was ignored by script:", test_string)
-            end
+    for _, case in ipairs(level_cases) do
+        for _, input in ipairs(case.inputs) do
+            check(update, { level = input, message = "unchanged" }, {
+                level = case.normalized,
+                detected_level = case.detected,
+                source_level = input,
+                parse_level_unknown = case.unknown,
+            }, path .. " input=" .. string.format("%q", input))
+            count = count + 1
         end
     end
+
+    check(update, { message = "unchanged" }, {
+        level = "info", detected_level = "info", source_level = "", parse_level_unknown = "true",
+    }, path .. " missing level")
+    count = count + 1
+
+    -- Payload fields must not replace the level extracted by parsers as the normalization input.
+    for _, source in ipairs({ "trace", "", false, 0 }) do
+        check(update, {
+            level = "error", source_level = source, detected_level = "trace", message = "unchanged",
+        }, {
+            level = "err", detected_level = "error", source_level = source,
+        }, path .. " existing source_level=" .. tostring(source))
+        count = count + 1
+    end
+
+    check(update, { source_level = "trace", message = "unchanged" }, {
+        level = "info", detected_level = "info", source_level = "trace", parse_level_unknown = "true",
+    }, path .. " existing source_level without level")
+    count = count + 1
+
+    print(path .. ": " .. count .. " cases passed")
 end
-
--- source_level must survive a second update_level call (forwarder + aggregator both run this script).
-local function test_reinitialization_preserves_source_level()
-    local record = { level = "warn" }
-
-    update_level("test", 1, record)
-    local first_source_level = record["source_level"]
-
-    update_level("test", 2, record)
-    local second_source_level = record["source_level"]
-
-    assert(second_source_level == first_source_level,
-        "source_level must survive a second update_level call: got " ..
-        tostring(second_source_level) .. ", expected " .. tostring(first_source_level))
-
-    print("Reinitialization check passed: source_level stayed", first_source_level)
-end
-
-print("====================================================================")
-print("Run test to check function which will use Fluent")
-print("====================================================================")
-execute_real_func_test()
-
-print("====================================================================")
-print("Run test to check source_level survives a second update_level call")
-print("====================================================================")
-test_reinitialization_preserves_source_level()

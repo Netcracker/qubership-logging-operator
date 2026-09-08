@@ -68,7 +68,7 @@ end
 
 function update_level(tag, timestamp, record)
   if record["source_level"] == nil then
-    record["source_level"] = record["level"] or ""
+    record["source_level"] = record["level"]
   end
   local level_unknown
   record["level"], record["detected_level"], level_unknown = normalize_levels(record["level"])

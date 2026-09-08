@@ -55,7 +55,7 @@ for _, path in ipairs(script_paths) do
     end
 
     check(update, { message = "unchanged" }, {
-        level = "info", detected_level = "info", source_level = "", parse_level_unknown = "true",
+        level = "info", detected_level = "info", parse_level_unknown = "true",
     }, path .. " missing level")
     count = count + 1
 

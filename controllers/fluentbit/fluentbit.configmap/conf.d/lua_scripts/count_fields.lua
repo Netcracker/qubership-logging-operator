@@ -1,35 +1,31 @@
--- Count fields before parsing
-function first_count_fields(tag, timestamp, record)
+-- Count only application and metadata fields, excluding pipeline state.
+local function count_fields(record)
     local count = 0
-    for _ in pairs(record) do
-        count = count + 1
-    end
-    if record["log_parsed"] ~= nil then
-        count = count - 1 -- Subtracting log_parsed
-    end
-    record["orig_field_count"] = count
-    return 2, timestamp, record
-end
--- Count fields after parsing
-function second_count_fields(tag, timestamp, record)
-    if record["log"] == nil or record["parse_status"] == "success" then
-        return 0, timestamp, record
-    end
-    local count = 0
-    for k in pairs(record) do
-        if   k ~= "logfmt_candidate"
-         and k ~= "parse_field_count"
-         and k ~= "parse_status"
-         and k ~= "orig_field_count" then
+    for key in pairs(record) do
+        if key ~= "json_candidate" and key ~= "logfmt_candidate"
+            and key ~= "orig_field_count" and key ~= "parse_field_count"
+            and key ~= "parse_status" and key ~= "parse_format" then
             count = count + 1
         end
     end
-    local orig_count = record["orig_field_count"]
-    if orig_count ~= nil and count > orig_count then
-        record["parse_status"] = "success"
-    else
-        record["parse_status"] = "failed"
+    return count
+end
+
+function first_count_fields(tag, timestamp, record)
+    if record["log"] == nil then
+        return 0, timestamp, record
     end
+    record["orig_field_count"] = count_fields(record)
+    return 2, timestamp, record
+end
+
+function second_count_fields(tag, timestamp, record)
+    local original = record["orig_field_count"]
+    if original == nil or record["log"] == nil then
+        return 0, timestamp, record
+    end
+    local count = count_fields(record)
+    record["parse_status"] = count > original and "success" or "failed"
     record["parse_field_count"] = count
     return 2, timestamp, record
 end

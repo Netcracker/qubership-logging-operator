@@ -66,6 +66,17 @@ resources:
     memory: 512Mi
 ```
 
+### FluentBit parser status and format changes
+
+The FluentBit parser pipeline now treats the presence of `log_parsed` after Kubernetes `Merge_Log` as direct
+evidence that the selected parser succeeded. It no longer requires the parsed record to contain more fields than the
+metadata record. As a result, `fluentbit_parse_error_total` can decrease after an upgrade when successful parsing
+previously replaced existing fields and was reported as a failure.
+
+MongoDB structured logs and Jaeger logs now report `parse_format: json`. Their component-specific field normalization
+is unchanged. Dynamic bracketed `[key=value]` fields are extracted only for records classified as `qubership` or
+`java`.
+
 ### Upgrade procedure
 
 To upgrade from Fluentd to FluentBit use the parameters:

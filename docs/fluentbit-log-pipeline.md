@@ -19,18 +19,17 @@ Fluent Bit can parse logs in the following formats:
 
 ## Third-Party Log Formats
 
-The FluentBit pipeline includes parsers for the following third-party components:
+The FluentBit pipeline includes dedicated parsers for the following third-party components:
 
 * PostgreSQL
 * OpenSearch
 * Cassandra
-* MongoDB
 * Consul
 * FluentBit
 * Nginx
-* Jaeger
 
 Log messages from third-party components are routed to the appropriate parser based on the pod or container name.
+MongoDB structured logs and Jaeger logs use the JSON parser, followed by component-specific field normalization.
 
 ## Parser Selection via Pod Annotations
 
@@ -38,84 +37,99 @@ The parser used for each log message is determined dynamically based on pod anno
 
 ```yaml
 annotations:
-  fluentbit.io/parser:: logfmt
+  fluentbit.io/parser: logfmt
 ```
 
-If no annotation is provided, the default parser used is `json`. If the message is parsed by suggested parser,
-it bypasses the generic filters chain and is sent to outputs. Otherwise the log message passes through
-the generic filters chain, and if it matches any parser from the list of available parsers - additional fields
-appear in the record, the FluentBit pipeline adds a `parse_status` field with the value `success`. If the message
-does not match any defined parser, it will be marked with `parse_status: failed`.
+Without an annotation, the Kubernetes filter attempts JSON parsing. A nonempty result is stored in `log_parsed`.
+The pipeline marks this record as successful, renames `log` to `original_log`, and emits it with a temporary
+`parsed.` tag prefix. Generic parsers match only the original `pods` and `klog` tags, while common normalization
+accepts both forms. The payload remains nested until the final processing stage.
 
-## Pipeline Design
-
-### Pods flowchart
+## Pipeline design
 
 ```mermaid
-flowchart LR
-    subgraph Pods
-        IC["input-containerd.conf<br/>Tag pods.*<br/>multiline.parser: docker, cri" ] --> FC
-        ID["input-docker.conf<br/>Tag pods.*<br/>multiline.parser: docker"] --> FC
-        FC["filter-concat.conf<br/>Match pods*<br/>Match klog*<br/>Parsers multiline_qubership, multiline_klog"] --> FK
-        FC["filter-concat.conf<br/>Match pods*<br/>Match klog*<br/>Parsers multiline_qubership, multiline_klog"] --> FRTP
-        FK["filter-enrich-fields.conf<br/>Match pods*<br/>Parsing by suggested parser in annotations<br/>Nesting, filtering fields, preliminary count"] --> FRT
-        FRT["filter-rewrite-tag.conf<br/>Match pods*<br/>Rule: $pod ^kube-.* klog.$TAG false"] --> FC
-        FRT["filter-rewrite-tag.conf<br/>Match pods*<br/>Rule: $pod ^kube-.* klog.$TAG false"] --> FVALID
-        FRTP["filter-rewrite-tag.conf<br/>Match klog.*<br/>klog parsers"] --> FVALID
-        FVALID["filter-validate.conf<br/>Second count fields<br/>Set parse_status: success | false<br/>Remove log field if parse_status: success"] --> FGEN
-        FGEN["filter-generic.conf<br/>Generic filters chain<br/>Match pods*<br/>Applied only to messages with existing and not empty log field"] --> FPGEN
-        FPGEN["filter-post-generic.conf<br/>Count fields<br/>Set parse_status: success | false<br/>Parse [key=value] labels<br/>Add mandatory fields for GELF format<br/>Mark audit messages with special field"] --> FNL
-        FNL["filter-nonsupported-levels.conf<br/>Lua script converting level to FluentBit supported values"] --> FULC
-        FNL["filter-nonsupported-levels.conf<br/>Lua script converting level to FluentBit supported values"] --> OGRAY
-        OGRAY["output-graylog.conf<br/>Sends data to graylog host in GELF format"]
-        FULC["filter-unparsed-log-counter.conf<br/>Match_regex (pods|klog).*<br/>Generates metric fluentbit_parse_error_total"] --> OPLTM
-        OPLTM["output-prometheus-log-to-metric.conf</br>Exposes the metric in prometheus format on port 2021"]
-    end
+flowchart TD
+    Input[Container input and multiline assembly] --> Kube[Kubernetes metadata and early parsing]
+    Kube --> Early{Has log_parsed?}
+    Early -- Yes --> Save[Mark success and rename log to original_log]
+    Save --> Route[rewrite_tag to parsed.original-tag]
+    Early -- No --> Specific[Specialized regex parsers, most specific first]
+    Specific --> Matched{Parser marker exists?}
+    Matched -- Yes --> Save
+    Matched -- No, more parsers --> Specific
+    Matched -- No, exhausted --> Before[Count fields before the general parsers]
+    Before --> JSON[JSON parser and candidate detection]
+    JSON --> Logfmt[Logfmt parser and candidate detection]
+    Logfmt --> After[Count fields after both parsers]
+    After --> Status[Set status from field growth and format from candidates]
+    Route --> Final[Restore raw text, classify early result, and lift payload]
+    Status --> Final
+    Final --> Normalize[Service normalization, dynamic fields, severity, and audit]
+    Normalize --> Output[Remove temporary fields, collect metrics, and send]
 ```
 
-### Detailed Pods parsing flow
+### Early parsing
 
-<!-- textlint-disable -->
-| #   | File                                          | Type/Action                                                                           | Scope / Match                             | Purpose                                                                                                                                                                                                                      |
-| --- | --------------------------------------------- | ------------------------------------------------------------------------------------- | ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | inputs/input-containerd.conf                  | INPUT Tail (multiline.parser docker)                                                  | Tag pods.*                                | Reads containerd logs and decodes them with docker parser                                                                                                                                                                    |
-| 2   | inputs/input-containerd.conf                  | INPUT Tail (multiline.parser cri)                                                     | Tag pods.*                                | Reads containerd logs and decodes them with cri prefix                                                                                                                                                                       |
-| 3   | inputs/input-docker.conf                      | INPUT Tail (multiline.parser docker)                                                  | Tag pods.*                                | Reads docker logs and parses them with docker parser                                                                                                                                                                         |
-| 4   | filters/filter-concat.conf                    | FILTER multiline (multiline.parser qubership_multiline)                               | Match pods*                               | Concatenates messages based on regex for stacktrace multiline                                                                                                                                                                |
-| 5   | filters/filter-concat.conf                    | FILTER multiline (multiline.parser klog_multiline)                                    | Match klog*                               | Concatenates messages based on klog trace messages format                                                                                                                                                                    |
-| 6   | filters/filter-enrich-fields.conf             | FILTER kubernetes (Regex_Parser kube-meta; Merge_Log_Key log_parsed)                  | Match pods*                               | Enriches messages with metadata. Parses log field with suggested parser in pod's annotations if provided, otherwise tries to parse with json parser. If message parsing succeeded saves parsed data in log_parsed field      |
-| 7   | filters/filter-enrich-fields.conf             | FILTER nest (Operation lift; Remove_prefix kubernetes.)                               | Match pods*                               | Lifts fields nested under kubernetes to the root level                                                                                                                                                                       |
-| 8   | filters/filter-enrich-fields.conf             | FILTER modify (Hard_rename container_name container; ...)                             | Match pods*                               | Renames the fields to be more consistent with Monitoring labels                                                                                                                                                              |
-| 9   | filters/filter-enrich-fields.conf             | FILTER record_modifier (Allowlist_key pod; ...)                                       | Match pods*                               | Leaves only allowed fields in a record                                                                                                                                                                                       |
-| 10  | filters/filter-enrich-fields.conf             | FILTER lua (Call first_count_fields)                                                  | Match pods*                               | Counts original fields                                                                                                                                                                                                       |
-| 11  | filters/filter-enrich-fields.conf             | FILTER nest (Operation lift; Remove_prefix log_parsed)                                | Match pods*                               | Moves parsed data from log_parsed to root level                                                                                                                                                                              |
-| 12  | filters/filter-rewrite-tag.conf               | FILTER rewrite_tag (Rule $pod  ^kube-.* klog.$TAG  false)                             | Match pods*                               | Rewrites tag to klog.$TAG without preserving the original record. Sends the record to the pipeline beginning with the new tag                                                                                                |
-| 13  | filters/filter-rewrite-tag.conf               | FILTER parser (Parser klog_entry)                                                     | Match klog*                               | Tries to parse with klog_entry parser. The format is described in [Kubernetes system logs](https://kubernetes.io/docs/concepts/cluster-administration/system-logs/)                                                          |
-| 14  | filters/filter-rewrite-tag.conf               | FILTER parser (Parser klog_trace_entry)                                               | Match klog*                               | Tries to parse with klog_trace_entry parser                                                                                                                                                                                  |
-| 15  | filters/filter-events-reader.conf             | FILTER modify                                                                         | Match_regex pods.\*events-reader.\*       | Renames involvedObjectNamespace field to namespace                                                                                                                                                                           |
-| 16  | filters/filter-validate.conf                  | FILTER lua (Call second_count_fields)                                                 | Match_regex (pods\|klog).*                | Counts fields after parsing by parser suggested in annotations (or json by default). Sets parsed: true if new fields count > original fields count, otherwise parsed: false. Stores the current count in `parse_field_count` |
-| 17  | filters/filter-validate.conf                  | FILTER lua (Call kv_parse)                                                            | Match pods*                               | Parses [key=value] labels in `log`, only if parsed: true                                                                                                                                                                     |
-| 18  | filters/filter-validate.conf                  | FILTER modify (Set nc_audit_label true)                                               | Match_regex pods.\*grafana.\*             | Marks messages from grafana containing specific text mentioned in Condition with `nc_audit_label: true`                                                                                                                      |
-| 19  | filters/filter-validate.conf                  | FILTER modify (Set nc_audit_label true)                                               | Match_regex pods.\*mongo.\*               | Marks messages from mongo containing specific text mentioned in Condition with `nc_audit_label: true`                                                                                                                        |
-| 20  | filters/filter-validate.conf                  | FILTER modify (Set nc_audit_label true)                                               | Match pods*                               | Marks messages containing specific text mentioned in Condition with `nc_audit_label: true`                                                                                                                                   |
-| 21  | filters/filter-validate.conf                  | FILTER modify (Condition Key_value_matches parsed true; Copy log short_message)       | Match_regex (pods\|klog).*                | If parsed: true, copies the `log` field to the `short_message` (if `short_message` doesn't exist yet) and renames the `log` field to the `original_log`                                                                      |
-| 22  | filters/filter-generic.conf                   | FILTER parser (multiple parser filters)                                               | Match pods*                               | Contains the generic filter chain that uses common parsers defined in parsers.conf. Records are processed only if the `log` field exists and is not empty                                                                    |
-| 23  | filters/filter-post-generic.conf              | FILTER lua (Call second_count_fields)                                                 | Match_regex (pods\|klog).*                | Counts fields after a record passed through the generic chain of filters. If new fields count > original fields count, sets parsed: true, otherwise, parsed: false. Updates `parse_field_count`                              |
-| 24  | filters/filter-post-generic                   | FILTER parser (Parser level_parser_common_keep)                                       | Match pods*                               | Tries to extract a log's severity level by defined regex in the mentioned parser                                                                                                                                             |
-| 25  | filters/filter-post-generic.conf              | FILTER modify (Copy log short_message)                                                | Match_regex (pods\|klog).*                | Copies the `log` field to the `short_message` if `short_message` doesn't exist yet                                                                                                                                           |
-| 26  | filters/filter-post-generic.conf              | FILTER lua (Call kv_parse)                                                            | Match pods*                               | Parses [key=value] labels in `log`, only if `parsed: true` and the `log` field exists and is not empty                                                                                                                       |
-| 27  | filters/filter-post-generic.conf              | FILTER modify (Condition Key_value_matches log <regex_here>; Set nc_audit_label true) | Match_regex pods.\*grafana.\*             | Marks messages from grafana containing specific text mentioned in Condition with `nc_audit_label: true`                                                                                                                      |
-| 28  | filters/filter-post-generic.conf              | FILTER modify (Condition Key_value_matches log <regex_here>; Set nc_audit_label true) | Match_regex pods.\*mongo.\*               | Marks messages from mongo containing specific text mentioned in Condition with `nc_audit_label: true`                                                                                                                        |
-| 29  | filters/filter-post-generic.conf              | FILTER modify (Condition Key_value_matches log <regex_here>; Set nc_audit_label true) | Match pods*                               | Marks messages containing specific text mentioned in Condition with `nc_audit_label: true`                                                                                                                                   |
-| 30  | filters/filter-post-generic.conf              | FILTER modify (Condition Key_value_matches parsed true; Hard_rename log original_log) | Match_regex (pods\|klog).*                | If `parsed: true`, renames the `log` field to `original_log` and removes the auxiliary fields used to determine whether the message was parsed                                                                               |
-| 31  | filters/filter-post-generic.conf              | FILTER record_modifier (Record hostname ${HOSTNAME})                                  | Match *                                   | Adds the `hostname` field, sourced from a FluentBit pod's environment variable, required for the GELF format                                                                                                                 |
-| 32  | filters/filter-post-generic.conf              | FILTER record_modifier (Record nodename ${NODE_NAME})                                 | Match *                                   | Adds the `nodename` field, sourced from a FluentBit pod's environment variable, required for the GELF format                                                                                                                 |
-| 33  | filters/filter-nonsupported-levels.conf       | FILTER lua (Script /fluent-bit/etc/update_level_syslog.lua)                           | Match *                                   | Converts the value of the `level` field to FluentBit supported severity levels                                                                                                                                               |
-| 34  | filters/filter-unparsed-log-counter.conf      | FILTER log_to_metrics (Regex parsed ^false$)                                          | Match_regex (pods\|klog).*                | Generates the prometheus metric `fluentbit_parse_error_total`                                                                                                                                                                |
-| 35  | outputs/output-graylog.conf                   | OUTPUT gelf                                                                           | Match_regex (audit\|system\|pods\|klog).* | Sends data in GELF format to graylog host defined in the output config                                                                                                                                                       |
-| 36  | outputs/output-prometheus-log-to-metrics.conf | OUTPUT prometheus_exporter                                                            | Match parse_error_metrics                 | Exposes the metric `fluentbit_parse_error_total` to the `2021` port                                                                                                                                                          |
-| 37  | outputs/output-http.cond                      | OUTPUT http                                                                           | Match *                                   | Sends data in json_lines format to HTTP storage backend (VictoriaLogs)                                                                                                                                                       |
-<!-- textlint-enable -->
+`filter-validate.conf` checks `log_parsed` with a native `modify` condition. It does not count fields or inspect the
+format marker. The Kubernetes filter does not create this container for an empty result such as `{}`. A
+`rewrite_tag` filter changes `pods...` to `parsed.pods...` and `klog...` to `parsed.klog...`, then drops the original
+record. This makes the early result bypass the generic chain instead of merely making its parser keys ineffective.
+The presence of `log_parsed` is the parsing-success signal because Fluent Bit creates it only after `Merge_Log`
+successfully applies the selected parser. This avoids false failures when parsed fields replace existing metadata.
+
+After the generic chain, `filter-post-generic.conf` identifies known regex formats through markers inside
+`log_parsed`. JSON and logfmt use the raw text's external structure when no known regex marker exists. A custom
+annotation parser can therefore produce `parse_status: success` with `parse_format: unknown`.
+
+The raw text is restored only after generic parsing, so dynamic Qubership key-value extraction and audit
+classification can still use it. Lifting the early payload happens before service and severity normalization.
+Bracketed `[key=value]` fields are extracted only from records matched by the Qubership parser.
+
+### Specialized parsing
+
+Both standalone Fluent Bit and the aggregator use this order:
+
+1. Klog trace, then general klog.
+2. CoreDNS and Nginx ingress.
+3. Cassandra, Consul, and PostgreSQL.
+4. Fluent Bit, OpenSearch, and Calico TCP.
+5. The generalized Qubership format.
+
+Pod-name restrictions still apply to service-specific parsers. Klog parsers accept both `pods` and `klog` tags.
+Each regex emits a one-character, format-specific `__<parser>_candidate` marker as part of a successful parse.
+A following `modify` filter sets the status and format and renames `log` to `original_log`. Later parsers cannot
+overwrite the selected result. The Qubership parser also accepts compatible Java-style records without key-value
+fields; these records are classified as `qubership`.
+
+### General parsing
+
+Only records that still have `log` are counted. Two Lua calls surround the entire JSON/logfmt block; there is no
+field count between the parsers. Successful early and specialized records return from these callbacks without
+counting fields or adding `parse_field_count`.
+
+The comparison excludes both candidate markers and the status, format, and count fields. Candidate detection alone
+does not establish success. Field growth sets `parse_status: success`; the candidates select `json` or `logfmt`.
+Growth without a candidate leaves the format unknown. No growth sets the status to failed.
+
+This remains a heuristic: an empty object or a parse that only replaces existing fields does not establish success.
+Both general parsers see the preserved raw text, so changes to their behavior need overlap regression tests.
+Extracting a severity level afterward does not turn an unrecognized record into a successful structural parse.
+This fallback runs only when the selected parser did not supply `level`.
+
+### Internal fields and metadata
+
+`log_parsed`, `original_log`, the candidate markers, and count/status fields are reserved for pipeline processing.
+Application payloads must not supply internal control fields. Temporary markers and raw-log fields are removed
+before output. `parse_field_count` is emitted only for records that reach the general parser block.
+
+The `parsed.` prefix is present while common and custom filters run. Custom filters and outputs that use tag-specific
+matching must accept both the original tag and its `parsed.` form, for example
+`Match_regex (parsed\.)?pods.*`. Built-in filters and outputs already do this. HTTP routing removes either form and
+emits the same `out_*` tags as before.
+
+Delaying `lift` isolates early payload fields during format recognition. It does not resolve metadata collisions
+at the final lift, or collisions produced by generic parsers. Metadata precedence remains a separate change; this
+refactor does not claim to fix issue #331.
 
 ### Expected fields in result logs
 
@@ -134,7 +148,8 @@ the following fields must always be present in the resulting log output:
 3) parse_status – Indicates whether the log was successfully parsed.
    Possible values: success, failed.
 4) parse_format – The detected original log format.
-   Possible values: `json`, `logfmt`, `klog`, `qubership`, `java`, `opensearch`, and other third-party formats.
+   Possible values: `json`, `logfmt`, `klog`, `qubership`, `opensearch`, and other third-party formats.
+   MongoDB structured logs and Jaeger logs are reported as `json`.
 5) log_category – The source type of the log. Possible values: container, audit, system, k8s_events.
 6) parse_level_unknown – Indicates that the original severity level could not be detected
    or did not match any known severity levels.

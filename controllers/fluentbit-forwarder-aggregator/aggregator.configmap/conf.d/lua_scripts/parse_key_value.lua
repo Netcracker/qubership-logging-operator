@@ -1,9 +1,8 @@
 -- input: https://docs.fluentbit.io/manual/pipeline/filters/lua#function-arguments
 -- output: https://docs.fluentbit.io/manual/pipeline/filters/lua#return-values
 function kv_parse(tag, timestamp, record)
-    -- Skip processing if this log was marked as logfmt candidate
-    -- to avoid conflicts between logfmt parser and key-value parsing
-    if record["logfmt_candidate"] == "true" then
+    -- __qubership_candidate is reserved for internal pipeline use.
+    if record["__qubership_candidate"] == nil then
         return 0, timestamp, record
     end
     if record["log"] ~= nil and type(record["log"]) ~= "table" and record["parse_status"] == "success" then

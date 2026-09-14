@@ -256,7 +256,10 @@ jobs:
           mongoStorageClassName: standard
           graylogStorageClassName: standard
           host: http://graylog.demo.qubership.org
-          initContainerDockerImage: alpine:3.17.2
+          # TODO: pin to the next qubership-graylog-plugins-init release once it ships the
+          # entrypoint.sh/download_plugins.sh fixes, then drop this override (the chart's
+          # own renovate-pinned default will do). 0.1.0 still has the bugs; main has the fix.
+          initContainerDockerImage: ghcr.io/netcracker/qubership-graylog-plugins-init:main
           elasticsearchHost: http://admin:admin@opensearch.opensearch:9200
           indexShards: 1
           indexReplicas: 0

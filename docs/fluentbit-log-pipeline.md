@@ -49,6 +49,20 @@ does not match any defined parser, it will be marked with `parse_status: failed`
 
 ## Pipeline Design
 
+### Multiline boundaries in mixed logs
+
+Application multiline concatenation runs before JSON parsing. The default continuation rule excludes both
+`[YYYY-MM-DD` headers and lines that begin with `{` after optional whitespace. This keeps JSON objects on separate
+lines from being appended to preceding Java or Qubership messages. A line beginning with `{` inside a text message
+also ends that multiline message.
+
+The two-second multiline flush sends buffered content but does not reset the regex continuation state in Fluent Bit
+5.1.1. JSON must be excluded from the continuation rule even when it arrives after a flush.
+
+The chart supplies this rule through `fluentbit.multilineOtherLinesRegexp` and
+`fluentbit.aggregator.multilineOtherLinesRegexp` in `LoggingService`. Updating only the operator image does not update
+these stored values. Explicit custom regex overrides remain in effect.
+
 ### Pods flowchart
 
 ```mermaid

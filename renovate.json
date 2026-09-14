@@ -92,6 +92,7 @@
       "matchFileNames": [
         "Dockerfile",
         "docker-transfer/Dockerfile",
+        "test/fluent-pipeline/Dockerfile",
         "test/robot-tests/Dockerfile"
       ],
       "matchPackageNames": [

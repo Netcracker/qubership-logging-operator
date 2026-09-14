@@ -1,0 +1,15 @@
+2023-12-20T12:51:32.271007468Z stdout F [2023-12-20T12:51:32.270] [INFO ] [logId=java-1] [thread=pool-86-thread-4] [class=co.ne.cd.ui.se.ca.PodSequenceCallParser] [ui-769b5fdf5-sxggr_1701183746975.6048] parsed 6 calls, filtered 6 calls (with 921 tags, 122 params and 512 required ids)
+2023-12-21T09:18:48.918576888Z stdout F [2023-12-21T09:18:48.920] [INFO ] [logId=java-2] [test=value] This is test log
+2024-04-10T13:44:20.618576888Z stdout F [2024-04-10T13:44:20,696] [ERROR] [logId=java-3] Unable to decode raw message RawMessage{id=00000000-0000-0000-0000-000000000000, messageQueueId=9398703, codec=gelf, payloadSize=837, timestamp=2024-04-10T13:44:20.686Z, seqenceNr=7837601, remoteAddress=/10.102.0.30:6354} on input <66166833742ffa487c862ecd>.
+2024-04-10T13:44:20.618576888Z stdout F [2024-04-10T13:44:20,697] [ERROR] [logId=java-4] Error processing message RawMessage{id=00000000-0000-0000-0000-000000000000, messageQueueId=9398703, codec=gelf, payloadSize=837, timestamp=2024-04-10T13:44:20.686Z, seqenceNr=7837601, remoteAddress=/10.102.0.30:6354}
+2024-04-10T13:44:20.618576888Z stdout F java.lang.IllegalArgumentException: GELF message <00000000-0000-0000-0000-000000000000> (received from <10.102.0.30:6354>) has empty mandatory "short_message" field.
+2024-04-10T13:44:20.618577222Z stdout F 	at org.graylog2.inputs.codecs.GelfCodec.validateGELFMessage(GelfCodec.java:263) ~[graylog.jar:?]
+2024-04-10T13:44:20.618577333Z stdout F 	at org.graylog2.inputs.codecs.GelfCodec.decode(GelfCodec.java:141) ~[graylog.jar:?]
+2024-04-10T13:44:20.618577444Z stdout F 	at org.graylog2.shared.buffers.processors.DecodingProcessor.processMessage(DecodingProcessor.java:156) ~[graylog.jar:?]
+2024-04-10T13:44:20.618577555Z stdout F 	at org.graylog2.shared.buffers.processors.DecodingProcessor.onEvent(DecodingProcessor.java:94) [graylog.jar:?]
+2024-04-10T13:44:20.618577666Z stdout F 	at org.graylog2.shared.buffers.processors.ProcessBufferProcessor.onEvent(ProcessBufferProcessor.java:98) [graylog.jar:?]
+2024-04-10T13:44:20.618577777Z stdout F 	at org.graylog2.shared.buffers.processors.ProcessBufferProcessor.onEvent(ProcessBufferProcessor.java:49) [graylog.jar:?]
+2024-04-10T13:44:20.618577888Z stdout F 	at com.lmax.disruptor.WorkProcessor.run(WorkProcessor.java:143) [graylog.jar:?]
+2024-04-10T13:44:20.618577999Z stdout F 	at com.codahale.metrics.InstrumentedThreadFactory$InstrumentedRunnable.run(InstrumentedThreadFactory.java:66) [graylog.jar:?]
+2024-04-10T13:44:20.618578001Z stdout F 	at java.lang.Thread.run(Unknown Source) [?:?]
+2024-04-10T13:44:20.618578953Z stdout F [2024-04-10T13:44:20,618] [INFO ] [logId=java-5] This is the first line after multiline. So it should be separate log, not concatenated with previous.

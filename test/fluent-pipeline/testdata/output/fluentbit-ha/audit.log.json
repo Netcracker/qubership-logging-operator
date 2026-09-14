@@ -1,0 +1,16 @@
+[
+  {
+    "_test_id": "os-audit-1-1",
+    "nodename": "fake-node",
+    "short_message": "apparmor=\"DENIED\" operation=\"ptrace\" profile=\"cri-containerd.apparmor.d\" pid=106437 comm=\"node_exporter\" requested_mask=\"read\" denied_mask=\"read\" peer=\"unconfined\" logId=\"os-audit-1\"",
+    "tag": "/var/log/audit/audit.log",
+    "log": "apparmor=\"DENIED\" operation=\"ptrace\" profile=\"cri-containerd.apparmor.d\" pid=106437 comm=\"node_exporter\" requested_mask=\"read\" denied_mask=\"read\" peer=\"unconfined\" logId=\"os-audit-1\"",
+    "level": "info",
+    "type": "AVC",
+    "parse_level_unknown": "true",
+    "hostname": "fake-fluent",
+    "detected_level": "info",
+    "logId": "os-audit-1",
+    "nc_audit_label": "true"
+  }
+]

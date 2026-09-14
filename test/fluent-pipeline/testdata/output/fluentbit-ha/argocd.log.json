@@ -1,0 +1,48 @@
+[
+  {
+    "_test_id": "argocd-1-1",
+    "detected_level": "info",
+    "nodename": "fake-node",
+    "short_message": "Normalized app spec: {\"status\":{\"conditions\":[{\"lastTransitionTime\":\"2024-10-28T13:05:21Z\",\"message\":\"Failed to load target state: failed to generate manifest for source 1 of 1: rpc error: code = Unknown desc = `helm template . --name-template monitoring --namespace prometheus-operator --kube-version 1.29 --values /tmp/00000000-0000-0000-0000-000000000000 \\u003capi versions removed\\u003e --include-crds` failed exit status 1: Error: template: monitoring-operator/charts/victoriametrics/templates/pre-delete/job.yaml:45:20: executing \\\"monitoring-operator/charts/victoriametrics/templates/pre-delete/job.yaml\\\" at \\u003cinclude \\\"vm.cleanup.image\\\" .\\u003e: error calling include: template: monitoring-operator/charts/victoriametrics/templates/_helper.tpl:29:23: executing \\\"vm.cleanup.image\\\" at \\u003cindex .Values.global.deployDescriptor \\\"vmcleanup\\\" \\\"image\\\"\\u003e: error calling index: index of nil pointer\\n\\nUse --debug flag to render out invalid YAML\",\"type\":\"ComparisonError\"}]}}",
+    "parse_status": "success",
+    "labels": {
+      "metadata.app": "fluent-pipeline-test",
+      "metadata.app.kubernetes.io/version": "0.1.0"
+    },
+    "parse_format": "logfmt",
+    "log_time": "2023-12-20T12:51:32.272007468Z",
+    "level": "info",
+    "application": "argocd/monitoring",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "parse_field_count": 12,
+    "hostname": "fake-fluent",
+    "container": "fake-container",
+    "logId": "argocd-1",
+    "namespace": "fake-namespace",
+    "source_level": "info"
+  },
+  {
+    "_test_id": "argocd-2-1",
+    "repo_url": "https://example.com/myorg/myrepo.git",
+    "short_message": "Failed to fetch git repository",
+    "labels": {
+      "metadata.app": "fluent-pipeline-test",
+      "metadata.app.kubernetes.io/version": "0.1.0"
+    },
+    "nodename": "fake-node",
+    "namespace": "fake-namespace",
+    "detected_level": "error",
+    "hostname": "fake-fluent",
+    "error": "ssh: handshake failed: knownhosts key mismatch",
+    "log_time": "2023-12-20T12:51:33.272007468Z",
+    "level": "err",
+    "parse_status": "success",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "parse_field_count": 14,
+    "parse_format": "logfmt",
+    "container": "fake-container",
+    "logId": "argocd-2",
+    "attempt": "3",
+    "source_level": "error"
+  }
+]

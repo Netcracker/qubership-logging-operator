@@ -1,0 +1,117 @@
+[
+  {
+    "_test_id": "fluentbit-1-1",
+    "detected_level": "warn",
+    "parse_status": "success",
+    "namespace": "fake-namespace",
+    "nodename": "fake-node",
+    "labels": {
+      "metadata.app": "fluent-pipeline-test",
+      "metadata.app.kubernetes.io/version": "0.1.0"
+    },
+    "parse_field_count": 12,
+    "short_message": "[logId=fluentbit-1] buffer overflow detected, old records will be dropped",
+    "level": "warning",
+    "time": "2023-11-15T08:30:47.456007468Z",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "component": "engine",
+    "hostname": "fake-fluent",
+    "container": "fake-container",
+    "logId": "fluentbit-1",
+    "date": "2023/11/15 08:30:47",
+    "source_level": "warn",
+    "parse_format": "fluentbit"
+  },
+  {
+    "_test_id": "fluentbit-2-1",
+    "detected_level": "debug",
+    "parse_status": "success",
+    "namespace": "fake-namespace",
+    "nodename": "fake-node",
+    "labels": {
+      "metadata.app": "fluent-pipeline-test",
+      "metadata.app.kubernetes.io/version": "0.1.0"
+    },
+    "parse_field_count": 12,
+    "short_message": "[logId=fluentbit-2] HTTP Status=200 URL=http://example.com/api",
+    "level": "debug",
+    "time": "2023-11-15T08:30:48.456007468Z",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "component": "http_client",
+    "hostname": "fake-fluent",
+    "container": "fake-container",
+    "logId": "fluentbit-2",
+    "date": "2023/11/15 08:30:48",
+    "source_level": "debug",
+    "parse_format": "fluentbit"
+  },
+  {
+    "_test_id": "fluentbit-3-1",
+    "detected_level": "info",
+    "parse_status": "success",
+    "namespace": "fake-namespace",
+    "nodename": "fake-node",
+    "labels": {
+      "metadata.app": "fluent-pipeline-test",
+      "metadata.app.kubernetes.io/version": "0.1.0"
+    },
+    "parse_field_count": 12,
+    "short_message": "[logId=fluentbit-3] Filter plugin 'grep' initialized",
+    "level": "info",
+    "time": "2023-11-15T08:30:49.456007468Z",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "component": "filter",
+    "hostname": "fake-fluent",
+    "container": "fake-container",
+    "logId": "fluentbit-3",
+    "date": "2023/11/15 08:30:49",
+    "source_level": "info",
+    "parse_format": "fluentbit"
+  },
+  {
+    "_test_id": "fluentbit-4-1",
+    "detected_level": "error",
+    "parse_status": "success",
+    "namespace": "fake-namespace",
+    "nodename": "fake-node",
+    "labels": {
+      "metadata.app": "fluent-pipeline-test",
+      "metadata.app.kubernetes.io/version": "0.1.0"
+    },
+    "parse_field_count": 12,
+    "short_message": "[logId=fluentbit-4] Elasticsearch connection failed, retrying in 30 seconds",
+    "level": "err",
+    "time": "2023-11-15T08:30:50.456007468Z",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "component": "output:es",
+    "hostname": "fake-fluent",
+    "container": "fake-container",
+    "logId": "fluentbit-4",
+    "date": "2023/11/15 08:30:50",
+    "source_level": "error",
+    "parse_format": "fluentbit"
+  },
+  {
+    "_test_id": "fluentbit-5-1",
+    "detected_level": "critical",
+    "parse_status": "success",
+    "namespace": "fake-namespace",
+    "nodename": "fake-node",
+    "labels": {
+      "metadata.app": "fluent-pipeline-test",
+      "metadata.app.kubernetes.io/version": "0.1.0"
+    },
+    "parse_field_count": 12,
+    "short_message": "[logId=fluentbit-5] Unexpected signal 11 (Segmentation fault) received",
+    "level": "crit",
+    "time": "2023-11-15T08:30:52.456007468Z",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "component": "engine",
+    "hostname": "fake-fluent",
+    "container": "fake-container",
+    "logId": "fluentbit-5",
+    "date": "2023/11/15 08:30:52",
+    "source_level": "critical",
+    "parse_format": "fluentbit"
+  }
+]

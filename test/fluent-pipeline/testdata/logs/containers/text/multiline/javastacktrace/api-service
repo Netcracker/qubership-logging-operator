@@ -1,0 +1,47 @@
+2023-12-20T12:51:32.271007468Z stdout F [2023-12-20T12:51:32.271] [INFO] [logId=api-service-multiline-1] [startedAt=2023-11-12T20:41:43,323] [finishedAt=2023-11-12T20:41:43,728] [processing_time=405] [request_id=00000000-0000-0000-0000-000000000000] [tenant_id=] [thread=executor-thread-274] [class=org.qubership.cloud.bss.portal.core.logging.enricher.impl.TransportLogEnricherImpl] [method=enrichResponse] [endpoint=/api/qualification/calculate] [query=qualifyProductOffering] [error_code=] [j_session_id=00000000-0000-0000-0000-000000000000] [referer=https://portal-frontend-dev-portal.test.org/e-commerce/mobile-plan-details/601000011] |  GRAPHQL REQUEST TO POST http://public-gateway-service:8080/api/graphql-server/graphql
+2024-04-02T13:38:12.5497641Z stdout F    QUERY: [qualifyProductOffering]
+2024-04-02T13:38:12.5497666Z stdout F 
+2024-04-02T13:38:12.55919096Z stdout F    VARIABLES: [{"input":{"customerId":null,"locationId":null,"orderId":null,"distributionChannelId":"9166975462613718208","marketId":"9161565813613058897","customerCategoryId":"9166172588613027223","items":[{"id":"601000011","items":[{"id":"601000207","items":null,"amount":null,"chars":[{"name":"SIM card type","originalName":"SIM card type","value":"Physical SIM"},{"name":"SIM card network type","originalName":"SIM card network type","value":"4G"}]}],"amount":2,"chars":[{"name":"Roaming enabled","originalName":"Roaming enabled","value":"No"}]}]}}]
+2024-04-02T13:38:12.55959096Z stdout F    REQUEST HEADERS : [{Authorization=xxx, X-Request-ID=00000000-0000-0000-0000-000000000000, Accept-Encoding=gzip}]
+2024-06-17T16:00:18.052079169+00:00 stdout F [2024-06-17T16:00:18.052] [INFO] [logId=api-service-multiline-2][logsource=access][host=11.22.33.44][log_timestamp=17-06-2024 19:00:18.051][thread=XNIO-1 task-4][session=fllfs45P][system=ecomm][request_id=00000000-0000-0000-0000-000000000000][http_code=200][method=POST][operation=/api/v1/fake-endpoint]
+2024-06-17T16:00:18.052079169+00:00 stdout F "Request": POST /api/v1/fake-endpoint?locationId=7170156606090567615&fields=id%2ClocationIds%2Cerrors%2CextendedStatus%2CsequenceNo%2CcreatedBy%2CcustomerId%2CorderItems%28id%2Coffer%28id%2CtomsId%2CofferingCategories.tomsId%2CproductFamilyId%29%2Cchars%2CbillingAccountId%2CorderItems%28id%2Coffer%28id%2CtomsId%2CofferingCategories.tomsId%2CproductFamilyId%29%2Cchars%2CbillingAccountId%2CorderItems%28id%2Coffer%28id%2CtomsId%2CofferingCategories.tomsId%2CproductFamilyId%29%2Cchars%2CbillingAccountId%2CorderItems%29%29%29 HTTP/1.1
+2024-06-17T16:00:18.052079169+00:00 stdout F x-request-id: 00000000-0000-0000-0000-000000000000
+2024-06-17T16:00:18.052079169+00:00 stdout F x-envoy-internal: true
+2024-06-17T16:00:18.052079169+00:00 stdout F x-b3-parentspanid: 63fe56f3f52970fe
+2024-06-17T16:00:18.052079169+00:00 stdout F content-length: 710
+2024-06-17T16:00:18.052079169+00:00 stdout F cookie: JSESSIONID=PStDJTqN*xy1aHjEvmFklEKcPA5AKpORfllfs45P;STICKY-SESSION-ID=9ae883b7b835b43a;
+2024-06-17T16:00:18.052079169+00:00 stdout F accept-language: en
+2024-06-17T16:00:18.052079169+00:00 stdout F x-forwarded-proto: https
+2024-06-17T16:00:18.052079169+00:00 stdout F x-b3-sampled: 0
+2024-06-17T16:00:18.052079169+00:00 stdout F x-forwarded-port: 443
+2024-06-17T16:00:18.052079169+00:00 stdout F x-forwarded-for: 11.22.33.44
+2024-06-17T16:00:18.052079169+00:00 stdout F forwarded: for=11.22.33.44;host=public-gateway.test.org;proto=https
+2024-06-17T16:00:18.052079169+00:00 stdout F x-envoy-original-path: /api/v1/api-service/fake-endpoint?locationId=7170156606090567615&fields=id%2ClocationIds%2Cerrors%2CextendedStatus%2CsequenceNo%2CcreatedBy%2CcustomerId%2CorderItems%28id%2Coffer%28id%2CtomsId%2CofferingCategories.tomsId%2CproductFamilyId%29%2Cchars%2CbillingAccountId%2CorderItems%28id%2Coffer%28id%2CtomsId%2CofferingCategories.tomsId%2CproductFamilyId%29%2Cchars%2CbillingAccountId%2CorderItems%28id%2Coffer%28id%2CtomsId%2CofferingCategories.tomsId%2CproductFamilyId%29%2Cchars%2CbillingAccountId%2CorderItems%29%29%29
+2024-06-17T16:00:18.052079169+00:00 stdout F accept: application/json
+2024-06-17T16:00:18.052079169+00:00 stdout F authorization: xxx
+2024-06-17T16:00:18.052079169+00:00 stdout F x-b3-traceid: 63fe56f3f52970fe
+2024-06-17T16:00:18.052079169+00:00 stdout F x-b3-spanid: 46da43071b46b4a8
+2024-06-17T16:00:18.052079169+00:00 stdout F x-forwarded-host: public-gateway.test.org
+2024-06-17T16:00:18.052079169+00:00 stdout F host: public-gateway.test.org
+2024-06-17T16:00:18.052079169+00:00 stdout F customerid: 7170156609990567515
+2024-06-17T16:00:18.052079169+00:00 stdout F content-type: application/json
+2024-06-17T16:00:18.052079169+00:00 stdout F x-envoy-expected-rq-timeout-ms: 120000
+2024-06-17T16:00:18.052079169+00:00 stdout F tenant: 00000000-0000-0000-0000-000000000000
+2024-06-17T16:00:18.052079169+00:00 stdout F user-agent: Apache-HttpClient/4.5.14 (Java/17.0.10)
+2024-06-17T16:00:18.052079169+00:00 stdout F Body:{"orderItemsToDelete":[],"orderItemsToAdd":[{"jsonOffering":[{"offerings":[{"id":"2000046","chars":{"VAS SDP Policy Duration Months":"2","Activation In Semati":"Yes","Hybrid":"No","SEMATI Subscription Type":"0","Preferred Contact Language":"English","MSISDN Type":"D","Service Category":"Data Only","Service Type":"Prepaid"},"offerings":[{"id":"3000446","chars":{"Validity":"30 Days","PCF Policy Name":"SM_NC_3_1","Enabled":"Yes","Auto-renewal":"Yes"},"offerings":[]},{"id":"2000003","chars":{"Model":"9148563043913674855","SIM Card Type":"Physical SIM","Equipment Type":"SIM Card"},"offerings":[]},{"id":"2000084","chars":{"MSISDN":"9170052301313741742","Number Category":"Data lines"},"offerings":[]}]}]}]}]}
+2024-06-17T16:00:18.052079169+00:00 stdout F "Response": {Status=200 "Transfer-Encoding=chunked, Connection=keep-alive, Set-Cookie=null, Date=Mon, 17 Jun 2024 16:00:18 GMT, content-type=application/json;charset=UTF-8, Duration=531}
+2024-06-17T16:00:18.052079169+00:00 stdout F HTTP/1.1 200 OK
+2024-06-17T16:00:18.052079169+00:00 stdout F Transfer-Encoding: chunked
+2024-06-17T16:00:18.052079169+00:00 stdout F X-Request-Id: 00000000-0000-0000-0000-000000000000
+2024-06-17T16:00:18.052079169+00:00 stdout F Connection: keep-alive
+2024-06-17T16:00:18.052079169+00:00 stdout F Pragma: no-cache
+2024-06-17T16:00:18.052079169+00:00 stdout F Access-Control-Allow-Headers: OmniChannelException
+2024-06-17T16:00:18.052079169+00:00 stdout F Date: Mon, 17 Jun 2024 16:00:18 GMT
+2024-06-17T16:00:18.052079169+00:00 stdout F X-Frame-Options: DENY
+2024-06-17T16:00:18.052079169+00:00 stdout F Referrer-Policy: no-referrer, strict-origin-when-cross-origin
+2024-06-17T16:00:18.052079169+00:00 stdout F Access-Control-Expose-Headers: Content-Disposition, OmniChannelException
+2024-06-17T16:00:18.052079169+00:00 stdout F Strict-Transport-Security: max-age=31536000; includeSubDomains
+2024-06-17T16:00:18.052079169+00:00 stdout F Cache-Control: no-store, max-age=0
+2024-06-17T16:00:18.052079169+00:00 stdout F Content-Security-Policy: frame-ancestors 'none'
+2024-06-17T16:00:18.052079169+00:00 stdout F Content-Type: application/json;charset=UTF-8
+2024-06-17T16:00:18.052079169+00:00 stdout F Body:{"id":"7170156607790567715","locationIds":["7170156606090567615"],"orderItems":[{"id":"7170156608690568417","orderItems":[{"id":"7170156600790568417","chars":{"Business Operation":"9165989814013677032","Validity":"30 Days","PCF Policy Name":"SM_NC_3_1","Enabled":"Yes","Auto-renewal":"Yes"},"offer":{"productFamilyId":"111000002","id":"3000446","offeringCategories":[{"tomsId":9167265958765524892},{"tomsId":9167265958765524893}],"tomsId":3000446}},{"id":"7170156601790568417","chars":{"Model":"9148563043913674855","Equipment Type":"SIM Card","SIM Card Type":"Physical SIM"},"offer":{"productFamilyId":"5250005","id":"2000003","offeringCategories":[{"tomsId":9162301911365113535}],"tomsId":2000003}},{"id":"7170156602790568417","chars":{"Business Operation":"9163761775713079400","MSISDN":"9170052301313741742","Number Category":"Data lines"},"offer":{"productFamilyId":"5250008","id":"2000084","offeringCategories":[{"tomsId":9163951281665269555}],"tomsId":2000084}}],"chars":{"VAS SDP Policy Duration Months":"2","MSISDN":"9170052301313741742","Activation In Semati":"Yes","SEMATI Subscription Type":"0","Hybrid":"No","Preferred Contact Language":"Arabic","MSISDN Type":"D","Service Type":"Prepaid","Service Category":"Data Only"},"offer":{"productFamilyId":"5250001","id":"2000046","offeringCategories":[{"tomsId":9163711222365936302},{"tomsId":9165214235565251361}],"tomsId":2000046}}],"sequenceNo":"179380871","customerId":"7170156609990567515","extendedStatus":{"id":"9126090157513456546","value":"Entering"},"createdBy":"ecomm"}

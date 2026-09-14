@@ -1,0 +1,402 @@
+{
+  "cases": [
+    {
+      "id": "level-common-matching",
+      "parser": "level_parser_common_keep",
+      "match": true,
+      "input": "service [WARNING] request failed",
+      "expected": {"level": "WARNING"},
+      "absent": ["log"]
+    },
+    {
+      "id": "level-common-non-matching",
+      "parser": "level_parser_common_keep",
+      "match": false,
+      "input": "service [verbose] request completed",
+      "expected": {"log": "service [verbose] request completed"},
+      "absent": ["level"]
+    },
+    {
+      "id": "syslog-matching",
+      "parser": "syslog",
+      "match": true,
+      "input": "time=\"2026-09-03T10:20:30\" level=error msg=\"request failed\"",
+      "expected": {"level": "error", "log": "request failed"},
+      "absent": ["time"]
+    },
+    {
+      "id": "syslog-non-matching",
+      "parser": "syslog",
+      "match": false,
+      "input": "Sep 03 10:20:30 node service: request failed",
+      "expected": {"log": "Sep 03 10:20:30 node service: request failed"},
+      "absent": ["level", "time"]
+    },
+    {
+      "id": "varlogmessages-matching",
+      "parser": "varlogmessages",
+      "match": true,
+      "input": "time=\"2026-09-03T10:20:31\" level=warn msg=\"disk almost full\"",
+      "expected": {"level": "warn", "log": "disk almost full"},
+      "absent": ["time"]
+    },
+    {
+      "id": "varlogmessages-non-matching",
+      "parser": "varlogmessages",
+      "match": false,
+      "input": "Sep 03 10:20:31 node service: disk almost full",
+      "expected": {"log": "Sep 03 10:20:31 node service: disk almost full"},
+      "absent": ["level", "time"]
+    },
+    {
+      "id": "audit-matching",
+      "parser": "audit",
+      "match": true,
+      "input": "type=AVC msg=audit(1788429600.125:42): denied operation=read",
+      "expected": {"type": "AVC", "log": "denied operation=read"}
+    },
+    {
+      "id": "audit-non-matching",
+      "parser": "audit",
+      "match": false,
+      "input": "audit event without the Linux audit envelope",
+      "expected": {"log": "audit event without the Linux audit envelope"},
+      "absent": ["type"]
+    },
+    {
+      "id": "docker-matching",
+      "parser": "docker",
+      "match": true,
+      "input": "{\"log\":\"request completed\\n\",\"stream\":\"stdout\",\"time\":\"2026-09-03T10:20:31+0000\"}",
+      "expected": {"log": "request completed\n", "stream": "stdout", "time": "2026-09-03T10:20:31+0000"}
+    },
+    {
+      "id": "docker-non-matching",
+      "parser": "docker",
+      "match": false,
+      "input": "not a Docker JSON record",
+      "expected": {"log": "not a Docker JSON record"},
+      "absent": ["stream", "time"]
+    },
+    {
+      "id": "klog-trace-matching",
+      "parser": "klog_trace_entry",
+      "match": true,
+      "input": "I0903 10:20:32.123456 123 trace.go:45] Trace[99]: \"List pods\" key:value (03-Sep-2026 10:20:32.123) (total time: 12ms): completed",
+      "expected": {"level": "I", "trace_id": "99", "operation": "List pods", "duration": "12ms"},
+      "absent": ["log"]
+    },
+    {
+      "id": "klog-trace-non-matching",
+      "parser": "klog_trace_entry",
+      "match": false,
+      "input": "I0903 10:20:32.123456 123 trace.go:45] ordinary klog message",
+      "expected": {"log": "I0903 10:20:32.123456 123 trace.go:45] ordinary klog message"},
+      "absent": ["trace_id"]
+    },
+    {
+      "id": "klog-matching",
+      "parser": "klog_entry",
+      "match": true,
+      "input": "W0903 10:20:33.123456 321 worker.go:67] worker retry scheduled",
+      "expected": {"level": "W", "pid": "321", "file": "worker.go:67", "short_message": "worker retry scheduled"},
+      "absent": ["log"]
+    },
+    {
+      "id": "klog-non-matching",
+      "parser": "klog_entry",
+      "match": false,
+      "input": "klog prefix is missing",
+      "expected": {"log": "klog prefix is missing"},
+      "absent": ["pid", "short_message"]
+    },
+    {
+      "id": "coredns-matching",
+      "parser": "coredns",
+      "match": true,
+      "input": "[ERROR] plugin/errors: 2 example.org. A: read udp 10.0.0.2:53: timeout",
+      "expected": {"level": "ERROR", "module": "plugin/errors", "id": "2", "domain": "example.org.", "record_type": "A", "short_message": "read udp 10.0.0.2:53: timeout"},
+      "absent": ["log"]
+    },
+    {
+      "id": "coredns-non-matching",
+      "parser": "coredns",
+      "match": false,
+      "input": "ERROR plugin/errors: DNS request failed",
+      "expected": {"log": "ERROR plugin/errors: DNS request failed"},
+      "absent": ["module", "short_message"]
+    },
+    {
+      "id": "json-ocp-matching",
+      "parser": "json_ocp",
+      "match": true,
+      "input": "{\"kind\":\"Event\",\"requestReceivedTimestamp\":\"2026-09-03T10:20:34.123456789Z\"}",
+      "expected": {"kind": "Event"},
+      "absent": ["log"]
+    },
+    {
+      "id": "json-ocp-non-matching",
+      "parser": "json_ocp",
+      "match": false,
+      "input": "{not-json-ocp}",
+      "expected": {"log": "{not-json-ocp}"},
+      "absent": ["kind"]
+    },
+    {
+      "id": "json-apiserver-matching",
+      "parser": "json_apiserver_kube",
+      "match": true,
+      "input": "{\"kind\":\"Event\",\"requestReceivedTimestamp\":\"2026-09-03T10:20:35.123Z\"}",
+      "expected": {"kind": "Event", "requestReceivedTimestamp": "2026-09-03T10:20:35.123Z"},
+      "absent": ["log"]
+    },
+    {
+      "id": "json-apiserver-non-matching",
+      "parser": "json_apiserver_kube",
+      "match": false,
+      "input": "{not-json-apiserver}",
+      "expected": {"log": "{not-json-apiserver}"},
+      "absent": ["kind"]
+    },
+    {
+      "id": "json-kube-matching",
+      "parser": "json_kube",
+      "match": true,
+      "input": "{\"kind\":\"Event\",\"timestamp\":\"2026-09-03T10:20:36.123Z\"}",
+      "expected": {"kind": "Event", "timestamp": "2026-09-03T10:20:36.123Z"},
+      "absent": ["log"]
+    },
+    {
+      "id": "json-kube-non-matching",
+      "parser": "json_kube",
+      "match": false,
+      "input": "{not-json-kube}",
+      "expected": {"log": "{not-json-kube}"},
+      "absent": ["kind"]
+    },
+    {
+      "id": "kube-meta-matching",
+      "parser": "kube-meta",
+      "match": true,
+      "input": "demo_api-0_00000000-0000-0000-0000-000000000000.app.0.log",
+      "expected": {"namespace_name": "demo", "pod_name": "api-0", "docker_id": "00000000-0000-0000-0000-000000000000", "container_name": "app"},
+      "absent": ["log"]
+    },
+    {
+      "id": "kube-meta-non-matching",
+      "parser": "kube-meta",
+      "match": false,
+      "input": "not-a-kubernetes-container-path.log",
+      "expected": {"log": "not-a-kubernetes-container-path.log"},
+      "absent": ["namespace_name", "pod_name"]
+    },
+    {
+      "id": "nginx-ingress-matching",
+      "parser": "k8s-nginx-ingress",
+      "match": true,
+      "input": "10.0.0.1 - - [03/Sep/2026:10:20:37 +0000] \"GET /health HTTP/1.1\" 200 2 \"-\" \"curl/8.0\" 80 0.001 [health-service-8080] [] 10.0.0.2:8080 2 0.001 200 request-id",
+      "expected": {"host": "10.0.0.1", "method": "GET", "path": "/health", "code": "200", "upstream_status": "200"},
+      "absent": ["log"]
+    },
+    {
+      "id": "nginx-ingress-non-matching",
+      "parser": "k8s-nginx-ingress",
+      "match": false,
+      "input": "10.0.0.1 GET /health 200",
+      "expected": {"log": "10.0.0.1 GET /health 200"},
+      "absent": ["host", "method", "code"]
+    },
+    {
+      "id": "logfmt-matching",
+      "parser": "logfmt",
+      "match": true,
+      "input": "level=info message=ready attempt=3",
+      "expected": {"level": "info", "message": "ready", "attempt": "3"},
+      "absent": ["log"]
+    },
+    {
+      "id": "logfmt-non-matching",
+      "parser": "logfmt",
+      "match": false,
+      "input": "plain message without key value pairs",
+      "expected": {"log": "plain message without key value pairs"},
+      "absent": ["level", "message"]
+    },
+    {
+      "id": "json-matching",
+      "parser": "json",
+      "match": true,
+      "input": "{\"time\":\"2026-09-03T10:20:38+0000\",\"level\":\"info\",\"message\":\"ready\"}",
+      "expected": {"time": "2026-09-03T10:20:38+0000", "level": "info", "message": "ready"},
+      "absent": ["log"]
+    },
+    {
+      "id": "json-non-matching",
+      "parser": "json",
+      "match": false,
+      "input": "{not-json}",
+      "expected": {"log": "{not-json}"},
+      "absent": ["message"]
+    },
+    {
+      "id": "mongodb-matching",
+      "parser": "mongodb_structured",
+      "match": true,
+      "input": "{\"t\":{\"$date\":\"2026-09-03T10:20:39.000Z\"}, \"s\":\"I\", \"c\":\"STORAGE\", \"id\":100, \"ctx\":\"initandlisten\", \"msg\":\"Storage ready\", \"attr\":{\"port\":27017}}",
+      "expected": {"level": "I", "component": "STORAGE", "id": "100", "context": "initandlisten", "short_message": "Storage ready", "attributes": "{\"port\":27017}"},
+      "absent": ["log"]
+    },
+    {
+      "id": "mongodb-non-matching",
+      "parser": "mongodb_structured",
+      "match": false,
+      "input": "{\"level\":\"info\",\"message\":\"not a MongoDB record\"}",
+      "expected": {"log": "{\"level\":\"info\",\"message\":\"not a MongoDB record\"}"},
+      "absent": ["component", "context"]
+    },
+    {
+      "id": "rabbitmq-matching",
+      "parser": "rabbitmq",
+      "match": true,
+      "input": "=INFO REPORT====3-Sep-2026::10:20:40===connection accepted",
+      "expected": {"severity": "INFO"},
+      "absent": ["test_parser_failure"]
+    },
+    {
+      "id": "rabbitmq-non-matching",
+      "parser": "rabbitmq",
+      "match": false,
+      "input": "RabbitMQ connection accepted",
+      "expected": {"log": "RabbitMQ connection accepted"},
+      "absent": ["severity"]
+    },
+    {
+      "id": "postgres-matching",
+      "parser": "postgres",
+      "match": true,
+      "input": "2026-09-03 10:20:41 UTC ERROR: duplicate key value violates unique constraint",
+      "expected": {"level": "ERROR", "short_message": "duplicate key value violates unique constraint"},
+      "absent": ["log"]
+    },
+    {
+      "id": "postgres-non-matching",
+      "parser": "postgres",
+      "match": false,
+      "input": "plain",
+      "expected": {"log": "plain"},
+      "absent": ["level", "short_message"]
+    },
+    {
+      "id": "cassandra-matching",
+      "parser": "cassandra",
+      "match": true,
+      "input": "[2026-09-03T10:20:42,000][INFO][method=compact]Compaction completed",
+      "expected": {"level": "INFO", "method": "compact", "short_message": "Compaction completed"},
+      "absent": ["log"]
+    },
+    {
+      "id": "cassandra-non-matching",
+      "parser": "cassandra",
+      "match": false,
+      "input": "Cassandra compaction completed",
+      "expected": {"log": "Cassandra compaction completed"},
+      "absent": ["level", "method", "short_message"]
+    },
+    {
+      "id": "consul-matching",
+      "parser": "consul",
+      "match": true,
+      "input": "2026-09-03T10:20:43Z [WARN] raft: heartbeat timeout",
+      "expected": {"level": "WARN", "short_message": "raft: heartbeat timeout"},
+      "absent": ["log"]
+    },
+    {
+      "id": "consul-non-matching",
+      "parser": "consul",
+      "match": false,
+      "input": "Consul raft heartbeat timeout",
+      "expected": {"log": "Consul raft heartbeat timeout"},
+      "absent": ["level", "short_message"]
+    },
+    {
+      "id": "fluentbit-matching",
+      "parser": "fluentbit",
+      "match": true,
+      "input": "[2026/09/03 10:20:44] [ warn] [engine] buffer limit reached",
+      "expected": {"date": "2026/09/03 10:20:44", "level": "warn", "component": "engine", "short_message": "buffer limit reached"},
+      "absent": ["log"]
+    },
+    {
+      "id": "fluentbit-non-matching",
+      "parser": "fluentbit",
+      "match": false,
+      "input": "Fluent Bit buffer limit reached",
+      "expected": {"log": "Fluent Bit buffer limit reached"},
+      "absent": ["component", "short_message"]
+    },
+    {
+      "id": "java-matching",
+      "parser": "java",
+      "match": true,
+      "input": "[2026-09-03T10:20:45.123Z] [ERROR] request failed",
+      "expected": {"date": "2026-09-03T10:20:45.123Z", "level": "ERROR", "short_message": "request failed"},
+      "absent": ["log"]
+    },
+    {
+      "id": "java-non-matching",
+      "parser": "java",
+      "match": false,
+      "input": "2026-09-03 10:20:45 ERROR request failed",
+      "expected": {"log": "2026-09-03 10:20:45 ERROR request failed"},
+      "absent": ["level", "short_message"]
+    },
+    {
+      "id": "opensearch-matching",
+      "parser": "opensearch",
+      "match": true,
+      "input": "[2026-09-03T10:20:46.123Z] [WARN] [o.o.c.r.a.AllocationService] [opensearch-0] delayed allocation",
+      "expected": {"date": "2026-09-03T10:20:46.123Z", "level": "WARN", "logger": "o.o.c.r.a.AllocationService", "opensearch_node": "opensearch-0", "short_message": " delayed allocation"},
+      "absent": ["log"]
+    },
+    {
+      "id": "opensearch-non-matching",
+      "parser": "opensearch",
+      "match": false,
+      "input": "[2026-09-03T10:20:46.123Z] [WARN] delayed allocation",
+      "expected": {"log": "[2026-09-03T10:20:46.123Z] [WARN] delayed allocation"},
+      "absent": ["logger", "opensearch_node"]
+    },
+    {
+      "id": "qubership-matching",
+      "parser": "qubership",
+      "match": true,
+      "input": "[2026-09-03T10:20:47.123Z] [INFO] [request_id=req-1] [tenant_id=tenant-1] [thread=main] [class=app.Main] service ready",
+      "expected": {"date": "2026-09-03T10:20:47.123Z", "level": "INFO", "short_message": "service ready"},
+      "absent": ["log"]
+    },
+    {
+      "id": "qubership-non-matching",
+      "parser": "qubership",
+      "match": false,
+      "input": "[2026-09-03T10:20:47.123Z] [INFO] service ready",
+      "expected": {"log": "[2026-09-03T10:20:47.123Z] [INFO] service ready"},
+      "absent": ["short_message"]
+    },
+    {
+      "id": "calico-tcp-matching",
+      "parser": "calico_tcp",
+      "match": true,
+      "input": "Sep 3 10:20:48 node-1 kernel: calico-packet: IN=eth0 OUT=eth1 MAC= SRC=10.0.0.1 DST=10.0.0.2 SRC_POD=demo/source-pod DST_POD=demo/target-pod LEN=60 TOS=0x00 PREC=0x0 TTL=64 ID=12345 DF PROTO=TCP SPT=12345 DPT=8443 WINDOW=64240 RES=0x0 SYN URGP=0",
+      "expected": {"in_interface": "eth0", "out_interface": "eth1", "src_ip": "10.0.0.1", "dst_ip": "10.0.0.2", "src_namespace": "demo", "src_pod": "source-pod", "dst_namespace": "demo", "dst_pod": "target-pod", "src_port": "12345", "dst_port": "8443"},
+      "absent": ["log"]
+    },
+    {
+      "id": "calico-tcp-non-matching",
+      "parser": "calico_tcp",
+      "match": false,
+      "input": "Sep 3 10:20:48 node-1 kernel: packet dropped",
+      "expected": {"log": "Sep 3 10:20:48 node-1 kernel: packet dropped"},
+      "absent": ["src_ip", "dst_ip", "src_port", "dst_port"]
+    }
+  ]
+}

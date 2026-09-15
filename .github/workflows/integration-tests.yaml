@@ -21,13 +21,6 @@ on:
       - opened
       - synchronize
       - reopened
-    paths:
-      - .github/workflows/integration-tests.yaml
-      - api/**
-      - charts/**
-      - cmd/**
-      - controllers/**
-      - test/robot-tests/**
 
 env:
   ## Versions
@@ -49,10 +42,48 @@ env:
   delay: 10
 
 jobs:
+  changes:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      run: ${{ steps.filter.outputs.run }}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        fetch-depth: 0
+        persist-credentials: false
+    - name: Detect integration test changes
+      id: filter
+      shell: bash
+      env:
+        BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      run: |
+        if git diff --quiet "$BASE_SHA" "$HEAD_SHA" -- \
+          .github/workflows/integration-tests.yaml \
+          api \
+          charts \
+          cmd \
+          controllers \
+          test/robot-tests; then
+          echo "run=false" >> "$GITHUB_OUTPUT"
+        else
+          echo "run=true" >> "$GITHUB_OUTPUT"
+        fi
+
   integration_tests:
+    needs: changes
+    if: ${{ always() && (github.event_name != 'pull_request' || needs.changes.outputs.run == 'true') }}
     name: Run Integration Tests (${{ matrix.scenario_name }})
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: read
     strategy:
       fail-fast: false
       matrix:
@@ -68,6 +99,7 @@ jobs:
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         path: qubership-logging-operator
+        persist-credentials: false
 
     - name: Set up kind
       run: |
@@ -142,6 +174,7 @@ jobs:
         repository: Netcracker/qubership-opensearch
         ref: ${{ env.opensearch_version }}
         path: qubership-opensearch
+        persist-credentials: false
 
     - name: Create OpenSearch values
       if: matrix.backend == 'graylog'
@@ -831,3 +864,17 @@ jobs:
         echo '```' >> $GITHUB_STEP_SUMMARY
         echo "</details>" >> $GITHUB_STEP_SUMMARY
       shell: bash
+
+  integration-gate:
+    name: Integration Gate
+    needs: [changes, integration_tests]
+    if: ${{ always() && github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {}
+    steps:
+    - name: Require integration tests when applicable
+      if: >-
+        needs.changes.result != 'success' ||
+        (needs.changes.outputs.run != 'false' && needs.integration_tests.result != 'success')
+      run: exit 1

@@ -74,6 +74,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      - name: Fail if any dependency failed
-        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+      - name: Require successful CI jobs
+        if: needs.prepare.result != 'success' || needs.test.result != 'success'
         run: exit 1

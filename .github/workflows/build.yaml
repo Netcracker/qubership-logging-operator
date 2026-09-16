@@ -19,17 +19,6 @@ on:
   pull_request:
     branches:
     - '**'
-    paths:
-    - '**'
-    - '!.github/**'
-    - '.github/workflows/build.yaml'
-    - '.github/workflows/integration-tests.yaml'
-    - '!docs/**'
-    - '!CODE-OF-CONDUCT.md'
-    - '!CONTRIBUTING.md'
-    - '!LICENSE'
-    - '!README.md'
-    - '!SECURITY.md'
 
 concurrency:
   # On main/release, we don't want any jobs cancelled so the sha is used to name the group
@@ -39,9 +28,47 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  changes:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      run: ${{ steps.filter.outputs.run }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        fetch-depth: 0
+        persist-credentials: false
+    - name: Detect build changes
+      id: filter
+      shell: bash
+      env:
+        BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      run: |
+        git diff --name-only -z "$BASE_SHA" "$HEAD_SHA" > "$RUNNER_TEMP/changed-files"
+        while IFS= read -r -d '' path; do
+          case "$path" in
+            .github/workflows/build.yaml|.github/workflows/integration-tests.yaml)
+              echo "run=true" >> "$GITHUB_OUTPUT"
+              exit 0
+              ;;
+            .github/*|docs/*|CODE-OF-CONDUCT.md|CONTRIBUTING.md|LICENSE|README.md|SECURITY.md)
+              ;;
+            *)
+              echo "run=true" >> "$GITHUB_OUTPUT"
+              exit 0
+              ;;
+          esac
+        done < "$RUNNER_TEMP/changed-files"
+        echo "run=false" >> "$GITHUB_OUTPUT"
+
   multiplatform_build:
-    # Build PRs only if the event comes from Dependabot. Skip branch pushes
-    if: github.event.pull_request.user.login != 'dependabot[bot]' || github.event_name == 'pull_request'
+    needs: changes
+    if: ${{ always() && github.event_name == 'pull_request' && needs.changes.outputs.run == 'true' }}
     strategy:
       fail-fast: false
       matrix:
@@ -55,10 +82,54 @@ jobs:
           file: docker-transfer/Dockerfile
           context: ""
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     name: ${{ matrix.component.name }}
+    permissions:
+      contents: read
     steps:
     - name: Checkout
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a # v4
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4
+    - name: Build
+      uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
+      with:
+        no-cache: true
+        context: ${{ matrix.component.context }}
+        file: ${{ matrix.component.file }}
+        platforms: linux/amd64,linux/arm64
+        push: false
+        provenance: false
+
+  multiplatform_publish:
+    if: ${{ github.event_name != 'pull_request' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        component:
+        - name: qubership-logging-operator
+          file: Dockerfile
+        - name: qubership-logging-integration-tests
+          file: test/robot-tests/Dockerfile
+          context: test/robot-tests
+        - name: qubership-logging-transfer
+          file: docker-transfer/Dockerfile
+          context: ""
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    name: ${{ matrix.component.name }}
+    permissions:
+      contents: read
+      packages: write
+    steps:
+    - name: Checkout
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
     - name: Docker meta
       id: meta
       uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6
@@ -86,7 +157,21 @@ jobs:
         file: ${{ matrix.component.file }}
         platforms: linux/amd64,linux/arm64
         # See https://docs.github.com/en/code-security/dependabot/working-with-dependabot/automating-dependabot-with-github-actions#fetching-metadata-about-a-pull-request
-        push: ${{ github.event_name != 'pull_request' && github.actor != 'dependabot[bot]' }}
+        push: ${{ github.actor != 'dependabot[bot]' }}
         provenance: false
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
+
+  build-gate:
+    name: Build Gate
+    needs: [changes, multiplatform_build]
+    if: ${{ always() && github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {}
+    steps:
+    - name: Require build when applicable
+      if: >-
+        needs.changes.result != 'success' ||
+        (needs.changes.outputs.run != 'false' && needs.multiplatform_build.result != 'success')
+      run: exit 1

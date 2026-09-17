@@ -20,19 +20,17 @@ function kv_parse(tag, timestamp, record)
         -- and copy from original string only this string part, for example:
         -- [<time>] [INFO] [key1=value1][key2=value2] ... [keyN=valueN]
         local kvs_position = string.find(s, regex_kvs_end, 1)
-        local kvs = string.sub(s, 0, kvs_position)
-
-        if kvs ~= nil then
-            local trimmed_v
-            for k, v in string.gmatch(kvs, regex_kvs) do
-                trimmed_v = v:gsub("^%s*(.-)%s*$", "%1")
-                if trimmed_v ~= "" then
-                    record[k] = trimmed_v
-                end
-            end
-        else
-            -- return 0, that means the record will not be modified
+        if kvs_position == nil then
             return 0, timestamp, record
+        end
+
+        local kvs = string.sub(s, 1, kvs_position)
+        local trimmed_v
+        for k, v in string.gmatch(kvs, regex_kvs) do
+            trimmed_v = v:gsub("^%s*(.-)%s*$", "%1")
+            if trimmed_v ~= "" then
+                record[k] = trimmed_v
+            end
         end
 
         -- return 2, that means the original timestamp is not modified and the record has been modified

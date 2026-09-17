@@ -275,4 +275,9 @@ func TestQubershipKeyValueParserGuard(t *testing.T) {
 	if !strings.Contains(script, `if record["__qubership_candidate"] == nil then`) {
 		t.Errorf("expected key-value parsing to require a Qubership parser marker, got:\n%s", script)
 	}
+	nilGuardIndex := strings.Index(script, "if kvs_position == nil then")
+	sliceIndex := strings.Index(script, "string.sub(s, 1, kvs_position)")
+	if nilGuardIndex == -1 || sliceIndex == -1 || nilGuardIndex > sliceIndex {
+		t.Errorf("expected a missing key-value boundary to be handled before slicing, got:\n%s", script)
+	}
 }

@@ -10,7 +10,7 @@ require (
 	github.com/go-logr/zapr v1.3.0
 	github.com/google/go-cmp v0.7.0
 	go.uber.org/zap v1.27.1
-	golang.org/x/crypto v0.55.0 // indirect
+	golang.org/x/crypto v0.56.0 // indirect
 	k8s.io/api v0.36.3
 	k8s.io/apimachinery v0.36.3
 	k8s.io/client-go v0.36.3
@@ -63,7 +63,7 @@ require (
 	sigs.k8s.io/yaml v1.6.0 // indirect
 )
 
-require github.com/Netcracker/qubership-logging-operator/api v0.0.0-20260820124933-c0e364a249d7
+require github.com/Netcracker/qubership-logging-operator/api v0.0.0-20260911123535-0195367ed3f0
 
 require (
 	github.com/fsnotify/fsnotify v1.9.0 // indirect

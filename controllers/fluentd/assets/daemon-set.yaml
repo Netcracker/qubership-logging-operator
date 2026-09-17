@@ -35,6 +35,25 @@ spec:
     spec:
       terminationGracePeriodSeconds: 30
       serviceAccountName: logging-fluentd
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+        # Keep a stable group on files that Fluentd writes to the shared /tmp emptyDir.
+        fsGroup: 1000
+{{- if .Values.OpenshiftDeploy }}
+        # The default container_t SELinux type cannot read/write host files labeled var_log_t
+        # (e.g. the /var/log hostPath mount below), which this DaemonSet needs to tail container
+        # logs. spc_t (super-privileged container) is the standard type for host log/metrics
+        # collectors on SELinux-enforcing OpenShift-family hosts; our SCC already allows any type.
+        seLinuxOptions:
+          type: spc_t
+{{- end }}
+        # Fluentd must run as root to traverse node log directories such as /var/log/pods
+        # when they are owned by root and have mode 0750. The /var/log hostPath remains writable
+        # because Fluentd stores its node-local position files alongside the logs it tails.
+        runAsNonRoot: false
+        runAsUser: 0
+        runAsGroup: 0
       containers:
         - name: configmap-reload
           image: {{ .Values.Fluentd.ConfigmapReload.DockerImage }}
@@ -45,6 +64,8 @@ spec:
             - mountPath: /fluentd/etc
               name: config
               readOnly: true
+            - mountPath: /tmp
+              name: tmp
           {{- if .Values.Fluentd.ConfigmapReload.Resources }}
           resources:
             limits:
@@ -59,14 +80,37 @@ spec:
               name: metrics
           securityContext:
             allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
             capabilities:
               drop:
                 - ALL
+            runAsNonRoot: true
+            runAsUser: 1001
+            runAsGroup: 1001
         - name: logging-fluentd
           image: {{ .Values.Fluentd.DockerImage }}
           imagePullPolicy: IfNotPresent
+          # Ruby's Dir.tmpdir rejects a world-writable directory without the sticky bit. Use a
+          # private subdirectory instead of changing permissions on the shared /tmp emptyDir.
+          command:
+            - /bin/sh
+            - -c
+            - |
+              mkdir -p -m 0700 /tmp/fluentd-work
+              export TMPDIR=/tmp/fluentd-work
+              exec tini -- /bin/entrypoint.sh /fluentd/entrypoint.sh
           securityContext:
             privileged: {{ .Values.Fluentd.SecurityContextPrivileged }}
+            readOnlyRootFilesystem: true
+            runAsNonRoot: false
+            runAsUser: 0
+            runAsGroup: 0
+{{- if not .Values.Fluentd.SecurityContextPrivileged }}
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+{{- end }}
           ports:
             - containerPort: 24220
               name: http
@@ -158,6 +202,8 @@ spec:
             - mountPath: /fluentd/etc
               name: config
               readOnly: true
+            - mountPath: /tmp
+              name: tmp
 {{ if .Values.Fluentd.TLS }}
 {{ if and .Values.Fluentd.TLS.GenerateCerts .Values.Fluentd.TLS.GenerateCerts.Enabled }}
             - mountPath: /fluentd/tls/ca.crt
@@ -266,6 +312,9 @@ spec:
           secret:
             secretName: "logging-fluentd"
             defaultMode: 420 # RW grants for config map files
+        - name: tmp
+          emptyDir:
+            sizeLimit: 100Mi
 {{ if .Values.Fluentd.TLS }}
 {{ if and .Values.Fluentd.TLS.GenerateCerts .Values.Fluentd.TLS.GenerateCerts.Enabled }}
         - name: tls-ca

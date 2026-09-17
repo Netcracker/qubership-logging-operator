@@ -214,8 +214,10 @@ func (r *HAFluentReconciler) createOrUpdateAggregatorStatefulSet(cr *loggingServ
 	} else {
 		maps.Copy(existing.Labels, desired.Labels)
 	}
+	existing.Spec.Replicas = desired.Spec.Replicas
 	existing.Spec.Template.SetLabels(desired.Spec.Template.GetLabels())
 	existing.Spec.Template.Spec.Containers = desired.Spec.Template.Spec.Containers
+	existing.Spec.Template.Spec.SecurityContext = desired.Spec.Template.Spec.SecurityContext
 	existing.Spec.Template.Spec.ServiceAccountName = desired.Spec.Template.Spec.ServiceAccountName
 	existing.Spec.Template.Spec.NodeSelector = desired.Spec.Template.Spec.NodeSelector
 	existing.Spec.Template.Spec.Volumes = desired.Spec.Template.Spec.Volumes

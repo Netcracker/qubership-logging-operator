@@ -1,8 +1,7 @@
 -- input: https://docs.fluentbit.io/manual/pipeline/filters/lua#function-arguments
 -- output: https://docs.fluentbit.io/manual/pipeline/filters/lua#return-values
 function kv_parse(tag, timestamp, record)
-    -- __qubership_candidate is reserved for internal pipeline use.
-    -- Application log payloads must not define this field, so the pipeline does not sanitize it.
+    -- Markers from non-Qubership payloads are removed by modify filters before this function runs.
     if record["__qubership_candidate"] == nil then
         return 0, timestamp, record
     end

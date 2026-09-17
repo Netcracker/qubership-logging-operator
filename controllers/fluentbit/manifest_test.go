@@ -217,6 +217,17 @@ func TestGeneralizedQubershipParserAndEmptyMessagePlaceholder(t *testing.T) {
 
 	postGenericConfig := data["filter-post-generic.conf"]
 	normalizedPostGenericConfig := strings.Join(strings.Fields(postGenericConfig), " ")
+	for _, configName := range []string{"filter-validate.conf", "filter-post-generic.conf"} {
+		normalizedConfig := strings.Join(strings.Fields(data[configName]), " ")
+		cleanupIndex := strings.Index(normalizedConfig, "Condition Key_exists __qubership_candidate")
+		parseIndex := strings.Index(normalizedConfig, "kv_parse")
+		if cleanupIndex == -1 || parseIndex == -1 || cleanupIndex > parseIndex ||
+			!strings.Contains(normalizedConfig, "Condition Key_value_does_not_match log") ||
+			!strings.Contains(normalizedConfig, `^\[\d{4}-\d{2}-\d{2}[Tt\x20]\d{2}:\d{2}:\d{2}`) ||
+			!strings.Contains(normalizedConfig, "Remove __qubership_candidate") {
+			t.Errorf("expected non-Qubership marker cleanup before key-value parsing in %s, got:\n%s", configName, data[configName])
+		}
+	}
 	for _, expected := range []string{
 		"Condition Key_exists __qubership_candidate",
 		"Condition Key_value_equals parse_format qubership",

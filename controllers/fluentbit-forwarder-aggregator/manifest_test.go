@@ -131,6 +131,8 @@ func TestAggregatorGeneralizedQubershipParserAndEmptyMessagePlaceholder(t *testi
 		}
 	}
 	for _, expected := range []string{
+		"Match pods* Condition Key_exists __qubership_candidate Set parse_format qubership",
+		"Match pods* Condition Key_value_equals parse_format qubership",
 		"Condition Key_exists __qubership_candidate",
 		"Condition Key_value_equals parse_format qubership",
 		"Condition Key_does_not_exist short_message",
@@ -141,6 +143,10 @@ func TestAggregatorGeneralizedQubershipParserAndEmptyMessagePlaceholder(t *testi
 		if !strings.Contains(normalizedPostGenericConfig, expected) {
 			t.Errorf("expected %q in the post-generic config, got:\n%s", expected, postGenericConfig)
 		}
+	}
+	if strings.Contains(normalizedPostGenericConfig,
+		"Match_regex (pods|klog).* Condition Key_exists __qubership_candidate Set parse_format qubership") {
+		t.Errorf("unexpected Qubership classification for rewritten klog records:\n%s", postGenericConfig)
 	}
 	if strings.Contains(postGenericConfig, "qubership_short_message_missing") {
 		t.Errorf("unexpected missing-message marker in the post-generic config:\n%s", postGenericConfig)

@@ -4,6 +4,32 @@ local script_paths = {
     "controllers/fluentbit-forwarder-aggregator/aggregator.configmap/conf.d/lua_scripts/update_level_syslog.lua",
 }
 
+local configurations = {
+    {
+        name = "Fluent Bit",
+        filter = "controllers/fluentbit/fluentbit.configmap/conf.d/filters/filter-nonsupported-levels.conf",
+        output = "controllers/fluentbit/fluentbit.configmap/conf.d/outputs/output-http.conf",
+    },
+    {
+        name = "Fluent Bit aggregator",
+        filter = "controllers/fluentbit-forwarder-aggregator/aggregator.configmap/conf.d/filters/" ..
+            "filter-nonsupported-levels.conf",
+        output = "controllers/fluentbit-forwarder-aggregator/aggregator.configmap/conf.d/outputs/output-http.conf",
+    },
+}
+
+local expected_match_regex = "^(?!out_(audit|k8s_event|nginx|access|int|pods|system|default)$).*"
+local expected_routing_tags = {
+    out_access = true,
+    out_audit = true,
+    out_default = true,
+    out_int = true,
+    out_k8s_event = true,
+    out_nginx = true,
+    out_pods = true,
+    out_system = true,
+}
+
 local level_cases = {
     { inputs = { "0", "panic", "emerg", "emergency", "EMERG" }, normalized = "emerg", detected = "critical" },
     { inputs = { "1", "alert", "Fatal", "severe" }, normalized = "alert", detected = "critical" },
@@ -20,6 +46,43 @@ local level_cases = {
 local function assert_equal(actual, expected, context)
     assert(actual == expected,
         context .. ": expected " .. tostring(expected) .. ", got " .. tostring(actual))
+end
+
+local function read_file(path)
+    local file = assert(io.open(path, "r"))
+    local content = file:read("*a")
+    file:close()
+    return content
+end
+
+local function directive_value(configuration, directive)
+    for line in configuration:gmatch("[^\r\n]+") do
+        local key, value = line:match("^%s*(%S+)%s+([^%s]+)%s*$")
+        if key == directive then
+            return value
+        end
+    end
+    error("missing " .. directive .. " directive")
+end
+
+local function routing_tags(configuration)
+    local tags = {}
+    for line in configuration:gmatch("[^\r\n]+") do
+        local tag = line:match("^%s*Rule%s+.*%s+(out_[%w_]+)%s+false%s*$")
+        if tag ~= nil then
+            tags[tag] = true
+        end
+    end
+    return tags
+end
+
+local function assert_same_keys(actual, expected, context)
+    for key in pairs(expected) do
+        assert(actual[key], context .. ": missing " .. key)
+    end
+    for key in pairs(actual) do
+        assert(expected[key], context .. ": unexpected " .. key)
+    end
 end
 
 local function check(update, record, expected, context)
@@ -75,4 +138,14 @@ for _, path in ipairs(script_paths) do
     count = count + 1
 
     print(path .. ": " .. count .. " cases passed")
+end
+
+for _, configuration in ipairs(configurations) do
+    local filter = read_file(configuration.filter)
+    assert_equal(directive_value(filter, "Match_regex"), expected_match_regex,
+        configuration.name .. " level filter Match_regex")
+
+    local output = read_file(configuration.output)
+    assert_same_keys(routing_tags(output), expected_routing_tags, configuration.name .. " HTTP routing tags")
+    print(configuration.name .. ": level filter routing tags passed")
 end

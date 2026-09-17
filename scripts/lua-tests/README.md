@@ -13,7 +13,8 @@ It exits with an error on the first failed assertion. It covers severity mapping
 unknown and missing levels, preservation of an existing `source_level` from the payload, and callback return values.
 Normalization must use `level` even when the payload supplies a different `source_level` or `detected_level`.
 
-These are function tests: they do not execute parsers, Fluent Bit tag matching, or HTTP routing.
+The test also checks both production configurations. The level filter must exclude exactly the tags emitted by the
+built-in HTTP routing rules. The test does not execute parsers or the Fluent Bit runtime pipeline.
 
 ## Key-value parsing
 

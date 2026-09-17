@@ -243,8 +243,9 @@ fluentbit:
       Name   <name>
 ```
 
-Do not assign a tag that starts with `out_` in `fluentbit.customInputConf` or custom `rewrite_tag` rules. This prefix is
-reserved for the built-in HTTP routing configuration, and records with these tags skip level normalization.
+Do not assign the built-in HTTP routing tags `out_audit`, `out_k8s_event`, `out_nginx`, `out_access`, `out_int`,
+`out_pods`, `out_system`, or `out_default` in `fluentbit.customInputConf` or custom `rewrite_tag` rules. Records with
+these exact tags skip level normalization. Other custom tags that start with `out_` are normalized.
 
 ### FluentBit Filters customization
 

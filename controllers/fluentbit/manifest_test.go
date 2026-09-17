@@ -195,6 +195,11 @@ func TestGeneralizedQubershipParserAndEmptyMessagePlaceholder(t *testing.T) {
 	if !strings.Contains(genericConfig, "Parser              qubership") {
 		t.Errorf("expected the generalized Qubership parser in the generic filter, got:\n%s", genericConfig)
 	}
+	normalizedGenericConfig := strings.Join(strings.Fields(genericConfig), " ")
+	if !strings.Contains(normalizedGenericConfig,
+		`Match_Regex ^pods(?!.*opensearch-\d{1,2}_).* Key_Name log Parser qubership`) {
+		t.Errorf("expected the generalized Qubership parser to exclude OpenSearch tags, got:\n%s", genericConfig)
+	}
 	if !strings.Contains(genericConfig, "Parser               json") {
 		t.Errorf("expected the generic JSON parser to remain enabled, got:\n%s", genericConfig)
 	}

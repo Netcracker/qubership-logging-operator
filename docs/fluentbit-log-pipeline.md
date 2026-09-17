@@ -149,5 +149,6 @@ the following fields must always be present in the resulting log output:
     If both fields are absent, `source_level` remains absent, including for audit and system logs.
     Normalization derives `level` and `detected_level` from `level`, regardless of any existing `source_level`.
 
-Level normalization runs for all tags except those starting with `out_`, including custom input tags.
-Records emitted by HTTP routing with `out_*` tags skip this filter, preserving `detected_level="trace"`.
+The `out_` tag prefix is reserved for records re-emitted by the built-in HTTP routing configuration. Custom inputs and
+custom `rewrite_tag` rules must not assign tags that start with `out_`. Level normalization excludes these reserved
+tags so that HTTP-routed records are not normalized a second time and `detected_level="trace"` is preserved.

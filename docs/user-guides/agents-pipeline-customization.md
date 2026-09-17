@@ -243,6 +243,9 @@ fluentbit:
       Name   <name>
 ```
 
+Do not assign a tag that starts with `out_` in `fluentbit.customInputConf` or custom `rewrite_tag` rules. This prefix is
+reserved for the built-in HTTP routing configuration, and records with these tags skip level normalization.
+
 ### FluentBit Filters customization
 
 #### FluentBit Customization of the out-of-box configuration

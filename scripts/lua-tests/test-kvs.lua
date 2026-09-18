@@ -144,4 +144,11 @@ assert(kv_code == 2, "kv_parse did not modify a record with key-value pairs")
 assert(kv_record.thread == "main", "kv_parse did not extract the thread field")
 assert(kv_record.class == "Example", "kv_parse did not extract the class field")
 
+local no_message_code, no_message_record = parse(
+    "[2026-09-17T12:00:00Z] [INFO] [thread=main]",
+    1002
+)
+assert(no_message_code == 2, "kv_parse did not modify a message-less record with key-value pairs")
+assert(no_message_record.thread == "main", "kv_parse did not extract a field from a message-less record")
+
 print("parse_key_value.lua tests passed")

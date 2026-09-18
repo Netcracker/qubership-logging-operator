@@ -14,12 +14,17 @@ function kv_parse(tag, timestamp, record)
         -- * start from alphabet symbol, digit or any symbol (expect [)
         local regex_kvs_end = "]%s*[^%[][%w%-%{%}%\\%/%.%,%!%@%#%$%%%^%&%*%(%)]%s*"
         local regex_kvs = "%[([^=%[%]\"]+)=(%w*(.[^%[%]\"]*))%]"
+        local regex_kvs_at_end = "%[[^=%[%]\"]+=[^%[%]\"]*%]%s*$"
         local s = record["log"]
 
         -- find the end position of [key=value] pairs
         -- and copy from original string only this string part, for example:
         -- [<time>] [INFO] [key1=value1][key2=value2] ... [keyN=valueN]
         local kvs_position = string.find(s, regex_kvs_end, 1)
+        -- A message-less record ends at the final key-value pair.
+        if kvs_position == nil and string.find(s, regex_kvs_at_end, 1) ~= nil then
+            kvs_position = string.len(s)
+        end
         if kvs_position == nil then
             return 0, timestamp, record
         end

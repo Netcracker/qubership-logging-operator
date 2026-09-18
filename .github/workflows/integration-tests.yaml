@@ -13,6 +13,7 @@ on:
       - charts/**
       - cmd/**
       - controllers/**
+      - scripts/lua-tests/**
       - test/robot-tests/**
   pull_request:
     branches:
@@ -27,6 +28,7 @@ on:
       - charts/**
       - cmd/**
       - controllers/**
+      - scripts/lua-tests/**
       - test/robot-tests/**
 
 env:
@@ -48,6 +50,27 @@ env:
   delay: 10
 
 jobs:
+  lua_tests:
+    name: Run Lua Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
+
+    - name: Install Lua
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends lua5.4
+
+    # Checks the update_level_syslog.lua scripts and the level filter templates, see scripts/lua-tests/README.md
+    - name: Run level normalization tests
+      run: lua5.4 scripts/lua-tests/test-update-level.lua
+
   integration_tests:
     name: Run Integration Tests (${{ matrix.scenario_name }})
     runs-on: ubuntu-latest

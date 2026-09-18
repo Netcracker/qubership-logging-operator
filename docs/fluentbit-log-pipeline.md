@@ -149,7 +149,8 @@ the following fields must always be present in the resulting log output:
     If both fields are absent, `source_level` remains absent, including for audit and system logs.
     Normalization derives `level` and `detected_level` from `level`, regardless of any existing `source_level`.
 
-Level normalization excludes the built-in HTTP routing tags `out_audit`, `out_k8s_event`, `out_nginx`, `out_access`,
-`out_int`, `out_pods`, `out_system`, and `out_default`. This prevents HTTP-routed records from being normalized a
-second time and preserves values such as `detected_level="trace"`. Other tags, including custom tags that start with
-`out_`, are normalized.
+When `output.http.routing.enabled` is `true`, level normalization excludes the built-in HTTP routing tags `out_audit`,
+`out_k8s_event`, `out_nginx`, `out_access`, `out_int`, `out_pods`, `out_system`, and `out_default`. This prevents
+HTTP-routed records from being normalized a second time and preserves values such as `detected_level="trace"`. Other
+tags, including custom tags that start with `out_`, are normalized. When HTTP routing is disabled, the filter matches
+every tag, so custom inputs that use one of the routing tag names keep level normalization.

@@ -65,6 +65,18 @@ local function directive_value(configuration, directive)
     error("missing " .. directive .. " directive")
 end
 
+-- The filter is a Go template: the exclusion renders only when HTTP routing is enabled, otherwise it matches every tag.
+local function assert_routing_conditional(filter, context)
+    local condition = filter:match("{{%-%s*if%s+and%s+([^}]-)%s*}}")
+    assert(condition, context .. ": missing the HTTP routing condition")
+    assert(condition:find("%.Output%.Http%.Routing%.Enabled$"), context .. ": condition does not end with Routing.Enabled")
+    assert(filter:find("{{%-%s*else%s*}}"), context .. ": missing the else branch")
+    local before_else, after_else = filter:match("^(.-){{%-%s*else%s*}}(.*)$")
+    assert(before_else:find("Match_regex"), context .. ": Match_regex must be in the routing-enabled branch")
+    assert(not after_else:find("Match_regex"), context .. ": Match_regex must not render when routing is disabled")
+    assert_equal(directive_value(after_else, "Match"), "*", context .. " routing-disabled Match")
+end
+
 local function routing_tags(configuration)
     local tags = {}
     for line in configuration:gmatch("[^\r\n]+") do
@@ -144,6 +156,7 @@ for _, configuration in ipairs(configurations) do
     local filter = read_file(configuration.filter)
     assert_equal(directive_value(filter, "Match_regex"), expected_match_regex,
         configuration.name .. " level filter Match_regex")
+    assert_routing_conditional(filter, configuration.name .. " level filter")
 
     local output = read_file(configuration.output)
     assert_same_keys(routing_tags(output), expected_routing_tags, configuration.name .. " HTTP routing tags")

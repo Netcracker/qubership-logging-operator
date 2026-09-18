@@ -24,6 +24,18 @@ spec:
       nodeSelector:
 {{ .Values.CloudEventsReader.NodeSelectorKey | indent 8 }}: {{ .Values.CloudEventsReader.NodeSelectorValue }}
 {{ end }}
+      securityContext:
+        runAsNonRoot: true
+        runAsGroup: 1000
+{{ if not .Values.OpenshiftDeploy }}
+        runAsUser: 1000
+{{ end }}
+        seccompProfile:
+          type: RuntimeDefault
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 100Mi
       containers:
         - name: events-reader
           image: {{ .Values.CloudEventsReader.DockerImage }}
@@ -72,8 +84,17 @@ spec:
           env:
             - name: OPENSHIFT_URL
               value: {{ .Values.CloudURL }}
-{{ if not .Values.OpenshiftDeploy }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
           securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
             runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL
+            runAsGroup: 1000
+{{ if not .Values.OpenshiftDeploy }}
             runAsUser: 1000
 {{ end }}

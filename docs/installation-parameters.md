@@ -2,6 +2,9 @@
 
 The configurable parameters for installation are described below.
 
+VictoriaLogs uses a separate Helm chart. See the
+[Qubership VictoriaLogs chart values](./victorialogs-chart-parameters.md) for its parameter reference.
+
 ## Table of Contents
 
 - [Installation parameters](#installation-parameters)
@@ -92,6 +95,10 @@ pprof:
 nodeSelectorKey: kubernetes.io/os
 nodeSelectorValue: linux
 ```
+
+The operator container runs as UID `2001` and GID `1000` on Kubernetes. On OpenShift, its Security Context Constraint
+assigns an arbitrary UID, while the pod explicitly retains GID `1000` to avoid running in the root group. The root
+filesystem is read-only; a size-limited `emptyDir` provides writable `/tmp` storage.
 
 [Back to TOC](#table-of-contents)
 
@@ -920,6 +927,15 @@ fluentbit:
 | `output.otel.tls.verify`          | boolean                                                                                                                           | no        | `true`                                                                                          | Force certificate validation                                                                                                                                                             |
 <!-- markdownlint-enable line-length -->
 
+Fluent Bit output authentication values are read from the referenced Kubernetes Secrets and written only to the
+generated Fluent Bit configuration Secret. The operator watches these credential Secrets and regenerates the
+configuration after their data changes.
+
+Each credential is rendered into a single configuration directive, so a value must not contain a line break, a NUL
+byte, or the `${` sequence that Fluent Bit expands as an environment variable reference. The operator rejects such a
+value and reports the offending Secret and key instead of writing a broken configuration. Watch for the trailing
+newline that `kubectl create secret --from-file` adds; use `--from-literal` or `printf` without a trailing newline.
+
 Examples:
 
 **Note:** This is only an example of the parameters format, not a recommended value.
@@ -1197,6 +1213,7 @@ fluentbit:
 | `multilineFirstLineRegexp`        | string                                                                                                                 | no        | `/^(\\[\\d{4}\\-\\d{2}\\-\\d{2}).*/`                                                            | Custom regular expression for the first line of multiline filter                                                                                                                                                                  |
 | `multilineOtherLinesRegexp`       | string                                                                                                                 | no        | `/^(?!\\[\\d{4}\\-\\d{2}\\-\\d{2}).*/`                                                          | Custom regular expression for the other lines of multiline filter                                                                                                                                                                 |
 | `totalLimitSize`                  | string                                                                                                                 | no        | `1024M`                                                                                         | The size limitation of output buffer                                                                                                                                                                                              |
+| `storageSizeLimit`                | string                                                                                                                 | no        | `2Gi`                                                                                           | Maximum size of the ephemeral aggregator buffer volume when PVC storage is disabled                                                                                                                                               |
 | `memBufLimit`                     | string                                                                                                                 | no        | `5M`                                                                                            | Limit of allowed storage for chucks of logs before sending.                                                                                                                                                                       |
 | `startupTimeout`                  | integer                                                                                                                | no        | `8`                                                                                             | Time the operator waits for Aggregator pod(s) to start, in minutes                                                                                                                                                                |
 | `tolerations`                     | [core/v1.Toleration](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#toleration-v1-core)          | no        | `[]`                                                                                            | List of tolerations applied to FluentBit Pods                                                                                                                                                                                     |
@@ -1281,6 +1298,12 @@ fluentbit:
 | `output.otel.tls.key.key`         | string                                                                                                                 | no        | `-`                                                                                             | Key (filename) in the Secret with private key                                                                                                                                                                                     |
 | `output.otel.tls.verify`          | boolean                                                                                                                | no        | `true`                                                                                          | Force certificate validation                                                                                                                                                                                                      |
 <!-- markdownlint-enable line-length -->
+
+Fluent Bit aggregator output authentication values are read from the referenced Kubernetes Secrets and written
+only to the generated Fluent Bit aggregator configuration Secret. The operator watches these credential Secrets
+and regenerates the configuration after their data changes.
+
+The credential value restrictions of the Fluent Bit outputs apply to the aggregator outputs as well.
 
 Examples:
 
@@ -1694,6 +1717,15 @@ fluentd:
 
 <!-- markdownlint-enable line-length -->
 
+FluentD output authentication values are read from the referenced Kubernetes Secrets and written only to the generated
+FluentD configuration Secret. The operator watches these credential Secrets and regenerates the configuration after
+their data changes.
+
+Each credential is rendered into a single configuration directive, so a value must not contain a line break or a NUL
+byte. The operator rejects such a value and reports the offending Secret and key instead of writing a broken
+configuration. Watch for the trailing newline that `kubectl create secret --from-file` adds; use `--from-literal` or
+`printf` without a trailing newline.
+
 Examples:
 
 **Note:** This is only an example of the parameters format, not a recommended value.
@@ -2025,6 +2057,8 @@ integrationTests:
 | `graylogProtocol`                       | string                                                                                                                 | no        | `-`                                                                          | Graylog protocol                                                                                                                                                                                                      |
 | `graylogHost`                           | string                                                                                                                 | no        | `-`                                                                          | The hostname of Graylog                                                                                                                                                                                               |
 | `graylogPort`                           | integer                                                                                                                | no        | `80`                                                                         | The Graylog HTTP port                                                                                                                                                                                                 |
+| `operationRetryInterval`                | string                                                                                                                 | no        | `5s`                                                                         | Interval between retries in Robot Framework wait keywords                                                                                                                                                             |
+| `operationRetryCount`                   | string                                                                                                                 | no        | `60x`                                                                        | Maximum number of retries in Robot Framework wait keywords                                                                                                                                                            |
 | `affinity`                              | [core/v1.Affinity](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#podaffinityterm-v1-core)       | no        | `-`                                                                          | Specifies the pod\'s scheduling constraints                                                                                                                                                                           |
 | `resources`                             | [core/v1.Resources](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#resourcerequirements-v1-core) | no        | `{requests: {cpu: 100m, memory: 128Mi}, limits: {cpu: 200m, memory: 256Mi}}` | Describes compute resources requests and limits for Integration Tests container                                                                                                                                       |
 | `statusWriting.enabled`                 | boolean                                                                                                                | no        | false                                                                        | Enable Store tests status to `LoggingService` custom resource                                                                                                                                                         |
@@ -2045,6 +2079,14 @@ integrationTests:
 | `victorialogs.auth.password.key`        | string                                                                                                                 | no        | `-`                                                                          | The key in the secret with password for authorization in Victorialogs                                                                                                                                                 |
 
 <!-- markdownlint-enable line-length -->
+
+The runner uses a read-only root filesystem. Size-limited `emptyDir` volumes provide writable `/tmp` and
+`/opt/robot/output` directories; test reports are ephemeral and disappear when the Pod is replaced.
+
+On Kubernetes, the runner uses UID and GID `1000`. The runner image removes the `robot` user from supplementary group
+`0`. The container runs with all capabilities dropped and privilege escalation disabled. On OpenShift, the Security
+Context Constraint assigns an arbitrary UID, while the pod explicitly retains GID `1000`. The namespace supplemental
+group can still be added by OpenShift for mounted-volume access; it is not the root group.
 
 Integration test credentials are stored in a Kubernetes Secret and mounted to the test container as files. The Secret
 must contain the `graylog-user`, `graylog-password`, `vm-user`, and `ssh-key` keys. `vm-user` and `ssh-key` are required

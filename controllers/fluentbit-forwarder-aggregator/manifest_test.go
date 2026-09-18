@@ -111,11 +111,12 @@ func TestAggregatorLevelFilterMatchesRoutingState(t *testing.T) {
 					Aggregator:       &loggingService.FluentbitAggregator{Output: test.output},
 				},
 			}}
-			configMap, err := aggregatorConfigMap(cr, util.DynamicParameters{ContainerRuntimeType: "containerd"})
+			configSecret, err := aggregatorConfigSecret(cr, util.DynamicParameters{ContainerRuntimeType: "containerd"},
+				aggregatorOutputCredentials{})
 			if err != nil {
-				t.Fatalf("render Fluent Bit aggregator ConfigMap: %v", err)
+				t.Fatalf("render Fluent Bit aggregator config Secret: %v", err)
 			}
-			filter := configMap.Data["filter-nonsupported-levels.conf"]
+			filter := string(configSecret.Data["filter-nonsupported-levels.conf"])
 			if !strings.Contains(filter, test.want) || strings.Contains(filter, test.absent) {
 				t.Errorf("expected %q without %q in the level filter, got:\n%s", test.want, test.absent, filter)
 			}

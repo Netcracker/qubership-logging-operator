@@ -13,15 +13,21 @@ on:
     paths:
       - 'docs/**'
       - '*.md'
+      - '.github/workflows/link-checker.yaml'
   push:
     branches:
       - main
     paths:
       - 'docs/**'
       - '*.md'
+      - '.github/workflows/link-checker.yaml'
 
 permissions:
   contents: read
+
+concurrency:
+  group: link-checker-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   linkChecker:

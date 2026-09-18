@@ -22,14 +22,6 @@ on:
       - opened
       - synchronize
       - reopened
-    paths:
-      - .github/workflows/integration-tests.yaml
-      - api/**
-      - charts/**
-      - cmd/**
-      - controllers/**
-      - scripts/lua-tests/**
-      - test/robot-tests/**
 
 env:
   ## Versions
@@ -41,15 +33,49 @@ env:
   opensearch_image_version: 3.4.0
   opensearch_major_version: 2
   # renovate: datasource=github-releases depName=Netcracker/qubership-monitoring-operator versioning=semver
-  monitoring_version: v0.88.0
+  monitoring_version: v0.88.1
   ## Other parameters
   opensearch_namespace: opensearch
-  vlsingle_name: k8s
+  victorialogs_service: victorialogs
+  victorialogs_port: 9428
   namespace: logging
   max_attempts: 100
   delay: 10
 
 jobs:
+  changes:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      run: ${{ steps.filter.outputs.run }}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        fetch-depth: 0
+        persist-credentials: false
+    - name: Detect integration test changes
+      id: filter
+      shell: bash
+      env:
+        BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      run: |
+        if git diff --quiet "$BASE_SHA" "$HEAD_SHA" -- \
+          .github/workflows/integration-tests.yaml \
+          api \
+          charts \
+          cmd \
+          controllers \
+          test/robot-tests; then
+          echo "run=false" >> "$GITHUB_OUTPUT"
+        else
+          echo "run=true" >> "$GITHUB_OUTPUT"
+        fi
+
   lua_tests:
     name: Run Lua Tests
     runs-on: ubuntu-latest
@@ -72,9 +98,14 @@ jobs:
       run: lua5.4 scripts/lua-tests/test-update-level.lua
 
   integration_tests:
+    needs: changes
+    if: ${{ always() && (github.event_name != 'pull_request' || needs.changes.outputs.run == 'true') }}
     name: Run Integration Tests (${{ matrix.scenario_name }})
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: read
     strategy:
       fail-fast: false
       matrix:
@@ -90,6 +121,7 @@ jobs:
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         path: qubership-logging-operator
+        persist-credentials: false
 
     - name: Set up kind
       run: |
@@ -105,10 +137,10 @@ jobs:
         echo "REPOSITORY_OWNER=$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
     - name: Set up QEMU
-      uses: docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8 # v4.2.0
+      uses: docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a # v4.3.0
 
     - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
+      uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
 
     - name: Log in to GitHub Container Registry
       uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
@@ -164,6 +196,7 @@ jobs:
         repository: Netcracker/qubership-opensearch
         ref: ${{ env.opensearch_version }}
         path: qubership-opensearch
+        persist-credentials: false
 
     - name: Create OpenSearch values
       if: matrix.backend == 'graylog'
@@ -266,79 +299,6 @@ jobs:
         fi
       shell: bash
 
-    - name: Install VictoriaMetrics operator
-      if: matrix.backend == 'victorialogs'
-      run: |
-        helm repo add vm https://victoriametrics.github.io/helm-charts/
-        helm repo update
-        helm upgrade -i vmo vm/victoria-metrics-operator \
-          -n ${{ env.namespace }} \
-          --create-namespace
-        kubectl -n ${{ env.namespace }} rollout status \
-          deployment -l app.kubernetes.io/instance=vmo \
-          --timeout=300s
-      shell: bash
-
-    - name: Deploy VLSingle instance
-      if: matrix.backend == 'victorialogs'
-      run: |
-        cat <<EOF | kubectl create -n ${{ env.namespace }} -f -
-        apiVersion: operator.victoriametrics.com/v1
-        kind: VLSingle
-        metadata:
-          name: ${{ env.vlsingle_name }}
-          namespace: ${{ env.namespace }}
-        spec:
-          resources:
-            limits:
-              cpu: 500m
-              memory: 256Mi
-            requests:
-              cpu: 250m
-              memory: 64Mi
-          retentionPeriod: '1'
-          storage:
-            resources:
-              requests:
-                storage: 5Gi
-            storageClassName: standard
-        EOF
-        kubectl -n ${{ env.namespace }} wait \
-          --for=jsonpath='{.status.updateStatus}'=operational \
-          vlsingle/${{ env.vlsingle_name }} \
-          --timeout=300s
-        deployment_name=$(kubectl get deployment -n ${{ env.namespace }} -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' | grep "^vlsingle-${{ env.vlsingle_name }}$" | head -n1)
-        if [[ -z "$deployment_name" ]]; then
-          echo "::error::❌ Unable to resolve VLSingle deployment name"
-          kubectl get deployment -n ${{ env.namespace }}
-          exit 1
-        fi
-        kubectl -n ${{ env.namespace }} rollout status deployment/"$deployment_name" --timeout=300s
-      shell: bash
-
-    - name: Resolve VictoriaLogs service address
-      if: matrix.backend == 'victorialogs'
-      run: |
-        service_name=$(kubectl get svc -n ${{ env.namespace }} -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' | grep "^vlsingle-${{ env.vlsingle_name }}$" | head -n1)
-        if [[ -z "$service_name" ]]; then
-          echo "::error::❌ Unable to resolve VLSingle service name"
-          kubectl get svc -n ${{ env.namespace }}
-          exit 1
-        fi
-        service_port=$(kubectl get svc "$service_name" -n ${{ env.namespace }} -o jsonpath='{.spec.ports[?(@.name=="http")].port}')
-        if [[ -z "$service_port" ]]; then
-          service_port=$(kubectl get svc "$service_name" -n ${{ env.namespace }} -o jsonpath='{.spec.ports[0].port}')
-        fi
-        if [[ -z "$service_port" ]]; then
-          echo "::error::❌ Unable to resolve VLSingle service port"
-          kubectl get svc "$service_name" -n ${{ env.namespace }} -o yaml
-          exit 1
-        fi
-        echo "VLSINGLE_SERVICE=$service_name" >> $GITHUB_ENV
-        echo "VLSINGLE_PORT=$service_port" >> $GITHUB_ENV
-        echo "VICTORIALOGS_URL=http://${service_name}.${{ env.namespace }}:${service_port}" >> $GITHUB_ENV
-      shell: bash
-
     - name: Create values for logging operator installation (Graylog)
       if: matrix.backend == 'graylog'
       run: |
@@ -388,8 +348,8 @@ jobs:
           output:
             http:
               enabled: true
-              host: ${VLSINGLE_SERVICE}.${{ env.namespace }}
-              port: ${VLSINGLE_PORT}
+              host: ${{ env.victorialogs_service }}.${{ env.namespace }}
+              port: ${{ env.victorialogs_port }}
               auth:
                 credentials:
                   username: admin
@@ -403,8 +363,23 @@ jobs:
           image: ghcr.io/${{ env.REPOSITORY_OWNER }}/qubership-logging-integration-tests:${{ env.TAG }}
           externalGraylogServer: "false"
           victorialogs:
-            url: ${VICTORIALOGS_URL}
+            url: http://${{ env.victorialogs_service }}.${{ env.namespace }}:${{ env.victorialogs_port }}
         EOF
+      shell: bash
+
+    - name: Install VictoriaLogs chart
+      if: matrix.backend == 'victorialogs'
+      run: |
+        helm upgrade --install victorialogs \
+          --namespace=${{ env.namespace }} \
+          --create-namespace \
+          ./qubership-logging-operator/charts/qubership-victorialogs \
+          --set victorialogs.storage.size=5Gi \
+          --set victorialogs.storage.storageClassName=standard \
+          --set victorialogs.resources.limits.cpu=500m \
+          --set victorialogs.resources.limits.memory=256Mi \
+          --set victorialogs.resources.requests.cpu=250m \
+          --set victorialogs.resources.requests.memory=64Mi
       shell: bash
 
     - name: Install qubership logging operator
@@ -415,6 +390,14 @@ jobs:
           -f ./logging_values.yaml
         echo "Delaying ${{ env.delay }} seconds before checking logging-operator status..."
         sleep ${{ env.delay }}
+      shell: bash
+
+    - name: Check VictoriaLogs status
+      if: matrix.backend == 'victorialogs'
+      run: |
+        kubectl -n ${{ env.namespace }} rollout status \
+          statefulset/${{ env.victorialogs_service }} \
+          --timeout=300s
       shell: bash
 
     - name: Checking logging operator status
@@ -744,18 +727,17 @@ jobs:
       id: victorialogs_artifacts
       run: |
         mkdir -p "artifacts/victorialogs"
-        PODS_TABLE=$(kubectl get pods -n ${{ env.namespace }} -l app.kubernetes.io/instance=vmo -o wide)
+        PODS_TABLE=$(kubectl get pods -n ${{ env.namespace }} -l app.kubernetes.io/component=victorialogs -o wide)
         cat <<EOF >> $GITHUB_OUTPUT
         victorialogs_pods<<END
         $PODS_TABLE
         END
         EOF
         kubectl get events -n "${{ env.namespace }}" --sort-by=.metadata.creationTimestamp > artifacts/victorialogs/events.txt
-        kubectl get svc -n "${{ env.namespace }}" -o wide | grep "vlsingle-${{ env.vlsingle_name }}" > artifacts/victorialogs/services.txt || true
-        kubectl get vlsingle -n "${{ env.namespace }}" -o yaml > artifacts/victorialogs/vlsingle.yaml
-        kubectl get pods -n "${{ env.namespace }}" -l app.kubernetes.io/instance=vmo -o jsonpath='{range .items[*]}{.metadata.name}{" "}{.spec.containers[*].name}{"\n"}{end}' | while read -r pod containers; do
+        kubectl get statefulset,service,pvc -n "${{ env.namespace }}" -l app.kubernetes.io/component=victorialogs -o yaml > artifacts/victorialogs/resources.yaml
+        kubectl get pods -n "${{ env.namespace }}" -l app.kubernetes.io/component=victorialogs -o jsonpath='{range .items[*]}{.metadata.name}{" "}{.spec.containers[*].name}{"\n"}{end}' | while read -r pod containers; do
           for container in $containers; do
-            echo "Fetching VictoriaMetrics operator logs for pod: $pod, container: $container"
+            echo "Fetching VictoriaLogs logs for pod: $pod, container: $container"
             if logs=$(kubectl logs -n "${{ env.namespace }}" "$pod" -c "$container" 2>&1); then
               echo "$logs" > "artifacts/victorialogs/$pod-$container.log"
             else
@@ -784,7 +766,7 @@ jobs:
         END
         EOF
         kubectl get events -n "${{ env.namespace }}" --sort-by=.metadata.creationTimestamp > artifacts/${{ env.namespace }}/events.txt
-        kubectl get configmap logging-fluentbit -n "${{ env.namespace }}" -o yaml > artifacts/${{ env.namespace }}/logging-fluentbit.yaml
+        kubectl get secret logging-fluentbit -n "${{ env.namespace }}" -o yaml > artifacts/${{ env.namespace }}/logging-fluentbit.yaml
         kubectl get pods -n "${{ env.namespace }}" -o jsonpath='{range .items[*]}{.metadata.name}{" "}{.spec.containers[*].name}{"\n"}{end}' | while read -r pod containers; do
           for container in $containers; do
             echo "Fetching logs in ${{ env.namespace }} namespace for pod: $pod, container: $container"
@@ -844,8 +826,7 @@ jobs:
           echo '```' >> $GITHUB_STEP_SUMMARY
         else
           echo "## Install VictoriaLogs" >> $GITHUB_STEP_SUMMARY
-          echo "VictoriaMetrics operator release: vmo" >> $GITHUB_STEP_SUMMARY
-          echo "VictoriaLogs URL: ${VICTORIALOGS_URL:-❓unknown}" >> $GITHUB_STEP_SUMMARY
+          echo "VictoriaLogs URL: http://${{ env.victorialogs_service }}.${{ env.namespace }}:${{ env.victorialogs_port }}" >> $GITHUB_STEP_SUMMARY
           echo "Namespace: ${{ env.namespace }}" >> $GITHUB_STEP_SUMMARY
           echo 'Pods running in namespace:' >> $GITHUB_STEP_SUMMARY
           echo '```sh' >> $GITHUB_STEP_SUMMARY
@@ -858,7 +839,7 @@ jobs:
           echo "Check graylog status: ${{ steps.check_graylog.outputs.status || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
           echo "${{ steps.check_graylog.outputs.details || '❓unknown' }}" >> $GITHUB_STEP_SUMMARY
         else
-          echo "Fluent Bit HTTP output target: ${VLSINGLE_SERVICE:-❓unknown}.${{ env.namespace }}:${VLSINGLE_PORT:-❓unknown}" >> $GITHUB_STEP_SUMMARY
+          echo "Fluent Bit HTTP output target: ${{ env.victorialogs_service }}.${{ env.namespace }}:${{ env.victorialogs_port }}" >> $GITHUB_STEP_SUMMARY
         fi
         echo 'Pods running in logging namespace:' >> $GITHUB_STEP_SUMMARY
         echo '```sh' >> $GITHUB_STEP_SUMMARY
@@ -905,3 +886,17 @@ jobs:
         echo '```' >> $GITHUB_STEP_SUMMARY
         echo "</details>" >> $GITHUB_STEP_SUMMARY
       shell: bash
+
+  integration-gate:
+    name: Integration Gate
+    needs: [changes, integration_tests]
+    if: ${{ always() && github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {}
+    steps:
+    - name: Require integration tests when applicable
+      if: >-
+        needs.changes.result != 'success' ||
+        (needs.changes.outputs.run != 'false' && needs.integration_tests.result != 'success')
+      run: exit 1

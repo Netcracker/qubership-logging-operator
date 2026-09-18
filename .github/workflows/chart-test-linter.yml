@@ -1,29 +1,66 @@
 name: Lint and Test Helm Charts
 
-permissions:
-  contents: read
-
 on:
   pull_request:
     branches:
       - 'main'
-    paths:
-      - 'charts/**'
   push:
     branches:
       - main
     paths:
       - 'charts/**'
+      - 'scripts/chart-tests/**'
+      - '.github/workflows/chart-test-linter.yml'
   workflow_dispatch: null
 
+concurrency:
+  group: helm-chart-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  lint-test:
+  changes:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      run: ${{ steps.filter.outputs.run }}
     steps:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
+      - name: Detect chart changes
+        id: filter
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          if git diff --quiet "$BASE_SHA" "$HEAD_SHA" -- \
+            charts \
+            scripts/chart-tests \
+            .github/workflows/chart-test-linter.yml; then
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  lint-test:
+    needs: changes
+    if: ${{ always() && (github.event_name != 'pull_request' || needs.changes.outputs.run == 'true') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
 
       - name: Set up Chart Testing
         uses: helm/chart-testing-action@6ec842c01de15ebb84c8627d2744a0c2f2755c9f # v2.8.0
@@ -39,3 +76,23 @@ jobs:
 
       - name: Run chart-testing (lint)
         run: ct lint --check-version-increment=false --validate-maintainers=false --target-branch=main --chart-dirs=charts
+
+      - name: Test VictoriaLogs chart rendering
+        run: scripts/chart-tests/test-victorialogs-rendering.sh
+
+      - name: Test monitoring selectors
+        run: scripts/chart-tests/test-monitoring-selectors.sh
+
+  chart-gate:
+    name: Chart Gate
+    needs: [changes, lint-test]
+    if: ${{ always() && github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {}
+    steps:
+      - name: Require chart validation when applicable
+        if: >-
+          needs.changes.result != 'success' ||
+          (needs.changes.outputs.run != 'false' && needs.lint-test.result != 'success')
+        run: exit 1

@@ -31,25 +31,6 @@ Create chart name and version as used by the chart label.
   {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
-{{/*
-Add Authorization header if Bearer Token authorization enabled for http output in fluentd.
-*/}}
-{{- define "fluentd.output.http.headers" -}}
-{{- $http := .Values.fluentd.output.http -}}
-{{- $headers := dict }}
-{{- if $http.headers }}
-  {{- $headers = $http.headers }}
-{{- else }}
-  {{- $headers := dict "VL-Msg-Field" "log" "VL-Time-Field" "time" "VL-Stream-Fields" "stream" }}
-{{- end }}
-{{- if and $http.auth $http.auth.token $http.auth.token.name $http.auth.token.key }}
-  {{- $_ := set $headers "Authorization" "Bearer #{ENV['HTTP_TOKEN']}" }}
-{{- else if and $http.auth $http.auth.credentials $http.auth.credentials.token }}
-  {{- $_ := set $headers "Authorization" "Bearer #{ENV['HTTP_TOKEN']}" }}
-{{- end }}
-{{- toYaml $headers }}
-{{- end -}}
-
 {{/* Base resource labels: pass full chart context as ., or dict with "ctx" and optional "name" / "component". */}}
 {{- define "logging.labels" -}}
 {{- $ctx := index . "ctx" | default . -}}
@@ -321,7 +302,7 @@ Image can be found from:
     {{- printf "%s" .Values.fluentd.dockerImage -}}
   {{- else -}}
     {{- /* # renovate: datasource=github-releases depName=Netcracker/qubership-fluentd versioning=loose */ -}}
-    {{- print "ghcr.io/netcracker/qubership-fluentd:1.19.3-1" -}}
+    {{- print "ghcr.io/netcracker/qubership-fluentd:1.19.3-2" -}}
   {{- end -}}
 {{- end -}}
 
@@ -351,7 +332,7 @@ Image can be found from:
     {{- printf "%s" .Values.fluentbit.dockerImage -}}
   {{- else -}}
     {{- /* # renovate: datasource=docker depName=fluent/fluent-bit */ -}}
-    {{- print "docker.io/fluent/fluent-bit:5.1.0" -}}
+    {{- print "docker.io/fluent/fluent-bit:5.1.1" -}}
   {{- end -}}
 {{- end -}}
 
@@ -381,7 +362,7 @@ Image can be found from:
     {{- printf "%s" .Values.cloudEventsReader.dockerImage -}}
   {{- else -}}
     {{- /* # renovate: datasource=github-releases depName=Netcracker/qubership-kube-events-reader versioning=semver */ -}}
-    {{- print "ghcr.io/netcracker/qubership-kube-events-reader:2.9.3" -}}
+    {{- print "ghcr.io/netcracker/qubership-kube-events-reader:2.9.4" -}}
   {{- end -}}
 {{- end -}}
 

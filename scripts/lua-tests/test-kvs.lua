@@ -1,4 +1,9 @@
--- different test strings
+local script_path = arg[1]
+assert(script_path ~= nil, "usage: lua test-kvs.lua <parse_key_value.lua>")
+
+dofile(script_path)
+
+-- Different test strings
 local test_strings = {
     -- original log from cassandra
     "[2024-09-05T12:19:31,575][INFO][method=runMayThrow]Compacting (1ac36160-6b81-11ef-b0be-0b820667842e) [/var/lib/cassandra/data/system/compaction_history-b4dbb7b4dc493fb5b3bfce6e434832ca/nb-2406-big-Data.db:level=0, /var/lib/cassandra/data/system/compaction_history-b4dbb7b4dc493fb5b3bfce6e434832ca/nb-2405-big-Data.db:level=0, /var/lib/cassandra/data/system/compaction_history-b4dbb7b4dc493fb5b3bfce6e434832ca/nb-2408-big-Data.db:level=0, /var/lib/cassandra/data/system/compaction_history-b4dbb7b4dc493fb5b3bfce6e434832ca/nb-2407-big-Data.db:level=0, ]",
@@ -69,7 +74,7 @@ contentLength=175"
 }
 ]],
     "[2024-10-17 06:59:47,457] [INFO] [request_id=-] [tenant_id=-] [thread=kafka-admin-client-thread | a789eed9-217d-4b2b-8f62-09f7461b3aa0.env-1-data-management.cpm_ds.cpm_nrml_transformer.streaming-admin] [class=org.apache.kafka.clients.NetworkClient]  [traceId=-] [spanId=-] - [AdminClient clientId=a789eed9-217d-4b2b-8f62-09f7461b3aa0.env-1-data-management.cpm_ds.cpm_nrml_transformer.streaming-admin] Node 3 disconnected.",
-    "[2024-10-17T00:00:00.112] [INFO ] [request_id=1729123199250.0.775342141558708] [tenant_id=a789eed9-217d-4b2b-8f62-09f7461b3aa0] [thread=or-thread-92333] [class=o.qub.clo.cal.qua.v2.cac.ser.imp.CacheServiceImpl           ] [method=loadCalendarsCacheForTenantId ] [traceId=                ] [spanId=                ] [originating_bi_id=] [business_identifiers=] [error_code=] [error_id=] - [Business Calendar Client] allCalendarsHierarchy [BusinessCalendarDtoV2(name=Default OOB Business Calendar, timeZone=UTC +00:00, businessArea=null, childBusinessCalendars=null, country=Iceland, region=null, isDefaultCalendar=true)] ...",
+    "[2024-10-17T00:00:00.112] [INFO ] [request_id=1729123199250.0.775342141558708] [tenant_id=a789eed9-217d-4b2b-8f62-09f7461b3aa0] [thread=or-thread-92333] [class=o.qub.clo.cal.qua.v2.cac.service.imp.CacheServiceImpl           ] [method=loadCalendarsCacheForTenantId ] [traceId=                ] [spanId=                ] [originating_bi_id=] [business_identifiers=] [error_code=] [error_id=] - [Business Calendar Client] allCalendarsHierarchy [BusinessCalendarDtoV2(name=Default OOB Business Calendar, timeZone=UTC +00:00, businessArea=null, childBusinessCalendars=null, country=Iceland, region=null, isDefaultCalendar=true)] ...",
     [[
 [2024-10-17T07:06:01.480] [INFO ] [request_id=9cb590e3-9e3c-41fe-8e58-ce49ff46af9a] [deployment_session_id=bf8dd1b2-dbbd-4e09-943a-63e2f8de9bdc] [tenant_id=] [thread=ReconcilerExecutor-CompositeReconciler-50] [class=CompositeReconciler] [phase=BackingOff] [name=composite-structure] [kind=Composite] [subKind=CompositeStructure] Reconcile composite Resource CustomResource{kind='Composite', apiVersion='core.qubership.org/v1', metadata=ObjectMeta(annotations={kubectl.kubernetes.io/last-applied-configuration={"apiVersion":"core.qubership.org/v1","kind":"Composite","metadata":{"annotations":{},"labels":{"app.kubernetes.io/instance":"core-operator","app.kubernetes.io/managed-by":"saasDeployer","app.kubernetes.io/part-of":"Cloud-Core","app.kubernetes.io/processed-by-operator":"core-operator","deployer.cleanup/allow":"true","deployment.qubership.org/sessionId":"bf8dd1b2-dbbd-4e09-943a-63e2f8de9bdc"},"name":"composite-structure","namespace":"env-1-data-management"},"spec":{"baseline":{"originNamespace":"env-1-core"},"originNamespace":"env-1-data-management"},"subKind":"CompositeStructure"}
 }, creationTimestamp=2024-07-11T06:36:22Z, deletionGracePeriodSeconds=null, deletionTimestamp=null, finalizers=[], generateName=null, generation=1, labels={app.kubernetes.io/instance=core-operator, app.kubernetes.io/managed-by=saasDeployer, app.kubernetes.io/part-of=Cloud-Core, app.kubernetes.io/processed-by-operator=core-operator, deployer.cleanup/allow=true, deployment.qubership.org/sessionId=bf8dd1b2-dbbd-4e09-943a-63e2f8de9bdc}, managedFields=[ManagedFieldsEntry(apiVersion=core.qubership.org/v1, fieldsType=FieldsV1, fieldsV1=FieldsV1(additionalProperties={f:metadata={f:annotations={.={}, f:kubectl.kubernetes.io/last-applied-configuration={}}, f:labels={.={}, f:app.kubernetes.io/instance={}, f:app.kubernetes.io/managed-by={}, f:app.kubernetes.io/part-of={}, f:app.kubernetes.io/processed-by-operator={}, f:deployer.cleanup/allow={}, f:deployment.qubership.org/sessionId={}}}, f:spec={.={}, f:baseline={.={}, f:originNamespace={}}, f:originNamespace={}}, f:subKind={}}), manager=kubectl-client-side-apply, operation=Update, subresource=null, time=2024-07-11T06:36:22Z, additionalProperties={}), ManagedFieldsEntry(apiVersion=core.qubership.org/v1, fieldsType=FieldsV1, fieldsV1=FieldsV1(additionalProperties={f:status={.={}, f:conditions={}, f:observedGeneration={}, f:phase={}, f:requestId={}}}), manager=fabric8-kubernetes-client, operation=Update, subresource=status, time=2024-10-17T07:06:00Z, additionalProperties={})], name=composite-structure, namespace=env-1-data-management, ownerReferences=[], resourceVersion=488503008, selfLink=null, uid=6e9f3ed4-6bdb-4a89-a23e-c54d113a76d3, additionalProperties={}), spec=RawExtension(super=AnyType(value={baseline={originNamespace=env-1-core}, originNamespace=env-1-data-management})), status=org.qubership.core.declarative.resources.base.DeclarativeStatus@246e759b}
@@ -106,170 +111,44 @@ contentLength=175"
     "[2024-10-17T07:22:56.942] [INFO ] [request_id=-] [tenant_id=-] [thread=XNIO-1 task-18] [class=c.n.c.d.s.DBaaService] database for decryption = DatabaseRegistry(id=null, database=Database{id=null, oldClassifier=null, classifier={isServiceDb=true, microserviceName=aap-datahub-base, namespace=env-1-datahub, scope=service}, connectionProperties=[{role=admin, port=5432, host=pg-patroni.postgresql, name=dbaas_19ef1356b5804adb8e61a51687643bc8, url=jdbc:postgresql://pg-patroni.postgresql:5432/dbaas_19ef1356b5804adb8e61a51687643bc8, username=dbaas_f8f3decff5864ab2a7e0e167c33aaa46}, {role=streaming, port=5432, host=pg-patroni.postgresql, name=dbaas_19ef1356b5804adb8e61a51687643bc8, url=jdbc:postgresql://pg-patroni.postgresql:5432/dbaas_19ef1356b5804adb8e61a51687643bc8, username=dbaas_ac72f68f31684e78a398a7c12ce7022b}, {role=rw, port=5432, host=pg-patroni.postgresql, name=dbaas_19ef1356b5804adb8e61a51687643bc8, url=jdbc:postgresql://pg-patroni.postgresql:5432/dbaas_19ef1356b5804adb8e61a51687643bc8, username=dbaas_cc433d4e8b4d4c879c3132db6a775331}, {role=ro, port=5432, host=pg-patroni.postgresql, name=dbaas_19ef1356b5804adb8e61a51687643bc8, url=jdbc:postgresql://pg-patroni.postgresql:5432/dbaas_19ef1356b5804adb8e61a51687643bc8, username=dbaas_c7e8ff7540f045b2bb6cc10cb368e1d9}], resources=[DbResource(id=4feac2ed-2db0-4967-b367-24606d1deb70, kind=database, name=dbaas_19ef1356b5804adb8e61a51687643bc8), DbResource(id=e04ab9e2-d86f-4220-ac37-ebc8529a5e82, kind=user, name=dbaas_f8f3decff5864ab2a7e0e167c33aaa46), DbResource(id=1906f863-e635-4108-9e77-848fb3fbcbff, kind=user, name=dbaas_ac72f68f31684e78a398a7c12ce7022b), DbResource(id=6091b182-9274-4cac-9427-06f584eba938, kind=user, name=dbaas_cc433d4e8b4d4c879c3132db6a775331), DbResource(id=0f889d95-8203-4ce9-8f7e-5760a7a8841a, kind=user, name=dbaas_c7e8ff7540f045b2bb6cc10cb368e1d9)], namespace='env-1-datahub', type='postgresql', adapterId='0a0bc11e-0e95-444c-89c6-f796da7130f0', name='dbaas_19ef1356b5804adb8e61a51687643bc8', markedForDrop=false, timeDbCreation=2024-07-11 07:01:23.524, backupDisabled=true, settings=null, connectionDescription=null, warnings=null, externallyManageable=false, dbState=DbState(id=0427cbb0-e08d-42c4-b558-0e2bf6d4ccd9, state=CREATED, databaseState=CREATED, description=null, podName=null), physicalDatabaseId='postgresql:postgres', bgVersion='null'}, timeDbCreation=2024-07-11 07:01:23.524, classifier={isServiceDb=true, microserviceName=aap-datahub-base, namespace=env-1-datahub, scope=service}, namespace=env-1-datahub, type=postgresql)",
 }
 
--- functions like in flientbit
+local function parse(log, timestamp)
+    local record = {
+        log = log,
+        __qubership_candidate = "[",
+    }
+    local ok, code, returned_timestamp, returned_record = pcall(kv_parse, "pods.test", timestamp, record)
 
-function kv_parse(tag, timestamp, record)
-    if record["log"] ~= nil and type(record["log"]) ~= "table" then
-        local regex_msg = "%s*(%[[%d%s-:%.,T/]+%])%s*(%[%s*[%w]+%s*%])%s*(%[.+=.*%])%s*[%w%S]+"
-        local regex_kvs = "%[([^=%[%]]+)=(%w*(.[^%[^%]]*))%]"
-        local s = record["log"]
+    assert(ok, "kv_parse raised an error: " .. tostring(code))
+    assert(code == 0 or code == 2, "kv_parse returned an unexpected code: " .. tostring(code))
+    assert(returned_timestamp == timestamp, "kv_parse changed the timestamp")
+    assert(type(returned_record) == "table", "kv_parse did not return a record")
 
-        time, level, kvs = string.match(s, regex_msg)
-
-        if kvs ~= nil then
-            for k, v in string.gmatch(kvs, regex_kvs) do
-              record[k] = v
-            end
-        else
-            -- return 0, that means the record will not be modified
-            return 0, timestamp, record
-        end
-
-        -- return 2, that means the original timestamp is not modified and the record has been modified
-        -- so it must be replaced by the returned values from the record
-        return 2, timestamp, record
-    else
-        -- return 0, that means the record will not be modified
-        return 0, timestamp, record
-    end
+    return code, returned_record
 end
 
-function kv_parse_new_gen(tag, timestamp, record)
-    if record["log"] ~= nil and type(record["log"]) ~= "table" then
-        -- regex to find the end of key=value string in the original string
-        -- this regex search the place:
-        -- * start from ]
-        -- * with 0 or more space symbols
-        -- * without [
-        -- * start from alphabet symbol, digit or any symbol (expect [)
-        local regex_kvs_end = "]%s*[^%[][%w%-%{%}%\\%/%.%,%!%@%#%$%%%^%&%*%(%)]%s*"
-        local regex_kvs = "%[([^=%[%]]+)=(%w*(.[^%[^%]]*))%]"
-        local s = record["log"]
-
-        local kvs_position = string.find(s, regex_kvs_end, 1)
-        local kvs = string.sub(s, 0, kvs_position)
-
-        if kvs ~= nil then
-            for k, v in string.gmatch(kvs, regex_kvs) do
-              record[k] = v
-            end
-        else
-            -- return 0, that means the record will not be modified
-            return 0, timestamp, record
-        end
-
-        -- return 2, that means the original timestamp is not modified and the record has been modified
-        -- so it must be replaced by the returned values from the record
-        return 2, timestamp, record
-    else
-        -- return 0, that means the record will not be modified
-        return 0, timestamp, record
-    end
+for index, log in ipairs(test_strings) do
+    parse(log, index)
 end
 
--- test functions
--- call "like real" functions
+local empty_log = "[2026-09-17T12:00:00Z] [INFO]"
+local empty_code, empty_record = parse(empty_log, 1000)
+assert(empty_code == 0, "kv_parse modified a record without key-value pairs")
+assert(empty_record.log == empty_log, "kv_parse changed a record without key-value pairs")
+assert(empty_record.__qubership_candidate == "[", "kv_parse removed the parser marker")
 
-function execute_real_func_test()
-    for i, test_string in ipairs(test_strings) do
-        test_structure = {}
-        test_structure["log"] = test_string
-        print("Original string:", test_string)
+local kv_code, kv_record = parse(
+    "[2026-09-17T12:00:00Z] [INFO] [thread=main] [class=Example] message",
+    1001
+)
+assert(kv_code == 2, "kv_parse did not modify a record with key-value pairs")
+assert(kv_record.thread == "main", "kv_parse did not extract the thread field")
+assert(kv_record.class == "Example", "kv_parse did not extract the class field")
 
-        local start_time = os.time()
-        print ("Call kv_parse = ", start_time)
-        code, time, test_structure = kv_parse("test", i, test_structure)
-        local end_time = os.time()
-        print ("Complete kv_parse = ", end_time, "Execution time =", end_time - start_time)
+local no_message_code, no_message_record = parse(
+    "[2026-09-17T12:00:00Z] [INFO] [thread=main]",
+    1002
+)
+assert(no_message_code == 2, "kv_parse did not modify a message-less record with key-value pairs")
+assert(no_message_record.thread == "main", "kv_parse did not extract a field from a message-less record")
 
-        print("Code:", code)
-        print("Time:", time)
-        for k,v in pairs(test_structure) do
-            print("Record content:", k, "=", v)
-        end
-        print("------------------------------------------------------------------------")
-    end
-end
-
-function execute_real_func_test_new_gen()
-    for i, test_string in ipairs(test_strings) do
-        test_structure = {}
-        test_structure["log"] = test_string
-        print("Original string:", test_string)
-
-        local start_time = os.time()
-        print ("Call kv_parse = ", start_time)
-        code, time, test_structure = kv_parse_new_gen("test", i, test_structure)
-        local end_time = os.time()
-        print ("Complete kv_parse = ", end_time, "Execution time =", end_time - start_time)
-
-        print("Code:", code)
-        print("Time:", time)
-        for k,v in pairs(test_structure) do
-            print("Record content:", k, "=", v)
-        end
-        print("------------------------------------------------------------------------")
-    end
-end
-
--- syntetic functions
-
-function execute_test()
-    -- regex to parse logs
-    local regex_msg = "%s*(%[[%d%s-:%.,T/]+%])%s*(%[%s*[%w]+%s*%])%s*(%[.+=.*%])%s*[%w%d%S]+"
-    local regex_kvs = "%[([^=%[%]]+)=(%w*(.[^%[^%]]*))%]"
-
-    -- execute test scenarious
-    for i, test_string in ipairs(test_strings) do
-        print("Original string:", test_string)
-        time, level, kvs = string.match(test_string, regex_msg)
-        print("Raw group parsed:", time, "|", level, "|", kvs)
-
-        for time, level, kvs in string.gmatch (test_string, regex_msg) do
-            print("Pasred time:", time)
-            print("Parsed level:",level)
-            print()
-            print("Parsed KVs:", kvs)
-
-            for k, v in string.gmatch (kvs, regex_kvs) do
-                print("Parsed key=value:", k, "=", v)
-            end
-        end
-    print("------------------------------------------------------------------------")
-    end
-end
-
-function execute_test_new_gen()
-    -- regex to parse logs
-    local regex_msg = "%s*(%[[%d%s-:%.,T/]+%])%s*(%[%s*[%w]+%s*%])%s*(%[.+=.*%])%s*[%w%d%S]+"
-    local regex_kvs = "%[([^=%[%]]+)=(%w*(.[^%[^%]]*))%]"
-
-    local kvs_end = "]%s*[^%[][%w%-%{%}%\\%/%.%,%!%@%#%$%%%^%&%*%(%)]%s*"
-
-    -- execute test scenariou
-    for i, test_string in ipairs(test_strings) do
-        print("Original string:", test_string)
-
-        local kvs_position = string.find(test_string, kvs_end, 1)
-        print("Found position of KVs end = ", kvs_position)
-
-        local kvs_substring = string.sub(test_string, 0, kvs_position)
-        print("Substring with KVs = ", kvs_substring)
-        for k, v in string.gmatch (kvs_substring, regex_kvs) do
-            print("Parsed key=value:", k, "=", v)
-        end
-    print("------------------------------------------------------------------------")
-    end
-end
-
---print("====================================================================")
---print("Run test to check regex")
---print("====================================================================")
---execute_test()
---execute_test_new_gen()
-
-print("====================================================================")
-print("Run test to check function which will use Fluent")
-print("====================================================================")
---execute_real_func_test()
-execute_real_func_test_new_gen()
+print("parse_key_value.lua tests passed")

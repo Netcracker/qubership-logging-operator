@@ -1,0 +1,4 @@
+2024-07-20T11:51:31.234007468Z stdout F [2024-07-20T11:51:31.234] [INFO] ["app.qubership.org/application=app"] [logId=bill-cycle-1] it is example of bill cycle log message
+2024-07-20T11:51:32.234007468Z stdout F [2024-07-20T11:51:32.234] [INFO] ["app.kubernetes.io/part-of=app"] [logId=bill-cycle-2] it is example of bill cycle log message
+2024-07-20T11:51:33.234007468Z stdout F [2024-07-20T11:51:33.234] [WARN] [logId=bill-cycle-3] ["app.kubernetes.io/part-of=app"] it is example of bill cycle log message
+2024-07-20T11:51:34.234007468Z stdout F [2024-07-20T11:51:34.234] [WARN] [logId=bill-cycle-4] [app.kubernetes.io/part-of=app] it is example of bill cycle log message but without quotes inside the label part-of

@@ -1,0 +1,48 @@
+[
+  {
+    "namespace": "fake-namespace",
+    "pid": "7",
+    "klog_date": "0417 09:54:26.268079",
+    "nodename": "fake-node",
+    "source_level": "W",
+    "detected_level": "warn",
+    "time": "2023-04-17T09:54:26.268079468Z",
+    "level": "warning",
+    "container": "fake-container",
+    "logId": "klog-1",
+    "short_message": "[logId=klog-1] pkg/mod/k8s.io/client-go@v0.26.11/tools/cache/reflector.go:169: failed to list *unstructured.Unstructured: failed to list applications: applications.argoproj.io is forbidden: User \"system:serviceaccount:argocd:argocd-notifications-controller\" cannot list resource \"applications\" in API group \"argoproj.io\" at the cluster scope",
+    "labels": {
+      "metadata.app.kubernetes.io/version": "0.1.0",
+      "metadata.app": "fluent-pipeline-test"
+    },
+    "parse_status": "success",
+    "parse_field_count": 12,
+    "file": "reflector.go:424",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "hostname": "fake-fluent",
+    "parse_format": "klog"
+  },
+  {
+    "namespace": "fake-namespace",
+    "pid": "7",
+    "klog_date": "0614 08:33:57.629400",
+    "nodename": "fake-node",
+    "source_level": "W",
+    "detected_level": "warn",
+    "time": "2023-06-14T08:33:57.629400468Z",
+    "level": "warning",
+    "container": "fake-container",
+    "logId": "klog-2",
+    "short_message": "[logId=klog-2] Service \\\"dev-profiler-opensearch/esc-ui-service\\\" does not have any active Endpoint.",
+    "labels": {
+      "metadata.app.kubernetes.io/version": "0.1.0",
+      "metadata.app": "fluent-pipeline-test"
+    },
+    "parse_status": "success",
+    "parse_field_count": 12,
+    "file": "controller.go:1213",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "hostname": "fake-fluent",
+    "parse_format": "klog"
+  }
+]

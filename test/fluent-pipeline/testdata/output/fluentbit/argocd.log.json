@@ -1,0 +1,46 @@
+[
+  {
+    "detected_level": "info",
+    "hostname": "fake-fluent",
+    "short_message": "Normalized app spec: {\"status\":{\"conditions\":[{\"lastTransitionTime\":\"2024-10-28T13:05:21Z\",\"message\":\"Failed to load target state: failed to generate manifest for source 1 of 1: rpc error: code = Unknown desc = `helm template . --name-template monitoring --namespace prometheus-operator --kube-version 1.29 --values /tmp/00000000-0000-0000-0000-000000000000 \\u003capi versions removed\\u003e --include-crds` failed exit status 1: Error: template: monitoring-operator/charts/victoriametrics/templates/pre-delete/job.yaml:45:20: executing \\\"monitoring-operator/charts/victoriametrics/templates/pre-delete/job.yaml\\\" at \\u003cinclude \\\"vm.cleanup.image\\\" .\\u003e: error calling include: template: monitoring-operator/charts/victoriametrics/templates/_helper.tpl:29:23: executing \\\"vm.cleanup.image\\\" at \\u003cindex .Values.global.deployDescriptor \\\"vmcleanup\\\" \\\"image\\\"\\u003e: error calling index: index of nil pointer\\n\\nUse --debug flag to render out invalid YAML\",\"type\":\"ComparisonError\"}]}}",
+    "nodename": "fake-node",
+    "parse_field_count": 10,
+    "application": "argocd/monitoring",
+    "source_level": "info",
+    "namespace": "fake-namespace",
+    "parse_format": "logfmt",
+    "logId": "argocd-1",
+    "labels": {
+      "metadata.app.kubernetes.io/version": "0.1.0",
+      "metadata.app": "fluent-pipeline-test"
+    },
+    "parse_status": "success",
+    "container": "fake-container",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "level": "info",
+    "log_time": "2023-12-20T12:51:32.272007468Z"
+  },
+  {
+    "short_message": "Failed to fetch git repository",
+    "parse_field_count": 12,
+    "source_level": "error",
+    "namespace": "fake-namespace",
+    "logId": "argocd-2",
+    "container": "fake-container",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "parse_format": "logfmt",
+    "hostname": "fake-fluent",
+    "nodename": "fake-node",
+    "repo_url": "https://example.com/myorg/myrepo.git",
+    "detected_level": "error",
+    "labels": {
+      "metadata.app.kubernetes.io/version": "0.1.0",
+      "metadata.app": "fluent-pipeline-test"
+    },
+    "parse_status": "success",
+    "level": "err",
+    "error": "ssh: handshake failed: knownhosts key mismatch",
+    "attempt": "3",
+    "log_time": "2023-12-20T12:51:33.272007468Z"
+  }
+]

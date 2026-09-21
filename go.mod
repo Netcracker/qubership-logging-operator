@@ -2,7 +2,7 @@ module github.com/Netcracker/qubership-logging-operator
 
 go 1.26.0
 
-toolchain go1.26.6
+toolchain go1.26.8
 
 require (
 	github.com/Masterminds/sprig v2.22.0+incompatible

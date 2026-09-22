@@ -122,4 +122,5 @@ hide a pipeline regression.
 
 Add both a matching and a non-matching case to `testdata/parser-cases.json`. Set `match` to `true` or `false`, describe
 the significant parsed fields in `expected`, and list fields that would indicate an incorrect match in `absent`.
-`TestManifestCoversEveryFluentBitParser` reports a missing pair when `parsers.conf` gains a parser.
+`TestManifestCoversEveryFluentBitParser` reports a missing pair when `parsers.conf` gains a parser, and
+`TestManifestHasNoCaseForARemovedParser` reports the cases left behind when a parser is renamed or removed.

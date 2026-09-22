@@ -10,6 +10,42 @@ import (
 func TestManifestCoversEveryFluentBitParser(t *testing.T) {
 	t.Parallel()
 
+	manifest, parsers := checkedInManifestAndParsers(t)
+	if missing := MissingCases(manifest, parsers); len(missing) > 0 {
+		t.Fatalf("parser contract cases are missing: %s", strings.Join(missing, ", "))
+	}
+}
+
+func TestManifestHasNoCaseForARemovedParser(t *testing.T) {
+	t.Parallel()
+
+	manifest, parsers := checkedInManifestAndParsers(t)
+	if stale := StaleCases(manifest, parsers); len(stale) > 0 {
+		t.Fatalf("parser contract cases name a parser no parsers.conf defines: %s", strings.Join(stale, ", "))
+	}
+}
+
+func TestStaleCases(t *testing.T) {
+	t.Parallel()
+
+	manifest := Manifest{Cases: []Case{
+		{ID: "json-matching", Parser: "json", Match: true},
+		{ID: "java-matching", Parser: "java", Match: true},
+		{ID: "java-non-matching", Parser: "java", Match: false},
+	}}
+
+	got := StaleCases(manifest, []string{"json", "syslog"})
+	want := []string{"java-matching (java)", "java-non-matching (java)"}
+	if strings.Join(got, ",") != strings.Join(want, ",") {
+		t.Errorf("StaleCases() = %v, want %v", got, want)
+	}
+}
+
+// checkedInManifestAndParsers reads the checked-in contract manifest and the parser names of every
+// shipped Fluent Bit configuration, which together decide whether a case is missing or stale.
+func checkedInManifestAndParsers(t *testing.T) (Manifest, []string) {
+	t.Helper()
+
 	manifest, err := ReadManifest(filepath.Join("..", "..", "testdata", "parser-cases.json"))
 	if err != nil {
 		t.Fatalf("read parser contract manifest: %v", err)
@@ -26,10 +62,7 @@ func TestManifestCoversEveryFluentBitParser(t *testing.T) {
 		}
 		parsers = append(parsers, configured...)
 	}
-
-	if missing := MissingCases(manifest, parsers); len(missing) > 0 {
-		t.Fatalf("parser contract cases are missing: %s", strings.Join(missing, ", "))
-	}
+	return manifest, parsers
 }
 
 func TestPrepare(t *testing.T) {

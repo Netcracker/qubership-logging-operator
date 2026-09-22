@@ -155,6 +155,23 @@ func CoveredParsers(manifest Manifest) map[string]map[bool]bool {
 	return covered
 }
 
+// StaleCases returns the cases whose parser no configuration defines any more. Prepare skips such
+// a case in every scenario, so nothing else reports it when a parser is renamed or removed.
+func StaleCases(manifest Manifest, parsers []string) []string {
+	configured := make(map[string]bool, len(parsers))
+	for _, parser := range parsers {
+		configured[parser] = true
+	}
+	var stale []string
+	for _, testCase := range manifest.Cases {
+		if !configured[testCase.Parser] {
+			stale = append(stale, testCase.ID+" ("+testCase.Parser+")")
+		}
+	}
+	sort.Strings(stale)
+	return stale
+}
+
 func MissingCases(manifest Manifest, parsers []string) []string {
 	covered := CoveredParsers(manifest)
 	var missing []string

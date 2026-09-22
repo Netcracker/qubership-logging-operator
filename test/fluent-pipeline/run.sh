@@ -76,6 +76,18 @@ ensure_running() {
     fi
 }
 
+# reset_test_content empties the content directory of the previous run. The logging agents run as root and
+# can leave files the calling user cannot delete, such as a Fluentd buffer directory that was never flushed;
+# those are removed through the helper image running as root.
+reset_test_content() {
+    rm -rf "${TEST_CONTENT_PATH}" 2>/dev/null || true
+    if [ -e "${TEST_CONTENT_PATH}" ]; then
+        docker run --rm --security-opt label=disable --user 0 --entrypoint rm \
+            -v "$(dirname "${TEST_CONTENT_PATH}")":/content:rw \
+            "${FLUENT_PIPELINE_TEST_IMAGE}" -rf "/content/$(basename "${TEST_CONTENT_PATH}")"
+    fi
+}
+
 # wait_for_log polls a container's log for the line that shows it is ready. The agents log it at the info level,
 # which the test custom resources set. A container that exits or stays silent past STARTUP_TIMEOUT fails the run.
 wait_for_log() {
@@ -175,7 +187,7 @@ run_fluentd_test_logic() {
     FLD_DOCKER_NAME="fluentd"
     # Remove test directories from previous run
     echo "=> Prepare test environment and test data"
-    rm -rf "${TEST_CONTENT_PATH}"
+    reset_test_content
 
     # Create test directories
     mkdir -p \
@@ -249,7 +261,7 @@ run_fluentbit_test_logic() {
     FLB_DOCKER_NAME="fluent-bit"
     # Remove test directories from previous run
     echo "=> Prepare test environment and test data"
-    rm -rf "${TEST_CONTENT_PATH}"
+    reset_test_content
 
     # Create test directories
     mkdir -p \
@@ -326,7 +338,7 @@ run_fluentbit_ha_test_logic() {
     FLB_AGR_DOCKER_NAME="fluent-bit-aggregator"
     # Remove test directories from previous run
     echo "=> Prepare test environment and test data"
-    rm -rf "${TEST_CONTENT_PATH}"
+    reset_test_content
 
     # Create test directories
     mkdir -p \

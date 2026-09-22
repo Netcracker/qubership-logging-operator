@@ -107,19 +107,26 @@ wait_for_log() {
     return 1
 }
 
-# wait_for_system_inputs waits until the Fluent Bit tail inputs have opened the system and audit files, so the
-# lines appended afterwards are read; the inputs skip whatever a file held before they opened it.
+# wait_for_system_inputs waits until the agent's tail inputs have opened the system and audit files, so the lines
+# appended afterwards are read; the inputs skip whatever a file held before they opened it. The second argument is
+# the log line the agent writes per opened file, as a printf format with one %s for the path.
+FLUENTBIT_INPUT_OPENED='inotify_fs_add\(\).*name=%s$'
+FLUENTD_INPUT_OPENED='following tail of %s$'
 wait_for_system_inputs() {
     container_name=$1
+    line_format=$2
     for host_log in /var/log/syslog /var/log/audit/audit.log /var/log/kubernetes/audit/audit.log; do
-        wait_for_log "${container_name}" "inotify_fs_add\(\).*name=${host_log}\$"
+        # shellcheck disable=SC2059 # the format comes from the constants above, not from input
+        wait_for_log "${container_name}" "$(printf "${line_format}" "${host_log}")"
     done
 }
 
-# count_expected_records counts the records the comparison reads from a directory of expected files; each record
-# carries one _test block.
+# count_expected_records counts the records the comparison expects in the output: each expected record carries one
+# _test block, and a dropped probe describes a line that produces no record.
 count_expected_records() {
-    cat "$1"/*.log.json | grep -c '"_test"'
+    records=$(cat "$1"/*.log.json | grep -c '"_test"' || true)
+    probes=$(cat "$1"/*.log.json | grep -c '"dropped": true' || true)
+    echo $((${records:-0} - ${probes:-0}))
 }
 
 # wait_for_records polls the output file until it holds at least the expected number of records and the count has
@@ -225,8 +232,8 @@ run_fluentd_test_logic() {
         -v "${TEST_CONTENT_PATH}/output/":/fluentd-output:rw \
         "${FLUENTD_IMAGE}"
 
-    echo "=> Waiting for FluentD to start"
-    wait_for_log "${FLD_DOCKER_NAME}" 'fluentd worker is now running'
+    echo "=> Waiting for FluentD to open the system and audit inputs"
+    wait_for_system_inputs "${FLD_DOCKER_NAME}" "${FLUENTD_INPUT_OPENED}"
 
     echo "=> Start print prepared test data in logs"
     add_lines "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/input/kubernetes/audit/audit.log" "${TEST_CONTENT_PATH}/logs/var/log/kubernetes/audit/audit.log"
@@ -300,7 +307,7 @@ run_fluentbit_test_logic() {
         "${FLUENTBIT_IMAGE}"
 
     echo "=> Waiting for FluentBit to open the system and audit inputs"
-    wait_for_system_inputs "${FLB_DOCKER_NAME}"
+    wait_for_system_inputs "${FLB_DOCKER_NAME}" "${FLUENTBIT_INPUT_OPENED}"
 
     echo "=> Start print prepared test data in logs"
     add_lines "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/input/kubernetes/audit/audit.log" "${TEST_CONTENT_PATH}/logs/var/log/kubernetes/audit/audit.log"
@@ -407,7 +414,7 @@ run_fluentbit_ha_test_logic() {
         "${FLUENTBIT_IMAGE}"
 
     echo "=> Waiting for the FluentBit forwarder to open the system and audit inputs"
-    wait_for_system_inputs "${FLB_FRW_DOCKER_NAME}"
+    wait_for_system_inputs "${FLB_FRW_DOCKER_NAME}" "${FLUENTBIT_INPUT_OPENED}"
 
     echo "=> Start print prepared test data in logs"
     add_lines "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/input/kubernetes/audit/audit.log" "${TEST_CONTENT_PATH}/logs/var/log/kubernetes/audit/audit.log"

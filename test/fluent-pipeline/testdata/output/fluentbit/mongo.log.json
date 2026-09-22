@@ -1,14 +1,16 @@
 [
   {
+    "_test": {
+      "id": "mongo-1"
+    },
     "namespace": "fake-namespace",
     "hostname": "fake-fluent",
     "nodename": "fake-node",
     "source_level": "I",
     "date": "2025-07-08T10:53:16.089+00:00",
     "time": "2025-07-08T10:53:16.090040268Z",
-    "parse_field_count": 14,
+    "parse_field_count": 13,
     "container": "fake-container",
-    "logId": "mongo-1",
     "short_message": "Opening WiredTiger",
     "detected_level": "info",
     "attributes": {
@@ -27,15 +29,17 @@
     "parse_format": "mongodb_structured"
   },
   {
+    "_test": {
+      "id": "mongo-2"
+    },
     "namespace": "fake-namespace",
     "hostname": "fake-fluent",
     "nodename": "fake-node",
     "source_level": "I",
     "date": "2025-07-08T10:53:18.438+00:00",
     "time": "2025-07-08T10:53:18.438549961Z",
-    "parse_field_count": 14,
+    "parse_field_count": 13,
     "container": "fake-container",
-    "logId": "mongo-2",
     "short_message": "WiredTiger message",
     "detected_level": "info",
     "attributes": {
@@ -54,15 +58,17 @@
     "parse_format": "mongodb_structured"
   },
   {
+    "_test": {
+      "id": "mongo-3"
+    },
     "attributes": {
       "message": "[1751971998:438325][11:0x7f96eed86c80], txn-recover: [WT_VERB_RECOVERY_PROGRESS] recovery was completed successfully and took 0ms, including 0ms for the log replay, 0ms for the rollback to stable, and 0ms for the checkpoint."
     },
     "short_message": "WiredTiger message",
-    "parse_field_count": 14,
+    "parse_field_count": 13,
     "source_level": "I",
     "namespace": "fake-namespace",
     "time": "2025-07-08T10:53:18.438611709Z",
-    "logId": "mongo-3",
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "level": "info",

@@ -94,97 +94,44 @@ func TestContains(t *testing.T) {
 }
 
 func TestFindActualRecord(t *testing.T) {
+	t.Parallel()
+
+	actual := []map[string]interface{}{
+		{"time": "2024-01-01T00:00:00Z", "short_message": "first"},
+		{"time": "2024-01-01T00:00:01Z", "short_message": "second"},
+		{"log": "syslog line", "tag": "/var/log/syslog", "short_message": "third"},
+		{"log": "syslog line", "tag": "/var/log/messages", "short_message": "fourth"},
+	}
+
 	tests := []struct {
 		name          string
-		actual        []map[string]interface{}
 		expected      map[string]interface{}
-		wantMessage   string
-		wantTestOnly  bool
+		wantMessage   interface{}
 		wantDuplicate bool
 	}{
 		{
-			name: "explicit selector",
-			actual: []map[string]interface{}{
-				{"time": "2024-01-01T00:00:00Z", "short_message": "selected"},
-			},
-			expected: map[string]interface{}{
-				"_test": map[string]interface{}{
-					"id":    "parser-positive",
-					"match": map[string]interface{}{"time": "2024-01-01T00:00:00Z"},
-				},
-			},
-			wantMessage:  "selected",
-			wantTestOnly: true,
-		},
-		{
-			name: "log ID field",
-			actual: []map[string]interface{}{
-				{"logId": "one", "short_message": "first"},
-			},
-			expected:    map[string]interface{}{"logId": "one"},
-			wantMessage: "first",
-		},
-		{
-			name: "embedded marker",
-			actual: []map[string]interface{}{
-				{"short_message": "message [logId=two]"},
-			},
-			expected:     map[string]interface{}{"logId": "two"},
-			wantMessage:  "message [logId=two]",
-			wantTestOnly: true,
-		},
-		{
-			name: "test ID in an unparsed key-value message",
-			actual: []map[string]interface{}{
-				{"message": "level=info logId=raw-one msg=test", "short_message": "raw"},
-			},
-			expected:     map[string]interface{}{"_test_id": "raw-one"},
-			wantMessage:  "raw",
-			wantTestOnly: true,
-		},
-		{
-			name: "stable time",
-			actual: []map[string]interface{}{
-				{"time": "2024-01-01T00:00:00Z", "short_message": "third"},
-			},
-			expected: map[string]interface{}{
-				"logId": "three",
-				"time":  "2024-01-01T00:00:00Z",
-			},
-			wantMessage:  "third",
-			wantTestOnly: true,
-		},
-		{
-			name: "duplicate log ID refined by time",
-			actual: []map[string]interface{}{
-				{"logId": "timed", "time": "one", "short_message": "first"},
-				{"logId": "timed", "time": "two", "short_message": "second"},
-			},
-			expected: map[string]interface{}{
-				"logId": "timed",
-				"time":  "two",
-			},
+			name:        "the default match field selects by the runtime timestamp",
+			expected:    map[string]interface{}{"_test": metadata("one"), "time": "2024-01-01T00:00:01Z"},
 			wantMessage: "second",
 		},
 		{
-			name: "duplicate log ID refined by parsed log time",
-			actual: []map[string]interface{}{
-				{"logId": "timed", "log_time": "one", "short_message": "first"},
-				{"logId": "timed", "log_time": "two", "short_message": "second"},
-			},
-			expected: map[string]interface{}{
-				"logId":    "timed",
-				"log_time": "two",
-			},
-			wantMessage: "second",
+			name:        "a declared match field replaces the default",
+			expected:    map[string]interface{}{"_test": metadata("two", "tag"), "tag": "/var/log/messages"},
+			wantMessage: "fourth",
 		},
 		{
-			name: "duplicate",
-			actual: []map[string]interface{}{
-				{"logId": "four", "short_message": "first"},
-				{"logId": "four", "short_message": "second"},
-			},
-			expected:      map[string]interface{}{"logId": "four"},
+			name:        "several declared match fields must all hold",
+			expected:    map[string]interface{}{"_test": metadata("three", "log", "tag"), "log": "syslog line", "tag": "/var/log/syslog"},
+			wantMessage: "third",
+		},
+		{
+			name:        "a value no output record carries selects nothing",
+			expected:    map[string]interface{}{"_test": metadata("four"), "time": "2024-01-01T00:00:09Z"},
+			wantMessage: nil,
+		},
+		{
+			name:          "a value two output records carry is reported as duplicated",
+			expected:      map[string]interface{}{"_test": metadata("five", "log"), "log": "syslog line"},
 			wantMessage:   "first",
 			wantDuplicate: true,
 		},
@@ -192,78 +139,135 @@ func TestFindActualRecord(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			record, duplicated, testOnly := findActualRecord(tt.actual, tt.expected)
-			if record == nil {
-				t.Fatal("findActualRecord returned no record")
+			t.Parallel()
+
+			testMetadata, ok := getTestMetadata(tt.expected)
+			if !ok {
+				t.Fatal("getTestMetadata() found no metadata in the expected record")
 			}
-			if got := record["short_message"]; got != tt.wantMessage {
-				t.Fatalf("short_message = %v, want %q", got, tt.wantMessage)
+			values, missing := selectorValues(tt.expected, testMetadata)
+			if missing != "" {
+				t.Fatalf("selectorValues() reported %q as missing, want no missing field", missing)
 			}
+
+			record, duplicated := findActualRecord(actual, values)
 			if duplicated != tt.wantDuplicate {
-				t.Fatalf("duplicated = %v, want %v", duplicated, tt.wantDuplicate)
+				t.Errorf("findActualRecord(%v) duplicated = %v, want %v", values, duplicated, tt.wantDuplicate)
 			}
-			if testOnly != tt.wantTestOnly {
-				t.Fatalf("testOnly = %v, want %v", testOnly, tt.wantTestOnly)
+			if tt.wantMessage == nil {
+				if record != nil {
+					t.Errorf("findActualRecord(%v) = %v, want no record", values, record)
+				}
+				return
+			}
+			if record == nil {
+				t.Fatalf("findActualRecord(%v) = no record, want short_message %q", values, tt.wantMessage)
+			}
+			if got := record["short_message"]; got != tt.wantMessage && !tt.wantDuplicate {
+				t.Errorf("findActualRecord(%v) short_message = %v, want %v", values, got, tt.wantMessage)
 			}
 		})
 	}
 }
 
-func TestCompareRecordPartial(t *testing.T) {
+func TestSelectorValuesReportsAMatchFieldTheExpectedRecordDoesNotDefine(t *testing.T) {
 	t.Parallel()
 
-	expected := map[string]interface{}{
-		"_test": map[string]interface{}{
-			"id":     "json-positive",
-			"match":  map[string]interface{}{"time": "one"},
-			"absent": []interface{}{"error", "nested.secret"},
-		},
-		"parse_format": "json",
-		"nested": map[string]interface{}{
-			"value": "kept",
-		},
-	}
-	actual := map[string]interface{}{
-		"time":         "one",
-		"parse_format": "json",
-		"nested": map[string]interface{}{
-			"value": "kept",
-			"extra": true,
-		},
-		"hostname": "generated",
-	}
+	expected := map[string]interface{}{"_test": metadata("one", "log_time"), "time": "2024-01-01T00:00:00Z"}
+	testMetadata, _ := getTestMetadata(expected)
 
-	equal, err := compareRecord(expected, actual)
-	if err != nil {
-		t.Fatalf("compareRecord returned error: %v", err)
+	values, missing := selectorValues(expected, testMetadata)
+	if missing != "log_time" {
+		t.Errorf("selectorValues() missing = %q, want %q", missing, "log_time")
 	}
-	if !equal {
-		t.Fatal("compareRecord rejected a matching partial record")
-	}
-
-	actual["error"] = "unexpected"
-	equal, err = compareRecord(expected, actual)
-	if err != nil {
-		t.Fatalf("compareRecord returned error: %v", err)
-	}
-	if equal {
-		t.Fatal("compareRecord accepted a field listed as absent")
+	if values != nil {
+		t.Errorf("selectorValues() = %v, want no values", values)
 	}
 }
 
-func TestCompareRecordLegacyIsExact(t *testing.T) {
+func TestCompareRecord(t *testing.T) {
 	t.Parallel()
 
-	equal, err := compareRecord(
-		map[string]interface{}{"logId": "one"},
-		map[string]interface{}{"logId": "one", "extra": true},
-	)
-	if err != nil {
-		t.Fatalf("compareRecord returned error: %v", err)
+	tests := []struct {
+		name     string
+		expected map[string]interface{}
+		actual   map[string]interface{}
+		want     bool
+	}{
+		{
+			name:     "a whole-record expectation accepts the same fields",
+			expected: map[string]interface{}{"_test": metadata("one"), "time": "one", "parse_format": "json"},
+			actual:   map[string]interface{}{"time": "one", "parse_format": "json"},
+			want:     true,
+		},
+		{
+			name:     "a whole-record expectation rejects an extra output field",
+			expected: map[string]interface{}{"_test": metadata("two"), "time": "one", "parse_format": "json"},
+			actual:   map[string]interface{}{"time": "one", "parse_format": "json", "hostname": "generated"},
+			want:     false,
+		},
+		{
+			name:     "a partial expectation accepts an extra output field",
+			expected: map[string]interface{}{"_test": partialMetadata("three"), "parse_format": "json"},
+			actual:   map[string]interface{}{"time": "one", "parse_format": "json", "hostname": "generated"},
+			want:     true,
+		},
+		{
+			name:     "a partial expectation rejects a field it lists as absent",
+			expected: map[string]interface{}{"_test": partialMetadata("four", "error"), "parse_format": "json"},
+			actual:   map[string]interface{}{"parse_format": "json", "error": "unexpected"},
+			want:     false,
+		},
+		{
+			name:     "a partial expectation rejects a nested field it lists as absent",
+			expected: map[string]interface{}{"_test": partialMetadata("five", "nested.secret"), "parse_format": "json"},
+			actual:   map[string]interface{}{"parse_format": "json", "nested": map[string]interface{}{"secret": "leaked"}},
+			want:     false,
+		},
 	}
-	if equal {
-		t.Fatal("compareRecord accepted extra fields for a legacy expectation")
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			testMetadata, ok := getTestMetadata(tt.expected)
+			if !ok {
+				t.Fatal("getTestMetadata() found no metadata in the expected record")
+			}
+			if got := compareRecord(tt.expected, tt.actual, testMetadata); got != tt.want {
+				t.Errorf("compareRecord(%v, %v) = %v, want %v", tt.expected, tt.actual, got, tt.want)
+			}
+		})
 	}
+}
+
+// metadata builds the identification block of an expected record, with the match fields a case
+// declares and the default ones when it declares none.
+func metadata(id string, matchOn ...string) map[string]interface{} {
+	block := map[string]interface{}{"id": id}
+	if len(matchOn) > 0 {
+		block["matchOn"] = toInterfaces(matchOn)
+	}
+	return block
+}
+
+// partialMetadata builds the identification block of a partial expectation, such as a generated
+// parser contract, with the fields the output record must not carry.
+func partialMetadata(id string, absent ...string) map[string]interface{} {
+	block := metadata(id)
+	block["partial"] = true
+	if len(absent) > 0 {
+		block["absent"] = toInterfaces(absent)
+	}
+	return block
+}
+
+func toInterfaces(values []string) []interface{} {
+	encoded := make([]interface{}, 0, len(values))
+	for _, value := range values {
+		encoded = append(encoded, value)
+	}
+	return encoded
 }
 
 // TestTestJSONSuccess cannot run in parallel: testJson resolves paths relative to
@@ -273,9 +277,9 @@ func TestTestJSONSuccess(t *testing.T) {
 	writeFile(
 		t,
 		filepath.Join(dir, "output-logs", "actual", "output.log"),
-		"{\"logId\":\"1\",\"message\":\"ok\"}\nmetric_name = 1\n",
+		"{\"time\":\"one\",\"message\":\"ok\"}\nmetric_name = 1\n",
 	)
-	writeFile(t, filepath.Join(dir, "output-logs", "expected", "sample.log.json"), "[{\"logId\":\"1\",\"message\":\"ok\"}]")
+	writeFile(t, filepath.Join(dir, "output-logs", "expected", "sample.log.json"), "[{\"_test\":{\"id\":\"one\"},\"time\":\"one\",\"message\":\"ok\"}]")
 
 	oldWD, err := os.Getwd()
 	if err != nil {
@@ -295,11 +299,11 @@ func TestTestJSONSuccess(t *testing.T) {
 	}
 }
 
-// TestTestJSONDuplicateLogIDFails cannot run in parallel: same reason as TestTestJSONSuccess.
-func TestTestJSONDuplicateLogIDFails(t *testing.T) {
+// TestTestJSONDuplicateSelectorFails cannot run in parallel: same reason as TestTestJSONSuccess.
+func TestTestJSONDuplicateSelectorFails(t *testing.T) {
 	dir := t.TempDir()
-	writeFile(t, filepath.Join(dir, "output-logs", "actual", "output.log"), "{\"logId\":\"1\",\"message\":\"ok\"}\n{\"logId\":\"1\",\"message\":\"ok\"}")
-	writeFile(t, filepath.Join(dir, "output-logs", "expected", "sample.log.json"), "[{\"logId\":\"1\",\"message\":\"ok\"}]")
+	writeFile(t, filepath.Join(dir, "output-logs", "actual", "output.log"), "{\"time\":\"one\",\"message\":\"ok\"}\n{\"time\":\"one\",\"message\":\"ok\"}")
+	writeFile(t, filepath.Join(dir, "output-logs", "expected", "sample.log.json"), "[{\"_test\":{\"id\":\"one\"},\"time\":\"one\",\"message\":\"ok\"}]")
 
 	oldWD, err := os.Getwd()
 	if err != nil {

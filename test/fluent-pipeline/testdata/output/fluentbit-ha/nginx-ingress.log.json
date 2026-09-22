@@ -1,8 +1,10 @@
 [
   {
-    "_test_id": "nginx-1-1",
+    "_test": {
+      "id": "nginx-1"
+    },
     "parse_status": "success",
-    "short_message": "[logId=nginx-1] Service \"dev-profiler-opensearch/esc-ui-service\" does not have any active Endpoint.",
+    "short_message": "Service \"dev-profiler-opensearch/esc-ui-service\" does not have any active Endpoint.",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
       "metadata.app.kubernetes.io/version": "0.1.0"
@@ -18,15 +20,16 @@
     "parse_field_count": 13,
     "hostname": "fake-fluent",
     "container": "fake-container",
-    "logId": "nginx-1",
     "time": "2024-06-14T08:33:57.630003297Z",
     "source_level": "W",
     "parse_format": "klog"
   },
   {
-    "_test_id": "nginx-2-1",
+    "_test": {
+      "id": "nginx-2"
+    },
     "parse_status": "success",
-    "short_message": "[logId=nginx-2] Error getting SSL certificate \"opensearch-service/opensearch-rest-certs\": local SSL certificate opensearch-service/opensearch-rest-certs was not found. Using default certificate",
+    "short_message": "Error getting SSL certificate \"opensearch-service/opensearch-rest-certs\": local SSL certificate opensearch-service/opensearch-rest-certs was not found. Using default certificate",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
       "metadata.app.kubernetes.io/version": "0.1.0"
@@ -42,15 +45,16 @@
     "parse_field_count": 13,
     "hostname": "fake-fluent",
     "container": "fake-container",
-    "logId": "nginx-2",
     "time": "2024-06-14T08:33:57.630711319Z",
     "source_level": "W",
     "parse_format": "klog"
   },
   {
-    "_test_id": "nginx-3-1",
+    "_test": {
+      "id": "nginx-3"
+    },
     "parse_status": "success",
-    "short_message": "[logId=nginx-3] \"Configuration changes detected, backend reload required\"",
+    "short_message": "\"Configuration changes detected, backend reload required\"",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
       "metadata.app.kubernetes.io/version": "0.1.0"
@@ -66,15 +70,16 @@
     "parse_field_count": 13,
     "hostname": "fake-fluent",
     "container": "fake-container",
-    "logId": "nginx-3",
     "time": "2024-06-14T08:33:57.631388352Z",
     "source_level": "I",
     "parse_format": "klog"
   },
   {
-    "_test_id": "nginx-4-1",
+    "_test": {
+      "id": "nginx-4"
+    },
     "parse_status": "success",
-    "short_message": "[logId=nginx-4] \"Backend successfully reloaded\"",
+    "short_message": "\"Backend successfully reloaded\"",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
       "metadata.app.kubernetes.io/version": "0.1.0"
@@ -90,15 +95,16 @@
     "parse_field_count": 13,
     "hostname": "fake-fluent",
     "container": "fake-container",
-    "logId": "nginx-4",
     "time": "2024-06-14T08:33:59.146293383Z",
     "source_level": "I",
     "parse_format": "klog"
   },
   {
-    "_test_id": "nginx-5-1",
+    "_test": {
+      "id": "nginx-5"
+    },
     "parse_status": "success",
-    "short_message": "[logId=nginx-5] Event(v1.ObjectReference{Kind:\"Pod\", Namespace:\"ingress-nginx\", Name:\"ingress-nginx-controller-qqsq6\", UID:\"00000000-0000-0000-0000-000000000000\", APIVersion:\"v1\", ResourceVersion:\"897342981\", FieldPath:\"\"}): type: 'Normal' reason: 'RELOAD' NGINX reload triggered due to a change in configuration",
+    "short_message": "Event(v1.ObjectReference{Kind:\"Pod\", Namespace:\"ingress-nginx\", Name:\"ingress-nginx-controller-qqsq6\", UID:\"00000000-0000-0000-0000-000000000000\", APIVersion:\"v1\", ResourceVersion:\"897342981\", FieldPath:\"\"}): type: 'Normal' reason: 'RELOAD' NGINX reload triggered due to a change in configuration",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
       "metadata.app.kubernetes.io/version": "0.1.0"
@@ -114,13 +120,14 @@
     "parse_field_count": 13,
     "hostname": "fake-fluent",
     "container": "fake-container",
-    "logId": "nginx-5",
     "time": "2024-06-14T08:33:59.146941221Z",
     "source_level": "I",
     "parse_format": "klog"
   },
   {
-    "_test_id": "ha-record-1",
+    "_test": {
+      "id": "ha-record"
+    },
     "parse_status": "success",
     "host": "10.10.10.10",
     "request_time": "0.002",
@@ -156,7 +163,9 @@
     "parse_format": "k8s-nginx-ingress"
   },
   {
-    "_test_id": "ha-record-2",
+    "_test": {
+      "id": "ha-record-2"
+    },
     "parse_status": "success",
     "host": "10.10.10.10",
     "request_time": "0.025",

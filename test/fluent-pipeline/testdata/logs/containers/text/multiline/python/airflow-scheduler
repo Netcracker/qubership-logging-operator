@@ -2,7 +2,7 @@
 2023-03-08T09:57:38.903007468Z stdout F 
 2023-03-08T09:57:38.903007468Z stdout F (Background on this error at: https://sqlalche.me/e/14/e3q8)
 2023-03-08T09:57:38.903007468Z stdout F Traceback (most recent call last):
-2023-03-08T09:57:38.903007468Z stdout F   File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/engine/base.py", line 3361, in _wrap_pool_connect[logId=py-airflow-scheduler-1]
+2023-03-08T09:57:38.903007468Z stdout F   File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/engine/base.py", line 3361, in _wrap_pool_connect
 2023-03-08T09:57:38.903007468Z stdout F     return fn()
 2023-03-08T09:57:38.903007468Z stdout F   File "/home/airflow/.local/lib/python3.9/site-packages/sqlalchemy/pool/base.py", line 327, in connect
 2023-03-08T09:57:38.903007468Z stdout F     return _ConnectionFairy._checkout(self)

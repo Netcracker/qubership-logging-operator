@@ -30,7 +30,7 @@ var (
 )
 
 type reportRow struct {
-	logID   interface{}
+	id      string
 	status  string
 	details string
 }
@@ -38,11 +38,11 @@ type reportRow struct {
 // comparison holds the state of a single run: the records read from the agent output, the
 // modifications to apply before comparing, and the result collected for the final report.
 type comparison struct {
-	actualRecords     []map[string]interface{}
-	modificationFuncs []RecordModifyFunc
-	report            []reportRow
-	filesWithoutLogID []string
-	success           bool
+	actualRecords      []map[string]interface{}
+	modificationFuncs  []RecordModifyFunc
+	report             []reportRow
+	filesWithoutTestID []string
+	success            bool
 }
 
 func CompareLogs(ignoreFiles string, agent agent.Agent, modificationFuncs []RecordModifyFunc) {
@@ -164,74 +164,61 @@ func (c *comparison) compareRecords(expectedFile string, expectedRecords []map[s
 // the outcome. It returns an error only when the comparison itself cannot continue; a mismatch is
 // recorded in the report instead.
 func (c *comparison) compareExpectedRecord(expectedFile string, record map[string]interface{}) error {
-	logID := expectedRecordID(record)
-	if logID == nil {
+	metadata, ok := getTestMetadata(record)
+	if !ok || metadata.ID == "" {
 		c.success = false
-		c.filesWithoutLogID = append(c.filesWithoutLogID, expectedFile)
-		slog.Error(fmt.Sprintf("could not find %q in file %q with expected logs", "logId", expectedFile))
+		c.filesWithoutTestID = append(c.filesWithoutTestID, expectedFile)
+		slog.Error(fmt.Sprintf("expected record in file %q has no %q metadata with an %q", expectedFile, testMetadataKey, "id"))
 		return nil
 	}
 
-	actualRecord, isDuplicated, logIDIsTestOnly := findActualRecord(c.actualRecords, record)
+	values, missing := selectorValues(record, metadata)
+	if missing != "" {
+		c.fail(metadata.ID, fmt.Sprintf("expected record has no %q field to match on", missing))
+		slog.Error(fmt.Sprintf("expected record %q in file %q has no %q field to match on", metadata.ID, expectedFile, missing))
+		return nil
+	}
+
+	actualRecord, isDuplicated := findActualRecord(c.actualRecords, values)
 	if isDuplicated {
-		c.fail(logID, moreThanOneLogStatus)
-		slog.Warn(fmt.Sprintf("Check of %q with logId=%s failed: more than one matching output record was found", expectedFile, logID))
+		c.fail(metadata.ID, moreThanOneLogStatus)
+		slog.Warn(fmt.Sprintf("Check of %q with id=%s failed: %v matched more than one output record", expectedFile, metadata.ID, values))
 		return nil
 	}
 	if actualRecord == nil {
-		c.fail(logID, logNotFoundStatus)
-		slog.Error(fmt.Sprintf("could not find logId with value %s in file %q with actual logs", logID, expectedFile))
+		c.fail(metadata.ID, logNotFoundStatus)
+		slog.Error(fmt.Sprintf("no output record in file %q matches %v", expectedFile, values))
 		return nil
 	}
 
-	delete(record, "_test_id")
-	if logIDIsTestOnly {
-		delete(record, "logId")
-	}
 	if err := applyModificationFuncs(record, actualRecord, expectedFile, c.modificationFuncs); err != nil {
 		slog.Error("could not apply modification function to records")
 	}
 
-	isEqual, err := compareRecord(record, actualRecord)
-	if err != nil {
-		return err
-	}
-	if isEqual {
-		c.report = append(c.report, reportRow{logID: logID, status: succeeded})
-		slog.Debug(fmt.Sprintf("Check logs from %q with logId=%s is successful: record parsed", expectedFile, logID))
+	if compareRecord(record, actualRecord, metadata) {
+		c.report = append(c.report, reportRow{id: metadata.ID, status: succeeded})
+		slog.Debug(fmt.Sprintf("Check logs from %q with id=%s is successful: record parsed", expectedFile, metadata.ID))
 		return nil
 	}
 
-	c.fail(logID, differencesStatus)
-	slog.Warn(fmt.Sprintf("Check logs from %q with logId=%s is failed. Expected log printed below", expectedFile, logID))
-	return printMismatch(logID, record, actualRecord)
+	c.fail(metadata.ID, differencesStatus)
+	slog.Warn(fmt.Sprintf("Check logs from %q with id=%s is failed. Expected log printed below", expectedFile, metadata.ID))
+	delete(record, testMetadataKey)
+	return printMismatch(metadata.ID, record, actualRecord)
 }
 
-// expectedRecordID returns the identifier used to find the matching output record. Test metadata and
-// the legacy "_test_id" field take precedence over the "logId" field of the fixture.
-func expectedRecordID(record map[string]interface{}) interface{} {
-	logID := record["logId"]
-	if metadata, ok := getTestMetadata(record); ok && metadata.ID != "" {
-		logID = metadata.ID
-	}
-	if record["_test_id"] != nil {
-		logID = record["_test_id"]
-	}
-	return logID
-}
-
-func (c *comparison) fail(logID interface{}, details string) {
+func (c *comparison) fail(id string, details string) {
 	c.success = false
-	c.report = append(c.report, reportRow{logID: logID, status: failed, details: details})
+	c.report = append(c.report, reportRow{id: id, status: failed, details: details})
 }
 
-func printMismatch(logID interface{}, expected, actual map[string]interface{}) error {
-	if err := printJsonRecord(fmt.Sprintf("%v", logID), expected, true); err != nil {
+func printMismatch(id string, expected, actual map[string]interface{}) error {
+	if err := printJsonRecord(id, expected, true); err != nil {
 		slog.Error("Error occurred while printing log record", "err", err)
 		return err
 	}
 	slog.Warn("Actual log printed below")
-	if err := printJsonRecord(fmt.Sprintf("%v", logID), actual, false); err != nil {
+	if err := printJsonRecord(id, actual, false); err != nil {
 		slog.Error("Error occurred while printing log record", "err", err)
 		return err
 	}
@@ -241,15 +228,15 @@ func printMismatch(logID interface{}, expected, actual map[string]interface{}) e
 func (c *comparison) printReport(agent agent.Agent) {
 	fmt.Printf("--- Report of %s pipeline testing ---", agent)
 	fmt.Println()
-	fmt.Println("LOG ID\tSTATUS\tDETAILS")
+	fmt.Println("ID\tSTATUS\tDETAILS")
 	for _, row := range c.report {
-		fmt.Printf("%v\t%s\t%s\n", row.logID, row.status, row.details)
+		fmt.Printf("%v\t%s\t%s\n", row.id, row.status, row.details)
 	}
 
-	if len(c.filesWithoutLogID) > 0 {
-		fmt.Printf("--- Files where %q was not found ---", "logId")
+	if len(c.filesWithoutTestID) > 0 {
+		fmt.Printf("--- Files with an expected record that has no %q metadata ---", testMetadataKey)
 		fmt.Println()
-		for _, file := range c.filesWithoutLogID {
+		for _, file := range c.filesWithoutTestID {
 			fmt.Println(file)
 		}
 	}

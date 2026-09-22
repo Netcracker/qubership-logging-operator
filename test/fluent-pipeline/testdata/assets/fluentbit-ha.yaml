@@ -33,15 +33,6 @@ spec:
       # Disable Graylog output because we will print data in the file
       graylogOutput: false
 
-      # Custom filters for tests
-      customFilterConf: |-
-        [FILTER]
-            Name          parser
-            Match_Regex   audit.var.log.audit.audit.*|system.var.log.syslog
-            Key_Name      log
-            Parser        logId-test
-            Reserve_Data  On
-            Preserve_Key  On
       customOutputConf: |-
         [OUTPUT]
             Name    file

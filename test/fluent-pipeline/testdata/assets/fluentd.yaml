@@ -27,17 +27,6 @@ spec:
     # Disable Graylog output because we will print data in the file
     graylogOutput: false
 
-    # Custom filters for tests
-    customFilterConf: |-
-      <filter {parsed.var.log.syslog**,parsed.var.log.audit.audit**}>
-        @type parser
-        key_name message
-        reserve_data true
-        <parse>
-          @type regexp
-          expression .*logId=\"(?<logId>[a-z0-9_\-]+).*
-        </parse>
-      </filter>
     customOutputConf: |-
       <match parsed.**>
         @type file

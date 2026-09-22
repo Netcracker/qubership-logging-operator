@@ -1,8 +1,10 @@
 [
   {
-    "_test_id": "partial-1",
+    "_test": {
+      "id": "partial"
+    },
     "parse_status": "success",
-    "time": "2023-12-20T12:51:32.272007468Z",
+    "time": "2023-12-20T12:51:32.272507468Z",
     "detected_level": "warn",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
@@ -11,20 +13,21 @@
     "nodename": "fake-node",
     "namespace": "fake-namespace",
     "level": "warning",
-    "short_message": "[logId=partial] The first part of the log of size 16Kb...The second part of the log of size 16Kb...The last part of the log of size 16Kb or less",
+    "short_message": "The first part of the log of size 16Kb...The second part of the log of size 16Kb...The last part of the log of size 16Kb or less",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "parse_field_count": 11,
     "hostname": "fake-fluent",
     "container": "fake-container",
-    "logId": "partial",
     "date": "2023-12-20T12:51:32.270",
     "source_level": "WARN",
     "parse_format": "unknown"
   },
   {
-    "_test_id": "partial-2-1",
+    "_test": {
+      "id": "partial-2"
+    },
     "parse_status": "success",
-    "short_message": "[logId=partial-2] [fake-key1=fake-value1] [fake-key2=fake-value2] [partial-message=true] This log record keys-values are separated by containerd. But should be concatenated and contain key `partial-message` with value `true`",
+    "short_message": "[fake-key1=fake-value1] [fake-key2=fake-value2] [partial-message=true] This log record keys-values are separated by containerd. But should be concatenated and contain key `partial-message` with value `true`",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
       "metadata.app.kubernetes.io/version": "0.1.0"
@@ -41,7 +44,6 @@
     "parse_field_count": 11,
     "hostname": "fake-fluent",
     "container": "fake-container",
-    "logId": "partial-2",
     "partial-message": "true",
     "source_level": "ERROR",
     "parse_format": "unknown"

@@ -1,6 +1,8 @@
 [
   {
-    "_test_id": "mongo-1-1",
+    "_test": {
+      "id": "mongo-1"
+    },
     "date": "2025-07-08T10:53:16.089+00:00",
     "time": "2025-07-08T10:53:16.090040268Z",
     "id": 22315,
@@ -15,12 +17,11 @@
       "metadata.app.kubernetes.io/version": "0.1.0"
     },
     "namespace": "fake-namespace",
-    "parse_field_count": 16,
+    "parse_field_count": 15,
     "hostname": "fake-fluent",
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "detected_level": "info",
-    "logId": "mongo-1",
     "source_level": "I",
     "parse_status": "success",
     "level": "info",
@@ -28,7 +29,9 @@
     "parse_format": "mongodb_structured"
   },
   {
-    "_test_id": "mongo-2-1",
+    "_test": {
+      "id": "mongo-2"
+    },
     "date": "2025-07-08T10:53:18.438+00:00",
     "time": "2025-07-08T10:53:18.438549961Z",
     "id": 22430,
@@ -43,12 +46,11 @@
       "metadata.app.kubernetes.io/version": "0.1.0"
     },
     "namespace": "fake-namespace",
-    "parse_field_count": 16,
+    "parse_field_count": 15,
     "hostname": "fake-fluent",
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "detected_level": "info",
-    "logId": "mongo-2",
     "source_level": "I",
     "parse_status": "success",
     "level": "info",
@@ -56,7 +58,9 @@
     "parse_format": "mongodb_structured"
   },
   {
-    "_test_id": "mongo-3-1",
+    "_test": {
+      "id": "mongo-3"
+    },
     "date": "2025-07-08T10:53:18.438+00:00",
     "time": "2025-07-08T10:53:18.438611709Z",
     "id": 22430,
@@ -71,12 +75,11 @@
       "metadata.app.kubernetes.io/version": "0.1.0"
     },
     "namespace": "fake-namespace",
-    "parse_field_count": 16,
+    "parse_field_count": 15,
     "hostname": "fake-fluent",
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "detected_level": "info",
-    "logId": "mongo-3",
     "source_level": "I",
     "parse_status": "success",
     "level": "info",

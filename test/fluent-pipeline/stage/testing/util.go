@@ -10,10 +10,18 @@ import (
 
 const testMetadataKey = "_test"
 
+// defaultMatchOn identifies a record by the timestamp that the container runtime wrote and the
+// pipeline keeps. Every fixture record has a unique one, so it selects a single output record.
+var defaultMatchOn = []string{"time"}
+
+// testMetadata is the only way an expected record is identified. ID names the record in the
+// report, MatchOn lists the expected fields whose values select the output record, and Partial
+// compares the listed fields alone, which the generated parser contracts rely on.
 type testMetadata struct {
-	ID     string                 `json:"id"`
-	Match  map[string]interface{} `json:"match"`
-	Absent []string               `json:"absent"`
+	ID      string   `json:"id"`
+	MatchOn []string `json:"matchOn"`
+	Partial bool     `json:"partial"`
+	Absent  []string `json:"absent"`
 }
 
 func getTestMetadata(expected map[string]interface{}) (testMetadata, bool) {
@@ -32,105 +40,64 @@ func getTestMetadata(expected map[string]interface{}) (testMetadata, bool) {
 	return metadata, true
 }
 
-// findActualRecord returns the output record that belongs to an expected record, whether more than
-// one output record matched, and whether the identifier is test metadata that the pipeline does not
-// carry. Selectors are tried from the most explicit to the most permissive one.
-func findActualRecord(actualRecords []map[string]interface{}, expected map[string]interface{}) (
-	map[string]interface{}, bool, bool,
+func (m testMetadata) matchFields() []string {
+	if len(m.MatchOn) == 0 {
+		return defaultMatchOn
+	}
+	return m.MatchOn
+}
+
+// selectorValues returns the values that identify the record, read from the expected record
+// itself. It also returns the first match field the expected record does not define, because such
+// a record selects nothing.
+func selectorValues(expected map[string]interface{}, metadata testMetadata) (map[string]interface{}, string) {
+	fields := metadata.matchFields()
+	values := make(map[string]interface{}, len(fields))
+	for _, field := range fields {
+		value, exists := lookupField(expected, field)
+		if !exists {
+			return nil, field
+		}
+		values[field] = value
+	}
+	return values, ""
+}
+
+// findActualRecord returns the output record that carries the selector values and whether more
+// than one record carried them.
+func findActualRecord(actualRecords []map[string]interface{}, values map[string]interface{}) (
+	map[string]interface{}, bool,
 ) {
-	if metadata, ok := getTestMetadata(expected); ok && len(metadata.Match) > 0 {
-		record, duplicated := singleRecord(matchingRecords(actualRecords, func(actual map[string]interface{}) bool {
-			return isSubset(metadata.Match, actual)
-		}))
-		return record, duplicated, true
-	}
-
-	logID := expectedLogID(expected)
-	if logID != nil {
-		if record, duplicated, found := findByLogIDField(actualRecords, expected, logID); found {
-			return record, duplicated, false
+	return singleRecord(matchingRecords(actualRecords, func(actual map[string]interface{}) bool {
+		for field, value := range values {
+			actualValue, exists := lookupField(actual, field)
+			if !exists || !reflect.DeepEqual(actualValue, value) {
+				return false
+			}
 		}
-		if record, duplicated, found := findByLogIDMarker(actualRecords, expected, logID); found {
-			return record, duplicated, true
-		}
-	}
-
-	// Some parsers intentionally consume the suffix containing the injected test marker.
-	// Input fixtures have stable timestamps, so a unique time is a safe final selector.
-	record, duplicated := singleRecord(matchingRecords(actualRecords, func(actual map[string]interface{}) bool {
-		return expected["time"] != nil && actual["time"] == expected["time"]
+		return true
 	}))
-	return record, duplicated, record != nil
 }
 
-func expectedLogID(expected map[string]interface{}) interface{} {
-	if logID := expected["logId"]; logID != nil {
-		return logID
-	}
-	return expected["_test_id"]
-}
-
-// findByLogIDField matches the output records that kept the extracted logId field.
-func findByLogIDField(actualRecords []map[string]interface{}, expected map[string]interface{}, logID interface{}) (
-	map[string]interface{}, bool, bool,
-) {
-	matches := matchingRecords(actualRecords, func(actual map[string]interface{}) bool {
-		return actual["logId"] == logID
-	})
-	record, duplicated := singleRecord(refineByTimestamp(matches, expected))
-	return record, duplicated, record != nil || duplicated
-}
-
-// findByLogIDMarker matches the output records that keep the marker inside the message because the
-// parser did not extract it into a field.
-func findByLogIDMarker(actualRecords []map[string]interface{}, expected map[string]interface{}, logID interface{}) (
-	map[string]interface{}, bool, bool,
-) {
-	markers := [][]byte{
-		[]byte("[logId=" + fmt.Sprint(logID) + "]"),
-		[]byte("logId=" + fmt.Sprint(logID)),
-	}
-	matches := matchingRecords(actualRecords, func(actual map[string]interface{}) bool {
-		encoded, err := json.Marshal(actual)
-		if err != nil {
-			return false
-		}
-		return containsAnyMarker(encoded, markers)
-	})
-	record, duplicated := singleRecord(refineByTimestamp(matches, expected))
-	return record, duplicated, record != nil || duplicated
-}
-
-func containsAnyMarker(encoded []byte, markers [][]byte) bool {
-	for _, marker := range markers {
-		if bytes.Contains(encoded, marker) {
-			return true
-		}
-	}
-	return false
-}
-
-func compareRecord(expected, actual map[string]interface{}) (bool, error) {
-	metadata, partial := getTestMetadata(expected)
-	if !partial {
-		return reflect.DeepEqual(expected, actual), nil
-	}
-
-	expectedFields := make(map[string]interface{}, len(expected)-1)
+func compareRecord(expected, actual map[string]interface{}, metadata testMetadata) bool {
+	expectedFields := make(map[string]interface{}, len(expected))
 	for key, value := range expected {
 		if key != testMetadataKey {
 			expectedFields[key] = value
 		}
 	}
+	if !metadata.Partial {
+		return reflect.DeepEqual(expectedFields, actual)
+	}
 	if !isSubset(expectedFields, actual) {
-		return false, nil
+		return false
 	}
 	for _, field := range metadata.Absent {
 		if _, exists := lookupField(actual, field); exists {
-			return false, nil
+			return false
 		}
 	}
-	return true, nil
+	return true
 }
 
 func isSubset(expected, actual map[string]interface{}) bool {
@@ -167,24 +134,6 @@ func lookupField(record map[string]interface{}, path string) (interface{}, bool)
 		}
 	}
 	return current, true
-}
-
-func refineByTimestamp(records []map[string]interface{}, expected map[string]interface{}) []map[string]interface{} {
-	if len(records) < 2 {
-		return records
-	}
-	for _, field := range []string{"time", "log_time", "fluentd_time", "date"} {
-		if expected[field] == nil {
-			continue
-		}
-		refined := matchingRecords(records, func(actual map[string]interface{}) bool {
-			return actual[field] == expected[field]
-		})
-		if len(refined) > 0 {
-			return refined
-		}
-	}
-	return records
 }
 
 func matchingRecords(actualRecords []map[string]interface{}, matches func(map[string]interface{}) bool) []map[string]interface{} {
@@ -241,7 +190,7 @@ func contains(slc []string, el string) bool {
 	return false
 }
 
-func printJsonRecord(logId string, record map[string]interface{}, expected bool) error {
+func printJsonRecord(id string, record map[string]interface{}, expected bool) error {
 	src, err := json.Marshal(record)
 	if err != nil {
 		return err
@@ -252,9 +201,9 @@ func printJsonRecord(logId string, record map[string]interface{}, expected bool)
 		return err
 	}
 	if expected {
-		fmt.Printf("\u001B[32m--- Expected log. LogId=%s ---\u001B[0m", logId)
+		fmt.Printf("\u001B[32m--- Expected log. id=%s ---\u001B[0m", id)
 	} else {
-		fmt.Printf("\u001B[33;20m--- Actual log. LogId=%s ---\u001B[0m", logId)
+		fmt.Printf("\u001B[33;20m--- Actual log. id=%s ---\u001B[0m", id)
 	}
 	fmt.Println()
 	fmt.Println(buf.String())

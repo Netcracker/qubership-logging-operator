@@ -1,4 +1,4 @@
-2023-03-01T11:15:50.903007468Z stdout F [2023-03-01 11:15:50 +0000] [48] [INFO] [logId=py-airflow-worker-1] Booting worker with pid: 48
+2023-03-01T11:15:50.903007468Z stdout F [2023-03-01 11:15:50 +0000] [48] [INFO] Booting worker with pid: 48
 2023-03-01T11:15:50.903007468Z stdout F 
 2023-03-01T11:15:50.903007468Z stdout F  -------------- celery@airflow-worker-0 v5.2.7 (dawn-chorus)
 2023-03-01T11:15:50.903007468Z stdout F --- ***** -----
@@ -18,8 +18,8 @@
 2023-03-01T11:15:50.903007468Z stdout F [tasks]
 2023-03-01T11:15:50.903007468Z stdout F   . airflow.executors.celery_executor.execute_command
 2023-03-01T11:15:50.903007468Z stdout F 
-2023-03-01T11:15:56.472007468Z stdout F [2023-03-01 11:15:56,472: INFO/MainProcess] Connected to redis://default:**@airflow.redis.svc:6379/2 [logId=py-airflow-worker-2]
-2023-03-01T11:16:20.697007468Z stdout F [2023-03-01 11:16:20,697: INFO/ForkPoolWorker-15] Running <TaskInstance: DR_SYNC_DAG_V2.find_correct_ssh_host manual__2023-03-01T11:16:16.045216+00:00 [queued]> on host airflow-worker-0.airflow-worker.airflow.svc.cluster.local [logId=py-airflow-worker-3]
+2023-03-01T11:15:56.472007468Z stdout F [2023-03-01 11:15:56,472: INFO/MainProcess] Connected to redis://default:**@airflow.redis.svc:6379/2
+2023-03-01T11:16:20.697007468Z stdout F [2023-03-01 11:16:20,697: INFO/ForkPoolWorker-15] Running <TaskInstance: DR_SYNC_DAG_V2.find_correct_ssh_host manual__2023-03-01T11:16:16.045216+00:00 [queued]> on host airflow-worker-0.airflow-worker.airflow.svc.cluster.local
 2023-03-01T11:16:20.697007468Z stdout F [DAG_ID]:'DR_SYNC_DAG_V2' [TASK_ID]:'find_correct_ssh_host' [TIMESTAMP]:'2023-03-01T11:16:16.045216+00:00' [TRY_NUMBER]:'1:[DAG_ID]:'DR_SYNC_DAG_V2' [TASK_ID]:'find_correct_ssh_host' [TIMESTAMP]:'2023-03-01T11:16:16.045216+00:00' [TRY_NUMBER]:'1:[2023-03-01 11:16:22,056] {taskinstance.py:1083} INFO - Dependencies all met for <TaskInstance: DR_SYNC_DAG_V2.find_correct_ssh_host manual__2023-03-01T11:16:16.045216+00:00 [queued]>
 2023-03-01T11:16:20.697007468Z stdout F [DAG_ID]:'DR_SYNC_DAG_V2' [TASK_ID]:'find_correct_ssh_host' [TIMESTAMP]:'2023-03-01T11:16:16.045216+00:00' [TRY_NUMBER]:'1:[DAG_ID]:'DR_SYNC_DAG_V2' [TASK_ID]:'find_correct_ssh_host' [TIMESTAMP]:'2023-03-01T11:16:16.045216+00:00' [TRY_NUMBER]:'1:[2023-03-01 11:16:22,079] {taskinstance.py:1083} INFO - Dependencies all met for <TaskInstance: DR_SYNC_DAG_V2.find_correct_ssh_host manual__2023-03-01T11:16:16.045216+00:00 [queued]>
 2023-03-01T11:16:20.697007468Z stdout F [DAG_ID]:'DR_SYNC_DAG_V2' [TASK_ID]:'find_correct_ssh_host' [TIMESTAMP]:'2023-03-01T11:16:16.045216+00:00' [TRY_NUMBER]:'1:[DAG_ID]:'DR_SYNC_DAG_V2' [TASK_ID]:'find_correct_ssh_host' [TIMESTAMP]:'2023-03-01T11:16:16.045216+00:00' [TRY_NUMBER]:'1:[2023-03-01 11:16:22,080] {taskinstance.py:1279} INFO -
@@ -54,4 +54,4 @@
 2023-03-01T11:16:16.045216468Z stdout F [DAG_ID]:'DR_SYNC_DAG_V2' [TASK_ID]:'find_correct_ssh_host' [TIMESTAMP]:'2023-03-01T11:16:16.045216+00:00' [TRY_NUMBER]:'1:[DAG_ID]:'DR_SYNC_DAG_V2' [TASK_ID]:'find_correct_ssh_host' [TIMESTAMP]:'2023-03-01T11:16:16.045216+00:00' [TRY_NUMBER]:'1:[2023-03-01 11:16:29,216] {taskinstance.py:1318} INFO - Marking task as SUCCESS. dag_id=DR_SYNC_DAG_V2, task_id=find_correct_ssh_host, execution_date=20230301T111616, start_date=20230301T111622, end_date=20230301T111629
 2023-03-01T11:16:16.045216468Z stdout F [DAG_ID]:'DR_SYNC_DAG_V2' [TASK_ID]:'find_correct_ssh_host' [TIMESTAMP]:'2023-03-01T11:16:16.045216+00:00' [TRY_NUMBER]:'1:[DAG_ID]:'DR_SYNC_DAG_V2' [TASK_ID]:'find_correct_ssh_host' [TIMESTAMP]:'2023-03-01T11:16:16.045216+00:00' [TRY_NUMBER]:'1:[2023-03-01 11:16:29,309] {local_task_job.py:208} INFO - Task exited with return code 0
 2023-03-01T11:16:16.045216468Z stdout F [DAG_ID]:'DR_SYNC_DAG_V2' [TASK_ID]:'find_correct_ssh_host' [TIMESTAMP]:'2023-03-01T11:16:16.045216+00:00' [TRY_NUMBER]:'1:[DAG_ID]:'DR_SYNC_DAG_V2' [TASK_ID]:'find_correct_ssh_host' [TIMESTAMP]:'2023-03-01T11:16:16.045216+00:00' [TRY_NUMBER]:'1:[2023-03-01 11:16:30,071] {taskinstance.py:2578} INFO - 1 downstream tasks scheduled from follow-on schedule check
-2023-03-01T11:16:30.247007468Z stdout F [2023-03-01 11:16:30,247: INFO/MainProcess] Task airflow.executors.celery_executor.execute_command[00000000-0000-0000-0000-000000000000] received [logId=py-airflow-worker-4]
+2023-03-01T11:16:30.247007468Z stdout F [2023-03-01 11:16:30,247: INFO/MainProcess] Task airflow.executors.celery_executor.execute_command[00000000-0000-0000-0000-000000000000] received

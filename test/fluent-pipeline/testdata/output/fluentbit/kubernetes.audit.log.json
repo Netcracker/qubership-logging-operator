@@ -1,5 +1,11 @@
 [
   {
+    "_test": {
+      "id": "kubernetes-audit-1",
+      "matchOn": [
+        "stageTimestamp"
+      ]
+    },
     "stage": "ResponseComplete",
     "requestURI": "/api/v1/namespaces/postgres-ek/configmaps/patroni-leader",
     "verb": "patch",
@@ -41,7 +47,6 @@
     },
     "tag": "/var/log/kubernetes/audit/audit.log",
     "kind": "Event",
-    "logId": "kubernetes-audit-1",
     "apiVersion": "audit.k8s.io/v1",
     "annotations": {
       "authorization.k8s.io/reason": "RBAC: allowed by RoleBinding \"patroni-core-operator/postgres-ek\" of Role \"patroni-core-operator\" to ServiceAccount \"patroni-sa/postgres-ek\"",
@@ -56,6 +61,12 @@
     "requestReceivedTimestamp": "2024-06-19T11:30:08.013686Z"
   },
   {
+    "_test": {
+      "id": "kubernetes-audit-2",
+      "matchOn": [
+        "stageTimestamp"
+      ]
+    },
     "stage": "ResponseComplete",
     "requestURI": "/api/v1/namespaces/cloudberry/configmaps/cloudberry-common-leader",
     "verb": "patch",
@@ -97,7 +108,6 @@
     },
     "tag": "/var/log/kubernetes/audit/audit.log",
     "kind": "Event",
-    "logId": "kubernetes-audit-2",
     "apiVersion": "audit.k8s.io/v1",
     "annotations": {
       "authorization.k8s.io/decision": "allow",

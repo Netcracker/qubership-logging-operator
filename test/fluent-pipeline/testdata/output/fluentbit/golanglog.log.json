@@ -1,14 +1,16 @@
 [
   {
+    "_test": {
+      "id": "golanglog"
+    },
     "hostname": "fake-fluent",
-    "short_message": "[logId=golanglog] Hello test log",
+    "short_message": "Hello test log",
     "nodename": "fake-node",
-    "parse_field_count": 10,
+    "parse_field_count": 9,
     "source_level": "TRACE",
     "detected_level": "trace",
     "date": "2023-12-20T12:51:32.270",
-    "time": "2023-12-20T12:51:32.272007468Z",
-    "logId": "golanglog",
+    "time": "2023-12-20T12:51:32.270507468Z",
     "labels": {
       "metadata.app.kubernetes.io/version": "0.1.0",
       "metadata.app": "fluent-pipeline-test"

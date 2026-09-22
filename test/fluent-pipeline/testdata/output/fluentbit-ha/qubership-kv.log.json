@@ -1,6 +1,8 @@
 [
   {
-    "_test_id": "qubership-kv-1-1",
+    "_test": {
+      "id": "qubership-kv-1"
+    },
     "parse_status": "success",
     "time": "2024-03-15T08:12:33.456007468Z",
     "labels": {
@@ -20,13 +22,14 @@
     "parse_field_count": 11,
     "hostname": "fake-fluent",
     "container": "fake-container",
-    "logId": "qubership-kv-1",
     "request_id": "8a7b6c5d-4e3f",
     "source_level": "ERROR",
     "parse_format": "qubership"
   },
   {
-    "_test_id": "qubership-kv-2-1",
+    "_test": {
+      "id": "qubership-kv-2"
+    },
     "parse_status": "success",
     "time": "2024-03-15T09:15:23.200008804Z",
     "labels": {
@@ -46,13 +49,14 @@
     "parse_field_count": 11,
     "hostname": "fake-fluent",
     "container": "fake-container",
-    "logId": "qubership-kv-2",
     "request_id": "5f6e7d8c-9a0b",
     "source_level": "DEBUG",
     "parse_format": "qubership"
   },
   {
-    "_test_id": "qubership-kv-3-1",
+    "_test": {
+      "id": "qubership-kv-3"
+    },
     "parse_status": "success",
     "time": "2024-03-15T09:15:26.500008804Z",
     "labels": {
@@ -72,13 +76,14 @@
     "parse_field_count": 11,
     "hostname": "fake-fluent",
     "container": "fake-container",
-    "logId": "qubership-kv-3",
     "request_id": "0q1w2e3r-4t5y",
     "source_level": "TRACE",
     "parse_format": "qubership"
   },
   {
-    "_test_id": "qubership-kv-4-1",
+    "_test": {
+      "id": "qubership-kv-4"
+    },
     "parse_status": "success",
     "time": "2024-03-15T09:15:31.000008804Z",
     "labels": {
@@ -98,13 +103,14 @@
     "parse_field_count": 11,
     "hostname": "fake-fluent",
     "container": "fake-container",
-    "logId": "qubership-kv-4",
     "request_id": "2k3l4m5n-6o7p",
     "source_level": "WARN",
     "parse_format": "qubership"
   },
   {
-    "_test_id": "qubership-kv-5-1",
+    "_test": {
+      "id": "qubership-kv-5"
+    },
     "parse_status": "success",
     "time": "2024-03-15T10:20:42.345008804Z",
     "labels": {
@@ -124,7 +130,6 @@
     "parse_field_count": 11,
     "hostname": "fake-fluent",
     "container": "fake-container",
-    "logId": "qubership-kv-5",
     "request_id": "8t9u0v1w-2x3y",
     "source_level": "ERROR",
     "parse_format": "qubership"

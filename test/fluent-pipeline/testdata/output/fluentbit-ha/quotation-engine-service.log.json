@@ -1,6 +1,8 @@
 [
   {
-    "_test_id": "qes-1-1",
+    "_test": {
+      "id": "qes-1"
+    },
     "parse_status": "success",
     "time": "2024-06-17T15:58:02.219007468Z",
     "labels": {
@@ -17,7 +19,7 @@
     "nodename": "fake-node",
     "namespace": "fake-namespace",
     "thread": "main",
-    "short_message": "[request_id=-              ] [logId=qes-1] [tenant_id=-                                   ] [version=v1] [traceId=-               ] [spanId=-               ] [originating_bi_id=-               ] [business_identifiers=-               ] [thread=main           ] [class=org.apache.zookeeper.ZooKeeper                              ] [method=logEnv                        ] Client environment:java.library.path=/usr/lib/jvm/java-17-openjdk/lib/server:/usr/lib/jvm/java-17-openjdk/lib:/usr/lib/jvm/java-17-openjdk/../lib:/usr/java/packages/lib:/usr/lib64:/lib64:/lib:/usr/lib",
+    "short_message": "[request_id=-              ] [tenant_id=-                                   ] [version=v1] [traceId=-               ] [spanId=-               ] [originating_bi_id=-               ] [business_identifiers=-               ] [thread=main           ] [class=org.apache.zookeeper.ZooKeeper                              ] [method=logEnv                        ] Client environment:java.library.path=/usr/lib/jvm/java-17-openjdk/lib/server:/usr/lib/jvm/java-17-openjdk/lib:/usr/lib/jvm/java-17-openjdk/../lib:/usr/java/packages/lib:/usr/lib64:/lib64:/lib:/usr/lib",
     "spanId": "-",
     "traceId": "-",
     "level": "info",
@@ -26,13 +28,14 @@
     "parse_field_count": 11,
     "hostname": "fake-fluent",
     "container": "fake-container",
-    "logId": "qes-1",
     "date": "2024-06-17T15:58:02.219",
     "source_level": "INFO",
     "parse_format": "qubership"
   },
   {
-    "_test_id": "qes-2-1",
+    "_test": {
+      "id": "qes-2"
+    },
     "parse_status": "success",
     "time": "2024-06-17T15:58:02.771007468Z",
     "labels": {
@@ -49,7 +52,7 @@
     "nodename": "fake-node",
     "namespace": "fake-namespace",
     "thread": "ain-EventThread",
-    "short_message": "[request_id=-              ] [logId=qes-2][tenant_id=-                                   ] [version=v1] [traceId=-               ] [spanId=-               ] [originating_bi_id=-               ] [business_identifiers=-               ] [thread=ain-EventThread] [class=org.apache.curator.utils.Compatibility                      ] [method=<clinit>                      ] Using org.apache.zookeeper.server.quorum.MultipleAddresses",
+    "short_message": "[request_id=-              ] [tenant_id=-                                   ] [version=v1] [traceId=-               ] [spanId=-               ] [originating_bi_id=-               ] [business_identifiers=-               ] [thread=ain-EventThread] [class=org.apache.curator.utils.Compatibility                      ] [method=<clinit>                      ] Using org.apache.zookeeper.server.quorum.MultipleAddresses",
     "spanId": "-",
     "traceId": "-",
     "level": "info",
@@ -58,13 +61,14 @@
     "parse_field_count": 11,
     "hostname": "fake-fluent",
     "container": "fake-container",
-    "logId": "qes-2",
     "date": "2024-06-17T15:58:02.771",
     "source_level": "INFO",
     "parse_format": "qubership"
   },
   {
-    "_test_id": "qes-3-1",
+    "_test": {
+      "id": "qes-3"
+    },
     "parse_status": "success",
     "time": "2024-06-17T15:58:02.772007468Z",
     "labels": {
@@ -81,7 +85,7 @@
     "nodename": "fake-node",
     "namespace": "fake-namespace",
     "thread": "ain-EventThread",
-    "short_message": "[request_id=-              ] [logId=qes-3] [tenant_id=-                                   ] [version=v1] [traceId=-               ] [spanId=-               ] [originating_bi_id=-               ] [business_identifiers=-               ] [thread=ain-EventThread] [class=org.apache.curator.framework.imps.EnsembleTracker           ] [method=processConfigData             ] New config event received: {server.2=zookeeper-2.zookeeper-server.zookeeper:2888:3888:participant;0.0.0.0:2181, server.1=zookeeper-1.zookeeper-server.zookeeper:2888:3888:participant;0.0.0.0:2181, server.3=zookeeper-3.zookeeper-server.zookeeper:2888:3888:participant;0.0.0.0:2181, version=0}",
+    "short_message": "[request_id=-              ] [tenant_id=-                                   ] [version=v1] [traceId=-               ] [spanId=-               ] [originating_bi_id=-               ] [business_identifiers=-               ] [thread=ain-EventThread] [class=org.apache.curator.framework.imps.EnsembleTracker           ] [method=processConfigData             ] New config event received: {server.2=zookeeper-2.zookeeper-server.zookeeper:2888:3888:participant;0.0.0.0:2181, server.1=zookeeper-1.zookeeper-server.zookeeper:2888:3888:participant;0.0.0.0:2181, server.3=zookeeper-3.zookeeper-server.zookeeper:2888:3888:participant;0.0.0.0:2181, version=0}",
     "spanId": "-",
     "traceId": "-",
     "level": "info",
@@ -90,13 +94,14 @@
     "parse_field_count": 11,
     "hostname": "fake-fluent",
     "container": "fake-container",
-    "logId": "qes-3",
     "date": "2024-06-17T15:58:02.772",
     "source_level": "INFO",
     "parse_format": "qubership"
   },
   {
-    "_test_id": "qes-4-1",
+    "_test": {
+      "id": "qes-4"
+    },
     "parse_status": "success",
     "time": "2024-06-17T15:58:04.045007468Z",
     "labels": {
@@ -113,7 +118,7 @@
     "nodename": "fake-node",
     "namespace": "fake-namespace",
     "thread": "main",
-    "short_message": "[request_id=-              ] [logId=qes-4] [tenant_id=-                                   ] [version=v1] [traceId=-               ] [spanId=-               ] [originating_bi_id=-               ] [business_identifiers=-               ] [thread=main           ] [class=org.springframework.core.annotation.AnnotationTypeMapping   ] [method=addConventionMappings         ] Support for convention-based annotation attribute overrides is deprecated and will be removed in Spring Framework 6.2. Please annotate the following attributes in @org.axonframework.eventhandling.EventHandler with appropriate @AliasFor declarations: [payloadType]",
+    "short_message": "[request_id=-              ] [tenant_id=-                                   ] [version=v1] [traceId=-               ] [spanId=-               ] [originating_bi_id=-               ] [business_identifiers=-               ] [thread=main           ] [class=org.springframework.core.annotation.AnnotationTypeMapping   ] [method=addConventionMappings         ] Support for convention-based annotation attribute overrides is deprecated and will be removed in Spring Framework 6.2. Please annotate the following attributes in @org.axonframework.eventhandling.EventHandler with appropriate @AliasFor declarations: [payloadType]",
     "spanId": "-",
     "traceId": "-",
     "level": "warning",
@@ -122,13 +127,14 @@
     "parse_field_count": 11,
     "hostname": "fake-fluent",
     "container": "fake-container",
-    "logId": "qes-4",
     "date": "2024-06-17T15:58:04.045",
     "source_level": "WARN",
     "parse_format": "qubership"
   },
   {
-    "_test_id": "qes-5-1",
+    "_test": {
+      "id": "qes-5"
+    },
     "parse_status": "success",
     "time": "2024-06-17T15:58:24.426007468Z",
     "labels": {
@@ -145,7 +151,7 @@
     "nodename": "fake-node",
     "namespace": "fake-namespace",
     "thread": "main",
-    "short_message": "[request_id=-              ] [logId=qes-5] [tenant_id=-                                   ] [version=v1] [traceId=-               ] [spanId=-               ] [originating_bi_id=-               ] [business_identifiers=-               ] [thread=main           ] [class=org.springframework.cloud.context.scope.GenericScope        ] [method=setSerializationId            ] BeanFactory id=00000000-0000-0000-0000-000000000000",
+    "short_message": "[request_id=-              ] [tenant_id=-                                   ] [version=v1] [traceId=-               ] [spanId=-               ] [originating_bi_id=-               ] [business_identifiers=-               ] [thread=main           ] [class=org.springframework.cloud.context.scope.GenericScope        ] [method=setSerializationId            ] BeanFactory id=00000000-0000-0000-0000-000000000000",
     "spanId": "-",
     "traceId": "-",
     "level": "info",
@@ -154,13 +160,14 @@
     "parse_field_count": 11,
     "hostname": "fake-fluent",
     "container": "fake-container",
-    "logId": "qes-5",
     "date": "2024-06-17T15:58:24.426",
     "source_level": "INFO",
     "parse_format": "qubership"
   },
   {
-    "_test_id": "qes-6-1",
+    "_test": {
+      "id": "qes-6"
+    },
     "parse_status": "success",
     "time": "2024-06-17T15:58:50.440007468Z",
     "labels": {
@@ -177,7 +184,7 @@
     "nodename": "fake-node",
     "namespace": "fake-namespace",
     "thread": "main",
-    "short_message": "[request_id=-              ] [logId=qes-6] [tenant_id=-                                   ] [version=v1] [traceId=-               ] [spanId=-               ] [originating_bi_id=-               ] [business_identifiers=-               ] [thread=main           ] [class=o.s.amqp.rabbit.connection.CachingConnectionFactory         ] [method=<init>                        ] ***\nAutomatic Recovery was Enabled in the provided connection factory;\nwhile Spring AMQP is generally compatible with this feature, there\nare some corner cases where problems arise. Spring AMQP\nprefers to use its own recovery mechanisms; when this option is true, you may receive\n'AutoRecoverConnectionNotCurrentlyOpenException's until the connection is recovered.\nIt has therefore been disabled; if you really wish to enable it, use\n'getRabbitConnectionFactory().setAutomaticRecoveryEnabled(true)',\nbut this is discouraged.",
+    "short_message": "[request_id=-              ] [tenant_id=-                                   ] [version=v1] [traceId=-               ] [spanId=-               ] [originating_bi_id=-               ] [business_identifiers=-               ] [thread=main           ] [class=o.s.amqp.rabbit.connection.CachingConnectionFactory         ] [method=<init>                        ] ***\nAutomatic Recovery was Enabled in the provided connection factory;\nwhile Spring AMQP is generally compatible with this feature, there\nare some corner cases where problems arise. Spring AMQP\nprefers to use its own recovery mechanisms; when this option is true, you may receive\n'AutoRecoverConnectionNotCurrentlyOpenException's until the connection is recovered.\nIt has therefore been disabled; if you really wish to enable it, use\n'getRabbitConnectionFactory().setAutomaticRecoveryEnabled(true)',\nbut this is discouraged.",
     "spanId": "-",
     "traceId": "-",
     "level": "warning",
@@ -186,13 +193,14 @@
     "parse_field_count": 11,
     "hostname": "fake-fluent",
     "container": "fake-container",
-    "logId": "qes-6",
     "date": "2024-06-17T15:58:50.440",
     "source_level": "WARN",
     "parse_format": "qubership"
   },
   {
-    "_test_id": "qes-7-1",
+    "_test": {
+      "id": "qes-7"
+    },
     "parse_status": "success",
     "time": "2024-06-17T15:59:10.376007468Z",
     "labels": {
@@ -209,7 +217,7 @@
     "nodename": "fake-node",
     "namespace": "fake-namespace",
     "thread": "main",
-    "short_message": "[request_id=-              ] [logId=qes-7] [tenant_id=-                                   ] [version=v1] [traceId=-               ] [spanId=-               ] [originating_bi_id=-               ] [business_identifiers=-               ] [thread=main           ] [class=o.springframework.security.web.DefaultSecurityFilterChain   ] [method=<init>                        ] Will secure any request with [org.qubership.cloud.context.propagation.spring.common.filter.SpringPreAuthnContextProviderFilter@79d49790, org.springframework.security.web.session.DisableEncodeUrlFilter@5b8599c7, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@31e9d94f, org.springframework.security.web.context.SecurityContextHolderFilter@70940cb8, org.springframework.security.web.header.HeaderWriterFilter@205b73d8, org.springframework.security.web.authentication.logout.LogoutFilter@1b868ef0, org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter@6c9b6332, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@3810806c, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@7bd7c4cf, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@69a3944, org.springframework.security.web.session.SessionManagementFilter@1ee52741, org.springframework.security.web.access.ExceptionTranslationFilter@10f192d8, org.qubership.cloud.context.propagation.spring.common.filter.SpringPostAuthnContextProviderFilter@7f2ca6f8, org.springframework.security.web.access.intercept.AuthorizationFilter@17541204] ",
+    "short_message": "[request_id=-              ] [tenant_id=-                                   ] [version=v1] [traceId=-               ] [spanId=-               ] [originating_bi_id=-               ] [business_identifiers=-               ] [thread=main           ] [class=o.springframework.security.web.DefaultSecurityFilterChain   ] [method=<init>                        ] Will secure any request with [org.qubership.cloud.context.propagation.spring.common.filter.SpringPreAuthnContextProviderFilter@79d49790, org.springframework.security.web.session.DisableEncodeUrlFilter@5b8599c7, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@31e9d94f, org.springframework.security.web.context.SecurityContextHolderFilter@70940cb8, org.springframework.security.web.header.HeaderWriterFilter@205b73d8, org.springframework.security.web.authentication.logout.LogoutFilter@1b868ef0, org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter@6c9b6332, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@3810806c, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@7bd7c4cf, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@69a3944, org.springframework.security.web.session.SessionManagementFilter@1ee52741, org.springframework.security.web.access.ExceptionTranslationFilter@10f192d8, org.qubership.cloud.context.propagation.spring.common.filter.SpringPostAuthnContextProviderFilter@7f2ca6f8, org.springframework.security.web.access.intercept.AuthorizationFilter@17541204] ",
     "spanId": "-",
     "traceId": "-",
     "level": "info",
@@ -218,13 +226,14 @@
     "parse_field_count": 11,
     "hostname": "fake-fluent",
     "container": "fake-container",
-    "logId": "qes-7",
     "date": "2024-06-17T15:59:10.376",
     "source_level": "INFO",
     "parse_format": "qubership"
   },
   {
-    "_test_id": "qes-8-1",
+    "_test": {
+      "id": "qes-8"
+    },
     "parse_status": "success",
     "thread": "main",
     "labels": {
@@ -240,7 +249,7 @@
     "business_identifiers": "-",
     "nodename": "fake-node",
     "namespace": "fake-namespace",
-    "short_message": "[request_id=-              ][logId=qes-8][tenant_id=-                                   ] [version=v1] [traceId=-               ] [spanId=-               ] [originating_bi_id=-               ] [business_identifiers=-               ] [thread=main           ] [class=c.datastax.oss.driver.internal.core.DefaultMavenCoordinates ] [method=buildFromResourceAndPrint     ] DataStax Java driver for Apache Cassandra(R) (com.datastax.oss:java-driver-core) version 4.15.0",
+    "short_message": "[request_id=-              ][tenant_id=-                                   ] [version=v1] [traceId=-               ] [spanId=-               ] [originating_bi_id=-               ] [business_identifiers=-               ] [thread=main           ] [class=c.datastax.oss.driver.internal.core.DefaultMavenCoordinates ] [method=buildFromResourceAndPrint     ] DataStax Java driver for Apache Cassandra(R) (com.datastax.oss:java-driver-core) version 4.15.0",
     "date": "2024-06-17T15:59:12.462",
     "spanId": "-",
     "time": "2024-06-17T15:59:12.462007468Z",
@@ -250,13 +259,14 @@
     "traceId": "-",
     "hostname": "fake-fluent",
     "container": "fake-container",
-    "logId": "qes-8",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "source_level": "INFO",
     "parse_format": "qubership"
   },
   {
-    "_test_id": "qes-9-1",
+    "_test": {
+      "id": "qes-9"
+    },
     "parse_status": "success",
     "thread": "0.0-8080-exec-5",
     "labels": {
@@ -272,7 +282,7 @@
     "business_identifiers": "{quote_id=00000000-0000-0000-0000-000000000000}",
     "nodename": "fake-node",
     "namespace": "fake-namespace",
-    "short_message": "[request_id=465a8dcdc05a30e74c8ed9c7d66aa4a6] [logId=qes-9][tenant_id=00000000-0000-0000-0000-000000000000] [version=v1] [traceId=-               ] [spanId=-               ] [originating_bi_id=-               ] [business_identifiers={quote_id=00000000-0000-0000-0000-000000000000}] [thread=0.0-8080-exec-5] [class=c.n.s.tst.plugin.quotation.TstQuotePostCommandModificator   ] [method=modifyQuote                   ] [EP-0103] Starting EP Execution",
+    "short_message": "[request_id=465a8dcdc05a30e74c8ed9c7d66aa4a6] [tenant_id=00000000-0000-0000-0000-000000000000] [version=v1] [traceId=-               ] [spanId=-               ] [originating_bi_id=-               ] [business_identifiers={quote_id=00000000-0000-0000-0000-000000000000}] [thread=0.0-8080-exec-5] [class=c.n.s.tst.plugin.quotation.TstQuotePostCommandModificator   ] [method=modifyQuote                   ] [EP-0103] Starting EP Execution",
     "date": "2024-06-18T17:28:04.014",
     "spanId": "-",
     "time": "2024-06-18T17:28:04.014007468Z",
@@ -282,13 +292,14 @@
     "traceId": "-",
     "hostname": "fake-fluent",
     "container": "fake-container",
-    "logId": "qes-9",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "source_level": "INFO",
     "parse_format": "qubership"
   },
   {
-    "_test_id": "qes-10-1",
+    "_test": {
+      "id": "qes-10"
+    },
     "parse_status": "success",
     "thread": "0.0-8080-exec-6",
     "labels": {
@@ -304,7 +315,7 @@
     "business_identifiers": "-",
     "nodename": "fake-node",
     "namespace": "fake-namespace",
-    "short_message": "[request_id=9becf266dd03e52ccc80369bf1921029] [logId=qes-10] [tenant_id=00000000-0000-0000-0000-000000000000] [version=v1] [traceId=-               ] [spanId=-               ] [originating_bi_id=00000000-0000-0000-0000-000000000000] [business_identifiers=-               ] [thread=0.0-8080-exec-6] [class=c.n.c.c.q.e.a.web.pub.graphql.controller.GraphQLController  ] [method=graphql                       ] Start GraphQL Query processing",
+    "short_message": "[request_id=9becf266dd03e52ccc80369bf1921029] [tenant_id=00000000-0000-0000-0000-000000000000] [version=v1] [traceId=-               ] [spanId=-               ] [originating_bi_id=00000000-0000-0000-0000-000000000000] [business_identifiers=-               ] [thread=0.0-8080-exec-6] [class=c.n.c.c.q.e.a.web.pub.graphql.controller.GraphQLController  ] [method=graphql                       ] Start GraphQL Query processing",
     "date": "2024-06-18T17:28:06.867",
     "spanId": "-",
     "time": "2024-06-18T17:28:06.867007468Z",
@@ -314,13 +325,14 @@
     "traceId": "-",
     "hostname": "fake-fluent",
     "container": "fake-container",
-    "logId": "qes-10",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "source_level": "INFO",
     "parse_format": "qubership"
   },
   {
-    "_test_id": "qes-11-1",
+    "_test": {
+      "id": "qes-11"
+    },
     "parse_status": "success",
     "thread": "0.0-8080-exec-6",
     "labels": {
@@ -336,7 +348,7 @@
     "business_identifiers": "{quote_id=00000000-0000-0000-0000-000000000000}",
     "nodename": "fake-node",
     "namespace": "fake-namespace",
-    "short_message": "[request_id=9becf266dd03e52ccc80369bf1921029][logId=qes-11] [tenant_id=00000000-0000-0000-0000-000000000000] [version=v1] [traceId=-               ] [spanId=-               ] [originating_bi_id=00000000-0000-0000-0000-000000000000] [business_identifiers={quote_id=00000000-0000-0000-0000-000000000000}] [thread=0.0-8080-exec-6] [class=c.n.c.crm.quotation.engine.app.web.logging.LoggingHandler   ] [method=logAfterApi                   ] org.qubership.cloud.crm.quotation.engine.app.web.pub.graphql.controller.GraphQLController.graphql()",
+    "short_message": "[request_id=9becf266dd03e52ccc80369bf1921029] [tenant_id=00000000-0000-0000-0000-000000000000] [version=v1] [traceId=-               ] [spanId=-               ] [originating_bi_id=00000000-0000-0000-0000-000000000000] [business_identifiers={quote_id=00000000-0000-0000-0000-000000000000}] [thread=0.0-8080-exec-6] [class=c.n.c.crm.quotation.engine.app.web.logging.LoggingHandler   ] [method=logAfterApi                   ] org.qubership.cloud.crm.quotation.engine.app.web.pub.graphql.controller.GraphQLController.graphql()",
     "date": "2024-06-18T17:28:06.873",
     "spanId": "-",
     "time": "2024-06-18T17:28:06.873007468Z",
@@ -346,13 +358,14 @@
     "traceId": "-",
     "hostname": "fake-fluent",
     "container": "fake-container",
-    "logId": "qes-11",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "source_level": "INFO",
     "parse_format": "qubership"
   },
   {
-    "_test_id": "qes-12-1",
+    "_test": {
+      "id": "qes-12"
+    },
     "parse_status": "success",
     "thread": "0.0-8080-exec-9",
     "labels": {
@@ -368,7 +381,7 @@
     "business_identifiers": "-",
     "nodename": "fake-node",
     "namespace": "fake-namespace",
-    "short_message": "[request_id=ff17deddbb17f5b0da468a87107b9a49][logId=qes-12][tenant_id=00000000-0000-0000-0000-000000000000] [version=v1] [traceId=-               ] [spanId=-               ] [originating_bi_id=00000000-0000-0000-0000-000000000000] [business_identifiers=-               ] [thread=0.0-8080-exec-9] [class=c.n.c.c.q.e.a.web.pub.graphql.controller.GraphQLController  ] [method=graphql                       ] Start GraphQL Query processing",
+    "short_message": "[request_id=ff17deddbb17f5b0da468a87107b9a49][tenant_id=00000000-0000-0000-0000-000000000000] [version=v1] [traceId=-               ] [spanId=-               ] [originating_bi_id=00000000-0000-0000-0000-000000000000] [business_identifiers=-               ] [thread=0.0-8080-exec-9] [class=c.n.c.c.q.e.a.web.pub.graphql.controller.GraphQLController  ] [method=graphql                       ] Start GraphQL Query processing",
     "date": "2024-06-18T17:28:07.414",
     "spanId": "-",
     "time": "2024-06-18T17:28:07.414007468Z",
@@ -378,7 +391,6 @@
     "traceId": "-",
     "hostname": "fake-fluent",
     "container": "fake-container",
-    "logId": "qes-12",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "source_level": "INFO",
     "parse_format": "qubership"

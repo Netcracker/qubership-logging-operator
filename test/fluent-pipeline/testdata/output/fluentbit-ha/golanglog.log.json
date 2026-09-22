@@ -1,8 +1,10 @@
 [
   {
-    "_test_id": "golanglog-1",
+    "_test": {
+      "id": "golanglog"
+    },
     "parse_status": "success",
-    "time": "2023-12-20T12:51:32.272007468Z",
+    "time": "2023-12-20T12:51:32.270507468Z",
     "detected_level": "trace",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
@@ -11,12 +13,11 @@
     "nodename": "fake-node",
     "namespace": "fake-namespace",
     "container": "fake-container",
-    "short_message": "[logId=golanglog] Hello test log",
+    "short_message": "Hello test log",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "parse_field_count": 11,
     "hostname": "fake-fluent",
     "date": "2023-12-20T12:51:32.270",
-    "logId": "golanglog",
     "level": "debug",
     "source_level": "TRACE",
     "parse_format": "unknown"

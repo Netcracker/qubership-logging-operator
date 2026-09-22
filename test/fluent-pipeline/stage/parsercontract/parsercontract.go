@@ -74,10 +74,12 @@ func Prepare(manifestPath, parsersPath, targetDir string) error {
 		for key, value := range testCase.Expected {
 			expected[key] = value
 		}
+		expected["test_case"] = testCase.ID
 		expected["_test"] = map[string]interface{}{
-			"id":     testCase.ID,
-			"match":  map[string]interface{}{"test_case": testCase.ID},
-			"absent": testCase.Absent,
+			"id":      testCase.ID,
+			"matchOn": []string{"test_case"},
+			"partial": true,
+			"absent":  testCase.Absent,
 		}
 		expectations = append(expectations, expected)
 	}

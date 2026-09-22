@@ -1,13 +1,18 @@
 [
   {
-    "short_message": "apparmor=\"DENIED\" operation=\"ptrace\" profile=\"cri-containerd.apparmor.d\" pid=106437 comm=\"node_exporter\" requested_mask=\"read\" denied_mask=\"read\" peer=\"unconfined\" logId=\"os-audit-1\"",
+    "_test": {
+      "id": "os-audit-1",
+      "matchOn": [
+        "log"
+      ]
+    },
+    "short_message": "apparmor=\"DENIED\" operation=\"ptrace\" profile=\"cri-containerd.apparmor.d\" pid=106437 comm=\"node_exporter\" requested_mask=\"read\" denied_mask=\"read\" peer=\"unconfined\"",
     "tag": "/var/log/audit/audit.log",
     "detected_level": "info",
     "nc_audit_label": "true",
-    "logId": "os-audit-1",
     "parse_level_unknown": "true",
     "hostname": "fake-fluent",
-    "log": "apparmor=\"DENIED\" operation=\"ptrace\" profile=\"cri-containerd.apparmor.d\" pid=106437 comm=\"node_exporter\" requested_mask=\"read\" denied_mask=\"read\" peer=\"unconfined\" logId=\"os-audit-1\"",
+    "log": "apparmor=\"DENIED\" operation=\"ptrace\" profile=\"cri-containerd.apparmor.d\" pid=106437 comm=\"node_exporter\" requested_mask=\"read\" denied_mask=\"read\" peer=\"unconfined\"",
     "type": "AVC",
     "nodename": "fake-node",
     "level": "info"

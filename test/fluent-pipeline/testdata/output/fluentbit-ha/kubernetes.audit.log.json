@@ -1,6 +1,11 @@
 [
   {
-    "_test_id": "kubernetes-audit-1-1",
+    "_test": {
+      "id": "kubernetes-audit-1",
+      "matchOn": [
+        "stageTimestamp"
+      ]
+    },
     "detected_level": "info",
     "kind": "Event",
     "apiVersion": "audit.k8s.io/v1",
@@ -47,7 +52,6 @@
     "log": "(message)",
     "hostname": "fake-fluent",
     "nodename": "fake-node",
-    "logId": "kubernetes-audit-1",
     "objectRef": {
       "apiVersion": "v1",
       "name": "patroni-leader",
@@ -57,7 +61,12 @@
     "nc_audit_label": "true"
   },
   {
-    "_test_id": "kubernetes-audit-2-1",
+    "_test": {
+      "id": "kubernetes-audit-2",
+      "matchOn": [
+        "stageTimestamp"
+      ]
+    },
     "detected_level": "info",
     "kind": "Event",
     "apiVersion": "audit.k8s.io/v1",
@@ -105,7 +114,6 @@
     "log": "(message)",
     "hostname": "fake-fluent",
     "nodename": "fake-node",
-    "logId": "kubernetes-audit-2",
     "objectRef": {
       "apiVersion": "v1",
       "name": "cloudberry-common-leader",

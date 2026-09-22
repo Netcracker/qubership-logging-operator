@@ -1,5 +1,8 @@
 [
   {
+    "_test": {
+      "id": "nginx-1"
+    },
     "namespace": "fake-namespace",
     "hostname": "fake-fluent",
     "nodename": "fake-node",
@@ -8,8 +11,7 @@
     "time": "2024-06-14T08:33:57.630003297Z",
     "level": "warning",
     "container": "fake-container",
-    "logId": "nginx-1",
-    "short_message": "[logId=nginx-1] Service \"dev-profiler-opensearch/esc-ui-service\" does not have any active Endpoint.",
+    "short_message": "Service \"dev-profiler-opensearch/esc-ui-service\" does not have any active Endpoint.",
     "klog_date": "0614 08:33:57.629400",
     "labels": {
       "metadata.app.kubernetes.io/version": "0.1.0",
@@ -17,12 +19,15 @@
     },
     "parse_status": "success",
     "pid": "7",
-    "parse_field_count": 12,
+    "parse_field_count": 11,
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "file": "controller.go:1213",
     "parse_format": "klog"
   },
   {
+    "_test": {
+      "id": "nginx-2"
+    },
     "namespace": "fake-namespace",
     "hostname": "fake-fluent",
     "nodename": "fake-node",
@@ -31,8 +36,7 @@
     "time": "2024-06-14T08:33:57.630711319Z",
     "level": "warning",
     "container": "fake-container",
-    "logId": "nginx-2",
-    "short_message": "[logId=nginx-2] Error getting SSL certificate \"opensearch-service/opensearch-rest-certs\": local SSL certificate opensearch-service/opensearch-rest-certs was not found. Using default certificate",
+    "short_message": "Error getting SSL certificate \"opensearch-service/opensearch-rest-certs\": local SSL certificate opensearch-service/opensearch-rest-certs was not found. Using default certificate",
     "klog_date": "0614 08:33:57.630491",
     "labels": {
       "metadata.app.kubernetes.io/version": "0.1.0",
@@ -40,12 +44,15 @@
     },
     "parse_status": "success",
     "pid": "7",
-    "parse_field_count": 12,
+    "parse_field_count": 11,
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "file": "controller.go:1435",
     "parse_format": "klog"
   },
   {
+    "_test": {
+      "id": "nginx-3"
+    },
     "namespace": "fake-namespace",
     "hostname": "fake-fluent",
     "nodename": "fake-node",
@@ -54,8 +61,7 @@
     "time": "2024-06-14T08:33:57.631388352Z",
     "level": "info",
     "container": "fake-container",
-    "logId": "nginx-3",
-    "short_message": "[logId=nginx-3] \"Configuration changes detected, backend reload required\"",
+    "short_message": "\"Configuration changes detected, backend reload required\"",
     "klog_date": "0614 08:33:57.631301",
     "labels": {
       "metadata.app.kubernetes.io/version": "0.1.0",
@@ -63,12 +69,15 @@
     },
     "parse_status": "success",
     "pid": "7",
-    "parse_field_count": 12,
+    "parse_field_count": 11,
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "file": "controller.go:190",
     "parse_format": "klog"
   },
   {
+    "_test": {
+      "id": "nginx-4"
+    },
     "namespace": "fake-namespace",
     "hostname": "fake-fluent",
     "nodename": "fake-node",
@@ -77,8 +86,7 @@
     "time": "2024-06-14T08:33:59.146293383Z",
     "level": "info",
     "container": "fake-container",
-    "logId": "nginx-4",
-    "short_message": "[logId=nginx-4] \"Backend successfully reloaded\"",
+    "short_message": "\"Backend successfully reloaded\"",
     "klog_date": "0614 08:33:59.146105",
     "labels": {
       "metadata.app.kubernetes.io/version": "0.1.0",
@@ -86,12 +94,15 @@
     },
     "parse_status": "success",
     "pid": "7",
-    "parse_field_count": 12,
+    "parse_field_count": 11,
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "file": "controller.go:210",
     "parse_format": "klog"
   },
   {
+    "_test": {
+      "id": "nginx-5"
+    },
     "namespace": "fake-namespace",
     "hostname": "fake-fluent",
     "nodename": "fake-node",
@@ -100,8 +111,7 @@
     "time": "2024-06-14T08:33:59.146941221Z",
     "level": "info",
     "container": "fake-container",
-    "logId": "nginx-5",
-    "short_message": "[logId=nginx-5] Event(v1.ObjectReference{Kind:\"Pod\", Namespace:\"ingress-nginx\", Name:\"ingress-nginx-controller-qqsq6\", UID:\"00000000-0000-0000-0000-000000000000\", APIVersion:\"v1\", ResourceVersion:\"897342981\", FieldPath:\"\"}): type: 'Normal' reason: 'RELOAD' NGINX reload triggered due to a change in configuration",
+    "short_message": "Event(v1.ObjectReference{Kind:\"Pod\", Namespace:\"ingress-nginx\", Name:\"ingress-nginx-controller-qqsq6\", UID:\"00000000-0000-0000-0000-000000000000\", APIVersion:\"v1\", ResourceVersion:\"897342981\", FieldPath:\"\"}): type: 'Normal' reason: 'RELOAD' NGINX reload triggered due to a change in configuration",
     "klog_date": "0614 08:33:59.146778",
     "labels": {
       "metadata.app.kubernetes.io/version": "0.1.0",
@@ -109,12 +119,15 @@
     },
     "parse_status": "success",
     "pid": "7",
-    "parse_field_count": 12,
+    "parse_field_count": 11,
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "file": "event.go:364",
     "parse_format": "klog"
   },
   {
+    "_test": {
+      "id": "nginx-6"
+    },
     "namespace": "fake-namespace",
     "upstream_status": "200",
     "hostname": "fake-fluent",
@@ -147,10 +160,12 @@
     },
     "user": "-",
     "upstream_response_time": "0.001",
-    "parse_format": "k8s-nginx-ingress",
-    "logId": "nginx-6"
+    "parse_format": "k8s-nginx-ingress"
   },
   {
+    "_test": {
+      "id": "nginx-7"
+    },
     "namespace": "fake-namespace",
     "upstream_status": "200",
     "hostname": "fake-fluent",
@@ -183,7 +198,6 @@
     },
     "user": "-",
     "upstream_response_time": "0.024",
-    "parse_format": "k8s-nginx-ingress",
-    "logId": "nginx-7"
+    "parse_format": "k8s-nginx-ingress"
   }
 ]

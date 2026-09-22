@@ -1,5 +1,8 @@
 [
   {
+    "_test": {
+      "id": "qubership-kv-1"
+    },
     "namespace": "fake-namespace",
     "hostname": "fake-fluent",
     "nodename": "fake-node",
@@ -9,7 +12,6 @@
     "request_id": "8a7b6c5d-4e3f",
     "level": "err",
     "container": "fake-container",
-    "logId": "qubership-kv-1",
     "short_message": "NullPointerException\n    at com.example.app.Main.processRequest(Main.java:42)\n    at com.example.app.Main.main(Main.java:17)\nCaused by: java.lang.NullPointerException: Cannot invoke \"String.length()\" because \"input\" is null\n    at com.example.app.Utils.validateInput(Utils.java:89)",
     "detected_level": "error",
     "source_level": "ERROR",
@@ -18,13 +20,16 @@
       "metadata.app": "fluent-pipeline-test"
     },
     "parse_status": "success",
-    "parse_field_count": 14,
+    "parse_field_count": 13,
     "tenant_id": "t1",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "time": "2024-03-15T08:12:33.456007468Z",
     "parse_format": "qubership"
   },
   {
+    "_test": {
+      "id": "qubership-kv-2"
+    },
     "namespace": "fake-namespace",
     "hostname": "fake-fluent",
     "nodename": "fake-node",
@@ -34,7 +39,6 @@
     "request_id": "5f6e7d8c-9a0b",
     "level": "debug",
     "container": "fake-container",
-    "logId": "qubership-kv-2",
     "short_message": "Sending payload: size=2KB",
     "detected_level": "debug",
     "source_level": "DEBUG",
@@ -43,13 +47,16 @@
       "metadata.app": "fluent-pipeline-test"
     },
     "parse_status": "success",
-    "parse_field_count": 14,
+    "parse_field_count": 13,
     "tenant_id": "-",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "time": "2024-03-15T09:15:23.200008804Z",
     "parse_format": "qubership"
   },
   {
+    "_test": {
+      "id": "qubership-kv-3"
+    },
     "namespace": "fake-namespace",
     "hostname": "fake-fluent",
     "nodename": "fake-node",
@@ -59,7 +66,6 @@
     "request_id": "0q1w2e3r-4t5y",
     "level": "debug",
     "container": "fake-container",
-    "logId": "qubership-kv-3",
     "short_message": "Processing transaction: amount=29.99USD",
     "detected_level": "trace",
     "source_level": "TRACE",
@@ -68,13 +74,16 @@
       "metadata.app": "fluent-pipeline-test"
     },
     "parse_status": "success",
-    "parse_field_count": 14,
+    "parse_field_count": 13,
     "tenant_id": "a5b6",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "time": "2024-03-15T09:15:26.500008804Z",
     "parse_format": "qubership"
   },
   {
+    "_test": {
+      "id": "qubership-kv-4"
+    },
     "namespace": "fake-namespace",
     "hostname": "fake-fluent",
     "nodename": "fake-node",
@@ -84,7 +93,6 @@
     "request_id": "2k3l4m5n-6o7p",
     "level": "warning",
     "container": "fake-container",
-    "logId": "qubership-kv-4",
     "short_message": "Deprecated config key used: \"legacy_mode\"",
     "detected_level": "warn",
     "source_level": "WARN",
@@ -93,19 +101,21 @@
       "metadata.app": "fluent-pipeline-test"
     },
     "parse_status": "success",
-    "parse_field_count": 14,
+    "parse_field_count": 13,
     "tenant_id": "-",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "time": "2024-03-15T09:15:31.000008804Z",
     "parse_format": "qubership"
   },
   {
+    "_test": {
+      "id": "qubership-kv-5"
+    },
     "short_message": "Invalid configuration\n    at com.example.util.Config.validate(Config.java:145)\n    at com.example.util.Config.load(Config.java:78)\nCaused by: java.lang.IllegalArgumentException: Port must be between 1 and 65535\n    at com.example.util.Config.parsePort(Config.java:201)",
-    "parse_field_count": 14,
+    "parse_field_count": 13,
     "source_level": "ERROR",
     "date": "2024-03-15T10:20:42.345Z",
     "time": "2024-03-15T10:20:42.345008804Z",
-    "logId": "qubership-kv-5",
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "level": "err",

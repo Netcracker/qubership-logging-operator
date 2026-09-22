@@ -1,20 +1,34 @@
 # Fluent pipeline tests
 
 These tests run the Fluent Bit and Fluentd configurations from the current checkout against representative log files.
-They compare each processed record with a checked-in JSON result identified by `logId`.
+They compare each processed record with a checked-in JSON result.
 
-The comparator first looks for an extracted `logId`. If a parser keeps the marker inside the message, the comparator
-uses `[logId=<value>]` there instead. As a final fallback, it uses the fixture's unique, fixed `time`. In the fallback
-cases, `logId` is test metadata and is not expected to be present in the processed record.
+Every expected record carries a `_test` block, and the comparator uses it alone to find the output record it belongs
+to. `id` names the record in the report. `matchOn` lists the expected fields whose values select the output record,
+and defaults to `time`, the timestamp the container runtime wrote and the pipeline keeps. Give each fixture record a
+timestamp no other fixture uses, and the default selects it. Records that reach the output without a `time` field
+declare their own match fields:
+
+```json
+{
+  "_test": { "id": "syslog-1", "matchOn": ["log"] },
+  "log": "ExecSync for ... failed",
+  "tag": "/var/log/syslog"
+}
+```
+
+The fixtures carry no test-only markers. A marker inside a message reaches the pipeline as data: a `[key=value]`
+marker becomes a field, which adds one to `parse_field_count` and can turn `parse_status` from `failed` into
+`success`, so the expected records would describe the marker rather than the log line.
 
 The `fluentbit` and `fluentbit-ha` scenarios also run every parser from the daemon set and forwarder `parsers.conf`
 files in isolation. Parser cases live in `testdata/parser-cases.json`; every parser has one matching and one
 non-matching source line. The runner adds `test_case` after parsing, so test identifiers never change the input being
 tested. Cases for parsers that are not present in a specific rendered configuration are skipped in that scenario.
 
-Parser contract expectations are partial. `expected` lists fields that must be present, while `absent` lists fields
-that the parser must not produce. This keeps the expected result focused on the parser contract instead of generated
-host and pipeline metadata.
+Parser contract expectations are partial: their generated `_test` block sets `partial` and matches on `test_case`.
+`expected` lists fields that must be present, while `absent` lists fields that the parser must not produce. This
+keeps the expected result focused on the parser contract instead of generated host and pipeline metadata.
 
 The contract manifest covers 25 regular parsers. Existing end-to-end fixtures cover the two multiline parsers and CRI
 partial-record concatenation. The isolated cases fill the previous content-format gaps for CoreDNS, Consul,
@@ -94,10 +108,11 @@ belong to the calling user. The logging agents run as root and read those files 
 ## Add a test case
 
 1. Add a CRI-formatted source record under `testdata/logs/containers` or a system input under `testdata/input`.
-2. Give the record a unique `logId`. Prefer a field that survives processing; otherwise, retain the marker in the
-   message and use a unique, fixed `time`.
-3. Add the expected JSON record to the matching file under `testdata/output/fluentbit`,
-   `testdata/output/fluentbit-ha`, or `testdata/output/fluentd`.
+   Leave the message as the application writes it, and give the record a CRI timestamp that no other fixture uses.
+2. Add the expected JSON record to the matching file under `testdata/output/fluentbit`,
+   `testdata/output/fluentbit-ha`, or `testdata/output/fluentd`, and give it a `_test` block with an `id`.
+3. Run the scenario and read the report. A record the pipeline strips the timestamp from is reported as not found;
+   add `matchOn` with fields that survive processing, such as `log` for a syslog record.
 4. Run every affected scenario locally.
 
 Do not replace expected files with actual output without reviewing each changed field. A broad golden-file update can

@@ -121,8 +121,28 @@ func readCustomResource(path string) (*loggingService.LoggingService, error) {
 	return cr, nil
 }
 
+// templateParameters mirrors what the operator hands to the agent templates: the custom resource
+// parameters plus the credentials it reads from the Secrets the outputs reference. The test has
+// no Secrets, so the credentials are placeholders that appear in the rendered configuration.
+type templateParameters struct {
+	loggingService.LoggingServiceParameters
+	OutputCredentials outputCredentials
+}
+
+type outputCredentials struct {
+	Loki util.AuthValues
+	Http util.AuthValues
+	Otel util.AuthValues
+}
+
+func placeholderCredentials() outputCredentials {
+	values := util.AuthValues{Token: "placeholder-token", User: "placeholder-user", Password: "placeholder-password"}
+	return outputCredentials{Loki: values, Http: values, Otel: values}
+}
+
 func getConfiguration(agent agents.Agent, cr *loggingService.LoggingService) (data map[string]string, err error) {
-	data, err = fillConfigurationTemplates(sourceConfigPath, cr.ToParams())
+	parameters := templateParameters{LoggingServiceParameters: cr.ToParams(), OutputCredentials: placeholderCredentials()}
+	data, err = fillConfigurationTemplates(sourceConfigPath, parameters)
 	if err != nil {
 		return
 	}

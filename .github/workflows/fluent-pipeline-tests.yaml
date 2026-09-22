@@ -37,6 +37,7 @@ jobs:
         - fluentbit
         - fluentbit-ha
         - fluentd
+        - render
     steps:
     - name: Checkout sources
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -50,7 +51,7 @@ jobs:
         --file test/fluent-pipeline/Dockerfile
         .
 
-    - name: Run the ${{ matrix.agent }} pipeline
+    - name: Run the ${{ matrix.agent }} scenario
       env:
         TEST_CONTENT_PATH: ${{ runner.temp }}/fluent-pipeline-${{ matrix.agent }}
       run: test/fluent-pipeline/run.sh '${{ matrix.agent }}'

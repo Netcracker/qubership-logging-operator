@@ -22,7 +22,7 @@ OUTPUT_SETTLE_POLLS=${OUTPUT_SETTLE_POLLS:-3}
 
 cleanup() {
     docker rm -f fluentd fluent-bit fluent-bit-forwarder fluent-bit-aggregator fluent-bit-parser-contract fluent-config-replacer \
-        fluent-pipeline-test >/dev/null 2>&1 || true
+        fluent-pipeline-test fluent-bit-render fluentd-render >/dev/null 2>&1 || true
     docker network rm fluent-net >/dev/null 2>&1 || true
 }
 
@@ -183,8 +183,7 @@ create_empty_host_logs() {
         "${logs_root}/var/log/audit/audit.log" \
         "${logs_root}/var/log/kubernetes/audit/audit.log" \
         "${logs_root}/var/log/syslog" \
-        "${logs_root}/var/log/messages" \
-        "${logs_root}/var/log/journal"
+        "${logs_root}/var/log/messages"
 }
 
 ###################################################################################################
@@ -240,7 +239,6 @@ run_fluentd_test_logic() {
     add_lines "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/input/audit/audit.log" "${TEST_CONTENT_PATH}/logs/var/log/audit/audit.log"
     add_lines "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/input/system/syslog" "${TEST_CONTENT_PATH}/logs/var/log/syslog"
     add_lines "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/input/system/messages" "${TEST_CONTENT_PATH}/logs/var/log/messages"
-    add_lines "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/input/system/journal" "${TEST_CONTENT_PATH}/logs/var/log/journal"
 
     echo "=> Waiting until FluentD writes the processed logs"
     wait_for_records "${TEST_CONTENT_PATH}/output/fake-fluent.log" \
@@ -314,7 +312,6 @@ run_fluentbit_test_logic() {
     add_lines "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/input/audit/audit.log" "${TEST_CONTENT_PATH}/logs/var/log/audit/audit.log"
     add_lines "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/input/system/syslog" "${TEST_CONTENT_PATH}/logs/var/log/syslog"
     add_lines "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/input/system/messages" "${TEST_CONTENT_PATH}/logs/var/log/messages"
-    add_lines "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/input/system/journal" "${TEST_CONTENT_PATH}/logs/var/log/journal"
 
     echo "=> Waiting until FluentBit writes the processed logs"
     wait_for_records "${TEST_CONTENT_PATH}/output/output-log" \
@@ -421,7 +418,6 @@ run_fluentbit_ha_test_logic() {
     add_lines "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/input/audit/audit.log" "${TEST_CONTENT_PATH}/logs/var/log/audit/audit.log"
     add_lines "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/input/system/syslog" "${TEST_CONTENT_PATH}/logs/var/log/syslog"
     add_lines "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/input/system/messages" "${TEST_CONTENT_PATH}/logs/var/log/messages"
-    add_lines "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/input/system/journal" "${TEST_CONTENT_PATH}/logs/var/log/journal"
 
     echo "=> Waiting until the FluentBit aggregator writes the processed logs"
     wait_for_records "${TEST_CONTENT_PATH}/output/output-log" \
@@ -452,6 +448,146 @@ run_fluentbit_ha_test_logic() {
 }
 
 ###################################################################################################
+# Render every custom resource under testdata/assets/render and let the agent validate the result
+###################################################################################################
+RENDER_ASSETS="${TEST_HOME_PATH}/test/fluent-pipeline/testdata/assets/render"
+
+# render_configuration renders the templates of one agent for one custom resource into a directory,
+# the same way the prepare stage does for a scenario, without laying out any log file.
+render_configuration() {
+    agent=$1
+    templates_dir=$2
+    custom_resource=$3
+    target_dir=$4
+    docker run --rm --security-opt label=disable --user "${HELPER_USER}" --name fluent-config-replacer \
+        -v "${templates_dir}":/config-templates.d:ro \
+        -v "${target_dir}":/configuration.d:rw \
+        -v "${custom_resource}":/assets/custom-resource.yaml:ro \
+        "${FLUENT_PIPELINE_TEST_IMAGE}" \
+        -agent "${agent}" \
+        -cr /assets/custom-resource.yaml \
+        -stage render \
+        -loglevel warn
+}
+
+# validate_fluentbit_configuration asks Fluent Bit to load the rendered configuration without
+# starting the engine; a plugin it cannot instantiate or a section it cannot parse fails the check.
+validate_fluentbit_configuration() {
+    docker run --rm --security-opt label=disable --name fluent-bit-render \
+        -v "$1":/fluent-bit/etc:ro \
+        "${FLUENTBIT_IMAGE}" --dry-run -c /fluent-bit/etc/fluent-bit.conf
+}
+
+# prepare_fluentd_mounts creates the files the operator's DaemonSet mounts into the Fluentd container and
+# the dry run opens: the service account credentials and the TLS material of the Graylog, Loki, and
+# HTTP outputs. A self-signed certificate stands in for each of them.
+prepare_fluentd_mounts() {
+    mounts_dir=$1
+    mkdir -p "${mounts_dir}/serviceaccount" "${mounts_dir}/tls" "${mounts_dir}/loki-tls" "${mounts_dir}/http-tls"
+    # The Fluentd image ships openssl; the helper image does not.
+    docker run --rm --security-opt label=disable --user "${HELPER_USER}" --name fluentd-render \
+        --entrypoint /bin/sh -v "${mounts_dir}":/mounts:rw "${FLUENTD_IMAGE}" -c '
+            openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj /CN=render-test \
+                -keyout /mounts/tls/tls.key -out /mounts/tls/tls.crt 2>/dev/null &&
+            cp /mounts/tls/tls.crt /mounts/tls/ca.crt &&
+            cp /mounts/tls/tls.key /mounts/tls/tls.crt /mounts/tls/ca.crt /mounts/loki-tls/ &&
+            cp /mounts/tls/tls.key /mounts/tls/tls.crt /mounts/tls/ca.crt /mounts/http-tls/ &&
+            echo placeholder-token >/mounts/serviceaccount/token &&
+            cp /mounts/tls/ca.crt /mounts/serviceaccount/ca.crt'
+}
+
+# validate_fluentd_configuration runs Fluentd's dry run with the environment and the mounts the
+# operator's DaemonSet gives the container; the rendered configuration reads the Graylog connection
+# from the environment and opens the credential and certificate files.
+validate_fluentd_configuration() {
+    mounts_dir="${TEST_CONTENT_PATH}/render/fluentd-mounts"
+    [ -f "${mounts_dir}/tls/tls.crt" ] || prepare_fluentd_mounts "${mounts_dir}"
+    docker run --rm --security-opt label=disable --name fluentd-render \
+        -e GRAYLOG_HOST=graylog.logging.svc -e GRAYLOG_PORT=12201 -e GRAYLOG_PROTOCOL=tcp \
+        -e QUEUE_LIMIT_LENGTH=128 -e WATCH_KUBERNETES_METADATA=true -e MA_HOST=monitoring-agent.logging.svc \
+        -v "$1":/fluentd/etc:ro \
+        -v "${mounts_dir}/serviceaccount":/var/run/secrets/kubernetes.io/serviceaccount:ro \
+        -v "${mounts_dir}/tls":/fluentd/tls:ro \
+        -v "${mounts_dir}/loki-tls":/fluentd/output/loki/tls:ro \
+        -v "${mounts_dir}/http-tls":/fluentd/output/http/tls:ro \
+        "${FLUENTD_IMAGE}" fluentd --dry-run -c /fluentd/etc/fluent.conf
+}
+
+# check_rendered_configuration renders and validates one configuration and records the outcome. A
+# custom resource that documents a known defect starts with "# expect-failure: <reason>": its
+# validation has to fail, and a pass means the defect is gone and the line is due for removal.
+check_rendered_configuration() {
+    label=$1
+    agent=$2
+    templates_dir=$3
+    custom_resource=$4
+    validator=$5
+    target_dir="${TEST_CONTENT_PATH}/render/${label}"
+    log_file="${target_dir}.log"
+    expected_failure=$(sed -n 's/^# expect-failure: //p' "${custom_resource}" | head -n 1)
+    mkdir -p "${target_dir}"
+    if render_configuration "${agent}" "${templates_dir}" "${custom_resource}" "${target_dir}" >"${log_file}" 2>&1 \
+        && "${validator}" "${target_dir}" >>"${log_file}" 2>&1; then
+        validated=true
+    else
+        validated=false
+    fi
+    if [ -z "${expected_failure}" ] && [ "${validated}" = true ]; then
+        render_report="${render_report}${label}\tSucceeded\n"
+    elif [ -n "${expected_failure}" ] && [ "${validated}" = false ]; then
+        render_report="${render_report}${label}\tSucceeded\tfails as expected: ${expected_failure}\n"
+    elif [ -n "${expected_failure}" ]; then
+        render_report="${render_report}${label}\tFailed\tvalidation passed, remove the expect-failure line: ${expected_failure}\n"
+        render_failures=$((render_failures + 1))
+    else
+        render_report="${render_report}${label}\tFailed\tsee ${log_file}\n"
+        render_failures=$((render_failures + 1))
+        echo "=> ${label}: the rendered configuration failed validation" >&2
+        tail -n 20 "${log_file}" >&2
+    fi
+}
+
+run_render_test_logic() {
+    echo "=> Prepare test environment"
+    reset_test_content
+    mkdir -p "${TEST_CONTENT_PATH}/render"
+    render_report=""
+    render_failures=0
+
+    echo "=> Render and validate the Fluent Bit configurations"
+    for custom_resource in "${RENDER_ASSETS}"/fluentbit/*.yaml; do
+        name=$(basename "${custom_resource}" .yaml)
+        check_rendered_configuration "fluentbit/${name}" fluentbit \
+            "${TEST_HOME_PATH}/controllers/fluentbit/fluentbit.configmap/" "${custom_resource}" \
+            validate_fluentbit_configuration
+    done
+
+    echo "=> Render and validate the Fluent Bit forwarder and aggregator configurations"
+    for custom_resource in "${RENDER_ASSETS}"/fluentbit-ha/*.yaml; do
+        name=$(basename "${custom_resource}" .yaml)
+        check_rendered_configuration "forwarder/${name}" fluentbitha \
+            "${TEST_HOME_PATH}/controllers/fluentbit-forwarder-aggregator/forwarder.configmap/" "${custom_resource}" \
+            validate_fluentbit_configuration
+        check_rendered_configuration "aggregator/${name}" fluentbitha \
+            "${TEST_HOME_PATH}/controllers/fluentbit-forwarder-aggregator/aggregator.configmap/" "${custom_resource}" \
+            validate_fluentbit_configuration
+    done
+
+    echo "=> Render and validate the Fluentd configurations"
+    for custom_resource in "${RENDER_ASSETS}"/fluentd/*.yaml; do
+        name=$(basename "${custom_resource}" .yaml)
+        check_rendered_configuration "fluentd/${name}" fluentd \
+            "${TEST_HOME_PATH}/controllers/fluentd/fluentd.configmap/" "${custom_resource}" \
+            validate_fluentd_configuration
+    done
+
+    echo "--- Report of configuration rendering ---"
+    printf 'CONFIGURATION\tSTATUS\tDETAILS\n'
+    printf "%b" "${render_report}"
+    [ "${render_failures}" -eq 0 ]
+}
+
+###################################################################################################
 # Entrypoint
 ###################################################################################################
 
@@ -469,8 +605,12 @@ case ${1:-} in
     run_fluentbit_ha_test_logic
     ;;
 
+'render')
+    run_render_test_logic
+    ;;
+
 *)
-    echo "Usage: $0 {fluentd|fluentbit|fluentbit-ha}" >&2
+    echo "Usage: $0 {fluentd|fluentbit|fluentbit-ha|render}" >&2
     exit 2
     ;;
 

@@ -1,0 +1,19 @@
+# expect-failure: billCycleConf includes /fluent-bit/etc/filter-bill-cycle.conf, which no template renders
+# The bill cycle option of the Fluent Bit templates. Fluent Bit refuses the configuration because
+# the included file does not exist; the standalone and the aggregator templates share the include.
+apiVersion: logging.netcracker.com/v1
+kind: LoggingService
+metadata:
+  name: logging-service
+spec:
+  containerRuntimeType: containerd
+  fluentbit:
+    multilineFirstLineRegexp: "/^(\\[\\d{4}\\-\\d{2}\\-\\d{2}).*/"
+    multilineOtherLinesRegexp: "/^(?!\\[\\d{4}\\-\\d{2}\\-\\d{2}).*/"
+    containerLogging: true
+    billCycleConf: true
+    mockKubeData: true
+    graylogOutput: true
+    graylogHost: graylog.logging.svc
+    graylogPort: 12201
+    graylogProtocol: tcp

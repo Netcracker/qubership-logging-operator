@@ -57,6 +57,8 @@ the parsed timestamp. The contract retains this behavior so a parser fix produce
 - `fluentbit` runs the Fluent Bit daemon set pipeline.
 - `fluentbit-ha` runs the Fluent Bit forwarder and aggregator pipeline.
 - `fluentd` runs the Fluentd daemon set pipeline.
+- `render` renders the configuration for every custom resource under `testdata/assets/render/` and asks the agent to
+  validate it without processing any log.
 
 All scenarios validate container, system, and audit inputs. Fluentd stamps its system and audit records with a
 `fluentd_time` the fixtures cannot pin: the syslog parser takes the current year, because RFC 3164 carries none, and
@@ -77,6 +79,29 @@ open before it appends the system and audit fixtures, and it reads the output fi
 the expected files and the count stops changing. The test custom resources therefore set `logLevel: info`, which
 the readiness lines need, and flush every second so records do not wait in a buffer. A wait that runs out reports
 what it waited for and the last count it saw; the comparison then names the missing records.
+
+## Render scenario
+
+The three pipeline scenarios run one custom resource each, so the template branches they do not select, such as the
+Docker runtime, OpenShift, the journald input, or the Loki, HTTP, and OpenTelemetry outputs, never render. The
+`render` scenario covers them: for each custom resource under `testdata/assets/render/<agent>/`, the helper renders
+the agent's templates the way the `prepare` stage does, and the agent's dry run (`fluent-bit --dry-run`,
+`fluentd --dry-run`) loads the result. The forwarder and the aggregator templates both render for a custom
+resource under `fluentbit-ha/`. The report lists one row per rendered configuration.
+
+The custom resources take the shape the chart produces, with the multiline expressions and the output block the
+chart always sets, and one custom resource per group of branches, so that a failed row points at an area. The
+helper stands in for the operator where the templates need more than the custom resource: it fills the output
+credentials the operator reads from Secrets with placeholders, and for Fluentd it supplies the environment of the
+DaemonSet and the mounted service account and certificate files, which Fluentd opens during the dry run.
+
+A custom resource that documents a known defect starts with a line `# expect-failure: <reason>`. Its validation has
+to fail for the row to pass, and a validation that passes fails the row with a note to remove the line, so the row
+tells the person who fixes the defect to update the expectation.
+
+Two limits of the validators: Fluent Bit's dry run does not open the TLS files an output names, and Fluentd's
+`kubernetes_metadata` filter connects to the API server when it starts, so the Fluentd custom resources set
+`mockKubeData` and the real-metadata branch renders without a Fluentd check.
 
 ## Requirements
 
@@ -100,6 +125,7 @@ Run one of the scenarios:
 test/fluent-pipeline/run.sh fluentbit
 test/fluent-pipeline/run.sh fluentbit-ha
 test/fluent-pipeline/run.sh fluentd
+test/fluent-pipeline/run.sh render
 ```
 
 The runner stores generated configuration and actual output in `build/fluent-pipeline` by default. Set

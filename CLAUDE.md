@@ -27,7 +27,8 @@ make test-fluent-pipeline FLUENT_PIPELINE_SCENARIO=fluentbit-ha  # Run another p
 go test -race -run TestName ./controllers/...  # Run a single test
 ```
 
-Fluent pipeline tests support the `fluentbit`, `fluentbit-ha`, and `fluentd` scenarios. Integration tests use Robot
+Fluent pipeline tests support the `fluentbit`, `fluentbit-ha`, `fluentd`, and `render` scenarios; `render` only
+renders and validates the agent configurations for the custom resources under `test/fluent-pipeline/testdata/assets/render/`. Integration tests use Robot
 Framework in `test/robot-tests/` and run via GitHub Actions.
 
 ### Documentation

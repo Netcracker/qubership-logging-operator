@@ -21,7 +21,7 @@ var (
 )
 
 func main() {
-	stage := flag.String("stage", "test", "Stage of pipeline testing. Available values: prepare, test")
+	stage := flag.String("stage", "test", "Stage of pipeline testing. Available values: prepare, render, prepare-parser-contracts, test")
 	agentString := flag.String("agent", "fluentbit", "Parse configuration of logging agent. Possible values: fluentbit, fluentbitha, fluentd")
 	crPath := flag.String("cr", "/assets/logging-service-test-fluentbit.yaml", "Path to test LoggingService custom resource with necessary parameters")
 	parserCasesPath := flag.String("parserCases", "/parser-contracts/cases.json", "Path to parser contract cases")
@@ -53,6 +53,8 @@ func main() {
 	} else if strings.EqualFold(*stage, "prepare") {
 		preparing.PrepareConfiguration(*crPath, agent)
 		preparing.PrepareTestLogs("/testdata/")
+	} else if strings.EqualFold(*stage, "render") {
+		preparing.PrepareConfiguration(*crPath, agent)
 	} else {
 		logger.Error("Stage of testing is not defined", "stage", *stage)
 		os.Exit(1)

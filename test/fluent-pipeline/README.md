@@ -17,6 +17,14 @@ declare their own match fields:
 }
 ```
 
+A record the pipeline must drop is a probe: its `_test` block sets `dropped`, and the run fails when any output record
+carries its match values. The run also fails when the output holds a record no expected record claims, so every
+fixture line the pipeline keeps has to be described, and a pipeline that emits a record twice is caught.
+
+```json
+{ "_test": { "id": "coredns-empty-line", "dropped": true }, "time": "2026-09-03T10:20:40.250007468Z" }
+```
+
 The fixtures carry no test-only markers. A marker inside a message reaches the pipeline as data: a `[key=value]`
 marker becomes a field, which adds one to `parse_field_count` and can turn `parse_status` from `failed` into
 `success`, so the expected records would describe the marker rather than the log line.
@@ -50,8 +58,10 @@ the parsed timestamp. The contract retains this behavior so a parser fix produce
 - `fluentbit-ha` runs the Fluent Bit forwarder and aggregator pipeline.
 - `fluentd` runs the Fluentd daemon set pipeline.
 
-The Fluent Bit scenarios validate container, system, and audit inputs. The current Fluentd baseline validates container
-records; its system and audit inputs do not reach the test file output with the supported Fluentd image.
+All scenarios validate container, system, and audit inputs. Fluentd stamps its system and audit records with a
+`fluentd_time` the fixtures cannot pin: the syslog parser takes the current year, because RFC 3164 carries none, and
+audit records get the ingestion time. The helper's `-ignoreFluentdTime` flag names those expected files, and their
+records leave `fluentd_time` out.
 
 Each scenario performs three operations:
 

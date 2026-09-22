@@ -15,13 +15,15 @@ const testMetadataKey = "_test"
 var defaultMatchOn = []string{"time"}
 
 // testMetadata is the only way an expected record is identified. ID names the record in the
-// report, MatchOn lists the expected fields whose values select the output record, and Partial
-// compares the listed fields alone, which the generated parser contracts rely on.
+// report, MatchOn lists the expected fields whose values select the output record, Partial
+// compares the listed fields alone, which the generated parser contracts rely on, and Dropped
+// turns the record into a probe: the pipeline must produce no record the match fields select.
 type testMetadata struct {
 	ID      string   `json:"id"`
 	MatchOn []string `json:"matchOn"`
 	Partial bool     `json:"partial"`
 	Absent  []string `json:"absent"`
+	Dropped bool     `json:"dropped"`
 }
 
 func getTestMetadata(expected map[string]interface{}) (testMetadata, bool) {
@@ -63,20 +65,26 @@ func selectorValues(expected map[string]interface{}, metadata testMetadata) (map
 	return values, ""
 }
 
-// findActualRecord returns the output record that carries the selector values and whether more
-// than one record carried them.
-func findActualRecord(actualRecords []map[string]interface{}, values map[string]interface{}) (
-	map[string]interface{}, bool,
-) {
-	return singleRecord(matchingRecords(actualRecords, func(actual map[string]interface{}) bool {
-		for field, value := range values {
-			actualValue, exists := lookupField(actual, field)
-			if !exists || !reflect.DeepEqual(actualValue, value) {
-				return false
-			}
+// findActualRecords returns the positions of the output records that carry the selector values.
+// An expected record wants exactly one; a dropped probe wants none.
+func findActualRecords(actualRecords []map[string]interface{}, values map[string]interface{}) []int {
+	var found []int
+	for index, actual := range actualRecords {
+		if carriesValues(actual, values) {
+			found = append(found, index)
 		}
-		return true
-	}))
+	}
+	return found
+}
+
+func carriesValues(actual, values map[string]interface{}) bool {
+	for field, value := range values {
+		actualValue, exists := lookupField(actual, field)
+		if !exists || !reflect.DeepEqual(actualValue, value) {
+			return false
+		}
+	}
+	return true
 }
 
 func compareRecord(expected, actual map[string]interface{}, metadata testMetadata) bool {
@@ -136,23 +144,6 @@ func lookupField(record map[string]interface{}, path string) (interface{}, bool)
 	return current, true
 }
 
-func matchingRecords(actualRecords []map[string]interface{}, matches func(map[string]interface{}) bool) []map[string]interface{} {
-	var found []map[string]interface{}
-	for _, actual := range actualRecords {
-		if matches(actual) {
-			found = append(found, actual)
-		}
-	}
-	return found
-}
-
-func singleRecord(records []map[string]interface{}) (map[string]interface{}, bool) {
-	if len(records) == 0 {
-		return nil, false
-	}
-	return records[0], len(records) > 1
-}
-
 type RecordModifyFunc func(expected, actual map[string]interface{}, file string) error
 
 func ignoreFluentdTimeFunc(ignoreFluentdTimeFiles string) RecordModifyFunc {
@@ -188,6 +179,28 @@ func contains(slc []string, el string) bool {
 		}
 	}
 	return false
+}
+
+// describeRecord summarizes an output record in one line for the report: the fields that identify
+// it and the start of its message.
+func describeRecord(record map[string]interface{}) string {
+	var parts []string
+	for _, field := range []string{"time", "log_time", "tag", "pod"} {
+		if value, exists := record[field]; exists {
+			parts = append(parts, fmt.Sprintf("%s=%v", field, value))
+		}
+	}
+	for _, field := range []string{"short_message", "log", "message"} {
+		if value, exists := record[field]; exists {
+			text := fmt.Sprintf("%v", value)
+			if len(text) > 80 {
+				text = text[:80] + "..."
+			}
+			parts = append(parts, fmt.Sprintf("%s=%q", field, text))
+			break
+		}
+	}
+	return strings.Join(parts, " ")
 }
 
 func printJsonRecord(id string, record map[string]interface{}, expected bool) error {

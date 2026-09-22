@@ -4,6 +4,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"reflect"
 	"testing"
 
 	loggingService "github.com/Netcracker/qubership-logging-operator/api/v1"
@@ -93,7 +94,7 @@ func TestContains(t *testing.T) {
 	}
 }
 
-func TestFindActualRecord(t *testing.T) {
+func TestFindActualRecords(t *testing.T) {
 	t.Parallel()
 
 	actual := []map[string]interface{}{
@@ -104,36 +105,34 @@ func TestFindActualRecord(t *testing.T) {
 	}
 
 	tests := []struct {
-		name          string
-		expected      map[string]interface{}
-		wantMessage   interface{}
-		wantDuplicate bool
+		name     string
+		expected map[string]interface{}
+		want     []int
 	}{
 		{
-			name:        "the default match field selects by the runtime timestamp",
-			expected:    map[string]interface{}{"_test": metadata("one"), "time": "2024-01-01T00:00:01Z"},
-			wantMessage: "second",
+			name:     "the default match field selects by the runtime timestamp",
+			expected: map[string]interface{}{"_test": metadata("one"), "time": "2024-01-01T00:00:01Z"},
+			want:     []int{1},
 		},
 		{
-			name:        "a declared match field replaces the default",
-			expected:    map[string]interface{}{"_test": metadata("two", "tag"), "tag": "/var/log/messages"},
-			wantMessage: "fourth",
+			name:     "a declared match field replaces the default",
+			expected: map[string]interface{}{"_test": metadata("two", "tag"), "tag": "/var/log/messages"},
+			want:     []int{3},
 		},
 		{
-			name:        "several declared match fields must all hold",
-			expected:    map[string]interface{}{"_test": metadata("three", "log", "tag"), "log": "syslog line", "tag": "/var/log/syslog"},
-			wantMessage: "third",
+			name:     "several declared match fields must all hold",
+			expected: map[string]interface{}{"_test": metadata("three", "log", "tag"), "log": "syslog line", "tag": "/var/log/syslog"},
+			want:     []int{2},
 		},
 		{
-			name:        "a value no output record carries selects nothing",
-			expected:    map[string]interface{}{"_test": metadata("four"), "time": "2024-01-01T00:00:09Z"},
-			wantMessage: nil,
+			name:     "a value no output record carries selects nothing",
+			expected: map[string]interface{}{"_test": metadata("four"), "time": "2024-01-01T00:00:09Z"},
+			want:     nil,
 		},
 		{
-			name:          "a value two output records carry is reported as duplicated",
-			expected:      map[string]interface{}{"_test": metadata("five", "log"), "log": "syslog line"},
-			wantMessage:   "first",
-			wantDuplicate: true,
+			name:     "a value two output records carry selects both",
+			expected: map[string]interface{}{"_test": metadata("five", "log"), "log": "syslog line"},
+			want:     []int{2, 3},
 		},
 	}
 
@@ -150,21 +149,8 @@ func TestFindActualRecord(t *testing.T) {
 				t.Fatalf("selectorValues() reported %q as missing, want no missing field", missing)
 			}
 
-			record, duplicated := findActualRecord(actual, values)
-			if duplicated != tt.wantDuplicate {
-				t.Errorf("findActualRecord(%v) duplicated = %v, want %v", values, duplicated, tt.wantDuplicate)
-			}
-			if tt.wantMessage == nil {
-				if record != nil {
-					t.Errorf("findActualRecord(%v) = %v, want no record", values, record)
-				}
-				return
-			}
-			if record == nil {
-				t.Fatalf("findActualRecord(%v) = no record, want short_message %q", values, tt.wantMessage)
-			}
-			if got := record["short_message"]; got != tt.wantMessage && !tt.wantDuplicate {
-				t.Errorf("findActualRecord(%v) short_message = %v, want %v", values, got, tt.wantMessage)
+			if got := findActualRecords(actual, values); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("findActualRecords(%v) = %v, want %v", values, got, tt.want)
 			}
 		})
 	}
@@ -321,6 +307,82 @@ func TestTestJSONDuplicateSelectorFails(t *testing.T) {
 	if success {
 		t.Fatal("testJson success = true, want false")
 	}
+}
+
+// TestTestJSONDroppedProbe cannot run in parallel: same reason as TestTestJSONSuccess.
+func TestTestJSONDroppedProbe(t *testing.T) {
+	tests := []struct {
+		name   string
+		actual string
+		want   bool
+	}{
+		{name: "a line the pipeline dropped passes the probe", actual: "{\"time\":\"one\",\"message\":\"ok\"}\n", want: true},
+		{name: "a line the pipeline kept fails the probe", actual: "{\"time\":\"one\",\"message\":\"ok\"}\n{\"time\":\"two\",\"message\":\"\"}\n", want: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			dir := chdirTemp(t)
+			writeFile(t, filepath.Join(dir, "output-logs", "actual", "output.log"), tt.actual)
+			writeFile(t, filepath.Join(dir, "output-logs", "expected", "sample.log.json"),
+				"[{\"_test\":{\"id\":\"one\"},\"time\":\"one\",\"message\":\"ok\"},{\"_test\":{\"id\":\"two\",\"dropped\":true},\"time\":\"two\"}]")
+
+			success, err := testJson("", stubAgent{outputFileName: "output.log"}, nil)
+			if err != nil {
+				t.Fatalf("testJson returned error: %v", err)
+			}
+			if success != tt.want {
+				t.Errorf("testJson() = %v, want %v", success, tt.want)
+			}
+		})
+	}
+}
+
+// TestTestJSONUnexpectedRecordFails cannot run in parallel: same reason as TestTestJSONSuccess.
+func TestTestJSONUnexpectedRecordFails(t *testing.T) {
+	dir := chdirTemp(t)
+	writeFile(t, filepath.Join(dir, "output-logs", "actual", "output.log"), "{\"time\":\"one\",\"message\":\"ok\"}\n{\"time\":\"stray\",\"message\":\"nobody expects me\"}\n")
+	writeFile(t, filepath.Join(dir, "output-logs", "expected", "sample.log.json"), "[{\"_test\":{\"id\":\"one\"},\"time\":\"one\",\"message\":\"ok\"}]")
+
+	success, err := testJson("", stubAgent{outputFileName: "output.log"}, nil)
+	if err != nil {
+		t.Fatalf("testJson returned error: %v", err)
+	}
+	if success {
+		t.Fatal("testJson() = true, want false for an output record no expected record describes")
+	}
+}
+
+// TestTestJSONIgnoredFileClaimsItsRecords cannot run in parallel: same reason as TestTestJSONSuccess.
+func TestTestJSONIgnoredFileClaimsItsRecords(t *testing.T) {
+	dir := chdirTemp(t)
+	writeFile(t, filepath.Join(dir, "output-logs", "actual", "output.log"), "{\"time\":\"one\",\"message\":\"ok\"}\n{\"time\":\"two\",\"message\":\"differs from the ignored expectation\"}\n")
+	writeFile(t, filepath.Join(dir, "output-logs", "expected", "sample.log.json"), "[{\"_test\":{\"id\":\"one\"},\"time\":\"one\",\"message\":\"ok\"}]")
+	writeFile(t, filepath.Join(dir, "output-logs", "expected", "ignored.log.json"), "[{\"_test\":{\"id\":\"two\"},\"time\":\"two\",\"message\":\"stale\"}]")
+
+	success, err := testJson("ignored.log.json", stubAgent{outputFileName: "output.log"}, nil)
+	if err != nil {
+		t.Fatalf("testJson returned error: %v", err)
+	}
+	if !success {
+		t.Fatal("testJson() = false, want true when the only mismatch is in an ignored file")
+	}
+}
+
+// chdirTemp moves the test into a temporary directory, because testJson resolves paths relative
+// to the working directory.
+func chdirTemp(t *testing.T) string {
+	t.Helper()
+
+	dir := t.TempDir()
+	oldWD, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("getwd: %v", err)
+	}
+	if err := os.Chdir(dir); err != nil {
+		t.Fatalf("chdir temp dir: %v", err)
+	}
+	t.Cleanup(func() { _ = os.Chdir(oldWD) })
+	return dir
 }
 
 func writeFile(t *testing.T, path, content string) {

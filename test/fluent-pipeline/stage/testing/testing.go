@@ -20,6 +20,7 @@ var (
 	differencesStatus    = "\u001b[33;20mLog is processed, but with differences\u001B[0m"
 	logNotFoundStatus    = "\u001b[31mLog is not found in output\u001B[0m"
 	moreThanOneLogStatus = "\u001b[31mMore than one matching log in output\u001B[0m"
+	notDroppedStatus     = "\u001b[31mLog is in output but was expected to be dropped\u001B[0m"
 )
 
 // Directories where the runner mounts the records to compare, relative to the working directory
@@ -35,13 +36,16 @@ type reportRow struct {
 	details string
 }
 
-// comparison holds the state of a single run: the records read from the agent output, the
-// modifications to apply before comparing, and the result collected for the final report.
+// comparison holds the state of a single run: the records read from the agent output, which of
+// them an expected record has claimed, the modifications to apply before comparing, and the result
+// collected for the final report.
 type comparison struct {
 	actualRecords      []map[string]interface{}
+	claimed            []bool
 	modificationFuncs  []RecordModifyFunc
 	report             []reportRow
 	filesWithoutTestID []string
+	unexpected         []map[string]interface{}
 	success            bool
 }
 
@@ -73,6 +77,7 @@ func testJson(ignore string, agent agent.Agent, modificationFuncs []RecordModify
 
 	run := &comparison{
 		actualRecords:     actualRecords,
+		claimed:           make([]bool, len(actualRecords)),
 		modificationFuncs: modificationFuncs,
 		success:           true,
 	}
@@ -81,6 +86,7 @@ func testJson(ignore string, agent agent.Agent, modificationFuncs []RecordModify
 	if err := run.compareExpectedFiles(expectedLogsDir, strings.Split(ignore, ",")); err != nil {
 		return false, err
 	}
+	run.collectUnexpected()
 
 	slog.Info("Check finished!")
 	run.printReport(agent)
@@ -130,10 +136,6 @@ func (c *comparison) compareExpectedFiles(root string, ignoreFiles []string) err
 		}
 
 		_, expectedFile := filepath.Split(path)
-		if contains(ignoreFiles, expectedFile) {
-			slog.Info(fmt.Sprintf("Skipping file %s", expectedFile))
-			return nil
-		}
 		expected, err := fs.ReadFile(expectedFS, expectedFile)
 		if err != nil {
 			c.success = false
@@ -147,8 +149,46 @@ func (c *comparison) compareExpectedFiles(root string, ignoreFiles []string) err
 			c.success = false
 			return err
 		}
+		if contains(ignoreFiles, expectedFile) {
+			slog.Info(fmt.Sprintf("Skipping file %s", expectedFile))
+			c.claimRecords(expectedRecords)
+			return nil
+		}
 		return c.compareRecords(expectedFile, expectedRecords)
 	})
+}
+
+// claimRecords marks the output records of an ignored file as accounted for, so that skipping the
+// comparison does not report them as unexpected.
+func (c *comparison) claimRecords(expectedRecords []map[string]interface{}) {
+	for _, record := range expectedRecords {
+		metadata, ok := getTestMetadata(record)
+		if !ok {
+			continue
+		}
+		if values, missing := selectorValues(record, metadata); missing == "" {
+			c.claim(findActualRecords(c.actualRecords, values))
+		}
+	}
+}
+
+func (c *comparison) claim(indexes []int) {
+	for _, index := range indexes {
+		c.claimed[index] = true
+	}
+}
+
+// collectUnexpected gathers the output records no expected record claimed. Each fixture line the
+// pipeline keeps has to be described, so an unclaimed record fails the run.
+func (c *comparison) collectUnexpected() {
+	for index, record := range c.actualRecords {
+		if !c.claimed[index] {
+			c.unexpected = append(c.unexpected, record)
+		}
+	}
+	if len(c.unexpected) > 0 {
+		c.success = false
+	}
 }
 
 func (c *comparison) compareRecords(expectedFile string, expectedRecords []map[string]interface{}) error {
@@ -179,17 +219,28 @@ func (c *comparison) compareExpectedRecord(expectedFile string, record map[strin
 		return nil
 	}
 
-	actualRecord, isDuplicated := findActualRecord(c.actualRecords, values)
-	if isDuplicated {
+	indexes := findActualRecords(c.actualRecords, values)
+	c.claim(indexes)
+	if metadata.Dropped {
+		if len(indexes) == 0 {
+			c.report = append(c.report, reportRow{id: metadata.ID, status: succeeded})
+			return nil
+		}
+		c.fail(metadata.ID, notDroppedStatus)
+		slog.Error(fmt.Sprintf("%d output record(s) match %v, but %q in file %q expects the pipeline to drop the line", len(indexes), values, metadata.ID, expectedFile))
+		return nil
+	}
+	if len(indexes) > 1 {
 		c.fail(metadata.ID, moreThanOneLogStatus)
 		slog.Warn(fmt.Sprintf("Check of %q with id=%s failed: %v matched more than one output record", expectedFile, metadata.ID, values))
 		return nil
 	}
-	if actualRecord == nil {
+	if len(indexes) == 0 {
 		c.fail(metadata.ID, logNotFoundStatus)
 		slog.Error(fmt.Sprintf("no output record in file %q matches %v", expectedFile, values))
 		return nil
 	}
+	actualRecord := c.actualRecords[indexes[0]]
 
 	if err := applyModificationFuncs(record, actualRecord, expectedFile, c.modificationFuncs); err != nil {
 		slog.Error("could not apply modification function to records")
@@ -238,6 +289,14 @@ func (c *comparison) printReport(agent agent.Agent) {
 		fmt.Println()
 		for _, file := range c.filesWithoutTestID {
 			fmt.Println(file)
+		}
+	}
+
+	if len(c.unexpected) > 0 {
+		fmt.Printf("--- %d output record(s) no expected record describes ---", len(c.unexpected))
+		fmt.Println()
+		for _, record := range c.unexpected {
+			fmt.Println(describeRecord(record))
 		}
 	}
 }

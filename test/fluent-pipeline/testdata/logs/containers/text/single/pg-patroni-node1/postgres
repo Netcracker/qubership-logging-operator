@@ -1,0 +1,2 @@
+2026-09-03T10:20:41.000007468Z stdout F 2026-09-03 10:20:41 UTC ERROR: duplicate key value violates unique constraint
+2026-09-03T10:20:42.000007468Z stdout F 2026-09-03 10:20:42 UTC LOG:  database system is ready to accept connections

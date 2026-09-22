@@ -85,5 +85,37 @@
     "level": "info",
     "component": "STORAGE",
     "parse_format": "mongodb_structured"
+  },
+  {
+    "_test": {
+      "id": "mongo-4"
+    },
+    "attributes": {
+      "db": "admin",
+      "mechanism": "SCRAM-SHA-256",
+      "user": "admin"
+    },
+    "component": "ACCESS",
+    "container": "fake-container",
+    "context": "conn12",
+    "date": "2025-07-08T10:53:19.000+00:00",
+    "detected_level": "info",
+    "hostname": "fake-fluent",
+    "id": 20250,
+    "labels": {
+      "metadata.app": "fluent-pipeline-test",
+      "metadata.app.kubernetes.io/version": "0.1.0"
+    },
+    "level": "info",
+    "namespace": "fake-namespace",
+    "nc_audit_label": "true",
+    "nodename": "fake-node",
+    "parse_field_count": 15,
+    "parse_format": "mongodb_structured",
+    "parse_status": "success",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "short_message": "Authentication succeeded",
+    "source_level": "I",
+    "time": "2025-07-08T10:53:19.000007468Z"
   }
 ]

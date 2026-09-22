@@ -85,5 +85,36 @@
     "kubernetes_host": "fake-node",
     "nc_audit_label": "false",
     "fluentd_time": "2025-07-08T10:53:18.438Z"
+  },
+  {
+    "_test": {
+      "id": "mongo-4"
+    },
+    "attr": {
+      "mechanism": "SCRAM-SHA-256",
+      "user": "admin",
+      "db": "admin"
+    },
+    "c": "ACCESS",
+    "container": "fake-container",
+    "ctx": "conn12",
+    "fluentd_time": "2025-07-08T10:53:19.000Z",
+    "hostname": "fake-fluent",
+    "id": 20250,
+    "kubernetes_host": "fake-node",
+    "labels": "{\"app\" : \"fluent-pipeline-test\", \"app.kubernetes.io_version\" : \"0.1.0\"}",
+    "level": "info",
+    "log": "{\"t\":{\"$date\":\"2025-07-08T10:53:19.000+00:00\"},\"s\":\"I\",  \"c\":\"ACCESS\",   \"id\":20250,   \"ctx\":\"conn12\",\"msg\":\"Authentication succeeded\",\"attr\":{\"mechanism\":\"SCRAM-SHA-256\",\"user\":\"admin\",\"db\":\"admin\"}}",
+    "msg": "Authentication succeeded",
+    "namespace": "fake-namespace",
+    "nc_audit_label": "false",
+    "parse_level_unknown": "true",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "s": "I",
+    "source_level": null,
+    "t": {
+      "$date": "2025-07-08T10:53:19.000+00:00"
+    },
+    "time": "2025-07-08T10:53:19.000007468Z"
   }
 ]

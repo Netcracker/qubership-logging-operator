@@ -119,6 +119,11 @@ belong to the calling user. The logging agents run as root and read those files 
    `testdata/output/fluentbit-ha`, or `testdata/output/fluentd`, and give it a `_test` block with an `id`.
 3. Run the scenario and read the report. A record the pipeline strips the timestamp from is reported as not found;
    add `matchOn` with fields that survive processing, such as `log` for a syslog record.
+
+A fixture for a third-party format, such as `text/single/coredns`, holds two lines from the same pod: one in the
+format its parser expects and one that is not, so the run shows both that the pod name selects the parser and that
+the parser leaves other lines alone. The pod name comes from the directory path, so `opensearch-0` matches the
+`opensearch-\d{1,2}_` selector while `opensearch` would not.
 4. Run every affected scenario locally.
 
 Do not replace expected files with actual output without reviewing each changed field. A broad golden-file update can

@@ -29,6 +29,12 @@ The fixtures carry no test-only markers. A marker inside a message reaches the p
 marker becomes a field, which adds one to `parse_field_count` and can turn `parse_status` from `failed` into
 `success`, so the expected records would describe the marker rather than the log line.
 
+The `fluentbit` and `fluentbit-ha` scenarios also read the Prometheus exporter of the agent that writes the output.
+The `log_to_metrics` filters, which count parse errors and Calico SYN packets, reach no output file: they are
+exported on port 2021. The scrape runs in the network namespace of the agent container and is compared with
+`testdata/metrics/<scenario>.prom`. Those filters flush every 20 seconds, so the scrape is retried until it carries
+every expected line.
+
 The `fluentbit` and `fluentbit-ha` scenarios also run every parser from the daemon set and forwarder `parsers.conf`
 files in isolation. Parser cases live in `testdata/parser-cases.json`; every parser has one matching and one
 non-matching source line. The runner adds `test_case` after parsing, so test identifiers never change the input being
@@ -169,5 +175,11 @@ hide a pipeline regression.
 
 Add both a matching and a non-matching case to `testdata/parser-cases.json`. Set `match` to `true` or `false`, describe
 the significant parsed fields in `expected`, and list fields that would indicate an incorrect match in `absent`.
+
+The non-matching line is the nearest line the parser has to reject, not an unrelated one: it differs from the
+matching line in the one element the regular expression requires, such as a lowercase severity letter for
+`klog_entry` or `PROTO=UDP` for `calico_tcp`. A far-away line passes whether the expression is right or wrong. Where
+a parser accepts a near miss, the case that records it is a matching one, as
+`cassandra-timestamp-taken-as-method` does for a regular expression that takes a timestamp bracket for the method.
 `TestManifestCoversEveryFluentBitParser` reports a missing pair when `parsers.conf` gains a parser, and
 `TestManifestHasNoCaseForARemovedParser` reports the cases left behind when a parser is renamed or removed.

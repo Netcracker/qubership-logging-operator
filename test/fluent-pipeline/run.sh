@@ -13,9 +13,12 @@ INT_TESTS_IGNORE=${INT_TESTS_IGNORE:-}
 # Running it as the calling user keeps every generated file owned by that user, so neither the
 # logging agents, which run as root, nor the cleanup of the next run need loose permissions.
 HELPER_USER=${HELPER_USER:-$(id -u):$(id -g)}
-CFG_TIMEOUT=${CFG_TIMEOUT:-2}
-PARSE_TIMEOUT=${PARSE_TIMEOUT:-20}
-PARSER_CONTRACT_TIMEOUT=${PARSER_CONTRACT_TIMEOUT:-5}
+# Readiness and completion are observed, not timed. STARTUP_TIMEOUT bounds the wait for an agent to open its
+# inputs, and OUTPUT_TIMEOUT bounds the wait for the processed records to reach the output file. Records arrive
+# in flushes, so a count that holds for OUTPUT_SETTLE_POLLS one-second polls is taken as final.
+STARTUP_TIMEOUT=${STARTUP_TIMEOUT:-30}
+OUTPUT_TIMEOUT=${OUTPUT_TIMEOUT:-60}
+OUTPUT_SETTLE_POLLS=${OUTPUT_SETTLE_POLLS:-3}
 
 cleanup() {
     docker rm -f fluentd fluent-bit fluent-bit-forwarder fluent-bit-aggregator fluent-bit-parser-contract fluent-config-replacer \
@@ -48,8 +51,8 @@ run_parser_contracts() {
         -v "${contract_dir}/output":/parser-output:rw \
         "${FLUENTBIT_IMAGE}"
 
-    sleep "${PARSER_CONTRACT_TIMEOUT}"
-    ensure_running fluent-bit-parser-contract
+    wait_for_records "${contract_dir}/output/output-log" "$(count_expected_records "${contract_dir}/expected")" \
+        fluent-bit-parser-contract
     docker stop fluent-bit-parser-contract
 
     docker run --rm --security-opt label=disable --user "${HELPER_USER}" --name fluent-pipeline-test \
@@ -71,6 +74,71 @@ ensure_running() {
         docker logs "${container_name}" >&2 || true
         return 1
     fi
+}
+
+# wait_for_log polls a container's log for the line that shows it is ready. The agents log it at the info level,
+# which the test custom resources set. A container that exits or stays silent past STARTUP_TIMEOUT fails the run.
+wait_for_log() {
+    container_name=$1
+    pattern=$2
+    waited=0
+    while [ "${waited}" -lt "${STARTUP_TIMEOUT}" ]; do
+        if docker logs "${container_name}" 2>&1 | grep -qE -- "${pattern}"; then
+            return 0
+        fi
+        ensure_running "${container_name}" || return 1
+        sleep 1
+        waited=$((waited + 1))
+    done
+    echo "Timed out after ${STARTUP_TIMEOUT} seconds waiting for ${container_name} to log '${pattern}'" >&2
+    docker logs --tail 20 "${container_name}" >&2 || true
+    return 1
+}
+
+# wait_for_system_inputs waits until the Fluent Bit tail inputs have opened the system and audit files, so the
+# lines appended afterwards are read; the inputs skip whatever a file held before they opened it.
+wait_for_system_inputs() {
+    container_name=$1
+    for host_log in /var/log/syslog /var/log/audit/audit.log /var/log/kubernetes/audit/audit.log; do
+        wait_for_log "${container_name}" "inotify_fs_add\(\).*name=${host_log}\$"
+    done
+}
+
+# count_expected_records counts the records the comparison reads from a directory of expected files; each record
+# carries one _test block.
+count_expected_records() {
+    cat "$1"/*.log.json | grep -c '"_test"'
+}
+
+# wait_for_records polls the output file until it holds at least the expected number of records and the count has
+# held for OUTPUT_SETTLE_POLLS polls. When OUTPUT_TIMEOUT passes it reports the count it saw and returns, because
+# the comparison stage names the missing records better than an early exit would. A container that has exited
+# ends the wait at once.
+wait_for_records() {
+    output_file=$1
+    expected_records=$2
+    container_name=$3
+    waited=0
+    previous=-1
+    settled=0
+    while [ "${waited}" -lt "${OUTPUT_TIMEOUT}" ]; do
+        current=$(grep -c '^{' "${output_file}" 2>/dev/null || true)
+        current=${current:-0}
+        if [ "${current}" -ge "${expected_records}" ] && [ "${current}" -eq "${previous}" ]; then
+            settled=$((settled + 1))
+        else
+            settled=0
+        fi
+        if [ "${settled}" -ge "${OUTPUT_SETTLE_POLLS}" ]; then
+            echo "=> ${current} records in ${output_file} after ${waited} seconds"
+            return 0
+        fi
+        ensure_running "${container_name}" || return 0
+        previous=${current}
+        sleep 1
+        waited=$((waited + 1))
+    done
+    echo "Timed out after ${OUTPUT_TIMEOUT} seconds waiting for ${expected_records} records in ${output_file}; last count ${previous}" >&2
 }
 
 # Use sed to copy data from test data in files that fluent should read
@@ -135,10 +203,6 @@ run_fluentd_test_logic() {
 
     speed_up_file_discovery "${TEST_CONTENT_PATH}/config"
 
-    # wait until prepare container stop
-    echo "=> Waiting for stop container rendered FluentD configuration (${CFG_TIMEOUT} seconds)"
-    sleep "${CFG_TIMEOUT}"
-
     # run FluentD
     echo "=> Run FluentD to read, parse and output processed logs"
     docker run --security-opt label=disable -d --name "${FLD_DOCKER_NAME}" \
@@ -149,9 +213,8 @@ run_fluentd_test_logic() {
         -v "${TEST_CONTENT_PATH}/output/":/fluentd-output:rw \
         "${FLUENTD_IMAGE}"
 
-    echo "=> Waiting for FluentD start (${CFG_TIMEOUT} seconds)"
-    sleep "${CFG_TIMEOUT}"
-    ensure_running "${FLD_DOCKER_NAME}"
+    echo "=> Waiting for FluentD to start"
+    wait_for_log "${FLD_DOCKER_NAME}" 'fluentd worker is now running'
 
     echo "=> Start print prepared test data in logs"
     add_lines "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/input/kubernetes/audit/audit.log" "${TEST_CONTENT_PATH}/logs/var/log/kubernetes/audit/audit.log"
@@ -160,8 +223,9 @@ run_fluentd_test_logic() {
     add_lines "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/input/system/messages" "${TEST_CONTENT_PATH}/logs/var/log/messages"
     add_lines "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/input/system/journal" "${TEST_CONTENT_PATH}/logs/var/log/journal"
 
-    echo "=> Waiting until FluentD process all logs (${PARSE_TIMEOUT} seconds)"
-    sleep "${PARSE_TIMEOUT}"
+    echo "=> Waiting until FluentD writes the processed logs"
+    wait_for_records "${TEST_CONTENT_PATH}/output/fake-fluent.log" \
+        "$(count_expected_records "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/output/fluentd")" "${FLD_DOCKER_NAME}"
 
     echo "=> Stop and remove FluentD docker container"
     docker logs "${FLD_DOCKER_NAME}"
@@ -213,10 +277,6 @@ run_fluentbit_test_logic() {
 
     speed_up_file_discovery "${TEST_CONTENT_PATH}/config"
 
-    # wait until prepare container stop
-    echo "=> Waiting for stop container rendered FluentBit configuration (${CFG_TIMEOUT} seconds)"
-    sleep "${CFG_TIMEOUT}"
-
     # run fluent bit
     echo "=> Run FluentBit to read, parse and output processed logs"
     docker run -d --name "${FLB_DOCKER_NAME}" \
@@ -227,9 +287,8 @@ run_fluentbit_test_logic() {
         -v "${TEST_CONTENT_PATH}/output/":/fluentbit-output:z \
         "${FLUENTBIT_IMAGE}"
 
-    echo "=> Waiting for FluentBit start (${CFG_TIMEOUT} seconds)"
-    sleep "${CFG_TIMEOUT}"
-    ensure_running "${FLB_DOCKER_NAME}"
+    echo "=> Waiting for FluentBit to open the system and audit inputs"
+    wait_for_system_inputs "${FLB_DOCKER_NAME}"
 
     echo "=> Start print prepared test data in logs"
     add_lines "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/input/kubernetes/audit/audit.log" "${TEST_CONTENT_PATH}/logs/var/log/kubernetes/audit/audit.log"
@@ -238,8 +297,9 @@ run_fluentbit_test_logic() {
     add_lines "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/input/system/messages" "${TEST_CONTENT_PATH}/logs/var/log/messages"
     add_lines "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/input/system/journal" "${TEST_CONTENT_PATH}/logs/var/log/journal"
 
-    echo "=> Waiting until FluentBit process all logs (${PARSE_TIMEOUT} seconds)"
-    sleep "${PARSE_TIMEOUT}"
+    echo "=> Waiting until FluentBit writes the processed logs"
+    wait_for_records "${TEST_CONTENT_PATH}/output/output-log" \
+        "$(count_expected_records "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/output/fluentbit")" "${FLB_DOCKER_NAME}"
 
     echo "=> Stop and remove FluentBit docker container"
     docker logs "${FLB_DOCKER_NAME}"
@@ -295,10 +355,6 @@ run_fluentbit_ha_test_logic() {
 
     speed_up_file_discovery "${TEST_CONTENT_PATH}/forwarder-config"
 
-    # wait until prepare container stop
-    echo "=> Waiting for stop container rendered FluentBit configuration (${CFG_TIMEOUT} seconds)"
-    sleep "${CFG_TIMEOUT}"
-
     docker run --rm --security-opt label=disable --user "${HELPER_USER}" --name fluent-config-replacer \
         -v "${TEST_HOME_PATH}/controllers/fluentbit-forwarder-aggregator/aggregator.configmap/":/config-templates.d:ro \
         -v "${TEST_CONTENT_PATH}/aggregator-config/":/configuration.d:rw \
@@ -314,10 +370,6 @@ run_fluentbit_ha_test_logic() {
 
     speed_up_file_discovery "${TEST_CONTENT_PATH}/aggregator-config"
 
-    # wait until prepare container stop
-    echo "=> Waiting for stop container rendered FluentBit configuration (${CFG_TIMEOUT} seconds)"
-    sleep "${CFG_TIMEOUT}"
-
     # run fluent bit
     echo "=> Run FluentBit to read, parse and output processed logs"
 
@@ -331,9 +383,8 @@ run_fluentbit_ha_test_logic() {
         -v "${TEST_CONTENT_PATH}/output/":/fluentbit-output:rw \
         "${FLUENTBIT_IMAGE}"
 
-    echo "=> Waiting for FluentBit aggregator start (${CFG_TIMEOUT} seconds)"
-    sleep "${CFG_TIMEOUT}"
-    ensure_running "${FLB_AGR_DOCKER_NAME}"
+    echo "=> Waiting for the FluentBit aggregator to listen for the forwarder"
+    wait_for_log "${FLB_AGR_DOCKER_NAME}" 'input:forward.*listening on'
 
     docker run -d --security-opt label=disable --name "${FLB_FRW_DOCKER_NAME}" \
         --network=fluent-net \
@@ -343,9 +394,8 @@ run_fluentbit_ha_test_logic() {
         -v "${TEST_CONTENT_PATH}/logs/var/log/":/var/log:rw \
         "${FLUENTBIT_IMAGE}"
 
-    echo "=> Waiting for FluentBit forwarder start (${CFG_TIMEOUT} seconds)"
-    sleep "${CFG_TIMEOUT}"
-    ensure_running "${FLB_FRW_DOCKER_NAME}"
+    echo "=> Waiting for the FluentBit forwarder to open the system and audit inputs"
+    wait_for_system_inputs "${FLB_FRW_DOCKER_NAME}"
 
     echo "=> Start print prepared test data in logs"
     add_lines "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/input/kubernetes/audit/audit.log" "${TEST_CONTENT_PATH}/logs/var/log/kubernetes/audit/audit.log"
@@ -354,8 +404,9 @@ run_fluentbit_ha_test_logic() {
     add_lines "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/input/system/messages" "${TEST_CONTENT_PATH}/logs/var/log/messages"
     add_lines "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/input/system/journal" "${TEST_CONTENT_PATH}/logs/var/log/journal"
 
-    echo "=> Waiting until FluentBit process all logs (${PARSE_TIMEOUT} seconds)"
-    sleep "${PARSE_TIMEOUT}"
+    echo "=> Waiting until the FluentBit aggregator writes the processed logs"
+    wait_for_records "${TEST_CONTENT_PATH}/output/output-log" \
+        "$(count_expected_records "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/output/fluentbit-ha")" "${FLB_AGR_DOCKER_NAME}"
 
     echo "=> Print FlintBit forwarder logs"
     docker logs "${FLB_FRW_DOCKER_NAME}"

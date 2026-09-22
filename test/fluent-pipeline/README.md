@@ -62,6 +62,12 @@ Each scenario performs three operations:
 The runner changes only the rendered file-input discovery interval from 60 seconds to 1 second. This keeps parser and
 filter behavior unchanged while avoiding a one-minute wait for system and audit fixtures in every scenario.
 
+The runner waits for what it needs instead of sleeping. It reads the agent log for the line that shows the inputs are
+open before it appends the system and audit fixtures, and it reads the output file until it holds as many records as
+the expected files and the count stops changing. The test custom resources therefore set `logLevel: info`, which
+the readiness lines need, and flush every second so records do not wait in a buffer. A wait that runs out reports
+what it waited for and the last count it saw; the comparison then names the missing records.
+
 ## Requirements
 
 - Docker
@@ -91,16 +97,16 @@ The runner stores generated configuration and actual output in `build/fluent-pip
 
 The following environment variables override the defaults:
 
-| Variable                     | Default                                         |
-| ---------------------------- | ----------------------------------------------- |
-| `FLUENTBIT_IMAGE`            | `docker.io/fluent/fluent-bit:5.1.0`             |
-| `FLUENTD_IMAGE`              | `ghcr.io/netcracker/qubership-fluentd:1.19.3-1` |
-| `FLUENT_PIPELINE_TEST_IMAGE` | `qubership-fluent-pipeline-tests:local`         |
-| `HELPER_USER`                | `$(id -u):$(id -g)`                             |
-| `CFG_TIMEOUT`                | `2` seconds                                     |
-| `PARSE_TIMEOUT`              | `20` seconds                                    |
-| `PARSER_CONTRACT_TIMEOUT`    | `5` seconds                                     |
-| `INT_TESTS_IGNORE`           | Empty                                           |
+| Variable                     | Default                                         | Meaning                         |
+| ---------------------------- | ----------------------------------------------- | ------------------------------- |
+| `FLUENTBIT_IMAGE`            | `docker.io/fluent/fluent-bit:5.1.0`             | Fluent Bit image under test     |
+| `FLUENTD_IMAGE`              | `ghcr.io/netcracker/qubership-fluentd:1.19.3-1` | Fluentd image under test        |
+| `FLUENT_PIPELINE_TEST_IMAGE` | `qubership-fluent-pipeline-tests:local`         | Helper image                    |
+| `HELPER_USER`                | `$(id -u):$(id -g)`                             | User the helper runs as         |
+| `STARTUP_TIMEOUT`            | `30`                                            | Seconds to wait for open inputs |
+| `OUTPUT_TIMEOUT`             | `60`                                            | Seconds to wait for the records |
+| `OUTPUT_SETTLE_POLLS`        | `3`                                             | Polls with an unchanged count   |
+| `INT_TESTS_IGNORE`           | Empty                                           | Expected files to skip          |
 
 The runner starts the helper container as `HELPER_USER`, so the rendered configuration and the generated container logs
 belong to the calling user. The logging agents run as root and read those files without extra permissions.

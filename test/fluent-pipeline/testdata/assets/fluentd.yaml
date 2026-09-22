@@ -8,7 +8,8 @@ spec:
   cloudEventsReader:
     install: true
   fluentd:
-    logLevel: warn
+    # The runner waits for readiness lines the agent logs at the info level.
+    logLevel: info
 
     systemLogging: true
     systemLogType: varlogsyslog
@@ -42,7 +43,7 @@ spec:
         </format>
         <buffer hostname>
           flush_mode interval
-          flush_interval 5
+          flush_interval 1
           timekey 1s
           timekey_wait 0s
         </buffer>

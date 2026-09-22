@@ -8,7 +8,10 @@ spec:
   cloudEventsReader:
     install: true
   fluentbit:
-    logLevel: warn
+    # The runner waits for readiness lines the agent logs at the info level, and reads the output as soon as it
+    # is flushed instead of sleeping.
+    logLevel: info
+    flush: 1
 
     systemLogging: true
     systemLogType: varlogsyslog

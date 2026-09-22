@@ -17,6 +17,8 @@ HELPER_USER=${HELPER_USER:-$(id -u):$(id -g)}
 # inputs, and OUTPUT_TIMEOUT bounds the wait for the processed records to reach the output file. Records arrive
 # in flushes, so a count that holds for OUTPUT_SETTLE_POLLS one-second polls is taken as final.
 STARTUP_TIMEOUT=${STARTUP_TIMEOUT:-30}
+# The log_to_metrics filters flush every 20 seconds, so the exporter serves nothing before that.
+METRICS_TIMEOUT=${METRICS_TIMEOUT:-60}
 OUTPUT_TIMEOUT=${OUTPUT_TIMEOUT:-60}
 OUTPUT_SETTLE_POLLS=${OUTPUT_SETTLE_POLLS:-3}
 
@@ -119,6 +121,41 @@ wait_for_system_inputs() {
         # shellcheck disable=SC2059 # the format comes from the constants above, not from input
         wait_for_log "${container_name}" "$(printf "${line_format}" "${host_log}")"
     done
+}
+
+# check_metrics compares what the Fluent Bit Prometheus exporter serves with the checked-in metrics of the
+# scenario. The metrics come from the log_to_metrics filters, which no output file carries: they are exported on
+# their own port, so the scrape runs in the network namespace of the agent container. The scrape is retried until
+# it carries every expected line, because the filters flush on their own interval.
+check_metrics() {
+    container_name=$1
+    expected_file=$2
+    actual_file="${TEST_CONTENT_PATH}/metrics.prom"
+    if [ ! -s "${expected_file}" ]; then
+        echo "The expected metrics file ${expected_file} is missing or empty" >&2
+        return 1
+    fi
+    waited=0
+    while [ "${waited}" -lt "${METRICS_TIMEOUT}" ]; do
+        scrape_metrics "${container_name}" >"${actual_file}" 2>/dev/null || true
+        if [ -s "${actual_file}" ] && ! grep -q -v -F -x -f "${actual_file}" "${expected_file}"; then
+            break
+        fi
+        ensure_running "${container_name}" || break
+        sleep 1
+        waited=$((waited + 1))
+    done
+    if diff -u "${expected_file}" "${actual_file}"; then
+        echo "=> The exporter served the expected metrics after ${waited} seconds"
+        return 0
+    fi
+    echo "The exporter served different metrics after ${waited} seconds; the diff is above" >&2
+    return 1
+}
+
+scrape_metrics() {
+    docker run --rm --security-opt label=disable --network "container:$1" \
+        --entrypoint wget "${FLUENT_PIPELINE_TEST_IMAGE}" -qO- http://127.0.0.1:2021/metrics
 }
 
 # count_expected_records counts the records the comparison expects in the output: each expected record carries one
@@ -317,6 +354,9 @@ run_fluentbit_test_logic() {
     wait_for_records "${TEST_CONTENT_PATH}/output/output-log" \
         "$(count_expected_records "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/output/fluentbit")" "${FLB_DOCKER_NAME}"
 
+    echo "=> Waiting for the metrics exporter to serve the log_to_metrics counters"
+    check_metrics "${FLB_DOCKER_NAME}" "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/metrics/fluentbit.prom"
+
     echo "=> Stop and remove FluentBit docker container"
     docker logs "${FLB_DOCKER_NAME}"
     docker stop "${FLB_DOCKER_NAME}"
@@ -422,6 +462,9 @@ run_fluentbit_ha_test_logic() {
     echo "=> Waiting until the FluentBit aggregator writes the processed logs"
     wait_for_records "${TEST_CONTENT_PATH}/output/output-log" \
         "$(count_expected_records "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/output/fluentbit-ha")" "${FLB_AGR_DOCKER_NAME}"
+
+    echo "=> Waiting for the metrics exporter to serve the log_to_metrics counters"
+    check_metrics "${FLB_AGR_DOCKER_NAME}" "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/metrics/fluentbit-ha.prom"
 
     echo "=> Print FlintBit forwarder logs"
     docker logs "${FLB_FRW_DOCKER_NAME}"

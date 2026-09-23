@@ -111,11 +111,13 @@ contentLength=175"
     "[2024-10-17T07:22:56.942] [INFO ] [request_id=-] [tenant_id=-] [thread=XNIO-1 task-18] [class=c.n.c.d.s.DBaaService] database for decryption = DatabaseRegistry(id=null, database=Database{id=null, oldClassifier=null, classifier={isServiceDb=true, microserviceName=aap-datahub-base, namespace=env-1-datahub, scope=service}, connectionProperties=[{role=admin, port=5432, host=pg-patroni.postgresql, name=dbaas_19ef1356b5804adb8e61a51687643bc8, url=jdbc:postgresql://pg-patroni.postgresql:5432/dbaas_19ef1356b5804adb8e61a51687643bc8, username=dbaas_f8f3decff5864ab2a7e0e167c33aaa46}, {role=streaming, port=5432, host=pg-patroni.postgresql, name=dbaas_19ef1356b5804adb8e61a51687643bc8, url=jdbc:postgresql://pg-patroni.postgresql:5432/dbaas_19ef1356b5804adb8e61a51687643bc8, username=dbaas_ac72f68f31684e78a398a7c12ce7022b}, {role=rw, port=5432, host=pg-patroni.postgresql, name=dbaas_19ef1356b5804adb8e61a51687643bc8, url=jdbc:postgresql://pg-patroni.postgresql:5432/dbaas_19ef1356b5804adb8e61a51687643bc8, username=dbaas_cc433d4e8b4d4c879c3132db6a775331}, {role=ro, port=5432, host=pg-patroni.postgresql, name=dbaas_19ef1356b5804adb8e61a51687643bc8, url=jdbc:postgresql://pg-patroni.postgresql:5432/dbaas_19ef1356b5804adb8e61a51687643bc8, username=dbaas_c7e8ff7540f045b2bb6cc10cb368e1d9}], resources=[DbResource(id=4feac2ed-2db0-4967-b367-24606d1deb70, kind=database, name=dbaas_19ef1356b5804adb8e61a51687643bc8), DbResource(id=e04ab9e2-d86f-4220-ac37-ebc8529a5e82, kind=user, name=dbaas_f8f3decff5864ab2a7e0e167c33aaa46), DbResource(id=1906f863-e635-4108-9e77-848fb3fbcbff, kind=user, name=dbaas_ac72f68f31684e78a398a7c12ce7022b), DbResource(id=6091b182-9274-4cac-9427-06f584eba938, kind=user, name=dbaas_cc433d4e8b4d4c879c3132db6a775331), DbResource(id=0f889d95-8203-4ce9-8f7e-5760a7a8841a, kind=user, name=dbaas_c7e8ff7540f045b2bb6cc10cb368e1d9)], namespace='env-1-datahub', type='postgresql', adapterId='0a0bc11e-0e95-444c-89c6-f796da7130f0', name='dbaas_19ef1356b5804adb8e61a51687643bc8', markedForDrop=false, timeDbCreation=2024-07-11 07:01:23.524, backupDisabled=true, settings=null, connectionDescription=null, warnings=null, externallyManageable=false, dbState=DbState(id=0427cbb0-e08d-42c4-b558-0e2bf6d4ccd9, state=CREATED, databaseState=CREATED, description=null, podName=null), physicalDatabaseId='postgresql:postgres', bgVersion='null'}, timeDbCreation=2024-07-11 07:01:23.524, classifier={isServiceDb=true, microserviceName=aap-datahub-base, namespace=env-1-datahub, scope=service}, namespace=env-1-datahub, type=postgresql)",
 }
 
-local function parse(log, timestamp)
+local function parse(log, timestamp, marked_as_qubership)
     local record = {
         log = log,
-        __qubership_candidate = "[",
     }
+    if marked_as_qubership ~= false then
+        record.__qubership_candidate = "["
+    end
     local ok, code, returned_timestamp, returned_record = pcall(kv_parse, "pods.test", timestamp, record)
 
     assert(ok, "kv_parse raised an error: " .. tostring(code))
@@ -150,5 +152,25 @@ local no_message_code, no_message_record = parse(
 )
 assert(no_message_code == 2, "kv_parse did not modify a message-less record with key-value pairs")
 assert(no_message_record.thread == "main", "kv_parse did not extract a field from a message-less record")
+
+local plain_log = "plain text with [key=value] inside the free message"
+local plain_code, plain_record = parse(plain_log, 1003, false)
+assert(plain_code == 0, "kv_parse modified plain text without a Qubership marker")
+assert(plain_record.key == nil, "kv_parse extracted a field from plain text")
+assert(plain_record.log == plain_log, "kv_parse changed plain text")
+
+local json_log = '{"level":"info","message":"a [k=v] b"}'
+local json_code, json_record = parse(json_log, 1004, false)
+assert(json_code == 0, "kv_parse modified JSON without a Qubership marker")
+assert(json_record.k == nil, "kv_parse extracted a field from a JSON message")
+assert(json_record.log == json_log, "kv_parse changed a JSON log")
+
+local bracket_code, bracket_record = parse(
+    "[2026-09-17T12:00:00Z] [INFO] [request_id=abc] [array=[1,2]] message",
+    1005
+)
+assert(bracket_code == 2, "kv_parse did not process a marked Qubership record")
+assert(bracket_record.request_id == "abc", "kv_parse did not extract the valid field before a bracketed value")
+assert(bracket_record.array == nil, "kv_parse extracted a truncated field from a bracketed value")
 
 print("parse_key_value.lua tests passed")

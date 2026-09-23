@@ -13,7 +13,7 @@ function kv_parse(tag, timestamp, record)
         -- * without [
         -- * start from alphabet symbol, digit or any symbol (expect [)
         local regex_kvs_end = "]%s*[^%[][%w%-%{%}%\\%/%.%,%!%@%#%$%%%^%&%*%(%)]%s*"
-        local regex_kvs = "%[([^=%[%]\"]+)=(%w*(.[^%[%]\"]*))%]"
+        local regex_kvs = "%[([^=%[%]\"]+)=([^%[%]\"]*)%]"
         local regex_kvs_at_end = "%[[^=%[%]\"]+=[^%[%]\"]*%]%s*$"
         local s = record["log"]
 

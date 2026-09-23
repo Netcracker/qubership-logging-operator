@@ -104,7 +104,8 @@ Only `TIMESTAMP` and `LEVEL` are required.
 * `TIMESTAMP` accepts `T`, `t`, or a space as the date-time separator. Fractional seconds with `.` or `,` and up to
   nine digits are optional. The time zone may be `Z`, `z`, `+HH`, `+HHMM`, or `+HH:MM` and is optional.
 * `LEVEL` is case-insensitive and accepts `TRACE`, `DEBUG`, `INFO`, `WARN`, `WARNING`, `ERROR`, or `FATAL`.
-* Zero or more `[key=value]` fields may follow in any order. Values may be empty.
+* Zero or more `[key=value]` fields may follow in any order. Values may be empty and may contain spaces or `=`, but
+  cannot contain `[` or `]`. Escaping square brackets is not supported.
 * `MESSAGE` is optional. It follows `LEVEL` when no `[key=value]` fields are present, or the final field otherwise.
 
 #### Recommended application pattern

@@ -54,7 +54,8 @@ OUTPUT_SETTLE_POLLS=${OUTPUT_SETTLE_POLLS:-3}
 
 cleanup() {
     docker rm -f "${FLUENTD_CONTAINER}" "${FLUENTBIT_CONTAINER}" "${FLUENTBIT_FORWARDER_CONTAINER}" \
-        "${FLUENTBIT_AGGREGATOR_CONTAINER}" "${PARSER_CONTRACT_CONTAINER}" "${CONFIG_REPLACER_CONTAINER}" \
+        "${FLUENTBIT_AGGREGATOR_CONTAINER}" "${PARSER_CONTRACT_CONTAINER}-daemonset" \
+        "${PARSER_CONTRACT_CONTAINER}-forwarder" "${PARSER_CONTRACT_CONTAINER}-aggregator" "${CONFIG_REPLACER_CONTAINER}" \
         "${COMPARISON_CONTAINER}" "${FLUENTBIT_RENDER_CONTAINER}" "${FLUENTD_RENDER_CONTAINER}" \
         "${KUBE_API_NAME}" "${CLEANUP_CONTAINER}" >/dev/null 2>&1 || true
     docker network rm "${NETWORK_NAME}" >/dev/null 2>&1 || true
@@ -64,6 +65,7 @@ run_parser_contracts() {
     rendered_config_dir=$1
     suite_name=$2
     contract_dir="${TEST_CONTENT_PATH}/parser-contracts-${suite_name}"
+    contract_container="${PARSER_CONTRACT_CONTAINER}-${suite_name}"
     mkdir -p "${contract_dir}"
 
     echo "=> Generate isolated Fluent Bit parser contract inputs and expectations"
@@ -79,15 +81,15 @@ run_parser_contracts() {
         -loglevel warn
 
     echo "=> Run isolated Fluent Bit parser contracts"
-    docker run -d --security-opt label=disable --name "${PARSER_CONTRACT_CONTAINER}" \
+    docker run -d --security-opt label=disable --name "${contract_container}" \
         -v "${contract_dir}":/fluent-bit/etc:ro \
         -v "${contract_dir}/input":/parser-input:ro \
         -v "${contract_dir}/output":/parser-output:rw \
         "${FLUENTBIT_IMAGE}"
 
     wait_for_records "${contract_dir}/output/output-log" "$(count_expected_records "${contract_dir}/expected")" \
-        "${PARSER_CONTRACT_CONTAINER}"
-    docker stop "${PARSER_CONTRACT_CONTAINER}"
+        "${contract_container}"
+    docker stop "${contract_container}"
 
     run_comparison docker run --rm --security-opt label=disable --user "${HELPER_USER}" \
         --name "${COMPARISON_CONTAINER}" \
@@ -590,6 +592,7 @@ run_fluentbit_ha_test_logic() {
         -ignore "${INT_TESTS_IGNORE}"
 
     run_parser_contracts "${TEST_CONTENT_PATH}/forwarder-config" forwarder
+    run_parser_contracts "${TEST_CONTENT_PATH}/aggregator-config" aggregator
 }
 
 ###################################################################################################

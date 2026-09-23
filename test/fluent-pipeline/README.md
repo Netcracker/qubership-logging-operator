@@ -35,10 +35,13 @@ exported on port 2021. The scrape runs in the network namespace of the agent con
 `testdata/metrics/<scenario>.prom`. Those filters flush every 20 seconds, so the scrape is retried until it carries
 every expected line.
 
-The `fluentbit` and `fluentbit-ha` scenarios also run every parser from the daemon set and forwarder `parsers.conf`
-files in isolation. Parser cases live in `testdata/parser-cases.json`; every parser has one matching and one
-non-matching source line. The runner adds `test_case` after parsing, so test identifiers never change the input being
-tested. Cases for parsers that are not present in a specific rendered configuration are skipped in that scenario.
+The `fluentbit` and `fluentbit-ha` scenarios also run every parser of the rendered `parsers.conf` in isolation, once
+per configuration the operator ships: the daemon set, the forwarder, and the aggregator. The three define different
+sets of parsers, and several names carry different expressions in each, so a suite runs against one configuration and
+its coverage counts for that configuration alone. Parser cases live in `testdata/parser-cases.json`; every parser has
+one matching and one non-matching source line. The runner adds `test_case` after parsing, so test identifiers never
+change the input being tested. Cases for parsers a configuration does not define are skipped in its suite, and the
+generator names them in its log.
 
 Parser contract expectations are partial: their generated `_test` block sets `partial` and matches on `test_case`.
 `expected` lists fields that must be present, while `absent` lists fields that the parser must not produce. This

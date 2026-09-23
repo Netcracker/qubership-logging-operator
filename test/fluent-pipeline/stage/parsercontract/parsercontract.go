@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -53,6 +54,7 @@ func Prepare(manifestPath, parsersPath, targetDir string) error {
 		available[parser] = true
 	}
 
+	var skipped []string
 	var config strings.Builder
 	config.WriteString("[SERVICE]\n    Flush 1\n    Log_Level error\n    Parsers_File /fluent-bit/etc/parsers.conf\n\n")
 	expectations := make([]map[string]interface{}, 0, len(manifest.Cases))
@@ -61,6 +63,7 @@ func Prepare(manifestPath, parsersPath, targetDir string) error {
 			return err
 		}
 		if !available[testCase.Parser] {
+			skipped = append(skipped, testCase.ID)
 			continue
 		}
 		inputName := testCase.ID + ".log"
@@ -84,6 +87,10 @@ func Prepare(manifestPath, parsersPath, targetDir string) error {
 		expectations = append(expectations, expected)
 	}
 	config.WriteString("[OUTPUT]\n    Name file\n    Match contract.*\n    Format plain\n    Path /parser-output\n    File output-log\n")
+
+	// A configuration defines its own set of parsers, so the cases of the others are not run
+	// against it. Naming them keeps the coverage of this configuration readable in the report.
+	slog.Info("Prepared parser contracts", "parsers", len(parserNames), "cases", len(expectations), "skipped", skipped)
 
 	if err := os.WriteFile(filepath.Join(targetDir, "fluent-bit.conf"), []byte(config.String()), 0o644); err != nil {
 		return err

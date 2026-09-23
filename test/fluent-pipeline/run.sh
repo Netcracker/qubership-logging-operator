@@ -5,7 +5,6 @@ set -eu
 SCRIPT_DIR=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
 TEST_HOME_PATH=${TEST_HOME_PATH:-$(CDPATH='' cd -- "${SCRIPT_DIR}/../.." && pwd)}
 TEST_CONTENT_PATH=${TEST_CONTENT_PATH:-${TEST_HOME_PATH}/build/fluent-pipeline}
-DEFAULT_TEST_CONTENT_PATH="${TEST_HOME_PATH}/build/fluent-pipeline"
 CONTENT_MARKER=.fluent-pipeline-test-content
 CONTENT_MARKER_VALUE='owned by test/fluent-pipeline/run.sh'
 RESOURCE_PREFIX="fluent-pipeline-$(date +%s)-$$"
@@ -109,8 +108,7 @@ initialize_test_content() {
     mkdir -p "${requested_path}"
     resolved_path=$(CDPATH='' cd -- "${requested_path}" && pwd -P)
     resolved_home=$(CDPATH='' cd -- "${TEST_HOME_PATH}" && pwd -P)
-    default_parent=$(CDPATH='' cd -- "$(dirname "${DEFAULT_TEST_CONTENT_PATH}")" && pwd -P)
-    resolved_default="${default_parent}/$(basename "${DEFAULT_TEST_CONTENT_PATH}")"
+    resolved_default="${resolved_home}/build/fluent-pipeline"
 
     case ${resolved_path} in
     / | "${resolved_home}")

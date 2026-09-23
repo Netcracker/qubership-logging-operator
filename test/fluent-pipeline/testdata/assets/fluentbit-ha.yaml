@@ -26,6 +26,15 @@ spec:
     db:
       enabled: false
 
+    # The forwarder and the aggregator read different custom sections. Each marks one pod of its
+    # own, so that a renderer handing a role the section of the other one shows up as two records
+    # that lost their marker rather than as a change to every record.
+    customFilterConf: |-
+      [FILTER]
+          Name          record_modifier
+          Match_Regex   pods.*coredns.*
+          Record        forwarder_custom_filter true
+
     aggregator:
       replicas: 2
       install: true
@@ -36,6 +45,11 @@ spec:
       # Disable Graylog output because we will print data in the file
       graylogOutput: false
 
+      customFilterConf: |-
+        [FILTER]
+            Name          record_modifier
+            Match_Regex   pods.*consul.*
+            Record        aggregator_custom_filter true
       customOutputConf: |-
         [OUTPUT]
             Name    file

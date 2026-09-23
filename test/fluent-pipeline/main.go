@@ -17,13 +17,14 @@ import (
 )
 
 var (
-	agentFluentbit   = regexp.MustCompile(`^fluent-?bit$`)
-	agentFluentbitHA = regexp.MustCompile(`^fluent-?bit-?ha$`)
+	agentFluentbit           = regexp.MustCompile(`^fluent-?bit$`)
+	agentFluentbitForwarder  = regexp.MustCompile(`^fluent-?bit-?forwarder$`)
+	agentFluentbitAggregator = regexp.MustCompile(`^fluent-?bit-?aggregator$`)
 )
 
 func main() {
 	stage := flag.String("stage", "test", "Stage of pipeline testing. Available values: prepare, render, prepare-parser-contracts, kube-api, test")
-	agentString := flag.String("agent", "fluentbit", "Parse configuration of logging agent. Possible values: fluentbit, fluentbitha, fluentd")
+	agentString := flag.String("agent", "fluentbit", "Parse configuration of logging agent. Possible values: fluentbit, fluentbitforwarder, fluentbitaggregator, fluentd")
 	crPath := flag.String("cr", "/assets/logging-service-test-fluentbit.yaml", "Path to test LoggingService custom resource with necessary parameters")
 	parserCasesPath := flag.String("parserCases", "/parser-contracts/cases.json", "Path to parser contract cases")
 	parsersPath := flag.String("parsers", "/rendered-config/parsers.conf", "Path to the rendered Fluent Bit parser configuration")
@@ -75,8 +76,10 @@ func initAgent(agentString string) (agent.Agent, bool) {
 		return &agent.Fluentd{}, true
 	} else if agentFluentbit.FindIndex([]byte(strings.ToLower(agentString))) != nil {
 		return &agent.Fluentbit{}, true
-	} else if agentFluentbitHA.FindIndex([]byte(strings.ToLower(agentString))) != nil {
-		return &agent.FluentbitHA{}, true
+	} else if agentFluentbitForwarder.FindIndex([]byte(strings.ToLower(agentString))) != nil {
+		return &agent.FluentbitForwarder{}, true
+	} else if agentFluentbitAggregator.FindIndex([]byte(strings.ToLower(agentString))) != nil {
+		return &agent.FluentbitAggregator{}, true
 	}
 	return nil, false
 }

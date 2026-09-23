@@ -503,7 +503,7 @@ run_fluentbit_ha_test_logic() {
         -v "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/assets/fluentbit-ha.yaml":/assets/fluentbit-ha.yaml:ro \
         -v "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/":/logs:ro \
         "${FLUENT_PIPELINE_TEST_IMAGE}" \
-        -agent fluentbitha \
+        -agent fluentbitforwarder \
         -cr /assets/fluentbit-ha.yaml \
         -stage prepare \
         -loglevel warn \
@@ -518,7 +518,7 @@ run_fluentbit_ha_test_logic() {
         -v "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/assets/fluentbit-ha.yaml":/assets/fluentbit-ha.yaml:ro \
         -v "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/":/logs:ro \
         "${FLUENT_PIPELINE_TEST_IMAGE}" \
-        -agent fluentbitha \
+        -agent fluentbitaggregator \
         -cr /assets/fluentbit-ha.yaml \
         -stage prepare \
         -loglevel warn \
@@ -585,7 +585,7 @@ run_fluentbit_ha_test_logic() {
         -v "${TEST_CONTENT_PATH}/output/":/output-logs/actual:ro \
         -v "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/output/fluentbit-ha/":/output-logs/expected:ro \
         "${FLUENT_PIPELINE_TEST_IMAGE}" \
-        -agent fluentbitha \
+        -agent fluentbitaggregator \
         -stage test \
         -ignore "${INT_TESTS_IGNORE}"
 
@@ -802,10 +802,10 @@ run_render_test_logic() {
     echo "=> Render and validate the Fluent Bit forwarder and aggregator configurations"
     for custom_resource in "${RENDER_ASSETS}"/fluentbit-ha/*.yaml; do
         name=$(basename "${custom_resource}" .yaml)
-        check_rendered_configuration "forwarder/${name}" fluentbitha \
+        check_rendered_configuration "forwarder/${name}" fluentbitforwarder \
             "${TEST_HOME_PATH}/controllers/fluentbit-forwarder-aggregator/forwarder.configmap/" "${custom_resource}" \
             validate_fluentbit_configuration
-        check_rendered_configuration "aggregator/${name}" fluentbitha \
+        check_rendered_configuration "aggregator/${name}" fluentbitaggregator \
             "${TEST_HOME_PATH}/controllers/fluentbit-forwarder-aggregator/aggregator.configmap/" "${custom_resource}" \
             validate_fluentbit_configuration
     done

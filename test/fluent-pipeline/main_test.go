@@ -39,7 +39,8 @@ func TestInitAgent(t *testing.T) {
 	}{
 		{name: "fluentd", input: "fluentd", wantType: &agent.Fluentd{}, wantValid: true},
 		{name: "fluentbit with dash", input: "fluent-bit", wantType: &agent.Fluentbit{}, wantValid: true},
-		{name: "fluentbit ha mixed case", input: "FluentBitHA", wantType: &agent.FluentbitHA{}, wantValid: true},
+		{name: "fluentbit forwarder mixed case", input: "FluentBitForwarder", wantType: &agent.FluentbitForwarder{}, wantValid: true},
+		{name: "fluentbit aggregator mixed case", input: "FluentBitAggregator", wantType: &agent.FluentbitAggregator{}, wantValid: true},
 		{name: "invalid", input: "vector", wantValid: false},
 	}
 

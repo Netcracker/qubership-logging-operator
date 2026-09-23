@@ -19,7 +19,8 @@
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "short_message": "raft: heartbeat timeout",
     "source_level": "WARN",
-    "time": "2026-09-03T10:20:43.000007468Z"
+    "time": "2026-09-03T10:20:43.000007468Z",
+    "aggregator_custom_filter": "true"
   },
   {
     "_test": {
@@ -41,6 +42,7 @@
     "parse_status": "failed",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "short_message": "==> Starting Consul agent...",
-    "time": "2026-09-03T10:20:43.500007468Z"
+    "time": "2026-09-03T10:20:43.500007468Z",
+    "aggregator_custom_filter": "true"
   }
 ]

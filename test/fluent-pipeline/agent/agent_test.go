@@ -1,6 +1,7 @@
 package agent
 
 import (
+	"reflect"
 	"testing"
 
 	loggingService "github.com/Netcracker/qubership-logging-operator/api/v1"
@@ -33,14 +34,44 @@ func TestFluentdUpdateCustomConfiguration(t *testing.T) {
 	}
 }
 
-func TestFluentbitHAUpdateCustomConfigurationUsesAggregatorConfig(t *testing.T) {
+// TestHARolesRenderTheirOwnCustomConfiguration pins what each role of the HA deployment receives.
+// The custom resource gives the two roles different values, so a renderer that reads the fields of
+// the other role fails rather than passing on a shared value.
+func TestHARolesRenderTheirOwnCustomConfiguration(t *testing.T) {
 	t.Parallel()
 
-	cr := newFluentbitHACR()
-	got := (&FluentbitHA{}).UpdateCustomConfiguration(map[string]string{}, cr)
+	tests := []struct {
+		name  string
+		agent Agent
+		want  map[string]string
+	}{
+		{
+			name:  "the forwarder renders the custom sections of the top-level configuration",
+			agent: &FluentbitForwarder{},
+			want: map[string]string{
+				"input-custom.conf":  "forwarder-input",
+				"filter-custom.conf": "forwarder-filter",
+			},
+		},
+		{
+			name:  "the aggregator renders the custom sections of its own configuration",
+			agent: &FluentbitAggregator{},
+			want: map[string]string{
+				"filter-custom.conf": "aggregator-filter",
+				"output-custom.conf": "aggregator-output",
+			},
+		},
+	}
 
-	if got["filter-custom.conf"] == "" || got["output-custom.conf"] == "" {
-		t.Fatalf("expected fluentbit-ha aggregator configuration to be populated, got %#v", got)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := tt.agent.UpdateCustomConfiguration(map[string]string{}, newFluentbitHACR())
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("UpdateCustomConfiguration() = %#v, want %#v", got, tt.want)
+			}
+		})
 	}
 }
 
@@ -53,8 +84,8 @@ func TestGetOutputFileName(t *testing.T) {
 	if got := (&Fluentd{}).GetOutputFileName(); got != "fake-fluent.log" {
 		t.Fatalf("Fluentd output file = %q, want %q", got, "fake-fluent.log")
 	}
-	if got := (&FluentbitHA{}).GetOutputFileName(); got != "output-log" {
-		t.Fatalf("FluentbitHA output file = %q, want %q", got, "output-log")
+	if got := (&FluentbitAggregator{}).GetOutputFileName(); got != "output-log" {
+		t.Fatalf("FluentbitAggregator output file = %q, want %q", got, "output-log")
 	}
 }
 
@@ -74,7 +105,8 @@ func newFluentbitHACR() *loggingService.LoggingService {
 	return &loggingService.LoggingService{
 		Spec: loggingService.LoggingServiceSpec{
 			Fluentbit: &loggingService.Fluentbit{
-				CustomInputConf: "input",
+				CustomInputConf:  "forwarder-input",
+				CustomFilterConf: "forwarder-filter",
 				Aggregator: &loggingService.FluentbitAggregator{
 					CustomFilterConf: "aggregator-filter",
 					CustomOutputConf: "aggregator-output",

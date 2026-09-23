@@ -16,14 +16,15 @@
     "module": "plugin/errors",
     "namespace": "fake-namespace",
     "nodename": "fake-node",
-    "parse_field_count": 14,
+    "parse_field_count": 15,
     "parse_format": "coredns",
     "parse_status": "success",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "record_type": "A",
     "short_message": "read udp 10.0.0.2:53: timeout",
     "source_level": "ERROR",
-    "time": "2026-09-03T10:20:40.000007468Z"
+    "time": "2026-09-03T10:20:40.000007468Z",
+    "forwarder_custom_filter": "true"
   },
   {
     "_test": {
@@ -39,13 +40,14 @@
     "level": "info",
     "namespace": "fake-namespace",
     "nodename": "fake-node",
-    "parse_field_count": 8,
+    "parse_field_count": 9,
     "parse_format": "unknown",
     "parse_level_unknown": "true",
     "parse_status": "failed",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "short_message": "CoreDNS-1.11.1 linux/amd64, go1.20.7, ae2bbc2",
-    "time": "2026-09-03T10:20:40.500007468Z"
+    "time": "2026-09-03T10:20:40.500007468Z",
+    "forwarder_custom_filter": "true"
   },
   {
     "_test": {

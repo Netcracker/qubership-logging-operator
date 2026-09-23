@@ -53,16 +53,37 @@ func (flb *Fluentd) GetOutputFileName() string {
 	return "fake-fluent.log"
 }
 
-type FluentbitHA struct {
+// The two roles of the HA deployment read different fields of the custom resource, the way the
+// operator fills their config maps: the forwarder takes the top-level custom sections and the
+// aggregator its own. One renderer for both would hand a role a section it never receives.
+
+type FluentbitForwarder struct {
 	Fluentbit
 }
 
-func (flb *FluentbitHA) String() string {
-	return "Fluent Bit forwarder and aggregator"
+func (flb *FluentbitForwarder) String() string {
+	return "Fluent Bit forwarder"
 }
 
-func (flb *FluentbitHA) UpdateCustomConfiguration(data map[string]string, cr *loggingService.LoggingService) map[string]string {
+// UpdateCustomConfiguration fills the sections the forwarder config map carries. Its configuration
+// includes no custom output: the forwarder always forwards to the aggregator.
+func (flb *FluentbitForwarder) UpdateCustomConfiguration(data map[string]string, cr *loggingService.LoggingService) map[string]string {
 	data[inputCustomConf] = cr.Spec.Fluentbit.CustomInputConf
+	data[filterCustomConf] = cr.Spec.Fluentbit.CustomFilterConf
+	return data
+}
+
+type FluentbitAggregator struct {
+	Fluentbit
+}
+
+func (flb *FluentbitAggregator) String() string {
+	return "Fluent Bit aggregator"
+}
+
+// UpdateCustomConfiguration fills the sections the aggregator config map carries. Its
+// configuration includes no custom input: the aggregator reads from the forwarder.
+func (flb *FluentbitAggregator) UpdateCustomConfiguration(data map[string]string, cr *loggingService.LoggingService) map[string]string {
 	data[filterCustomConf] = cr.Spec.Fluentbit.Aggregator.CustomFilterConf
 	data[outputCustomConf] = cr.Spec.Fluentbit.Aggregator.CustomOutputConf
 	return data

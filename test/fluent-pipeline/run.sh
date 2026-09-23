@@ -708,10 +708,23 @@ render_configuration() {
         -loglevel warn
 }
 
+# report_missing_includes names the @INCLUDE targets that no template rendered. Fluent Bit refuses
+# such a configuration with a bare "configuration file contains errors", so the suite says which
+# file is missing and an expected failure can be told apart from any other configuration error.
+report_missing_includes() {
+    config_dir=$1
+    awk '$1 == "@INCLUDE" { count = split($2, path, "/"); print path[count] }' "${config_dir}"/*.conf |
+        sort -u |
+        while read -r include; do
+            [ -f "${config_dir}/${include}" ] || echo "missing include: ${include}"
+        done
+}
+
 # validate_fluentbit_configuration asks Fluent Bit to load the rendered configuration without
 # starting the engine; a plugin it cannot instantiate or a section it cannot parse fails the check.
 validate_fluentbit_configuration() {
     config_dir=$1
+    report_missing_includes "${config_dir}"
     docker run --rm --security-opt label=disable --name "${FLUENTBIT_RENDER_CONTAINER}" \
         -v "${config_dir}":/fluent-bit/etc:ro \
         "${FLUENTBIT_IMAGE}" --dry-run -c /fluent-bit/etc/fluent-bit.conf
@@ -754,8 +767,16 @@ validate_fluentd_configuration() {
 }
 
 # check_rendered_configuration renders and validates one configuration and records the outcome. A
-# custom resource that documents a known defect starts with "# expect-failure: <reason>": its
-# validation has to fail, and a pass means the defect is gone and the line is due for removal.
+# custom resource that documents a known defect carries three header lines:
+#
+#   # expect-failure: <what the defect is>
+#   # expect-stage: render | validation
+#   # expect-diagnostic: <extended regular expression the log has to contain>
+#
+# The case counts as expected only when the named stage is the one that failed and its log names the
+# defect, so that an unrelated renderer or agent error fails the case instead of passing for it. A
+# configuration that renders and validates means the defect is gone and the three lines are due for
+# removal.
 check_rendered_configuration() {
     label=$1
     agent=$2
@@ -765,25 +786,44 @@ check_rendered_configuration() {
     target_dir="${TEST_CONTENT_PATH}/render/${label}"
     log_file="${target_dir}.log"
     expected_failure=$(sed -n 's/^# expect-failure: //p' "${custom_resource}" | head -n 1)
+    expected_stage=$(sed -n 's/^# expect-stage: //p' "${custom_resource}" | head -n 1)
+    expected_diagnostic=$(sed -n 's/^# expect-diagnostic: //p' "${custom_resource}" | head -n 1)
     mkdir -p "${target_dir}"
-    if render_configuration "${agent}" "${templates_dir}" "${custom_resource}" "${target_dir}" >"${log_file}" 2>&1 &&
-        "${validator}" "${target_dir}" >>"${log_file}" 2>&1; then
-        validated=true
+    if ! render_configuration "${agent}" "${templates_dir}" "${custom_resource}" "${target_dir}" >"${log_file}" 2>&1; then
+        failed_stage=render
+    elif ! "${validator}" "${target_dir}" >>"${log_file}" 2>&1; then
+        failed_stage=validation
     else
-        validated=false
+        failed_stage=""
     fi
-    if [ -z "${expected_failure}" ] && [ "${validated}" = true ]; then
-        render_report="${render_report}${label}\tSucceeded\n"
-    elif [ -n "${expected_failure}" ] && [ "${validated}" = false ]; then
-        render_report="${render_report}${label}\tSucceeded\tfails as expected: ${expected_failure}\n"
-    elif [ -n "${expected_failure}" ]; then
-        render_report="${render_report}${label}\tFailed\tvalidation passed, remove the expect-failure line: ${expected_failure}\n"
+    if [ -z "${expected_failure}" ]; then
+        if [ -z "${failed_stage}" ]; then
+            render_report="${render_report}${label}\tSucceeded\n"
+        else
+            render_report="${render_report}${label}\tFailed\t${failed_stage} failed, see ${log_file}\n"
+            render_failures=$((render_failures + 1))
+            echo "=> ${label}: the ${failed_stage} stage failed" >&2
+            tail -n 20 "${log_file}" >&2
+        fi
+        return
+    fi
+    if [ -z "${expected_stage}" ] || [ -z "${expected_diagnostic}" ]; then
+        render_report="${render_report}${label}\tFailed\texpect-failure needs an expect-stage and an expect-diagnostic line\n"
         render_failures=$((render_failures + 1))
-    else
-        render_report="${render_report}${label}\tFailed\tsee ${log_file}\n"
+    elif [ -z "${failed_stage}" ]; then
+        render_report="${render_report}${label}\tFailed\tthe configuration renders and validates, remove the expect lines: ${expected_failure}\n"
         render_failures=$((render_failures + 1))
-        echo "=> ${label}: the rendered configuration failed validation" >&2
+    elif [ "${failed_stage}" != "${expected_stage}" ]; then
+        render_report="${render_report}${label}\tFailed\t${failed_stage} failed instead of ${expected_stage}, see ${log_file}\n"
+        render_failures=$((render_failures + 1))
         tail -n 20 "${log_file}" >&2
+    elif ! grep -qE "${expected_diagnostic}" "${log_file}"; then
+        render_report="${render_report}${label}\tFailed\t${failed_stage} failed for another reason, see ${log_file}\n"
+        render_failures=$((render_failures + 1))
+        echo "=> ${label}: no line of the log matches ${expected_diagnostic}" >&2
+        tail -n 20 "${log_file}" >&2
+    else
+        render_report="${render_report}${label}\tSucceeded\t${failed_stage} fails as expected: ${expected_failure}\n"
     fi
 }
 

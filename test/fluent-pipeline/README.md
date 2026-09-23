@@ -122,9 +122,16 @@ helper stands in for the operator where the templates need more than the custom 
 credentials the operator reads from Secrets with placeholders, and for Fluentd it supplies the environment of the
 DaemonSet and the mounted service account and certificate files, which Fluentd opens during the dry run.
 
-A custom resource that documents a known defect starts with a line `# expect-failure: <reason>`. Its validation has
-to fail for the row to pass, and a validation that passes fails the row with a note to remove the line, so the row
-tells the person who fixes the defect to update the expectation.
+A custom resource that documents a known defect starts with three header lines: `# expect-failure: <reason>`,
+`# expect-stage: render` or `# expect-stage: validation`, and `# expect-diagnostic: <extended regular expression>`.
+The row passes only when the named stage is the one that failed and its log matches the expression, so that an
+unrelated renderer or agent error fails the row instead of passing for the defect. A configuration that renders and
+validates also fails the row, with a note to remove the three lines, so the row tells the person who fixes the
+defect to update the expectation.
+
+Fluent Bit refuses a configuration that includes a file no template rendered with a bare `configuration file
+contains errors`, which names no file. The suite therefore lists the missing `@INCLUDE` targets in the log before
+the dry run, and a fixture for such a defect matches that line.
 
 Two limits of the validators: Fluent Bit's dry run does not open the TLS files an output names, and Fluentd's
 `kubernetes_metadata` filter connects to the API server when it starts, so the Fluentd custom resources set

@@ -1,4 +1,6 @@
 # expect-failure: filter-multiline.conf renders an empty multiline_start_regexp and the concat filter refuses it
+# expect-stage: validation
+# expect-diagnostic: error_class=TypeError error="no implicit conversion of nil into String"
 # A custom resource without multilineFirstLineRegexp. The chart always sets one, and the template
 # has no default of its own, so Fluentd fails to start on a custom resource written by hand.
 apiVersion: logging.netcracker.com/v1

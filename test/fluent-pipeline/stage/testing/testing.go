@@ -257,7 +257,7 @@ func (c *comparison) compareExpectedRecord(expectedFile string, record map[strin
 	return nil
 }
 
-func (c *comparison) fail(id string, details string) {
+func (c *comparison) fail(id, details string) {
 	c.success = false
 	c.report = append(c.report, reportRow{id: id, status: failed, details: details})
 }

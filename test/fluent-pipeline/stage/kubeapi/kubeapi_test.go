@@ -49,36 +49,41 @@ func TestAnswer(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-
-			recorder := httptest.NewRecorder()
-			answer(metadataDir, recorder, httptest.NewRequest(http.MethodGet, tt.path, nil))
-			if recorder.Code != tt.wantStatus {
-				t.Fatalf("answer(%q) status = %d, want %d", tt.path, recorder.Code, tt.wantStatus)
-			}
-			if tt.wantStatus != http.StatusOK {
-				return
-			}
-
-			var pod struct {
-				Metadata struct {
-					Name        string            `json:"name"`
-					Annotations map[string]string `json:"annotations"`
-				} `json:"metadata"`
-			}
-			if err := json.Unmarshal(recorder.Body.Bytes(), &pod); err != nil {
-				t.Fatalf("answer(%q) returned a body that is not a pod: %v", tt.path, err)
-			}
-			got, exists := pod.Metadata.Annotations["fluentbit.io/parser"]
-			if tt.wantAnnotation == nil {
-				if exists {
-					t.Errorf("answer(%q) annotation = %q, want none", tt.path, got)
-				}
-				return
-			}
-			if got != tt.wantAnnotation {
-				t.Errorf("answer(%q) annotation = %q, want %v", tt.path, got, tt.wantAnnotation)
-			}
+			assertAnswer(t, metadataDir, tt.path, tt.wantStatus, tt.wantAnnotation)
 		})
+	}
+}
+
+func assertAnswer(t *testing.T, metadataDir, path string, wantStatus int, wantAnnotation interface{}) {
+	t.Helper()
+
+	recorder := httptest.NewRecorder()
+	answer(metadataDir, recorder, httptest.NewRequest(http.MethodGet, path, nil))
+	if recorder.Code != wantStatus {
+		t.Fatalf("answer(%q) status = %d, want %d", path, recorder.Code, wantStatus)
+	}
+	if wantStatus != http.StatusOK {
+		return
+	}
+
+	var pod struct {
+		Metadata struct {
+			Name        string            `json:"name"`
+			Annotations map[string]string `json:"annotations"`
+		} `json:"metadata"`
+	}
+	if err := json.Unmarshal(recorder.Body.Bytes(), &pod); err != nil {
+		t.Fatalf("answer(%q) returned a body that is not a pod: %v", path, err)
+	}
+	got, exists := pod.Metadata.Annotations["fluentbit.io/parser"]
+	if wantAnnotation == nil {
+		if exists {
+			t.Errorf("answer(%q) annotation = %q, want none", path, got)
+		}
+		return
+	}
+	if got != wantAnnotation {
+		t.Errorf("answer(%q) annotation = %q, want %v", path, got, wantAnnotation)
 	}
 }
 

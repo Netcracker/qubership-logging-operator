@@ -20,6 +20,7 @@ FLUENTD_RENDER_CONTAINER="${RESOURCE_PREFIX}-fluentd-render"
 KUBE_API_NAME="${RESOURCE_PREFIX}-kube-api"
 CLEANUP_CONTAINER="${RESOURCE_PREFIX}-cleanup"
 NETWORK_NAME="${RESOURCE_PREFIX}-net"
+PREPARE_TEST_ENVIRONMENT_MESSAGE='=> Prepare test environment and test data'
 # The agents under test are the images the chart deploys; Renovate keeps the two in step through
 # the annotations below, the same way it does for charts/.../templates/_helpers.tpl.
 # renovate: datasource=docker depName=fluent/fluent-bit
@@ -115,6 +116,7 @@ initialize_test_content() {
         echo "Unsafe TEST_CONTENT_PATH '${resolved_path}': choose a dedicated output directory." >&2
         return 1
         ;;
+    *) ;;
     esac
 
     marker_path="${resolved_path}/${CONTENT_MARKER}"
@@ -239,7 +241,8 @@ check_metrics() {
 }
 
 scrape_metrics() {
-    docker run --rm --security-opt label=disable --network "container:$1" \
+    container_name=$1
+    docker run --rm --security-opt label=disable --network "container:${container_name}" \
         --entrypoint wget "${FLUENT_PIPELINE_TEST_IMAGE}" -qO- http://127.0.0.1:2021/metrics
 }
 
@@ -314,7 +317,7 @@ create_empty_host_logs() {
 run_fluentd_test_logic() {
     FLD_DOCKER_NAME="${FLUENTD_CONTAINER}"
     # Remove test directories from previous run
-    echo "=> Prepare test environment and test data"
+    echo "${PREPARE_TEST_ENVIRONMENT_MESSAGE}"
     reset_test_content
 
     # Create test directories
@@ -388,7 +391,7 @@ run_fluentd_test_logic() {
 run_fluentbit_test_logic() {
     FLB_DOCKER_NAME="${FLUENTBIT_CONTAINER}"
     # Remove test directories from previous run
-    echo "=> Prepare test environment and test data"
+    echo "${PREPARE_TEST_ENVIRONMENT_MESSAGE}"
     reset_test_content
 
     # Create test directories
@@ -468,7 +471,7 @@ run_fluentbit_ha_test_logic() {
     FLB_FRW_DOCKER_NAME="${FLUENTBIT_FORWARDER_CONTAINER}"
     FLB_AGR_DOCKER_NAME="${FLUENTBIT_AGGREGATOR_CONTAINER}"
     # Remove test directories from previous run
-    echo "=> Prepare test environment and test data"
+    echo "${PREPARE_TEST_ENVIRONMENT_MESSAGE}"
     reset_test_content
 
     # Create test directories
@@ -604,7 +607,7 @@ start_fake_kube_api() {
 
 run_kube_metadata_test_logic() {
     FLB_DOCKER_NAME="${FLUENTBIT_CONTAINER}"
-    echo "=> Prepare test environment and test data"
+    echo "${PREPARE_TEST_ENVIRONMENT_MESSAGE}"
     reset_test_content
     mkdir -p "${TEST_CONTENT_PATH}/config/" "${TEST_CONTENT_PATH}/logs/" "${TEST_CONTENT_PATH}/output/" \
         "${TEST_CONTENT_PATH}/serviceaccount/"
@@ -695,8 +698,9 @@ render_configuration() {
 # validate_fluentbit_configuration asks Fluent Bit to load the rendered configuration without
 # starting the engine; a plugin it cannot instantiate or a section it cannot parse fails the check.
 validate_fluentbit_configuration() {
+    config_dir=$1
     docker run --rm --security-opt label=disable --name "${FLUENTBIT_RENDER_CONTAINER}" \
-        -v "$1":/fluent-bit/etc:ro \
+        -v "${config_dir}":/fluent-bit/etc:ro \
         "${FLUENTBIT_IMAGE}" --dry-run -c /fluent-bit/etc/fluent-bit.conf
 }
 
@@ -722,12 +726,13 @@ prepare_fluentd_mounts() {
 # operator's DaemonSet gives the container; the rendered configuration reads the Graylog connection
 # from the environment and opens the credential and certificate files.
 validate_fluentd_configuration() {
+    config_dir=$1
     mounts_dir="${TEST_CONTENT_PATH}/render/fluentd-mounts"
     [ -f "${mounts_dir}/tls/tls.crt" ] || prepare_fluentd_mounts "${mounts_dir}"
     docker run --rm --security-opt label=disable --name "${FLUENTD_RENDER_CONTAINER}" \
         -e GRAYLOG_HOST=graylog.logging.svc -e GRAYLOG_PORT=12201 -e GRAYLOG_PROTOCOL=tcp \
         -e QUEUE_LIMIT_LENGTH=128 -e WATCH_KUBERNETES_METADATA=true -e MA_HOST=monitoring-agent.logging.svc \
-        -v "$1":/fluentd/etc:ro \
+        -v "${config_dir}":/fluentd/etc:ro \
         -v "${mounts_dir}/serviceaccount":/var/run/secrets/kubernetes.io/serviceaccount:ro \
         -v "${mounts_dir}/tls":/fluentd/tls:ro \
         -v "${mounts_dir}/loki-tls":/fluentd/output/loki/tls:ro \

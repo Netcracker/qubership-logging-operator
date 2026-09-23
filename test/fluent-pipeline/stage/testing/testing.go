@@ -21,6 +21,7 @@ var (
 	logNotFoundStatus    = "\u001b[31mLog is not found in output\u001B[0m"
 	moreThanOneLogStatus = "\u001b[31mMore than one matching log in output\u001B[0m"
 	notDroppedStatus     = "\u001b[31mLog is in output but was expected to be dropped\u001B[0m"
+	alreadyMatchedStatus = "\u001b[31mAnother expected record already matches this output record\u001B[0m"
 )
 
 // Directories where the runner mounts the records to compare, relative to the working directory
@@ -36,12 +37,12 @@ type reportRow struct {
 	details string
 }
 
-// comparison holds the state of a single run: the records read from the agent output, which of
-// them an expected record has claimed, the modifications to apply before comparing, and the result
-// collected for the final report.
+// comparison holds the state of a single run: the records read from the agent output, the id of
+// the expected record that claimed each of them, the modifications to apply before comparing, and
+// the result collected for the final report.
 type comparison struct {
 	actualRecords      []map[string]interface{}
-	claimed            []bool
+	claimedBy          []string
 	modificationFuncs  []RecordModifyFunc
 	report             []reportRow
 	filesWithoutTestID []string
@@ -77,7 +78,7 @@ func testJson(ignore string, agent agent.Agent, modificationFuncs []RecordModify
 
 	run := &comparison{
 		actualRecords:     actualRecords,
-		claimed:           make([]bool, len(actualRecords)),
+		claimedBy:         make([]string, len(actualRecords)),
 		modificationFuncs: modificationFuncs,
 		success:           true,
 	}
@@ -167,22 +168,38 @@ func (c *comparison) claimRecords(expectedRecords []map[string]interface{}) {
 			continue
 		}
 		if values, missing := selectorValues(record, metadata); missing == "" {
-			c.claim(findActualRecords(c.actualRecords, values))
+			c.claim(findActualRecords(c.actualRecords, values), metadata.ID)
 		}
 	}
 }
 
-func (c *comparison) claim(indexes []int) {
+// claim records that one expected record matched. The first claim holds: a later expected record
+// that matches the same output record is reported instead of taking it over.
+func (c *comparison) claim(indexes []int, id string) {
 	for _, index := range indexes {
-		c.claimed[index] = true
+		if c.claimedBy[index] == "" {
+			c.claimedBy[index] = id
+		}
 	}
+}
+
+// claimant names the expected record that already matched one of the given output records, and the
+// record it matched. Two expected records that match the same output record describe the same line
+// twice, which hides a line the pipeline did not produce, so the second one has to fail.
+func (c *comparison) claimant(indexes []int) (string, int) {
+	for _, index := range indexes {
+		if c.claimedBy[index] != "" {
+			return c.claimedBy[index], index
+		}
+	}
+	return "", 0
 }
 
 // collectUnexpected gathers the output records no expected record claimed. Each fixture line the
 // pipeline keeps has to be described, so an unclaimed record fails the run.
 func (c *comparison) collectUnexpected() {
 	for index, record := range c.actualRecords {
-		if !c.claimed[index] {
+		if c.claimedBy[index] == "" {
 			c.unexpected = append(c.unexpected, record)
 		}
 	}
@@ -220,7 +237,13 @@ func (c *comparison) compareExpectedRecord(expectedFile string, record map[strin
 	}
 
 	indexes := findActualRecords(c.actualRecords, values)
-	c.claim(indexes)
+	if owner, index := c.claimant(indexes); owner != "" {
+		c.fail(metadata.ID, alreadyMatchedStatus)
+		slog.Error(fmt.Sprintf("expected record %q in file %q matches %v, which %q already matched: %s",
+			metadata.ID, expectedFile, values, owner, describeRecord(c.actualRecords[index])))
+		return nil
+	}
+	c.claim(indexes, metadata.ID)
 	if metadata.Dropped {
 		if len(indexes) == 0 {
 			c.report = append(c.report, reportRow{id: metadata.ID, status: succeeded})

@@ -446,6 +446,50 @@ func TestTestJSONIgnoredFileClaimsItsRecords(t *testing.T) {
 	}
 }
 
+// TestTestJSONSecondExpectationOfOneRecordFails cannot run in parallel: same reason as
+// TestTestJSONSuccess. Two expectations that select the same output record describe one produced
+// line twice, which hides a line the pipeline did not produce, so the second one has to fail.
+func TestTestJSONSecondExpectationOfOneRecordFails(t *testing.T) {
+	tests := []struct {
+		name     string
+		expected string
+		actual   string
+		want     bool
+	}{
+		{
+			name: "each expectation selects its own record",
+			expected: "[{\"_test\":{\"id\":\"first\",\"matchOn\":[\"test_case\"],\"partial\":true},\"test_case\":\"a\",\"level\":\"info\"}," +
+				"{\"_test\":{\"id\":\"second\",\"matchOn\":[\"test_case\"],\"partial\":true},\"test_case\":\"b\",\"level\":\"info\"}]",
+			actual: "{\"test_case\":\"a\",\"level\":\"info\"}\n{\"test_case\":\"b\",\"level\":\"info\"}\n",
+			want:   true,
+		},
+		{
+			// Both expectations select test_case "a", and the pipeline produced that record
+			// once: the second expectation is about to describe the record of the first.
+			name: "two expectations select the same record",
+			expected: "[{\"_test\":{\"id\":\"first\",\"matchOn\":[\"test_case\"],\"partial\":true},\"test_case\":\"a\",\"level\":\"info\"}," +
+				"{\"_test\":{\"id\":\"second\",\"matchOn\":[\"test_case\"],\"partial\":true},\"test_case\":\"a\",\"level\":\"info\"}]",
+			actual: "{\"test_case\":\"a\",\"level\":\"info\"}\n",
+			want:   false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			dir := chdirTemp(t)
+			writeFile(t, filepath.Join(dir, "output-logs", "actual", "output.log"), tt.actual)
+			writeFile(t, filepath.Join(dir, "output-logs", "expected", "sample.log.json"), tt.expected)
+
+			success, err := testJson("", stubAgent{outputFileName: "output.log"}, nil)
+			if err != nil {
+				t.Fatalf("testJson returned error: %v", err)
+			}
+			if success != tt.want {
+				t.Errorf("testJson() = %v, want %v", success, tt.want)
+			}
+		})
+	}
+}
+
 // chdirTemp moves the test into a temporary directory, because testJson resolves paths relative
 // to the working directory.
 func chdirTemp(t *testing.T) string {

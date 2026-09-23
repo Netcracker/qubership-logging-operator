@@ -687,8 +687,8 @@ check_rendered_configuration() {
     log_file="${target_dir}.log"
     expected_failure=$(sed -n 's/^# expect-failure: //p' "${custom_resource}" | head -n 1)
     mkdir -p "${target_dir}"
-    if render_configuration "${agent}" "${templates_dir}" "${custom_resource}" "${target_dir}" >"${log_file}" 2>&1 \
-        && "${validator}" "${target_dir}" >>"${log_file}" 2>&1; then
+    if render_configuration "${agent}" "${templates_dir}" "${custom_resource}" "${target_dir}" >"${log_file}" 2>&1 &&
+        "${validator}" "${target_dir}" >>"${log_file}" 2>&1; then
         validated=true
     else
         validated=false

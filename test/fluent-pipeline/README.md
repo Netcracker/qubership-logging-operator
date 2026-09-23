@@ -154,7 +154,8 @@ test/fluent-pipeline/run.sh render
 ```
 
 The runner stores generated configuration and actual output in `build/fluent-pipeline` by default. Set
-`TEST_CONTENT_PATH` to use another directory.
+`TEST_CONTENT_PATH` to use a new or empty directory. After the first run, a marker identifies the directory as owned
+by the test runner, and later runs can safely replace its contents.
 
 The following environment variables override the defaults:
 

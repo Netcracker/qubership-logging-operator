@@ -5,6 +5,22 @@ set -eu
 SCRIPT_DIR=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
 TEST_HOME_PATH=${TEST_HOME_PATH:-$(CDPATH='' cd -- "${SCRIPT_DIR}/../.." && pwd)}
 TEST_CONTENT_PATH=${TEST_CONTENT_PATH:-${TEST_HOME_PATH}/build/fluent-pipeline}
+DEFAULT_TEST_CONTENT_PATH="${TEST_HOME_PATH}/build/fluent-pipeline"
+CONTENT_MARKER=.fluent-pipeline-test-content
+CONTENT_MARKER_VALUE='owned by test/fluent-pipeline/run.sh'
+RESOURCE_PREFIX="fluent-pipeline-$(date +%s)-$$"
+FLUENTD_CONTAINER="${RESOURCE_PREFIX}-fluentd"
+FLUENTBIT_CONTAINER="${RESOURCE_PREFIX}-fluent-bit"
+FLUENTBIT_FORWARDER_CONTAINER="${RESOURCE_PREFIX}-forwarder"
+FLUENTBIT_AGGREGATOR_CONTAINER="${RESOURCE_PREFIX}-aggregator"
+PARSER_CONTRACT_CONTAINER="${RESOURCE_PREFIX}-parser-contract"
+CONFIG_REPLACER_CONTAINER="${RESOURCE_PREFIX}-config-replacer"
+COMPARISON_CONTAINER="${RESOURCE_PREFIX}-comparison"
+FLUENTBIT_RENDER_CONTAINER="${RESOURCE_PREFIX}-fluent-bit-render"
+FLUENTD_RENDER_CONTAINER="${RESOURCE_PREFIX}-fluentd-render"
+KUBE_API_NAME="${RESOURCE_PREFIX}-kube-api"
+CLEANUP_CONTAINER="${RESOURCE_PREFIX}-cleanup"
+NETWORK_NAME="${RESOURCE_PREFIX}-net"
 # The agents under test are the images the chart deploys; Renovate keeps the two in step through
 # the annotations below, the same way it does for charts/.../templates/_helpers.tpl.
 # renovate: datasource=docker depName=fluent/fluent-bit
@@ -27,9 +43,11 @@ OUTPUT_TIMEOUT=${OUTPUT_TIMEOUT:-60}
 OUTPUT_SETTLE_POLLS=${OUTPUT_SETTLE_POLLS:-3}
 
 cleanup() {
-    docker rm -f fluentd fluent-bit fluent-bit-forwarder fluent-bit-aggregator fluent-bit-parser-contract fluent-config-replacer \
-        fluent-pipeline-test fluent-bit-render fluentd-render fake-kube-api >/dev/null 2>&1 || true
-    docker network rm fluent-net >/dev/null 2>&1 || true
+    docker rm -f "${FLUENTD_CONTAINER}" "${FLUENTBIT_CONTAINER}" "${FLUENTBIT_FORWARDER_CONTAINER}" \
+        "${FLUENTBIT_AGGREGATOR_CONTAINER}" "${PARSER_CONTRACT_CONTAINER}" "${CONFIG_REPLACER_CONTAINER}" \
+        "${COMPARISON_CONTAINER}" "${FLUENTBIT_RENDER_CONTAINER}" "${FLUENTD_RENDER_CONTAINER}" \
+        "${KUBE_API_NAME}" "${CLEANUP_CONTAINER}" >/dev/null 2>&1 || true
+    docker network rm "${NETWORK_NAME}" >/dev/null 2>&1 || true
 }
 
 run_parser_contracts() {
@@ -39,7 +57,7 @@ run_parser_contracts() {
     mkdir -p "${contract_dir}"
 
     echo "=> Generate isolated Fluent Bit parser contract inputs and expectations"
-    docker run --rm --security-opt label=disable --user "${HELPER_USER}" --name fluent-config-replacer \
+    docker run --rm --security-opt label=disable --user "${HELPER_USER}" --name "${CONFIG_REPLACER_CONTAINER}" \
         -v "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/parser-cases.json":/parser-contracts/cases.json:ro \
         -v "${rendered_config_dir}":/rendered-config:ro \
         -v "${contract_dir}":/parser-contracts/generated:rw \
@@ -51,17 +69,18 @@ run_parser_contracts() {
         -loglevel warn
 
     echo "=> Run isolated Fluent Bit parser contracts"
-    docker run -d --security-opt label=disable --name fluent-bit-parser-contract \
+    docker run -d --security-opt label=disable --name "${PARSER_CONTRACT_CONTAINER}" \
         -v "${contract_dir}":/fluent-bit/etc:ro \
         -v "${contract_dir}/input":/parser-input:ro \
         -v "${contract_dir}/output":/parser-output:rw \
         "${FLUENTBIT_IMAGE}"
 
     wait_for_records "${contract_dir}/output/output-log" "$(count_expected_records "${contract_dir}/expected")" \
-        fluent-bit-parser-contract
-    docker stop fluent-bit-parser-contract
+        "${PARSER_CONTRACT_CONTAINER}"
+    docker stop "${PARSER_CONTRACT_CONTAINER}"
 
-    run_comparison docker run --rm --security-opt label=disable --user "${HELPER_USER}" --name fluent-pipeline-test \
+    run_comparison docker run --rm --security-opt label=disable --user "${HELPER_USER}" \
+        --name "${COMPARISON_CONTAINER}" \
         -v "${contract_dir}/output":/output-logs/actual:ro \
         -v "${contract_dir}/expected":/output-logs/expected:ro \
         "${FLUENT_PIPELINE_TEST_IMAGE}" \
@@ -82,15 +101,54 @@ ensure_running() {
     fi
 }
 
-# reset_test_content empties the content directory of the previous run. The logging agents run as root and
-# can leave files the calling user cannot delete, such as a Fluentd buffer directory that was never flushed;
-# those are removed through the helper image running as root.
+# initialize_test_content accepts the default directory, a new directory, or an empty directory. A
+# marker prevents an override from turning an unrelated nonempty directory into a deletion target.
+initialize_test_content() {
+    requested_path=${TEST_CONTENT_PATH%/}
+    [ -n "${requested_path}" ] || requested_path=/
+    mkdir -p "${requested_path}"
+    resolved_path=$(CDPATH='' cd -- "${requested_path}" && pwd -P)
+    resolved_home=$(CDPATH='' cd -- "${TEST_HOME_PATH}" && pwd -P)
+    default_parent=$(CDPATH='' cd -- "$(dirname "${DEFAULT_TEST_CONTENT_PATH}")" && pwd -P)
+    resolved_default="${default_parent}/$(basename "${DEFAULT_TEST_CONTENT_PATH}")"
+
+    case ${resolved_path} in
+    / | "${resolved_home}")
+        echo "Unsafe TEST_CONTENT_PATH '${resolved_path}': choose a dedicated output directory." >&2
+        return 1
+        ;;
+    esac
+
+    marker_path="${resolved_path}/${CONTENT_MARKER}"
+    if { [ -e "${marker_path}" ] || [ -L "${marker_path}" ]; } &&
+        { [ ! -f "${marker_path}" ] || [ -L "${marker_path}" ] ||
+            [ "$(cat "${marker_path}" 2>/dev/null || true)" != "${CONTENT_MARKER_VALUE}" ]; }; then
+        echo "TEST_CONTENT_PATH '${resolved_path}' has an invalid ownership marker." >&2
+        echo "Choose a new or empty directory. No files were removed." >&2
+        return 1
+    fi
+    if [ ! -e "${marker_path}" ] && [ "${resolved_path}" != "${resolved_default}" ] &&
+        [ -n "$(find "${resolved_path}" -mindepth 1 -print -quit)" ]; then
+        echo "TEST_CONTENT_PATH '${resolved_path}' is nonempty and is not owned by this test runner." >&2
+        echo "Choose a new or empty directory. No files were removed." >&2
+        return 1
+    fi
+
+    TEST_CONTENT_PATH=${resolved_path}
+    printf '%s\n' "${CONTENT_MARKER_VALUE}" >"${marker_path}"
+}
+
+# reset_test_content empties a marked directory from a previous run. Logging agents can leave
+# root-owned files, so the fallback mounts only that directory into a root helper container.
 reset_test_content() {
-    rm -rf "${TEST_CONTENT_PATH}" 2>/dev/null || true
-    if [ -e "${TEST_CONTENT_PATH}" ]; then
-        docker run --rm --security-opt label=disable --user 0 --entrypoint rm \
-            -v "$(dirname "${TEST_CONTENT_PATH}")":/content:rw \
-            "${FLUENT_PIPELINE_TEST_IMAGE}" -rf "/content/$(basename "${TEST_CONTENT_PATH}")"
+    initialize_test_content
+    find "${TEST_CONTENT_PATH}" -mindepth 1 -maxdepth 1 ! -name "${CONTENT_MARKER}" \
+        -exec rm -rf -- {} + 2>/dev/null || true
+    if [ -n "$(find "${TEST_CONTENT_PATH}" -mindepth 1 -maxdepth 1 ! -name "${CONTENT_MARKER}" -print -quit)" ]; then
+        docker run --rm --security-opt label=disable --user 0 --name "${CLEANUP_CONTAINER}" \
+            --entrypoint find -v "${TEST_CONTENT_PATH}":/content:rw \
+            "${FLUENT_PIPELINE_TEST_IMAGE}" /content -mindepth 1 -maxdepth 1 \
+            ! -name "${CONTENT_MARKER}" -exec rm -rf -- '{}' +
     fi
 }
 
@@ -98,9 +156,10 @@ reset_test_content() {
 # so that a failed run carries the agent's own warnings in its artifact.
 save_agent_log() {
     container_name=$1
-    docker logs "${container_name}" >"${TEST_CONTENT_PATH}/${container_name}.log" 2>&1 || true
+    log_name=${2:-$1}
+    docker logs "${container_name}" >"${TEST_CONTENT_PATH}/${log_name}.log" 2>&1 || true
     echo "=> Log of ${container_name}"
-    cat "${TEST_CONTENT_PATH}/${container_name}.log"
+    cat "${TEST_CONTENT_PATH}/${log_name}.log"
 }
 
 # run_comparison runs one comparison, appends its report to the report of the scenario, and
@@ -255,7 +314,7 @@ create_empty_host_logs() {
 # Run FluentD DaemonSet test logic
 ###################################################################################################
 run_fluentd_test_logic() {
-    FLD_DOCKER_NAME="fluentd"
+    FLD_DOCKER_NAME="${FLUENTD_CONTAINER}"
     # Remove test directories from previous run
     echo "=> Prepare test environment and test data"
     reset_test_content
@@ -271,7 +330,7 @@ run_fluentd_test_logic() {
     # prepare fluentd configs
     echo "=> Prepare FluentD configurations"
 
-    docker run --rm --security-opt label=disable --user "${HELPER_USER}" --name fluent-config-replacer \
+    docker run --rm --security-opt label=disable --user "${HELPER_USER}" --name "${CONFIG_REPLACER_CONTAINER}" \
         -v "${TEST_HOME_PATH}/controllers/fluentd/fluentd.configmap/":/config-templates.d:ro \
         -v "${TEST_CONTENT_PATH}/config/":/configuration.d:rw \
         -v "${TEST_CONTENT_PATH}/logs/":/testdata:rw \
@@ -310,11 +369,12 @@ run_fluentd_test_logic() {
         "$(count_expected_records "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/output/fluentd")" "${FLD_DOCKER_NAME}"
 
     echo "=> Stop and remove FluentD docker container"
-    save_agent_log "${FLD_DOCKER_NAME}"
+    save_agent_log "${FLD_DOCKER_NAME}" fluentd
     docker stop "${FLD_DOCKER_NAME}"
 
     echo "=> Run the docker container to analyze FluentD parsed logs and compare with expected data"
-    run_comparison docker run --rm --security-opt label=disable --user "${HELPER_USER}" --name fluent-pipeline-test \
+    run_comparison docker run --rm --security-opt label=disable --user "${HELPER_USER}" \
+        --name "${COMPARISON_CONTAINER}" \
         -v "${TEST_CONTENT_PATH}/output/":/output-logs/actual:ro \
         -v "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/output/fluentd/":/output-logs/expected:ro \
         "${FLUENT_PIPELINE_TEST_IMAGE}" \
@@ -328,7 +388,7 @@ run_fluentd_test_logic() {
 # Run FluentBit DaemonSet test logic
 ###################################################################################################
 run_fluentbit_test_logic() {
-    FLB_DOCKER_NAME="fluent-bit"
+    FLB_DOCKER_NAME="${FLUENTBIT_CONTAINER}"
     # Remove test directories from previous run
     echo "=> Prepare test environment and test data"
     reset_test_content
@@ -344,7 +404,7 @@ run_fluentbit_test_logic() {
     # prepare fluent bit configs
     echo "=> Prepare FluentBit configurations"
 
-    docker run --rm --security-opt label=disable --user "${HELPER_USER}" --name fluent-config-replacer \
+    docker run --rm --security-opt label=disable --user "${HELPER_USER}" --name "${CONFIG_REPLACER_CONTAINER}" \
         -v "${TEST_HOME_PATH}/controllers/fluentbit/fluentbit.configmap/":/config-templates.d/:ro \
         -v "${TEST_CONTENT_PATH}/config/":/configuration.d/:z \
         -v "${TEST_CONTENT_PATH}/logs/":/testdata:z \
@@ -386,11 +446,12 @@ run_fluentbit_test_logic() {
     check_metrics "${FLB_DOCKER_NAME}" "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/metrics/fluentbit.prom"
 
     echo "=> Stop and remove FluentBit docker container"
-    save_agent_log "${FLB_DOCKER_NAME}"
+    save_agent_log "${FLB_DOCKER_NAME}" fluent-bit
     docker stop "${FLB_DOCKER_NAME}"
 
     echo "=> Run the docker container to analyze FluentBit parsed logs and compare with expected data"
-    run_comparison docker run --rm --security-opt label=disable --user "${HELPER_USER}" --name fluent-pipeline-test \
+    run_comparison docker run --rm --security-opt label=disable --user "${HELPER_USER}" \
+        --name "${COMPARISON_CONTAINER}" \
         -v "${TEST_CONTENT_PATH}/output/":/output-logs/actual:ro \
         -v "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/output/fluentbit/":/output-logs/expected:ro \
         "${FLUENT_PIPELINE_TEST_IMAGE}" \
@@ -406,8 +467,8 @@ run_fluentbit_test_logic() {
 # Run FluentBit DaemonSet + FluentBit StatefulSet (aka HA deployment) test logic
 ###################################################################################################
 run_fluentbit_ha_test_logic() {
-    FLB_FRW_DOCKER_NAME="fluent-bit-forwarder"
-    FLB_AGR_DOCKER_NAME="fluent-bit-aggregator"
+    FLB_FRW_DOCKER_NAME="${FLUENTBIT_FORWARDER_CONTAINER}"
+    FLB_AGR_DOCKER_NAME="${FLUENTBIT_AGGREGATOR_CONTAINER}"
     # Remove test directories from previous run
     echo "=> Prepare test environment and test data"
     reset_test_content
@@ -424,7 +485,7 @@ run_fluentbit_ha_test_logic() {
     # prepare fluent bit configs
     echo "=> Prepare FluentBit configurations"
 
-    docker run --rm --security-opt label=disable --user "${HELPER_USER}" --name fluent-config-replacer \
+    docker run --rm --security-opt label=disable --user "${HELPER_USER}" --name "${CONFIG_REPLACER_CONTAINER}" \
         -v "${TEST_HOME_PATH}/controllers/fluentbit-forwarder-aggregator/forwarder.configmap/":/config-templates.d:ro \
         -v "${TEST_CONTENT_PATH}/forwarder-config/":/configuration.d:rw \
         -v "${TEST_CONTENT_PATH}/logs/":/testdata:rw \
@@ -439,7 +500,7 @@ run_fluentbit_ha_test_logic() {
 
     speed_up_file_discovery "${TEST_CONTENT_PATH}/forwarder-config"
 
-    docker run --rm --security-opt label=disable --user "${HELPER_USER}" --name fluent-config-replacer \
+    docker run --rm --security-opt label=disable --user "${HELPER_USER}" --name "${CONFIG_REPLACER_CONTAINER}" \
         -v "${TEST_HOME_PATH}/controllers/fluentbit-forwarder-aggregator/aggregator.configmap/":/config-templates.d:ro \
         -v "${TEST_CONTENT_PATH}/aggregator-config/":/configuration.d:rw \
         -v "${TEST_CONTENT_PATH}/logs/":/testdata:rw \
@@ -457,10 +518,11 @@ run_fluentbit_ha_test_logic() {
     # run fluent bit
     echo "=> Run FluentBit to read, parse and output processed logs"
 
-    docker network create fluent-net
+    docker network create "${NETWORK_NAME}"
 
     docker run -d --security-opt label=disable --name "${FLB_AGR_DOCKER_NAME}" \
-        --network=fluent-net \
+        --network="${NETWORK_NAME}" \
+        --network-alias=fluent-bit-aggregator \
         -e HOSTNAME=fake-fluent \
         -e NODE_NAME=fake-node \
         -v "${TEST_CONTENT_PATH}/aggregator-config/":/fluent-bit/etc \
@@ -471,7 +533,7 @@ run_fluentbit_ha_test_logic() {
     wait_for_log "${FLB_AGR_DOCKER_NAME}" 'input:forward.*listening on'
 
     docker run -d --security-opt label=disable --name "${FLB_FRW_DOCKER_NAME}" \
-        --network=fluent-net \
+        --network="${NETWORK_NAME}" \
         -e HOSTNAME=fake-fluent \
         -e NODE_NAME=fake-node \
         -v "${TEST_CONTENT_PATH}/forwarder-config/":/fluent-bit/etc \
@@ -495,19 +557,20 @@ run_fluentbit_ha_test_logic() {
     check_metrics "${FLB_AGR_DOCKER_NAME}" "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/metrics/fluentbit-ha.prom"
 
     echo "=> Print FlintBit forwarder logs"
-    save_agent_log "${FLB_FRW_DOCKER_NAME}"
+    save_agent_log "${FLB_FRW_DOCKER_NAME}" fluent-bit-forwarder
 
     echo "=> Print FlintBit aggregator logs"
-    save_agent_log "${FLB_AGR_DOCKER_NAME}"
+    save_agent_log "${FLB_AGR_DOCKER_NAME}" fluent-bit-aggregator
 
     echo "=> Stop and remove FluentBit docker container"
     docker stop "${FLB_FRW_DOCKER_NAME}"
     docker stop "${FLB_AGR_DOCKER_NAME}"
 
-    docker network rm fluent-net
+    docker network rm "${NETWORK_NAME}"
 
     echo "=> Run the docker container to analyze FluentBit parsed logs and compare with expected data"
-    run_comparison docker run --rm --security-opt label=disable --user "${HELPER_USER}" --name fluent-pipeline-test \
+    run_comparison docker run --rm --security-opt label=disable --user "${HELPER_USER}" \
+        --name "${COMPARISON_CONTAINER}" \
         -v "${TEST_CONTENT_PATH}/output/":/output-logs/actual:ro \
         -v "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/output/fluentbit-ha/":/output-logs/expected:ro \
         "${FLUENT_PIPELINE_TEST_IMAGE}" \
@@ -521,7 +584,6 @@ run_fluentbit_ha_test_logic() {
 ###################################################################################################
 # Run the Fluent Bit DaemonSet against a fake Kubernetes API server
 ###################################################################################################
-KUBE_API_NAME="fake-kube-api"
 KUBE_API_HOST="kubernetes.default.svc"
 
 # start_fake_kube_api serves the pod metadata of the scenario over HTTPS under the name the rendered
@@ -531,7 +593,7 @@ start_fake_kube_api() {
     metadata_dir=$1
     credentials_dir=$2
     mkdir -p "${credentials_dir}"
-    docker run -d --security-opt label=disable --name "${KUBE_API_NAME}" --network fluent-net --user 0 \
+    docker run -d --security-opt label=disable --name "${KUBE_API_NAME}" --network "${NETWORK_NAME}" --user 0 \
         -v "${metadata_dir}":/pod-metadata:ro \
         -v "${credentials_dir}":/serviceaccount:rw \
         "${FLUENT_PIPELINE_TEST_IMAGE}" \
@@ -543,14 +605,14 @@ start_fake_kube_api() {
 }
 
 run_kube_metadata_test_logic() {
-    FLB_DOCKER_NAME="fluent-bit"
+    FLB_DOCKER_NAME="${FLUENTBIT_CONTAINER}"
     echo "=> Prepare test environment and test data"
     reset_test_content
     mkdir -p "${TEST_CONTENT_PATH}/config/" "${TEST_CONTENT_PATH}/logs/" "${TEST_CONTENT_PATH}/output/" \
         "${TEST_CONTENT_PATH}/serviceaccount/"
 
     echo "=> Prepare FluentBit configurations"
-    docker run --rm --security-opt label=disable --user "${HELPER_USER}" --name fluent-config-replacer \
+    docker run --rm --security-opt label=disable --user "${HELPER_USER}" --name "${CONFIG_REPLACER_CONTAINER}" \
         -v "${TEST_HOME_PATH}/controllers/fluentbit/fluentbit.configmap/":/config-templates.d/:ro \
         -v "${TEST_CONTENT_PATH}/config/":/configuration.d/:z \
         -v "${TEST_CONTENT_PATH}/logs/":/testdata:z \
@@ -565,7 +627,7 @@ run_kube_metadata_test_logic() {
 
     speed_up_file_discovery "${TEST_CONTENT_PATH}/config"
 
-    docker network create fluent-net
+    docker network create "${NETWORK_NAME}"
 
     echo "=> Run the fake Kubernetes API server"
     start_fake_kube_api "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/kube-metadata/pod-metadata" \
@@ -574,7 +636,7 @@ run_kube_metadata_test_logic() {
 
     echo "=> Run FluentBit to read, parse and output processed logs"
     docker run -d --security-opt label=disable --name "${FLB_DOCKER_NAME}" \
-        --network fluent-net \
+        --network "${NETWORK_NAME}" \
         --add-host "${KUBE_API_HOST}:${api_address}" \
         -e HOSTNAME=fake-fluent \
         -e NODE_NAME=fake-node \
@@ -590,16 +652,17 @@ run_kube_metadata_test_logic() {
         "${FLB_DOCKER_NAME}"
 
     echo "=> Print the pod requests the Kubernetes filter made"
-    save_agent_log "${KUBE_API_NAME}"
+    save_agent_log "${KUBE_API_NAME}" fake-kube-api
 
     echo "=> Stop and remove FluentBit docker container"
-    save_agent_log "${FLB_DOCKER_NAME}"
+    save_agent_log "${FLB_DOCKER_NAME}" fluent-bit
     docker stop "${FLB_DOCKER_NAME}"
     docker stop "${KUBE_API_NAME}"
-    docker network rm fluent-net
+    docker network rm "${NETWORK_NAME}"
 
     echo "=> Run the docker container to analyze FluentBit parsed logs and compare with expected data"
-    run_comparison docker run --rm --security-opt label=disable --user "${HELPER_USER}" --name fluent-pipeline-test \
+    run_comparison docker run --rm --security-opt label=disable --user "${HELPER_USER}" \
+        --name "${COMPARISON_CONTAINER}" \
         -v "${TEST_CONTENT_PATH}/output/":/output-logs/actual:ro \
         -v "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/output/kube-metadata/":/output-logs/expected:ro \
         "${FLUENT_PIPELINE_TEST_IMAGE}" \
@@ -620,7 +683,7 @@ render_configuration() {
     templates_dir=$2
     custom_resource=$3
     target_dir=$4
-    docker run --rm --security-opt label=disable --user "${HELPER_USER}" --name fluent-config-replacer \
+    docker run --rm --security-opt label=disable --user "${HELPER_USER}" --name "${CONFIG_REPLACER_CONTAINER}" \
         -v "${templates_dir}":/config-templates.d:ro \
         -v "${target_dir}":/configuration.d:rw \
         -v "${custom_resource}":/assets/custom-resource.yaml:ro \
@@ -634,7 +697,7 @@ render_configuration() {
 # validate_fluentbit_configuration asks Fluent Bit to load the rendered configuration without
 # starting the engine; a plugin it cannot instantiate or a section it cannot parse fails the check.
 validate_fluentbit_configuration() {
-    docker run --rm --security-opt label=disable --name fluent-bit-render \
+    docker run --rm --security-opt label=disable --name "${FLUENTBIT_RENDER_CONTAINER}" \
         -v "$1":/fluent-bit/etc:ro \
         "${FLUENTBIT_IMAGE}" --dry-run -c /fluent-bit/etc/fluent-bit.conf
 }
@@ -646,7 +709,7 @@ prepare_fluentd_mounts() {
     mounts_dir=$1
     mkdir -p "${mounts_dir}/serviceaccount" "${mounts_dir}/tls" "${mounts_dir}/loki-tls" "${mounts_dir}/http-tls"
     # The Fluentd image ships openssl; the helper image does not.
-    docker run --rm --security-opt label=disable --user "${HELPER_USER}" --name fluentd-render \
+    docker run --rm --security-opt label=disable --user "${HELPER_USER}" --name "${FLUENTD_RENDER_CONTAINER}" \
         --entrypoint /bin/sh -v "${mounts_dir}":/mounts:rw "${FLUENTD_IMAGE}" -c '
             openssl req -x509 -newkey rsa:2048 -nodes -days 1 -subj /CN=render-test \
                 -keyout /mounts/tls/tls.key -out /mounts/tls/tls.crt 2>/dev/null &&
@@ -663,7 +726,7 @@ prepare_fluentd_mounts() {
 validate_fluentd_configuration() {
     mounts_dir="${TEST_CONTENT_PATH}/render/fluentd-mounts"
     [ -f "${mounts_dir}/tls/tls.crt" ] || prepare_fluentd_mounts "${mounts_dir}"
-    docker run --rm --security-opt label=disable --name fluentd-render \
+    docker run --rm --security-opt label=disable --name "${FLUENTD_RENDER_CONTAINER}" \
         -e GRAYLOG_HOST=graylog.logging.svc -e GRAYLOG_PORT=12201 -e GRAYLOG_PROTOCOL=tcp \
         -e QUEUE_LIMIT_LENGTH=128 -e WATCH_KUBERNETES_METADATA=true -e MA_HOST=monitoring-agent.logging.svc \
         -v "$1":/fluentd/etc:ro \

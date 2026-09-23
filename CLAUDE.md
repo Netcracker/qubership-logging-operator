@@ -29,7 +29,8 @@ go test -race -run TestName ./controllers/...  # Run a single test
 
 Fluent pipeline tests support the `fluentbit`, `fluentbit-ha`, `fluentd`, `kube-metadata`, and `render` scenarios.
 `kube-metadata` runs the Kubernetes filter against a fake API server; `render` only renders and validates the agent
-configurations for the custom resources under `test/fluent-pipeline/testdata/assets/render/`. Integration tests use Robot
+configurations for the custom resources under `test/fluent-pipeline/testdata/assets/render/`. In CI they run as the
+`fluent_pipeline` job of `.github/workflows/integration-tests.yaml` and answer to `Integration Gate`. Integration tests use Robot
 Framework in `test/robot-tests/` and run via GitHub Actions.
 
 ### Documentation

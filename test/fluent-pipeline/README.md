@@ -193,6 +193,11 @@ in `TEST_CONTENT_PATH`, next to the rendered configuration, the agent's own log,
 workflow uploads that directory, together with the expected records, when a scenario fails, and puts the report on
 the job summary.
 
+The scenarios run as the `fluent_pipeline` job of the `Tests: Run logging integration tests` workflow, beside the
+cluster tests, and answer to `Integration Gate` with them: a pipeline that stopped parsing a supported format fails
+the acceptance of the change. The `changes` job of that workflow decides which of the two families a pull request
+needs, so a change to the chart does not run the parsers and a change to a fixture does not start a cluster.
+
 Do not replace expected files with actual output without reviewing each changed field. A broad golden-file update can
 hide a pipeline regression.
 

@@ -5,8 +5,12 @@ set -eu
 SCRIPT_DIR=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
 TEST_HOME_PATH=${TEST_HOME_PATH:-$(CDPATH='' cd -- "${SCRIPT_DIR}/../.." && pwd)}
 TEST_CONTENT_PATH=${TEST_CONTENT_PATH:-${TEST_HOME_PATH}/build/fluent-pipeline}
-FLUENTBIT_IMAGE=${FLUENTBIT_IMAGE:-docker.io/fluent/fluent-bit:5.1.0}
-FLUENTD_IMAGE=${FLUENTD_IMAGE:-ghcr.io/netcracker/qubership-fluentd:1.19.3-1}
+# The agents under test are the images the chart deploys; Renovate keeps the two in step through
+# the annotations below, the same way it does for charts/.../templates/_helpers.tpl.
+# renovate: datasource=docker depName=fluent/fluent-bit
+FLUENTBIT_IMAGE=${FLUENTBIT_IMAGE:-docker.io/fluent/fluent-bit:5.1.2}
+# renovate: datasource=github-releases depName=Netcracker/qubership-fluentd versioning=loose
+FLUENTD_IMAGE=${FLUENTD_IMAGE:-ghcr.io/netcracker/qubership-fluentd:1.19.3-2}
 FLUENT_PIPELINE_TEST_IMAGE=${FLUENT_PIPELINE_TEST_IMAGE:-qubership-fluent-pipeline-tests:local}
 INT_TESTS_IGNORE=${INT_TESTS_IGNORE:-}
 # The helper container writes the rendered configuration and the generated logs to bind mounts.

@@ -160,8 +160,8 @@ The following environment variables override the defaults:
 
 | Variable                     | Default                                         | Meaning                         |
 | ---------------------------- | ----------------------------------------------- | ------------------------------- |
-| `FLUENTBIT_IMAGE`            | `docker.io/fluent/fluent-bit:5.1.0`             | Fluent Bit image under test     |
-| `FLUENTD_IMAGE`              | `ghcr.io/netcracker/qubership-fluentd:1.19.3-1` | Fluentd image under test        |
+| `FLUENTBIT_IMAGE`            | `docker.io/fluent/fluent-bit:5.1.2`             | Fluent Bit image under test     |
+| `FLUENTD_IMAGE`              | `ghcr.io/netcracker/qubership-fluentd:1.19.3-2` | Fluentd image under test        |
 | `FLUENT_PIPELINE_TEST_IMAGE` | `qubership-fluent-pipeline-tests:local`         | Helper image                    |
 | `HELPER_USER`                | `$(id -u):$(id -g)`                             | User the helper runs as         |
 | `STARTUP_TIMEOUT`            | `30`                                            | Seconds to wait for open inputs |

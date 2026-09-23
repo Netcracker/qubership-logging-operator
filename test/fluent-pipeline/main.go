@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/Netcracker/qubership-logging-operator/test/fluent-pipeline/agent"
+	"github.com/Netcracker/qubership-logging-operator/test/fluent-pipeline/stage/kubeapi"
 	"github.com/Netcracker/qubership-logging-operator/test/fluent-pipeline/stage/parsercontract"
 	"github.com/Netcracker/qubership-logging-operator/test/fluent-pipeline/stage/preparing"
 	"github.com/Netcracker/qubership-logging-operator/test/fluent-pipeline/stage/testing"
@@ -21,7 +22,7 @@ var (
 )
 
 func main() {
-	stage := flag.String("stage", "test", "Stage of pipeline testing. Available values: prepare, render, prepare-parser-contracts, test")
+	stage := flag.String("stage", "test", "Stage of pipeline testing. Available values: prepare, render, prepare-parser-contracts, kube-api, test")
 	agentString := flag.String("agent", "fluentbit", "Parse configuration of logging agent. Possible values: fluentbit, fluentbitha, fluentd")
 	crPath := flag.String("cr", "/assets/logging-service-test-fluentbit.yaml", "Path to test LoggingService custom resource with necessary parameters")
 	parserCasesPath := flag.String("parserCases", "/parser-contracts/cases.json", "Path to parser contract cases")
@@ -29,6 +30,9 @@ func main() {
 	parserTargetPath := flag.String("parserTarget", "/parser-contracts/generated", "Directory for generated parser contract files")
 	ignoreFiles := flag.String("ignore", "", "The list of files names that should be ignored during tests. The names must be separated with comma")
 	ignoreFluentdTimeFiles := flag.String("ignoreFluentdTime", "audit.log.json,kubernetes.audit.log.json,varlogsyslog.log.json", "The list of files to ignore fluentd_time parameter because there is no way to check it for now")
+	podMetadataPath := flag.String("podMetadata", "/pod-metadata", "Directory with the pod metadata the fake Kubernetes API server answers with")
+	credentialsPath := flag.String("credentials", "/serviceaccount", "Directory the fake Kubernetes API server writes its certificate and token to")
+	apiAddress := flag.String("apiAddress", ":443", "Address the fake Kubernetes API server listens on")
 	logLevel := flag.String("loglevel", "info", "Level of application logger")
 
 	flag.Parse()
@@ -55,6 +59,11 @@ func main() {
 		preparing.PrepareTestLogs("/testdata/")
 	} else if strings.EqualFold(*stage, "render") {
 		preparing.PrepareConfiguration(*crPath, agent)
+	} else if strings.EqualFold(*stage, "kube-api") {
+		if err := kubeapi.Serve(*podMetadataPath, *credentialsPath, *apiAddress); err != nil {
+			logger.Error("Fake Kubernetes API server stopped", "err", err)
+			os.Exit(1)
+		}
 	} else {
 		logger.Error("Stage of testing is not defined", "stage", *stage)
 		os.Exit(1)

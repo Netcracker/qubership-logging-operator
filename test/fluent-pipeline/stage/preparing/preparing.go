@@ -23,6 +23,10 @@ var (
 	targetConfigPath = "/configuration.d"
 )
 
+// containerLogsRoot is the directory of the fixture tree that holds container logs; everything
+// below it names the pod the log belongs to.
+const containerLogsRoot = "logs/containers"
+
 func PrepareConfiguration(crPath string, agent agents.Agent) {
 	slog.Info("Reading test Custom Resource...")
 	cr, err := readCustomResource(crPath)
@@ -72,8 +76,11 @@ func readInputLogs(targetDir string) error {
 			//set proper file name and save to target dir
 			dirs, fileName := filepath.Split(path)
 			var targetFilePath string
-			if strings.HasPrefix(dirs, "logs/containers") {
-				deploymentName := strings.ReplaceAll(dirs[:len(dirs)-1], "/", "-")
+			if strings.HasPrefix(dirs, containerLogsRoot) {
+				// The pod name a fixture produces is the path below logs/containers with the
+				// separators joined, so that a fixture directory named like a real pod, such as
+				// kube-scheduler, reaches the filters that select on the pod name.
+				deploymentName := strings.ReplaceAll(strings.TrimPrefix(dirs[:len(dirs)-1], containerLogsRoot+"/"), "/", "-")
 				targetFilePath = filepath.Join("/var/log/pods/", fmt.Sprintf("test-namespace_%s_%s", deploymentName, "100000000000000000000000000000000000"), fileName)
 				fileName = "0.log"
 			} else {

@@ -253,9 +253,8 @@ func (c *comparison) compareExpectedRecord(expectedFile string, record map[strin
 	}
 
 	c.fail(metadata.ID, differencesStatus)
-	slog.Warn(fmt.Sprintf("Check logs from %q with id=%s is failed. Expected log printed below", expectedFile, metadata.ID))
-	delete(record, testMetadataKey)
-	return printMismatch(metadata.ID, record, actualRecord)
+	printMismatch(metadata.ID, expectedFile, recordDifferences(record, actualRecord, metadata))
+	return nil
 }
 
 func (c *comparison) fail(id string, details string) {
@@ -263,17 +262,15 @@ func (c *comparison) fail(id string, details string) {
 	c.report = append(c.report, reportRow{id: id, status: failed, details: details})
 }
 
-func printMismatch(id string, expected, actual map[string]interface{}) error {
-	if err := printJsonRecord(id, expected, true); err != nil {
-		slog.Error("Error occurred while printing log record", "err", err)
-		return err
+// printMismatch reports the fields of one record that do not hold what the expected record asks
+// for. The whole records are in the output file the run leaves behind; the report carries what
+// moved, as expected -> produced.
+func printMismatch(id, expectedFile string, differences []string) {
+	fmt.Printf("\u001B[33;20m--- %s (%s): %d field(s) differ, expected -> produced ---\u001B[0m", id, expectedFile, len(differences))
+	fmt.Println()
+	for _, difference := range differences {
+		fmt.Println("    " + difference)
 	}
-	slog.Warn("Actual log printed below")
-	if err := printJsonRecord(id, actual, false); err != nil {
-		slog.Error("Error occurred while printing log record", "err", err)
-		return err
-	}
-	return nil
 }
 
 func (c *comparison) printReport(agent agent.Agent) {

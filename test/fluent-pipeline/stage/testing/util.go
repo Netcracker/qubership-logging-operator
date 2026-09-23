@@ -1,10 +1,10 @@
 package testing
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"sort"
 	"strings"
 )
 
@@ -203,22 +203,81 @@ func describeRecord(record map[string]interface{}) string {
 	return strings.Join(parts, " ")
 }
 
-func printJsonRecord(id string, record map[string]interface{}, expected bool) error {
-	src, err := json.Marshal(record)
+// recordDifferences returns one line per field that does not hold what the expected record asks
+// for. Nested values are named by the path that leads to them, so a reader sees the field that
+// moved instead of two records to compare by eye.
+func recordDifferences(expected, actual map[string]interface{}, metadata testMetadata) []string {
+	stated := make(map[string]interface{}, len(expected))
+	for key, value := range expected {
+		if key != testMetadataKey {
+			stated[key] = value
+		}
+	}
+	expectedFields := flattenRecord(stated)
+	actualFields := flattenRecord(actual)
+
+	paths := make([]string, 0, len(expectedFields)+len(actualFields))
+	for path := range expectedFields {
+		paths = append(paths, path)
+	}
+	for path := range actualFields {
+		if _, expectedHere := expectedFields[path]; !expectedHere && !metadata.Partial {
+			paths = append(paths, path)
+		}
+	}
+	sort.Strings(paths)
+
+	var differences []string
+	for _, path := range paths {
+		want, asked := expectedFields[path]
+		got, produced := actualFields[path]
+		if asked && produced && reflect.DeepEqual(want, got) {
+			continue
+		}
+		differences = append(differences, fmt.Sprintf("%s: %s -> %s", path, describeValue(want, asked), describeValue(got, produced)))
+	}
+	for _, field := range metadata.Absent {
+		if value, exists := lookupField(actual, field); exists {
+			differences = append(differences, fmt.Sprintf("%s: (must be absent) -> %s", field, describeValue(value, true)))
+		}
+	}
+	return differences
+}
+
+// flattenRecord names every value of a record by its path, so that a change deep inside a nested
+// object reads as one line rather than as the whole object.
+func flattenRecord(record map[string]interface{}) map[string]interface{} {
+	flat := make(map[string]interface{}, len(record))
+	var walk func(prefix string, value map[string]interface{})
+	walk = func(prefix string, value map[string]interface{}) {
+		for key, nested := range value {
+			path := key
+			if prefix != "" {
+				path = prefix + "." + key
+			}
+			if object, isObject := nested.(map[string]interface{}); isObject && len(object) > 0 {
+				walk(path, object)
+				continue
+			}
+			flat[path] = nested
+		}
+	}
+	walk("", record)
+	return flat
+}
+
+const describedValueLimit = 120
+
+func describeValue(value interface{}, present bool) string {
+	if !present {
+		return "(no field)"
+	}
+	encoded, err := json.Marshal(value)
 	if err != nil {
-		return err
+		return fmt.Sprintf("%v", value)
 	}
-	var buf bytes.Buffer
-	err = json.Indent(&buf, src, "", "\t")
-	if err != nil {
-		return err
+	if len(encoded) > describedValueLimit {
+		return string(encoded[:describedValueLimit]) + "…"
 	}
-	if expected {
-		fmt.Printf("\u001B[32m--- Expected log. id=%s ---\u001B[0m", id)
-	} else {
-		fmt.Printf("\u001B[33;20m--- Actual log. id=%s ---\u001B[0m", id)
-	}
-	fmt.Println()
-	fmt.Println(buf.String())
-	return nil
+	return string(encoded)
 }

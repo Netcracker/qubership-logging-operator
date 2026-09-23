@@ -37,6 +37,7 @@ jobs:
         - fluentbit
         - fluentbit-ha
         - fluentd
+        - kube-metadata
         - render
     steps:
     - name: Checkout sources
@@ -56,12 +57,34 @@ jobs:
         TEST_CONTENT_PATH: ${{ runner.temp }}/fluent-pipeline-${{ matrix.agent }}
       run: test/fluent-pipeline/run.sh '${{ matrix.agent }}'
 
+    - name: Report the comparison on the job summary
+      if: always()
+      env:
+        REPORT: ${{ runner.temp }}/fluent-pipeline-${{ matrix.agent }}/report.txt
+      run: |
+        [ -f "${REPORT}" ] || exit 0
+        report=$(sed -e 's/\x1b\[[0-9;]*m//g' "${REPORT}")
+        matched=$(printf '%s\n' "${report}" | grep -c 'Succeeded' || true)
+        differed=$(printf '%s\n' "${report}" | grep -cE '\sFailed' || true)
+        echo "## ${{ matrix.agent }}: ${matched} matched, ${differed} failed" >> "${GITHUB_STEP_SUMMARY}"
+        if [ "${differed}" -gt 0 ]; then
+          {
+            echo '```text'
+            printf '%s\n' "${report}" | grep -vE '^\S+\s+Succeeded'
+            echo '```'
+          } >> "${GITHUB_STEP_SUMMARY}"
+        fi
+
     - name: Upload pipeline output
       if: failure()
       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
       with:
         name: fluent-pipeline-${{ matrix.agent }}-output
-        path: ${{ runner.temp }}/fluent-pipeline-${{ matrix.agent }}
+        # The rendered configuration, the generated logs, the agent log, the produced records, and
+        # the records the run expected, so that a failure can be read without the repository.
+        path: |
+          ${{ runner.temp }}/fluent-pipeline-${{ matrix.agent }}
+          test/fluent-pipeline/testdata/output/${{ matrix.agent }}
         if-no-files-found: ignore
 
   fluent-pipeline-gate:

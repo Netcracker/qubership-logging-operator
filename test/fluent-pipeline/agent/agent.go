@@ -26,6 +26,11 @@ func (flb *Fluentbit) UpdateCustomConfiguration(data map[string]string, cr *logg
 	return data
 }
 
+// String names the agent in the report of a run.
+func (flb *Fluentbit) String() string {
+	return "Fluent Bit"
+}
+
 func (flb *Fluentbit) GetOutputFileName() string {
 	return "output-log"
 }
@@ -40,12 +45,20 @@ func (flb *Fluentd) UpdateCustomConfiguration(data map[string]string, cr *loggin
 	return data
 }
 
+func (flb *Fluentd) String() string {
+	return "Fluentd"
+}
+
 func (flb *Fluentd) GetOutputFileName() string {
 	return "fake-fluent.log"
 }
 
 type FluentbitHA struct {
 	Fluentbit
+}
+
+func (flb *FluentbitHA) String() string {
+	return "Fluent Bit forwarder and aggregator"
 }
 
 func (flb *FluentbitHA) UpdateCustomConfiguration(data map[string]string, cr *loggingService.LoggingService) map[string]string {

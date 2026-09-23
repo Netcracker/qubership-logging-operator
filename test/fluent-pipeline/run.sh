@@ -24,7 +24,7 @@ OUTPUT_SETTLE_POLLS=${OUTPUT_SETTLE_POLLS:-3}
 
 cleanup() {
     docker rm -f fluentd fluent-bit fluent-bit-forwarder fluent-bit-aggregator fluent-bit-parser-contract fluent-config-replacer \
-        fluent-pipeline-test fluent-bit-render fluentd-render >/dev/null 2>&1 || true
+        fluent-pipeline-test fluent-bit-render fluentd-render fake-kube-api >/dev/null 2>&1 || true
     docker network rm fluent-net >/dev/null 2>&1 || true
 }
 
@@ -57,7 +57,7 @@ run_parser_contracts() {
         fluent-bit-parser-contract
     docker stop fluent-bit-parser-contract
 
-    docker run --rm --security-opt label=disable --user "${HELPER_USER}" --name fluent-pipeline-test \
+    run_comparison docker run --rm --security-opt label=disable --user "${HELPER_USER}" --name fluent-pipeline-test \
         -v "${contract_dir}/output":/output-logs/actual:ro \
         -v "${contract_dir}/expected":/output-logs/expected:ro \
         "${FLUENT_PIPELINE_TEST_IMAGE}" \
@@ -88,6 +88,30 @@ reset_test_content() {
             -v "$(dirname "${TEST_CONTENT_PATH}")":/content:rw \
             "${FLUENT_PIPELINE_TEST_IMAGE}" -rf "/content/$(basename "${TEST_CONTENT_PATH}")"
     fi
+}
+
+# save_agent_log prints the log of a container and leaves a copy beside the rendered configuration,
+# so that a failed run carries the agent's own warnings in its artifact.
+save_agent_log() {
+    container_name=$1
+    docker logs "${container_name}" >"${TEST_CONTENT_PATH}/${container_name}.log" 2>&1 || true
+    echo "=> Log of ${container_name}"
+    cat "${TEST_CONTENT_PATH}/${container_name}.log"
+}
+
+# run_comparison runs one comparison, appends its report to the report of the scenario, and
+# preserves its exit status; a pipe would report the status of the last command instead. A scenario
+# compares more than once: the pipeline output, then the isolated parser contracts.
+run_comparison() {
+    report_file="${TEST_CONTENT_PATH}/report.txt"
+    if "$@" >>"${report_file}" 2>&1; then
+        status=0
+    else
+        status=1
+    fi
+    tail -n +"${report_lines:-1}" "${report_file}"
+    report_lines=$(($(wc -l <"${report_file}") + 1))
+    return "${status}"
 }
 
 # wait_for_log polls a container's log for the line that shows it is ready. The agents log it at the info level,
@@ -282,11 +306,11 @@ run_fluentd_test_logic() {
         "$(count_expected_records "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/output/fluentd")" "${FLD_DOCKER_NAME}"
 
     echo "=> Stop and remove FluentD docker container"
-    docker logs "${FLD_DOCKER_NAME}"
+    save_agent_log "${FLD_DOCKER_NAME}"
     docker stop "${FLD_DOCKER_NAME}"
 
     echo "=> Run the docker container to analyze FluentD parsed logs and compare with expected data"
-    docker run --rm --security-opt label=disable --user "${HELPER_USER}" --name fluent-pipeline-test \
+    run_comparison docker run --rm --security-opt label=disable --user "${HELPER_USER}" --name fluent-pipeline-test \
         -v "${TEST_CONTENT_PATH}/output/":/output-logs/actual:ro \
         -v "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/output/fluentd/":/output-logs/expected:ro \
         "${FLUENT_PIPELINE_TEST_IMAGE}" \
@@ -358,11 +382,11 @@ run_fluentbit_test_logic() {
     check_metrics "${FLB_DOCKER_NAME}" "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/metrics/fluentbit.prom"
 
     echo "=> Stop and remove FluentBit docker container"
-    docker logs "${FLB_DOCKER_NAME}"
+    save_agent_log "${FLB_DOCKER_NAME}"
     docker stop "${FLB_DOCKER_NAME}"
 
     echo "=> Run the docker container to analyze FluentBit parsed logs and compare with expected data"
-    docker run --rm --security-opt label=disable --user "${HELPER_USER}" --name fluent-pipeline-test \
+    run_comparison docker run --rm --security-opt label=disable --user "${HELPER_USER}" --name fluent-pipeline-test \
         -v "${TEST_CONTENT_PATH}/output/":/output-logs/actual:ro \
         -v "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/output/fluentbit/":/output-logs/expected:ro \
         "${FLUENT_PIPELINE_TEST_IMAGE}" \
@@ -467,10 +491,10 @@ run_fluentbit_ha_test_logic() {
     check_metrics "${FLB_AGR_DOCKER_NAME}" "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/metrics/fluentbit-ha.prom"
 
     echo "=> Print FlintBit forwarder logs"
-    docker logs "${FLB_FRW_DOCKER_NAME}"
+    save_agent_log "${FLB_FRW_DOCKER_NAME}"
 
     echo "=> Print FlintBit aggregator logs"
-    docker logs "${FLB_AGR_DOCKER_NAME}"
+    save_agent_log "${FLB_AGR_DOCKER_NAME}"
 
     echo "=> Stop and remove FluentBit docker container"
     docker stop "${FLB_FRW_DOCKER_NAME}"
@@ -479,7 +503,7 @@ run_fluentbit_ha_test_logic() {
     docker network rm fluent-net
 
     echo "=> Run the docker container to analyze FluentBit parsed logs and compare with expected data"
-    docker run --rm --security-opt label=disable --user "${HELPER_USER}" --name fluent-pipeline-test \
+    run_comparison docker run --rm --security-opt label=disable --user "${HELPER_USER}" --name fluent-pipeline-test \
         -v "${TEST_CONTENT_PATH}/output/":/output-logs/actual:ro \
         -v "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/output/fluentbit-ha/":/output-logs/expected:ro \
         "${FLUENT_PIPELINE_TEST_IMAGE}" \
@@ -488,6 +512,96 @@ run_fluentbit_ha_test_logic() {
         -ignore "${INT_TESTS_IGNORE}"
 
     run_parser_contracts "${TEST_CONTENT_PATH}/forwarder-config" forwarder
+}
+
+###################################################################################################
+# Run the Fluent Bit DaemonSet against a fake Kubernetes API server
+###################################################################################################
+KUBE_API_NAME="fake-kube-api"
+KUBE_API_HOST="kubernetes.default.svc"
+
+# start_fake_kube_api serves the pod metadata of the scenario over HTTPS under the name the rendered
+# configuration hardcodes, and writes the certificate and token the agent mounts as its service
+# account. The agent reaches it by an added host entry, so no name resolution is needed.
+start_fake_kube_api() {
+    metadata_dir=$1
+    credentials_dir=$2
+    mkdir -p "${credentials_dir}"
+    docker run -d --security-opt label=disable --name "${KUBE_API_NAME}" --network fluent-net --user 0 \
+        -v "${metadata_dir}":/pod-metadata:ro \
+        -v "${credentials_dir}":/serviceaccount:rw \
+        "${FLUENT_PIPELINE_TEST_IMAGE}" \
+        -stage kube-api \
+        -podMetadata /pod-metadata \
+        -credentials /serviceaccount \
+        -apiAddress :443
+    wait_for_log "${KUBE_API_NAME}" 'Serving pod metadata'
+}
+
+run_kube_metadata_test_logic() {
+    FLB_DOCKER_NAME="fluent-bit"
+    echo "=> Prepare test environment and test data"
+    reset_test_content
+    mkdir -p "${TEST_CONTENT_PATH}/config/" "${TEST_CONTENT_PATH}/logs/" "${TEST_CONTENT_PATH}/output/" \
+        "${TEST_CONTENT_PATH}/serviceaccount/"
+
+    echo "=> Prepare FluentBit configurations"
+    docker run --rm --security-opt label=disable --user "${HELPER_USER}" --name fluent-config-replacer \
+        -v "${TEST_HOME_PATH}/controllers/fluentbit/fluentbit.configmap/":/config-templates.d/:ro \
+        -v "${TEST_CONTENT_PATH}/config/":/configuration.d/:z \
+        -v "${TEST_CONTENT_PATH}/logs/":/testdata:z \
+        -v "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/assets/kube-metadata.yaml":/assets/kube-metadata.yaml:ro \
+        -v "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/kube-metadata/":/logs:ro \
+        "${FLUENT_PIPELINE_TEST_IMAGE}" \
+        -agent fluentbit \
+        -cr /assets/kube-metadata.yaml \
+        -stage prepare \
+        -loglevel warn \
+        -ignore "${INT_TESTS_IGNORE}"
+
+    speed_up_file_discovery "${TEST_CONTENT_PATH}/config"
+
+    docker network create fluent-net
+
+    echo "=> Run the fake Kubernetes API server"
+    start_fake_kube_api "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/kube-metadata/pod-metadata" \
+        "${TEST_CONTENT_PATH}/serviceaccount"
+    api_address=$(docker inspect --format '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "${KUBE_API_NAME}")
+
+    echo "=> Run FluentBit to read, parse and output processed logs"
+    docker run -d --security-opt label=disable --name "${FLB_DOCKER_NAME}" \
+        --network fluent-net \
+        --add-host "${KUBE_API_HOST}:${api_address}" \
+        -e HOSTNAME=fake-fluent \
+        -e NODE_NAME=fake-node \
+        -v "${TEST_CONTENT_PATH}/config/":/fluent-bit/etc \
+        -v "${TEST_CONTENT_PATH}/logs/var/log/":/var/log:z \
+        -v "${TEST_CONTENT_PATH}/serviceaccount/":/var/run/secrets/kubernetes.io/serviceaccount:ro \
+        -v "${TEST_CONTENT_PATH}/output/":/fluentbit-output:z \
+        "${FLUENTBIT_IMAGE}"
+
+    echo "=> Waiting until FluentBit writes the processed logs"
+    wait_for_records "${TEST_CONTENT_PATH}/output/output-log" \
+        "$(count_expected_records "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/output/kube-metadata")" \
+        "${FLB_DOCKER_NAME}"
+
+    echo "=> Print the pod requests the Kubernetes filter made"
+    save_agent_log "${KUBE_API_NAME}"
+
+    echo "=> Stop and remove FluentBit docker container"
+    save_agent_log "${FLB_DOCKER_NAME}"
+    docker stop "${FLB_DOCKER_NAME}"
+    docker stop "${KUBE_API_NAME}"
+    docker network rm fluent-net
+
+    echo "=> Run the docker container to analyze FluentBit parsed logs and compare with expected data"
+    run_comparison docker run --rm --security-opt label=disable --user "${HELPER_USER}" --name fluent-pipeline-test \
+        -v "${TEST_CONTENT_PATH}/output/":/output-logs/actual:ro \
+        -v "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/output/kube-metadata/":/output-logs/expected:ro \
+        "${FLUENT_PIPELINE_TEST_IMAGE}" \
+        -agent fluentbit \
+        -stage test \
+        -ignore "${INT_TESTS_IGNORE}"
 }
 
 ###################################################################################################
@@ -624,9 +738,11 @@ run_render_test_logic() {
             validate_fluentd_configuration
     done
 
-    echo "--- Report of configuration rendering ---"
-    printf 'CONFIGURATION\tSTATUS\tDETAILS\n'
-    printf "%b" "${render_report}"
+    {
+        echo "--- Report of configuration rendering ---"
+        printf 'CONFIGURATION\tSTATUS\tDETAILS\n'
+        printf "%b" "${render_report}"
+    } | tee "${TEST_CONTENT_PATH}/report.txt"
     [ "${render_failures}" -eq 0 ]
 }
 
@@ -648,12 +764,16 @@ case ${1:-} in
     run_fluentbit_ha_test_logic
     ;;
 
+'kube-metadata')
+    run_kube_metadata_test_logic
+    ;;
+
 'render')
     run_render_test_logic
     ;;
 
 *)
-    echo "Usage: $0 {fluentd|fluentbit|fluentbit-ha|render}" >&2
+    echo "Usage: $0 {fluentd|fluentbit|fluentbit-ha|kube-metadata|render}" >&2
     exit 2
     ;;
 

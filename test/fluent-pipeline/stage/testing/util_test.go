@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"strings"
 	"testing"
 
 	loggingService "github.com/Netcracker/qubership-logging-operator/api/v1"
@@ -224,6 +225,83 @@ func TestCompareRecord(t *testing.T) {
 				t.Errorf("compareRecord(%v, %v) = %v, want %v", tt.expected, tt.actual, got, tt.want)
 			}
 		})
+	}
+}
+
+func TestRecordDifferences(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		expected map[string]interface{}
+		actual   map[string]interface{}
+		want     []string
+	}{
+		{
+			name:     "a changed field names the value it held and the one it holds",
+			expected: map[string]interface{}{"_test": metadata("one"), "parse_format": "unknown"},
+			actual:   map[string]interface{}{"parse_format": "json"},
+			want:     []string{`parse_format: "unknown" -> "json"`},
+		},
+		{
+			name:     "a field the output dropped is named once",
+			expected: map[string]interface{}{"_test": metadata("two"), "msg": "hello"},
+			actual:   map[string]interface{}{},
+			want:     []string{`msg: "hello" -> (no field)`},
+		},
+		{
+			name:     "a field the output gained is named once",
+			expected: map[string]interface{}{"_test": metadata("three")},
+			actual:   map[string]interface{}{"log_time": "one"},
+			want:     []string{`log_time: (no field) -> "one"`},
+		},
+		{
+			name: "a change inside a nested object names the path that leads to it",
+			expected: map[string]interface{}{"_test": metadata("four"),
+				"labels": map[string]interface{}{"app": "demo", "tier": "back"}},
+			actual: map[string]interface{}{
+				"labels": map[string]interface{}{"app": "demo", "tier": "front"}},
+			want: []string{`labels.tier: "back" -> "front"`},
+		},
+		{
+			name:     "a partial expectation ignores the fields it does not state",
+			expected: map[string]interface{}{"_test": partialMetadata("five"), "level": "warn"},
+			actual:   map[string]interface{}{"level": "warn", "hostname": "generated"},
+			want:     nil,
+		},
+		{
+			name:     "a partial expectation names a field it listed as absent",
+			expected: map[string]interface{}{"_test": partialMetadata("six", "time"), "level": "warn"},
+			actual:   map[string]interface{}{"level": "warn", "time": "one"},
+			want:     []string{`time: (must be absent) -> "one"`},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			testMetadata, ok := getTestMetadata(tt.expected)
+			if !ok {
+				t.Fatal("getTestMetadata() found no metadata in the expected record")
+			}
+			got := recordDifferences(tt.expected, tt.actual, testMetadata)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("recordDifferences() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestDescribeValueShortensALongValue(t *testing.T) {
+	t.Parallel()
+
+	got := describeValue(strings.Repeat("a", 500), true)
+	if len(got) > describedValueLimit+10 {
+		t.Errorf("describeValue() returned %d characters, want it shortened to about %d", len(got), describedValueLimit)
+	}
+	if !strings.HasSuffix(got, "…") {
+		t.Errorf("describeValue() = %q, want it to end with the ellipsis that marks the cut", got[len(got)-10:])
 	}
 }
 

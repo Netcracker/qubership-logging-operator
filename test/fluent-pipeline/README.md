@@ -63,6 +63,7 @@ the parsed timestamp. The contract retains this behavior so a parser fix produce
 - `fluentbit` runs the Fluent Bit daemon set pipeline.
 - `fluentbit-ha` runs the Fluent Bit forwarder and aggregator pipeline.
 - `fluentd` runs the Fluentd daemon set pipeline.
+- `kube-metadata` runs the Fluent Bit daemon set with the real Kubernetes filter against a fake API server.
 - `render` renders the configuration for every custom resource under `testdata/assets/render/` and asks the agent to
   validate it without processing any log.
 
@@ -85,6 +86,23 @@ open before it appends the system and audit fixtures, and it reads the output fi
 the expected files and the count stops changing. The test custom resources therefore set `logLevel: info`, which
 the readiness lines need, and flush every second so records do not wait in a buffer. A wait that runs out reports
 what it waited for and the last count it saw; the comparison then names the missing records.
+
+## Kube-metadata scenario
+
+The other scenarios set `mockKubeData: true`, which replaces the Kubernetes filter with a filter that adds fixed
+fields. That filter parses nothing, so two things the pipeline does in a cluster never happen: `Merge_Log`, which
+feeds the parsed payload to the rest of the chain, and the `fluentbit.io/parser` annotation, which names the parser
+for a pod. Records therefore reach the generic chain that would not reach it in a cluster.
+
+The `kube-metadata` scenario runs the rendered configuration with `mockKubeData: false` and answers the filter with a
+fake API server: the helper's `kube-api` stage serves the pod metadata under `testdata/kube-metadata/pod-metadata/`,
+writes a self-signed certificate for `kubernetes.default.svc`, and the runner mounts that certificate as the agent's
+service account directory and points the name at the server with an added host entry. A pod with no metadata file is
+answered with a pod that declares no annotations.
+
+Its fixtures live under `testdata/kube-metadata/logs/containers/`, separate from the other scenarios, and the pod name
+of a fixture is its path below `containers`. That is what selects the route in filters that read the pod name, so a
+directory named `kube-scheduler` reaches the tag rewrite that only Kubernetes system pods reach in a cluster.
 
 ## Render scenario
 
@@ -131,6 +149,7 @@ Run one of the scenarios:
 test/fluent-pipeline/run.sh fluentbit
 test/fluent-pipeline/run.sh fluentbit-ha
 test/fluent-pipeline/run.sh fluentd
+test/fluent-pipeline/run.sh kube-metadata
 test/fluent-pipeline/run.sh render
 ```
 
@@ -167,6 +186,12 @@ format its parser expects and one that is not, so the run shows both that the po
 the parser leaves other lines alone. The pod name comes from the directory path, so `opensearch-0` matches the
 `opensearch-\d{1,2}_` selector while `opensearch` would not.
 4. Run every affected scenario locally.
+
+A run that fails names the fields that moved, as `expected -> produced`, with a nested value under the path that
+leads to it, so a mismatch reads without opening the records. The whole records are in the output file the run leaves
+in `TEST_CONTENT_PATH`, next to the rendered configuration, the agent's own log, and the report of the run; the CI
+workflow uploads that directory, together with the expected records, when a scenario fails, and puts the report on
+the job summary.
 
 Do not replace expected files with actual output without reviewing each changed field. A broad golden-file update can
 hide a pipeline regression.

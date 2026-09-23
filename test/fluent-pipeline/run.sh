@@ -21,12 +21,22 @@ KUBE_API_NAME="${RESOURCE_PREFIX}-kube-api"
 CLEANUP_CONTAINER="${RESOURCE_PREFIX}-cleanup"
 NETWORK_NAME="${RESOURCE_PREFIX}-net"
 PREPARE_TEST_ENVIRONMENT_MESSAGE='=> Prepare test environment and test data'
-# The agents under test are the images the chart deploys; Renovate keeps the two in step through
-# the annotations below, the same way it does for charts/.../templates/_helpers.tpl.
-# renovate: datasource=docker depName=fluent/fluent-bit
-FLUENTBIT_IMAGE=${FLUENTBIT_IMAGE:-docker.io/fluent/fluent-bit:5.1.2}
-# renovate: datasource=github-releases depName=Netcracker/qubership-fluentd versioning=loose
-FLUENTD_IMAGE=${FLUENTD_IMAGE:-ghcr.io/netcracker/qubership-fluentd:1.19.3-2}
+CHART_HELPERS="${TEST_HOME_PATH}/charts/qubership-logging-operator/templates/_helpers.tpl"
+
+# chart_image reads the image the chart deploys for an agent, so that the suite tests the version
+# users receive. Renovate updates the chart and has no manager for shell files, so a copy here
+# would drift silently; the chart is the one place that holds the version.
+chart_image() {
+    image=$(sed -n "s|.*print \"\($1[^\"]*\)\".*|\1|p" "${CHART_HELPERS}" | head -n 1)
+    if [ -z "${image}" ]; then
+        echo "Could not read the ${1} image from ${CHART_HELPERS}" >&2
+        exit 1
+    fi
+    echo "${image}"
+}
+
+FLUENTBIT_IMAGE=${FLUENTBIT_IMAGE:-$(chart_image docker.io/fluent/fluent-bit:)}
+FLUENTD_IMAGE=${FLUENTD_IMAGE:-$(chart_image ghcr.io/netcracker/qubership-fluentd:)}
 FLUENT_PIPELINE_TEST_IMAGE=${FLUENT_PIPELINE_TEST_IMAGE:-qubership-fluent-pipeline-tests:local}
 INT_TESTS_IGNORE=${INT_TESTS_IGNORE:-}
 # The helper container writes the rendered configuration and the generated logs to bind mounts.

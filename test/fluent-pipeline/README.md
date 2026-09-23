@@ -157,18 +157,23 @@ The runner stores generated configuration and actual output in `build/fluent-pip
 `TEST_CONTENT_PATH` to use a new or empty directory. After the first run, a marker identifies the directory as owned
 by the test runner, and later runs can safely replace its contents.
 
+The agent images default to the ones `charts/qubership-logging-operator/templates/_helpers.tpl` deploys, read from
+that file at run time: Renovate updates the chart and has no manager for shell files, so a second copy of the version
+here would drift without anyone noticing.
+
 The following environment variables override the defaults:
 
-| Variable                     | Default                                         | Meaning                         |
-| ---------------------------- | ----------------------------------------------- | ------------------------------- |
-| `FLUENTBIT_IMAGE`            | `docker.io/fluent/fluent-bit:5.1.2`             | Fluent Bit image under test     |
-| `FLUENTD_IMAGE`              | `ghcr.io/netcracker/qubership-fluentd:1.19.3-2` | Fluentd image under test        |
-| `FLUENT_PIPELINE_TEST_IMAGE` | `qubership-fluent-pipeline-tests:local`         | Helper image                    |
-| `HELPER_USER`                | `$(id -u):$(id -g)`                             | User the helper runs as         |
-| `STARTUP_TIMEOUT`            | `30`                                            | Seconds to wait for open inputs |
-| `OUTPUT_TIMEOUT`             | `60`                                            | Seconds to wait for the records |
-| `OUTPUT_SETTLE_POLLS`        | `3`                                             | Polls with an unchanged count   |
-| `INT_TESTS_IGNORE`           | Empty                                           | Expected files to skip          |
+| Variable                     | Default                                 | Meaning                          |
+| ---------------------------- | --------------------------------------- | -------------------------------- |
+| `FLUENTBIT_IMAGE`            | the image the chart deploys             | Fluent Bit image under test      |
+| `FLUENTD_IMAGE`              | the image the chart deploys             | Fluentd image under test         |
+| `FLUENT_PIPELINE_TEST_IMAGE` | `qubership-fluent-pipeline-tests:local` | Helper image                     |
+| `HELPER_USER`                | `$(id -u):$(id -g)`                     | User the helper runs as          |
+| `STARTUP_TIMEOUT`            | `30`                                    | Seconds to wait for open inputs  |
+| `METRICS_TIMEOUT`            | `60`                                    | Seconds to wait for the exporter |
+| `OUTPUT_TIMEOUT`             | `60`                                    | Seconds to wait for the records  |
+| `OUTPUT_SETTLE_POLLS`        | `3`                                     | Polls with an unchanged count    |
+| `INT_TESTS_IGNORE`           | Empty                                   | Expected files to skip           |
 
 The runner starts the helper container as `HELPER_USER`, so the rendered configuration and the generated container logs
 belong to the calling user. The logging agents run as root and read those files without extra permissions.

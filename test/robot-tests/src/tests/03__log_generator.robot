@@ -348,12 +348,11 @@ Check Json Payload Metadata Collisions And Date Variants
     Dictionary Should Contain Item    ${record}    container    json-log-generator
     ${pod}=    Get From Dictionary    ${record}    pod
     Should Be Equal As Strings    ${pod}    ${json_generator_pod_name}
-    Dictionary Should Contain Item    ${record}    parse_namespace    payload-namespace
-    Dictionary Should Contain Item    ${record}    parse_parse_namespace    payload-parse-namespace
-    Dictionary Should Contain Item    ${record}    parse_container    payload-container
-    Dictionary Should Contain Item    ${record}    parse_pod    payload-pod
-    Dictionary Should Contain Item    ${record}    parse_labels    payload-labels
-    Dictionary Should Contain Item    ${record}    parse_time    2026-07-17T07:45:14,937Z
+    Dictionary Should Contain Item    ${record}    parsed_namespace    payload-namespace
+    Dictionary Should Contain Item    ${record}    parsed_container    payload-container
+    Dictionary Should Contain Item    ${record}    parsed_pod    payload-pod
+    Dictionary Should Contain Item    ${record}    parsed_labels    payload-labels
+    Dictionary Should Contain Item    ${record}    parsed_time    2026-07-17T07:45:14,937Z
     Dictionary Should Contain Item    ${record}    date    not-a-timestamp
     ${time}=    Get From Dictionary    ${record}    _time
     Should Match Regexp    ${time}    ${DATE_TIME_REGEXP}

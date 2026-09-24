@@ -163,7 +163,7 @@ data:
       messagesPerSec: 10
       generationTime: 1
       dateFormat: "{\"'level'\":\"'INFO'\""
-      template: ",\"msg\":\"json_collision_invalid_date\",\"collision_case\":\"date-invalid\",\"namespace\":\"payload-namespace\",\"parse_namespace\":\"payload-parse-namespace\",\"container\":\"payload-container\",\"pod\":\"payload-pod\",\"labels\":\"payload-labels\",\"time\":\"2026-07-17T07:45:14,937Z\",\"date\":\"not-a-timestamp\"}"
+      template: ",\"msg\":\"json_collision_invalid_date\",\"collision_case\":\"date-invalid\",\"namespace\":\"payload-namespace\",\"container\":\"payload-container\",\"pod\":\"payload-pod\",\"labels\":\"payload-labels\",\"time\":\"2026-07-17T07:45:14,937Z\",\"date\":\"not-a-timestamp\"}"
     - name: "json"
       messagesPerSec: 10
       generationTime: 1

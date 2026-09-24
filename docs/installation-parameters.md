@@ -920,17 +920,17 @@ The operator-managed default HTTP URI uses the root timestamp from the container
 envelope. This behavior applies to both standalone FluentBit and the FluentBit aggregator.
 
 <!-- markdownlint-disable line-length -->
-| Field        | Source and purpose                                                                                                                                                                                        |
-| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `time`       | Timestamp from the CRI/Docker container log envelope. The default VictoriaLogs URI uses it to populate `_time`. It remains in the FluentBit record unless a format-specific filter explicitly renames it. |
-| `parse_time` | Application-provided `time` extracted from the log payload. It is created only when payload `time` collides with the authoritative root `time`, and is stored as a regular VictoriaLogs field.            |
-| `_time`      | Canonical VictoriaLogs timestamp populated from the root `time` field during ingestion.                                                                                                                   |
+| Field         | Source and purpose                                                                                                                                                                                        |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `time`        | Timestamp from the CRI/Docker container log envelope. The default VictoriaLogs URI uses it to populate `_time`. It remains in the FluentBit record unless a format-specific filter explicitly renames it. |
+| `parsed_time` | Application-provided `time` extracted from the log payload. It is created only when payload `time` collides with the authoritative root `time`, and is stored as a regular VictoriaLogs field.            |
+| `_time`       | Canonical VictoriaLogs timestamp populated from the root `time` field during ingestion.                                                                                                                   |
 <!-- markdownlint-enable line-length -->
 
 The default URI contains `_time_field=time`. The HTTP output also sets
 `json_date_key false`, because the record already has the timestamp required by
 VictoriaLogs and no additional generated timestamp field is needed. The collision handling
-keeps an application-provided `time` as `parse_time`, so it cannot replace the container
+keeps an application-provided `time` as `parsed_time`, so it cannot replace the container
 timestamp. When `output.http.uri` is overridden, timestamp selection is controlled by the
 custom URI and custom HTTP output parameters.
 

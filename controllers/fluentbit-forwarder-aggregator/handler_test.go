@@ -1,8 +1,6 @@
 package fluentbit_forwarder_aggregator
 
 import (
-	"bytes"
-	"os"
 	"strings"
 	"testing"
 
@@ -11,20 +9,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
-
-func TestAggregatorCollisionLuaMatchesStandalone(t *testing.T) {
-	aggregatorLua, err := os.ReadFile("aggregator.configmap/conf.d/lua_scripts/count_fields.lua")
-	if err != nil {
-		t.Fatalf("failed to read aggregator collision Lua: %v", err)
-	}
-	standaloneLua, err := os.ReadFile("../fluentbit/fluentbit.configmap/conf.d/lua_scripts/count_fields.lua")
-	if err != nil {
-		t.Fatalf("failed to read standalone collision Lua: %v", err)
-	}
-	if !bytes.Equal(aggregatorLua, standaloneLua) {
-		t.Fatal("aggregator and standalone collision handling must stay identical")
-	}
-}
 
 func newTestHAFluentReconciler() *HAFluentReconciler {
 	return &HAFluentReconciler{
@@ -159,4 +143,48 @@ func TestHAFluentEqual(t *testing.T) {
 			t.Error("HA-fluent Equal should detect label changes, but it didn't")
 		}
 	})
+}
+
+func TestParsedFieldsProtectReservedFields(t *testing.T) {
+	configMap, err := aggregatorConfigMap(&loggingService.LoggingService{
+		Spec: loggingService.LoggingServiceSpec{
+			Fluentbit: &loggingService.Fluentbit{Aggregator: &loggingService.FluentbitAggregator{}},
+		},
+	}, util.DynamicParameters{})
+	if err != nil {
+		t.Fatalf("failed to render aggregator ConfigMap: %v", err)
+	}
+
+	enrichConfig := strings.Join(strings.Fields(configMap.Data["filter-enrich-fields.conf"]), " ")
+	for _, rule := range []string{
+		"Hard_rename namespace parsed_namespace",
+		"Hard_rename pod parsed_pod",
+		"Hard_rename container parsed_container",
+		"Hard_rename source parsed_source",
+		"Hard_rename labels parsed_labels",
+		"Hard_rename log parsed_log",
+		"Hard_rename time parsed_time",
+		"Hard_rename level parsed_level",
+		"Hard_rename source_level parsed_source_level",
+	} {
+		if !strings.Contains(enrichConfig, rule) {
+			t.Errorf("missing reserved field rule %q", rule)
+		}
+	}
+	if strings.Contains(enrichConfig, "Add_prefix parsed_") {
+		t.Error("application fields without protected names must keep their original names")
+	}
+
+	hideIndex := strings.Index(enrichConfig, "Operation nest Wildcard namespace")
+	applicationIndex := strings.Index(enrichConfig, "Nested_under log_parsed")
+	renameIndex := strings.Index(enrichConfig, "Hard_rename namespace parsed_namespace")
+	restoreIndex := strings.LastIndex(enrichConfig, "Nested_under _record_metadata")
+	if hideIndex < 0 || hideIndex >= applicationIndex || applicationIndex >= renameIndex || renameIndex >= restoreIndex {
+		t.Error("protected fields must be hidden, application fields extracted and renamed, then protected fields restored")
+	}
+
+	levelConfig := strings.Join(strings.Fields(configMap.Data["filter-nonsupported-levels.conf"]), " ")
+	if !strings.Contains(levelConfig, "Rename parsed_source_level source_level") {
+		t.Error("source_level must be restored without overwriting the normalized value")
+	}
 }

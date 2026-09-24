@@ -144,3 +144,45 @@ func TestFluentbitEqual(t *testing.T) {
 		}
 	})
 }
+
+func TestParsedFieldsProtectReservedFields(t *testing.T) {
+	configMap, err := fluentbitConfigMap(&loggingService.LoggingService{
+		Spec: loggingService.LoggingServiceSpec{Fluentbit: &loggingService.Fluentbit{}},
+	}, util.DynamicParameters{})
+	if err != nil {
+		t.Fatalf("failed to render Fluent Bit ConfigMap: %v", err)
+	}
+
+	enrichConfig := strings.Join(strings.Fields(configMap.Data["filter-enrich-fields.conf"]), " ")
+	for _, rule := range []string{
+		"Hard_rename namespace parsed_namespace",
+		"Hard_rename pod parsed_pod",
+		"Hard_rename container parsed_container",
+		"Hard_rename source parsed_source",
+		"Hard_rename labels parsed_labels",
+		"Hard_rename log parsed_log",
+		"Hard_rename time parsed_time",
+		"Hard_rename level parsed_level",
+		"Hard_rename source_level parsed_source_level",
+	} {
+		if !strings.Contains(enrichConfig, rule) {
+			t.Errorf("missing reserved field rule %q", rule)
+		}
+	}
+	if strings.Contains(enrichConfig, "Add_prefix parsed_") {
+		t.Error("application fields without protected names must keep their original names")
+	}
+
+	hideIndex := strings.Index(enrichConfig, "Operation nest Wildcard namespace")
+	applicationIndex := strings.Index(enrichConfig, "Nested_under log_parsed")
+	renameIndex := strings.Index(enrichConfig, "Hard_rename namespace parsed_namespace")
+	restoreIndex := strings.LastIndex(enrichConfig, "Nested_under _record_metadata")
+	if hideIndex < 0 || hideIndex >= applicationIndex || applicationIndex >= renameIndex || renameIndex >= restoreIndex {
+		t.Error("protected fields must be hidden, application fields extracted and renamed, then protected fields restored")
+	}
+
+	levelConfig := strings.Join(strings.Fields(configMap.Data["filter-nonsupported-levels.conf"]), " ")
+	if !strings.Contains(levelConfig, "Rename parsed_source_level source_level") {
+		t.Error("source_level must be restored without overwriting the normalized value")
+	}
+}

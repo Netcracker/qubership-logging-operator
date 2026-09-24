@@ -165,6 +165,7 @@ func TestParsedFieldsProtectReservedFields(t *testing.T) {
 		"Hard_rename log parsed_log",
 		"Hard_rename time parsed_time",
 		"Hard_rename level parsed_level",
+		"Hard_rename parse_status parsed_parse_status",
 		"Hard_rename source_level parsed_source_level",
 	} {
 		if !strings.Contains(enrichConfig, rule) {
@@ -186,5 +187,43 @@ func TestParsedFieldsProtectReservedFields(t *testing.T) {
 	levelConfig := strings.Join(strings.Fields(configMap.Data["filter-nonsupported-levels.conf"]), " ")
 	if !strings.Contains(levelConfig, "Rename parsed_source_level source_level") {
 		t.Error("source_level must be restored without overwriting the normalized value")
+	}
+}
+
+func TestParserSuccessUsesPreserveKeyOff(t *testing.T) {
+	configMap, err := aggregatorConfigMap(&loggingService.LoggingService{
+		Spec: loggingService.LoggingServiceSpec{
+			Fluentbit: &loggingService.Fluentbit{Aggregator: &loggingService.FluentbitAggregator{}},
+		},
+	}, util.DynamicParameters{})
+	if err != nil {
+		t.Fatalf("failed to render aggregator ConfigMap: %v", err)
+	}
+
+	genericConfig := strings.Join(strings.Fields(configMap.Data["filter-generic.conf"]), " ")
+	for _, expected := range []string{
+		"Copy log _parser_input",
+		"Key_Name _parser_input",
+		"Preserve_Key Off",
+	} {
+		if !strings.Contains(genericConfig, expected) {
+			t.Errorf("generic parser pipeline is missing %q", expected)
+		}
+	}
+	if strings.Contains(genericConfig, "Preserve_Key On") {
+		t.Error("generic parsers must remove original_log after successful parsing")
+	}
+
+	statusConfig := configMap.Data["filter-validate.conf"] + configMap.Data["filter-post-generic.conf"]
+	if strings.Count(statusConfig, "Key_does_not_exist _parser_input") != 2 {
+		t.Error("klog and generic parser success must be detected from the removed _parser_input field")
+	}
+	if !strings.Contains(configMap.Data["filter-enrich-fields.conf"], "Preserve_Key    Off") {
+		t.Error("klog parsers must remove original_log after successful parsing")
+	}
+	for name, content := range configMap.Data {
+		if strings.Contains(content, "count_fields") {
+			t.Errorf("%s still uses field-count parsing detection", name)
+		}
 	}
 }

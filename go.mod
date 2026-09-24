@@ -2,7 +2,7 @@ module github.com/Netcracker/qubership-logging-operator
 
 go 1.26.0
 
-toolchain go1.26.6
+toolchain go1.26.8
 
 require (
 	github.com/Masterminds/sprig v2.22.0+incompatible
@@ -63,7 +63,7 @@ require (
 	sigs.k8s.io/yaml v1.6.0 // indirect
 )
 
-require github.com/Netcracker/qubership-logging-operator/api v0.0.0-20260911123535-0195367ed3f0
+require github.com/Netcracker/qubership-logging-operator/api v0.0.0-20260918233448-171b8627b7e0
 
 require (
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
@@ -79,7 +79,6 @@ require (
 	github.com/go-openapi/swag/stringutils v0.26.1 // indirect
 	github.com/go-openapi/swag/typeutils v0.26.1 // indirect
 	github.com/go-openapi/swag/yamlutils v0.26.1 // indirect
-	github.com/google/btree v1.1.3 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.yaml.in/yaml/v2 v2.4.4 // indirect

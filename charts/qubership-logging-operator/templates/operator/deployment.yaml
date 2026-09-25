@@ -35,19 +35,6 @@ spec:
       {{- end }}
     spec:
       serviceAccountName: logging-operator
-      {{- if .Values.graylog.install }}
-      volumes:
-        - name: graylog-secret-files
-          secret:
-            secretName: {{ default "graylog-secret" .Values.graylog.graylogSecretName }}
-            items:
-              - key: user
-                path: user
-              - key: password
-                path: password
-              - key: elasticsearchHost
-                path: elasticsearchHost
-      {{- end }}
       {{- if and .Values.nodeSelectorKey .Values.nodeSelectorValue }}
       nodeSelector:
         {{ .Values.nodeSelectorKey | indent 8 }}: {{ .Values.nodeSelectorValue }}
@@ -59,6 +46,30 @@ spec:
       {{- if .Values.priorityClassName }}
       priorityClassName: {{ .Values.priorityClassName }}
       {{- end }}
+      securityContext:
+        runAsNonRoot: true
+        runAsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+        {{- if not (or .Values.openshiftDeploy (.Capabilities.APIVersions.Has "security.openshift.io/v1")) }}
+        runAsUser: 2001
+        {{- end }}
+      volumes:
+        {{- if .Values.graylog.install }}
+        - name: graylog-secret-files
+          secret:
+            secretName: {{ default "graylog-secret" .Values.graylog.graylogSecretName }}
+            items:
+              - key: user
+                path: user
+              - key: password
+                path: password
+              - key: elasticsearchHost
+                path: elasticsearchHost
+        {{- end }}
+        - name: tmp
+          emptyDir:
+            sizeLimit: 100Mi
       containers:
         - name: operator
           image: {{ template "logging-operator.image" . }}
@@ -69,8 +80,21 @@ spec:
             - '--pprof-address=:{{ .Values.pprof.service.port }}'
             {{- end }}
           imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL
           resources:
-            {{- toYaml .Values.resources | nindent 12 }}
+            limits:
+              cpu: {{ .Values.resources.limits.cpu }}
+              memory: {{ .Values.resources.limits.memory }}
+              ephemeral-storage: {{ index .Values.resources.limits "ephemeral-storage" }}
+            requests:
+              cpu: {{ .Values.resources.requests.cpu }}
+              memory: {{ .Values.resources.requests.memory }}
           ports:
             - containerPort: 8080
               name: metrics
@@ -102,12 +126,14 @@ spec:
               value: {{ .Values.podMonitor.scrapeTimeout | default "10s" }}
             - name: LOG_LEVEL
               value: {{ .Values.logLevel | default "info" }}
-          {{- if .Values.graylog.install }}
           volumeMounts:
+            {{- if .Values.graylog.install }}
             - name: graylog-secret-files
               mountPath: /etc/logging-operator/graylog-secret
               readOnly: true
-          {{- end }}
+            {{- end }}
+            - name: tmp
+              mountPath: /tmp
           livenessProbe:
             {{- toYaml .Values.livenessProbe | nindent 12 }}
           readinessProbe:

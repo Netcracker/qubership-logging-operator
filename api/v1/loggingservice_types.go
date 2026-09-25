@@ -311,10 +311,11 @@ func (in FluentbitDB) IsLocking() bool {
 }
 
 const (
-	FluentbitStorageProfileMemoryOnly        = "memory-only"
-	FluentbitStorageProfilePersistentOffsets = "persistent-offsets"
-	FluentbitStorageProfileNodePersistent    = "node-persistent"
-	FluentbitDefaultMemoryOnlyStateSizeLimit = "32Mi"
+	FluentbitStorageProfileMemoryOnly          = "memory-only"
+	FluentbitStorageProfilePersistentOffsets   = "persistent-offsets"
+	FluentbitStorageProfileNodePersistent      = "node-persistent"
+	FluentbitDefaultMemoryOnlyStateSizeLimit   = "32Mi"
+	FluentbitAggregatorDefaultStorageSizeLimit = "2Gi"
 )
 
 // EffectiveStorageProfile returns the configured storage profile and applies compatibility defaults.
@@ -361,6 +362,7 @@ type FluentbitAggregator struct {
 	NodeSelectorKey           string                   `json:"nodeSelectorKey,omitempty"`
 	PriorityClassName         string                   `json:"priorityClassName,omitempty"`
 	TotalLimitSize            string                   `json:"totalLimitSize,omitempty"`
+	StorageSizeLimit          string                   `json:"storageSizeLimit,omitempty"`
 	CustomFilterConf          string                   `json:"customFilterConf"`
 	CustomOutputConf          string                   `json:"customOutputConf"`
 	CustomLuaScriptConf       map[string]string        `json:"customLuaScriptConf,omitempty"`
@@ -374,6 +376,14 @@ type FluentbitAggregator struct {
 	SecurityContextPrivileged bool                     `json:"securityContextPrivileged,omitempty"`
 	GraylogOutput             bool                     `json:"graylogOutput,omitempty"`
 	Output                    *OutputFluentbit         `json:"output,omitempty"`
+}
+
+// EffectiveStorageSizeLimit returns the configured aggregator ephemeral storage limit.
+func (in FluentbitAggregator) EffectiveStorageSizeLimit() string {
+	if in.StorageSizeLimit != "" {
+		return in.StorageSizeLimit
+	}
+	return FluentbitAggregatorDefaultStorageSizeLimit
 }
 
 // CloudEventsReader contains EventsReader-specific configuration

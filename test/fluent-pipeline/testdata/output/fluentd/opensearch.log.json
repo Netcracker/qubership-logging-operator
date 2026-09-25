@@ -1,0 +1,38 @@
+[
+  {
+    "_test": {
+      "id": "opensearch-plain"
+    },
+    "container": "fake-container",
+    "fluentd_time": "2026-09-03T10:20:46.000Z",
+    "hostname": "fake-fluent",
+    "kubernetes_host": "fake-node",
+    "labels": "{\"app\" : \"fluent-pipeline-test\", \"app.kubernetes.io_version\" : \"0.1.0\"}",
+    "level": "info",
+    "log": "Enabling execution of install_demo_configuration.sh for OpenSearch Security Plugin",
+    "namespace": "fake-namespace",
+    "nc_audit_label": "false",
+    "parse_level_unknown": "true",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "source_level": null,
+    "time": "2026-09-03T10:20:46.000007468Z"
+  },
+  {
+    "_test": {
+      "id": "opensearch-warn"
+    },
+    "container": "fake-container",
+    "fluentd_time": "2026-09-03T10:20:46.500Z",
+    "hostname": "fake-fluent",
+    "kubernetes_host": "fake-node",
+    "labels": "{\"app\" : \"fluent-pipeline-test\", \"app.kubernetes.io_version\" : \"0.1.0\"}",
+    "level": "warning",
+    "log": "[2026-09-03T10:20:46.123Z] [WARN] [o.o.c.r.a.AllocationService] [opensearch-0] delayed allocation",
+    "namespace": "fake-namespace",
+    "nc_audit_label": "false",
+    "parse_level_unknown": "false",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "source_level": "WARN",
+    "time": "2026-09-03T10:20:46.500007468Z"
+  }
+]

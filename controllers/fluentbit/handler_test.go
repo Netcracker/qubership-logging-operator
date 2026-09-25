@@ -546,11 +546,11 @@ func TestParsedFieldsProtectReservedFields(t *testing.T) {
 		t.Error("source_level must be restored without overwriting the normalized value")
 	}
 
-	validateConfig := strings.Join(strings.Fields(string(configMap.Data["filter-validate.conf"])), " ")
+	rawValidateConfig := string(configMap.Data["filter-validate.conf"])
+	validateConfig := strings.Join(strings.Fields(rawValidateConfig), " ")
 	for _, rule := range []string{
 		"Rename msg short_message",
 		"Rename message short_message",
-		"Rename parsed_level level",
 	} {
 		if !strings.Contains(validateConfig, rule) {
 			t.Errorf("missing parsed JSON field rule %q", rule)
@@ -560,4 +560,24 @@ func TestParsedFieldsProtectReservedFields(t *testing.T) {
 		strings.Contains(validateConfig, "Rename parsed_message short_message") {
 		t.Error("msg and message are lifted from log_parsed without a parsed_ prefix")
 	}
+
+	// Annotation-based parsers never reach the JSON branch, so a conditional restore leaves their
+	// level in parsed_level and the normalizer falls back to info.
+	levelRestore, found := filterBlockContaining(rawValidateConfig, "Rename parsed_level level")
+	if !found {
+		t.Error("filter-validate.conf must restore the application level from parsed_level")
+	} else if strings.Contains(levelRestore, "Condition") {
+		t.Error("the parsed_level restore must apply to every parsed format, not only JSON")
+	}
+}
+
+// filterBlockContaining returns the [FILTER] section holding the given rule, with the rule written
+// as single-spaced text. The second result reports whether any section holds it.
+func filterBlockContaining(config, rule string) (string, bool) {
+	for _, block := range strings.Split(config, "[FILTER]") {
+		if strings.Contains(strings.Join(strings.Fields(block), " "), rule) {
+			return block, true
+		}
+	}
+	return "", false
 }

@@ -3,7 +3,7 @@
     "_test": {
       "id": "argocd-1",
       "matchOn": [
-        "log_time"
+        "time"
       ]
     },
     "detected_level": "info",
@@ -15,7 +15,7 @@
       "metadata.app.kubernetes.io/version": "0.1.0"
     },
     "parse_format": "logfmt",
-    "log_time": "2023-12-20T12:51:32.272007468Z",
+    "time": "2023-12-20T12:51:32.272007468Z",
     "level": "info",
     "application": "argocd/monitoring",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
@@ -29,7 +29,7 @@
     "_test": {
       "id": "argocd-2",
       "matchOn": [
-        "log_time"
+        "time"
       ]
     },
     "repo_url": "https://example.com/myorg/myrepo.git",
@@ -43,7 +43,7 @@
     "detected_level": "error",
     "hostname": "fake-fluent",
     "error": "ssh: handshake failed: knownhosts key mismatch",
-    "log_time": "2023-12-20T12:51:33.272007468Z",
+    "time": "2023-12-20T12:51:33.272007468Z",
     "level": "err",
     "parse_status": "success",
     "pod": "fake-fluent-577d48c6cb-4gfmp",

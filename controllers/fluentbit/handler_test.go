@@ -561,6 +561,13 @@ func TestParsedFieldsProtectReservedFields(t *testing.T) {
 		t.Error("msg and message are lifted from log_parsed without a parsed_ prefix")
 	}
 
+	// VictoriaLogs reads the event time from the root time field. The logfmt parser runs with
+	// Reserve_Data On and cannot overwrite that field, so nothing may move it to log_time.
+	postGenericConfig := strings.Join(strings.Fields(string(configMap.Data["filter-post-generic.conf"])), " ")
+	if strings.Contains(postGenericConfig, "Rename time log_time") {
+		t.Error("logfmt records must keep the container timestamp in the time field")
+	}
+
 	// Annotation-based parsers never reach the JSON branch, so a conditional restore leaves their
 	// level in parsed_level and the normalizer falls back to info.
 	levelRestore, found := filterBlockContaining(rawValidateConfig, "Rename parsed_level level")

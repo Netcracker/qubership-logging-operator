@@ -3,7 +3,7 @@
     "_test": {
       "id": "argocd-1",
       "matchOn": [
-        "log_time"
+        "time"
       ]
     },
     "detected_level": "info",
@@ -23,13 +23,13 @@
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "level": "info",
-    "log_time": "2023-12-20T12:51:32.272007468Z"
+    "time": "2023-12-20T12:51:32.272007468Z"
   },
   {
     "_test": {
       "id": "argocd-2",
       "matchOn": [
-        "log_time"
+        "time"
       ]
     },
     "short_message": "Failed to fetch git repository",
@@ -51,6 +51,6 @@
     "level": "err",
     "error": "ssh: handshake failed: knownhosts key mismatch",
     "attempt": "3",
-    "log_time": "2023-12-20T12:51:33.272007468Z"
+    "time": "2023-12-20T12:51:33.272007468Z"
   }
 ]

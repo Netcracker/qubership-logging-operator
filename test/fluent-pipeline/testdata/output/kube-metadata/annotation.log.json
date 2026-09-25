@@ -1,0 +1,47 @@
+[
+  {
+    "_test": {
+      "id": "annotated-logfmt"
+    },
+    "attempt": "3",
+    "container": "app",
+    "detected_level": "warn",
+    "hostname": "fake-fluent",
+    "labels": {
+      "app.kubernetes.io/name": "annotated-logfmt"
+    },
+    "level": "warning",
+    "msg": "a logfmt line the annotation names a parser for",
+    "namespace": "test-namespace",
+    "nodename": "fake-node",
+    "parse_field_count": 9,
+    "parse_format": "unknown",
+    "parse_status": "success",
+    "pod": "annotated-logfmt",
+    "short_message": "level=warn msg=\"a logfmt line the annotation names a parser for\" attempt=3",
+    "source_level": "warn",
+    "time": "2026-09-03T11:00:01.000007468Z"
+  },
+  {
+    "_test": {
+      "id": "plain-logfmt",
+      "matchOn": [
+        "log_time"
+      ]
+    },
+    "attempt": "3",
+    "container": "app",
+    "detected_level": "warn",
+    "hostname": "fake-fluent",
+    "level": "warning",
+    "log_time": "2026-09-03T11:00:02.000007468Z",
+    "namespace": "test-namespace",
+    "nodename": "fake-node",
+    "parse_field_count": 8,
+    "parse_format": "logfmt",
+    "parse_status": "success",
+    "pod": "plain-logfmt",
+    "short_message": "the same logfmt line without an annotation",
+    "source_level": "warn"
+  }
+]

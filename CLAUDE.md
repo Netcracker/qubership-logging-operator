@@ -22,10 +22,16 @@ make run              # Run operator locally against ~/.kube/config
 ```bash
 make test                              # Alias for unit-test
 make unit-test                         # go test -race with shuffle, excludes e2e-tests
+make test-fluent-pipeline              # Run the Fluent Bit pipeline test
+make test-fluent-pipeline FLUENT_PIPELINE_SCENARIO=fluentbit-ha  # Run another pipeline scenario
 go test -race -run TestName ./controllers/...  # Run a single test
 ```
 
-Integration tests use Robot Framework in `test/robot-tests/` and run via GitHub Actions.
+Fluent pipeline tests support the `fluentbit`, `fluentbit-ha`, `fluentd`, `kube-metadata`, and `render` scenarios.
+`kube-metadata` runs the Kubernetes filter against a fake API server; `render` only renders and validates the agent
+configurations for the custom resources under `test/fluent-pipeline/testdata/assets/render/`. In CI they run as the
+`fluent_pipeline` job of `.github/workflows/integration-tests.yaml` and answer to `Integration Gate`. Integration tests use Robot
+Framework in `test/robot-tests/` and run via GitHub Actions.
 
 ### Documentation
 ```bash

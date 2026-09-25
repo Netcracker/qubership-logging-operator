@@ -1,0 +1,24 @@
+# Docker container runtime with the real Kubernetes metadata filter and the default Graylog output.
+apiVersion: logging.netcracker.com/v1
+kind: LoggingService
+metadata:
+  name: logging-service
+spec:
+  containerRuntimeType: docker
+  cloudEventsReader:
+    install: true
+  fluentbit:
+    multilineFirstLineRegexp: "/^(\\[\\d{4}\\-\\d{2}\\-\\d{2}).*/"
+    multilineOtherLinesRegexp: "/^(?!\\[\\d{4}\\-\\d{2}\\-\\d{2}).*/"
+    containerLogging: true
+    systemLogging: true
+    systemLogType: varlogmessages
+    systemAuditLogging: true
+    kubeAuditLogging: true
+    kubeApiserverAuditLogging: true
+    watchKubernetesMetadata: true
+    mockKubeData: false
+    graylogOutput: true
+    graylogHost: graylog.logging.svc
+    graylogPort: 12201
+    graylogProtocol: tcp

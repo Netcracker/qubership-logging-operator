@@ -545,4 +545,19 @@ func TestParsedFieldsProtectReservedFields(t *testing.T) {
 	if !strings.Contains(levelConfig, "Rename parsed_source_level source_level") {
 		t.Error("source_level must be restored without overwriting the normalized value")
 	}
+
+	validateConfig := strings.Join(strings.Fields(string(configMap.Data["filter-validate.conf"])), " ")
+	for _, rule := range []string{
+		"Rename msg short_message",
+		"Rename message short_message",
+		"Rename parsed_level level",
+	} {
+		if !strings.Contains(validateConfig, rule) {
+			t.Errorf("missing parsed JSON field rule %q", rule)
+		}
+	}
+	if strings.Contains(validateConfig, "Rename parsed_msg short_message") ||
+		strings.Contains(validateConfig, "Rename parsed_message short_message") {
+		t.Error("msg and message are lifted from log_parsed without a parsed_ prefix")
+	}
 }

@@ -1,0 +1,2 @@
+2026-09-03T10:20:55.000007468Z stdout F {"level":"error","source_level":"trace","message":"a payload that names the fields the pipeline sets"}
+2026-09-03T10:20:56.000007468Z stdout F [2026-09-03T10:20:56.000] [INFO] {"nested":"json inside a bracketed line"}

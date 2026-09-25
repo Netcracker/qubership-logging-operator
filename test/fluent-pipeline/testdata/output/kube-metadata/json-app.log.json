@@ -1,0 +1,20 @@
+[
+  {
+    "_test": {
+      "id": "json-app"
+    },
+    "container": "app",
+    "detected_level": "error",
+    "hostname": "fake-fluent",
+    "level": "err",
+    "namespace": "test-namespace",
+    "nodename": "fake-node",
+    "parse_field_count": 7,
+    "parse_format": "json",
+    "parse_status": "success",
+    "pod": "json-app",
+    "short_message": "a json line the kubernetes filter merges",
+    "source_level": "error",
+    "time": "2026-09-03T11:00:00.000007468Z"
+  }
+]

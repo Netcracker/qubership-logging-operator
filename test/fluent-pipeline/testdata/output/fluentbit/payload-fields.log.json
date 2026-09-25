@@ -1,0 +1,48 @@
+[
+  {
+    "_test": {
+      "id": "payload-sets-source-level"
+    },
+    "container": "fake-container",
+    "detected_level": "error",
+    "hostname": "fake-fluent",
+    "labels": {
+      "metadata.app": "fluent-pipeline-test",
+      "metadata.app.kubernetes.io/version": "0.1.0"
+    },
+    "level": "err",
+    "message": "a payload that names the fields the pipeline sets",
+    "namespace": "fake-namespace",
+    "nodename": "fake-node",
+    "parse_field_count": 9,
+    "parse_format": "unknown",
+    "parse_status": "success",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "short_message": "{\"level\":\"error\",\"source_level\":\"trace\",\"message\":\"a payload that names the fields the pipeline sets\"}",
+    "source_level": "error",
+    "time": "2026-09-03T10:20:55.000007468Z"
+  },
+  {
+    "_test": {
+      "id": "bracketed-line-with-json"
+    },
+    "container": "fake-container",
+    "date": "2026-09-03T10:20:56.000",
+    "detected_level": "info",
+    "hostname": "fake-fluent",
+    "labels": {
+      "metadata.app": "fluent-pipeline-test",
+      "metadata.app.kubernetes.io/version": "0.1.0"
+    },
+    "level": "info",
+    "namespace": "fake-namespace",
+    "nodename": "fake-node",
+    "parse_field_count": 9,
+    "parse_format": "unknown",
+    "parse_status": "success",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "short_message": "{\"nested\":\"json inside a bracketed line\"}",
+    "source_level": "INFO",
+    "time": "2026-09-03T10:20:56.000007468Z"
+  }
+]

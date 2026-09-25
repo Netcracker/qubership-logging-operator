@@ -10,11 +10,16 @@ import (
 
 const (
 	// PartOfLogging is the value for app.kubernetes.io/part-of on all logging-operator resources.
-	PartOfLogging = "logging"
+	PartOfLogging = "logging-service"
 	// ManagedByOperator is the value for app.kubernetes.io/managed-by on resources created by the operator.
-	ManagedByOperator = "logging-operator"
+	ManagedByOperator = "operator"
 	// OperatorDeploymentName is the name of the logging-operator Deployment; used for app.kubernetes.io/managed-by-operator.
 	OperatorDeploymentName = "logging-operator"
+
+	// Allowed app.kubernetes.io/component values (platform label policy).
+	ComponentBackend    = "backend"
+	ComponentOperator   = "operator"
+	ComponentMonitoring = "monitoring"
 )
 
 // CommonLabels returns the labels applied to all resources (part-of, managed-by, managed-by-operator).

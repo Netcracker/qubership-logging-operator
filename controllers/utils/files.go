@@ -62,6 +62,7 @@ func ParseTemplate(fileContent, filePath string, parameters any) (string, error)
 	funcMap["resIndex"] = GetFromResourceMap
 	funcMap["timeNow"] = GetTimeNow
 	funcMap["getAggregators"] = GetAggregatorIds
+	funcMap["fluentdQuote"] = FluentdQuote
 
 	funcMap["isValidShards"] = func(v any) bool {
 		switch val := v.(type) {

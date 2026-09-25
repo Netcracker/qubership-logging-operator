@@ -89,10 +89,10 @@ flowchart LR
 | 8   | filters/filter-enrich-fields.conf             | FILTER modify (Hard_rename container_name container; ...)                             | Match pods*                               | Renames the fields to be more consistent with Monitoring labels                                                                                                                                                              |
 | 9   | filters/filter-enrich-fields.conf             | FILTER record_modifier (Allowlist_key pod; ...)                                       | Match pods*                               | Leaves only allowed fields in a record                                                                                                                                                                                       |
 | 10  | filters/filter-enrich-fields.conf             | FILTER lua (Call first_count_fields)                                                  | Match pods*                               | Records the initial field count for generic parser validation.                                                                                                                                                               |
-| 11  | filters/filter-enrich-fields.conf             | FILTER nest (Operation nest; Nest_under _record_metadata)                             | Match pods*                               | Moves protected fields to the internal `_record_metadata` object while application fields are extracted.                                                                                                                     |
+| 11  | filters/filter-enrich-fields.conf             | FILTER nest (Operation nest; Nest_under `_record_metadata`)                           | Match pods*                               | Moves protected fields to the internal `_record_metadata` object while application fields are extracted.                                                                                                                     |
 | 12  | filters/filter-enrich-fields.conf             | FILTER nest (Operation lift; Nested_under log_parsed)                                 | Match pods*                               | Moves application fields from `log_parsed` to the root without changing their names.                                                                                                                                         |
 | 13  | filters/filter-enrich-fields.conf             | FILTER modify (Hard_rename namespace parsed_namespace; ...)                           | Match pods*                               | Moves application fields that use protected names to their reserved `parsed_*` names.                                                                                                                                        |
-| 14  | filters/filter-enrich-fields.conf             | FILTER nest (Operation lift; Nested_under _record_metadata)                           | Match pods*                               | Restores authoritative metadata and other protected fields.                                                                                                                                                                  |
+| 14  | filters/filter-enrich-fields.conf             | FILTER nest (Operation lift; Nested_under `_record_metadata`)                         | Match pods*                               | Restores authoritative metadata and other protected fields.                                                                                                                                                                  |
 | 15  | filters/filter-rewrite-tag.conf               | FILTER rewrite_tag (Rule $pod  ^kube-.* klog.$TAG  false)                             | Match pods*                               | Rewrites tag to klog.$TAG without preserving the original record. Sends the record to the pipeline beginning with the new tag                                                                                                |
 | 16  | filters/filter-rewrite-tag.conf               | FILTER parser (Parser klog_entry)                                                     | Match klog*                               | Tries to parse with klog_entry parser. The format is described in [Kubernetes system logs](https://kubernetes.io/docs/concepts/cluster-administration/system-logs/)                                                          |
 | 17  | filters/filter-rewrite-tag.conf               | FILTER parser (Parser klog_trace_entry)                                               | Match klog*                               | Tries to parse with klog_trace_entry parser                                                                                                                                                                                  |
@@ -128,16 +128,16 @@ The Kubernetes parsing pipeline owns the canonical fields in the table below. If
 of these names, FluentBit moves its value to the corresponding reserved field before restoring the authoritative value.
 
 | Canonical field | Reserved collision field |
-| --- | --- |
-| `namespace` | `parsed_namespace` |
-| `pod` | `parsed_pod` |
-| `container` | `parsed_container` |
-| `source` | `parsed_source` |
-| `labels` | `parsed_labels` |
-| `log` | `parsed_log` |
-| `time` | `parsed_time` |
-| `level` | `parsed_level` |
-| `source_level` | `parsed_source_level` |
+| --------------- | ------------------------ |
+| `namespace`     | `parsed_namespace`       |
+| `pod`           | `parsed_pod`             |
+| `container`     | `parsed_container`       |
+| `source`        | `parsed_source`          |
+| `labels`        | `parsed_labels`          |
+| `log`           | `parsed_log`             |
+| `time`          | `parsed_time`            |
+| `level`         | `parsed_level`           |
+| `source_level`  | `parsed_source_level`    |
 
 > [!IMPORTANT]
 > Service authors must not use `_record_metadata` in structured log payloads. FluentBit reserves this field as a

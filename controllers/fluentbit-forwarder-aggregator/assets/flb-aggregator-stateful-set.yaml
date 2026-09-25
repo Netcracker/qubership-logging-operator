@@ -40,12 +40,16 @@ spec:
       volumes:
 {{- if and .Values.Fluentbit.Aggregator.Volume .Values.Fluentbit.Aggregator.Volume.Bind }}{{- else }}
         - name: storage
-          emptyDir: {}
+          emptyDir:
+            sizeLimit: {{ .Values.Fluentbit.Aggregator.EffectiveStorageSizeLimit }}
 {{- end }}
         - name: config
-          configMap:
-            name: logging-fluentbit-aggregator
+          secret:
+            secretName: logging-fluentbit-aggregator
             defaultMode: 420
+        - name: tmp
+          emptyDir:
+            sizeLimit: 100Mi
 {{- if .Values.Fluentbit.Aggregator.TLS }}
 {{- if and .Values.Fluentbit.Aggregator.TLS.GenerateCerts .Values.Fluentbit.Aggregator.TLS.GenerateCerts.Enabled }}
         - name: tls-ca
@@ -82,12 +86,6 @@ spec:
 {{- end }}
 {{- end }}
 {{- if and .Values.Fluentbit.Aggregator.Output .Values.Fluentbit.Aggregator.Output.Loki .Values.Fluentbit.Aggregator.Output.Loki.Enabled }}
-{{- if and .Values.Fluentbit.Aggregator.Output.Loki.Auth .Values.Fluentbit.Aggregator.Output.Loki.Auth.Token .Values.Fluentbit.Aggregator.Output.Loki.Auth.Token.Name .Values.Fluentbit.Aggregator.Output.Loki.Auth.Token.Key }}
-        - name: loki-auth-token
-          secret:
-            secretName: {{ .Values.Fluentbit.Aggregator.Output.Loki.Auth.Token.Name }}
-            defaultMode: 220
-{{- end }}
 {{- if and .Values.Fluentbit.Aggregator.Output.Loki.TLS .Values.Fluentbit.Aggregator.Output.Loki.TLS.Enabled }}
 {{- if and .Values.Fluentbit.Aggregator.Output.Loki.TLS.CA .Values.Fluentbit.Aggregator.Output.Loki.TLS.CA.SecretName .Values.Fluentbit.Aggregator.Output.Loki.TLS.CA.SecretKey }}
         - name: loki-tls-ca
@@ -164,6 +162,8 @@ spec:
             - mountPath: /fluent-bit/etc
               name: config
               readOnly: true
+            - mountPath: /tmp
+              name: tmp
           {{- if .Values.Fluentbit.Aggregator.ConfigmapReload.Resources }}
           resources:
             limits:
@@ -178,9 +178,13 @@ spec:
               name: reload-metrics
           securityContext:
             allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
             capabilities:
               drop:
                 - ALL
+            runAsNonRoot: true
+            runAsUser: 1001
+            runAsGroup: 1001
         - name: logging-fluentbit-aggregator
           image: {{ .Values.Fluentbit.Aggregator.DockerImage }}
           ports:
@@ -193,67 +197,6 @@ spec:
             - containerPort: 24224
               protocol: TCP
               name: "forward"
-          env:
-{{- if and .Values.Fluentbit.Aggregator.Output .Values.Fluentbit.Aggregator.Output.Loki .Values.Fluentbit.Aggregator.Output.Loki.Enabled }}
-{{- if and .Values.Fluentbit.Aggregator.Output.Loki.Auth .Values.Fluentbit.Aggregator.Output.Loki.Auth.User .Values.Fluentbit.Aggregator.Output.Loki.Auth.User.Name .Values.Fluentbit.Aggregator.Output.Loki.Auth.User.Key .Values.Fluentbit.Aggregator.Output.Loki.Auth.Password .Values.Fluentbit.Aggregator.Output.Loki.Auth.Password.Name .Values.Fluentbit.Aggregator.Output.Loki.Auth.Password.Key }}
-            - name: LOKI_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.Fluentbit.Aggregator.Output.Loki.Auth.User.Name }}
-                  key: {{ .Values.Fluentbit.Aggregator.Output.Loki.Auth.User.Key }}
-            - name: LOKI_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.Fluentbit.Aggregator.Output.Loki.Auth.Password.Name }}
-                  key: {{ .Values.Fluentbit.Aggregator.Output.Loki.Auth.Password.Key }}
-{{- else if and .Values.Fluentbit.Aggregator.Output.Loki.Auth .Values.Fluentbit.Aggregator.Output.Loki.Auth.Token .Values.Fluentbit.Aggregator.Output.Loki.Auth.Token.Name .Values.Fluentbit.Aggregator.Output.Loki.Auth.Token.Key }}
-            - name: LOKI_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.Fluentbit.Aggregator.Output.Loki.Auth.Token.Name }}
-                  key: {{ .Values.Fluentbit.Aggregator.Output.Loki.Auth.Token.Key }}
-{{- end }}
-{{- end }}
-{{- if and .Values.Fluentbit.Aggregator.Output .Values.Fluentbit.Aggregator.Output.Http .Values.Fluentbit.Aggregator.Output.Http.Enabled }}
-{{- if and .Values.Fluentbit.Aggregator.Output.Http.Auth .Values.Fluentbit.Aggregator.Output.Http.Auth.User .Values.Fluentbit.Aggregator.Output.Http.Auth.User.Name .Values.Fluentbit.Aggregator.Output.Http.Auth.User.Key .Values.Fluentbit.Aggregator.Output.Http.Auth.Password .Values.Fluentbit.Aggregator.Output.Http.Auth.Password.Name .Values.Fluentbit.Aggregator.Output.Http.Auth.Password.Key }}
-            - name: HTTP_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.Fluentbit.Aggregator.Output.Http.Auth.User.Name }}
-                  key: {{ .Values.Fluentbit.Aggregator.Output.Http.Auth.User.Key }}
-            - name: HTTP_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.Fluentbit.Aggregator.Output.Http.Auth.Password.Name }}
-                  key: {{ .Values.Fluentbit.Aggregator.Output.Http.Auth.Password.Key }}
-{{- else if and .Values.Fluentbit.Aggregator.Output.Http.Auth .Values.Fluentbit.Aggregator.Output.Http.Auth.Token .Values.Fluentbit.Aggregator.Output.Http.Auth.Token.Name .Values.Fluentbit.Aggregator.Output.Http.Auth.Token.Key }}
-            - name: HTTP_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.Fluentbit.Aggregator.Output.Http.Auth.Token.Name }}
-                  key: {{ .Values.Fluentbit.Aggregator.Output.Http.Auth.Token.Key }}
-{{- end }}
-{{- end }}
-{{- if and .Values.Fluentbit.Aggregator.Output .Values.Fluentbit.Aggregator.Output.Otel .Values.Fluentbit.Aggregator.Output.Otel.Enabled }}
-{{- if and .Values.Fluentbit.Aggregator.Output.Otel.Auth .Values.Fluentbit.Aggregator.Output.Otel.Auth.User .Values.Fluentbit.Aggregator.Output.Otel.Auth.User.Name .Values.Fluentbit.Aggregator.Output.Otel.Auth.User.Key .Values.Fluentbit.Aggregator.Output.Otel.Auth.Password .Values.Fluentbit.Aggregator.Output.Otel.Auth.Password.Name .Values.Fluentbit.Aggregator.Output.Otel.Auth.Password.Key }}
-            - name: OTEL_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.Fluentbit.Aggregator.Output.Otel.Auth.User.Name }}
-                  key: {{ .Values.Fluentbit.Aggregator.Output.Otel.Auth.User.Key }}
-            - name: OTEL_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.Fluentbit.Aggregator.Output.Otel.Auth.Password.Name }}
-                  key: {{ .Values.Fluentbit.Aggregator.Output.Otel.Auth.Password.Key }}
-{{- else if and .Values.Fluentbit.Aggregator.Output.Otel.Auth .Values.Fluentbit.Aggregator.Output.Otel.Auth.Token .Values.Fluentbit.Aggregator.Output.Otel.Auth.Token.Name .Values.Fluentbit.Aggregator.Output.Otel.Auth.Token.Key }}
-            - name: OTEL_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.Fluentbit.Aggregator.Output.Otel.Auth.Token.Name }}
-                  key: {{ .Values.Fluentbit.Aggregator.Output.Otel.Auth.Token.Key }}
-{{- end }}
-{{- end }}
           resources:
             limits:
               cpu: {{ resIndex .Values.Fluentbit.Aggregator.Resources.Limits "cpu" }}
@@ -270,6 +213,8 @@ spec:
             - name: config
               readOnly: true
               mountPath: /fluent-bit/etc
+            - name: tmp
+              mountPath: /tmp
 {{- if .Values.Fluentbit.Aggregator.TLS }}
 {{- if and .Values.Fluentbit.Aggregator.TLS.GenerateCerts .Values.Fluentbit.Aggregator.TLS.GenerateCerts.Enabled }}
             - mountPath: /fluent-bit/tls/ca.crt
@@ -395,16 +340,25 @@ spec:
           terminationMessagePolicy: File
           imagePullPolicy: IfNotPresent
           securityContext:
-            runAsUser: 0
-            runAsNonRoot: false
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+            runAsNonRoot: true
+            runAsUser: 1001
+            runAsGroup: 1001
       terminationGracePeriodSeconds: 30
       serviceAccountName: logging-fluentbit-aggregator
       serviceAccount: logging-fluentbit-aggregator
       securityContext:
-        runAsUser: 0
-        runAsNonRoot: false
         fsGroup: 1001
         fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
       schedulerName: default-scheduler
   strategy:
     type: RollingUpdate

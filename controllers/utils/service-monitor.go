@@ -58,7 +58,7 @@ func GeneratePodMonitor(s *v1.Service, sInterval string, sTimeout string) *promv
 			Name:      s.Name,
 			Namespace: s.Namespace,
 			Labels: MergeLabels(
-				ResourceLabels(s.Name, "monitoring"),
+				ResourceLabels(s.Name, ComponentMonitoring),
 				map[string]string{"app.kubernetes.io/instance": GetInstanceLabel(s.Name, s.Namespace)},
 			),
 		},

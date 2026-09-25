@@ -38,34 +38,32 @@ func (r *HAFluentReconciler) handleForwarderDaemonSet(cr *loggingService.Logging
 		return err
 	}
 
-	if err = r.CreateResource(cr, m); err != nil {
-		if api_errors.IsAlreadyExists(err) {
-			e := &appsv1.DaemonSet{ObjectMeta: m.ObjectMeta}
-			if err = r.GetResource(e); err != nil {
-				return err
-			}
-
-			//Set parameters
-			if e.Labels == nil && m.Labels != nil {
-				e.SetLabels(m.Labels)
-			} else {
-				maps.Copy(e.Labels, m.Labels)
-			}
-			e.Spec.Template.SetLabels(m.Spec.Template.GetLabels())
-			e.Spec.Template.Spec.Containers = m.Spec.Template.Spec.Containers
-			e.Spec.Template.Spec.ServiceAccountName = m.Spec.Template.Spec.ServiceAccountName
-			e.Spec.Template.Spec.NodeSelector = m.Spec.Template.Spec.NodeSelector
-			e.Spec.Template.Spec.Volumes = m.Spec.Template.Spec.Volumes
-			e.Spec.Template.Spec.Tolerations = m.Spec.Template.Spec.Tolerations
-			e.Spec.Template.Spec.Affinity = m.Spec.Template.Spec.Affinity
-			if err = r.UpdateResource(e); err != nil {
-				return err
-			}
-		} else {
-			return err
-		}
+	err = r.CreateResource(cr, m)
+	if err == nil {
+		return nil
 	}
-	return nil
+	if !api_errors.IsAlreadyExists(err) {
+		return err
+	}
+
+	return r.updateForwarderDaemonSet(m)
+}
+
+func (r *HAFluentReconciler) updateForwarderDaemonSet(desired *appsv1.DaemonSet) error {
+	existing := &appsv1.DaemonSet{ObjectMeta: desired.ObjectMeta}
+	if err := r.GetResource(existing); err != nil {
+		return err
+	}
+
+	if existing.Labels == nil && desired.Labels != nil {
+		existing.SetLabels(desired.Labels)
+	} else {
+		maps.Copy(existing.Labels, desired.Labels)
+	}
+	existing.Spec.Template.SetLabels(desired.Spec.Template.GetLabels())
+	existing.Spec.Template.Spec = desired.Spec.Template.Spec
+
+	return r.UpdateResource(existing)
 }
 
 func (r *HAFluentReconciler) handleForwarderService(cr *loggingService.LoggingService) error {
@@ -97,7 +95,7 @@ func (r *HAFluentReconciler) handleForwarderService(cr *loggingService.LoggingSe
 	return nil
 }
 
-func (r *HAFluentReconciler) Equal(source *corev1.ConfigMap, target *corev1.ConfigMap) bool {
+func (r *HAFluentReconciler) Equal(source, target *corev1.ConfigMap) bool {
 	return cmp.Equal(source.Data, target.Data) &&
 		cmp.Equal(source.BinaryData, target.BinaryData) &&
 		cmp.Equal(source.GetLabels(), target.GetLabels())
@@ -129,20 +127,57 @@ func (r *HAFluentReconciler) CreateOrUpdate(cr *loggingService.LoggingService, c
 	return true, false, nil
 }
 
-func (r *HAFluentReconciler) handleAggregatorConfigMap(cr *loggingService.LoggingService) error {
-	m, err := aggregatorConfigMap(cr, r.DynamicParameters)
+func (r *HAFluentReconciler) handleAggregatorConfigSecret(cr *loggingService.LoggingService) error {
+	credentials, err := r.resolveAggregatorOutputCredentials(cr)
 	if err != nil {
-		r.Log.Error(err, "Failed creating ConfigMap manifest")
+		r.Log.Error(err, "Failed to resolve aggregator output credentials")
 		return err
 	}
 
-	_, err = r.updateConfigMap(cr, m)
+	m, err := aggregatorConfigSecret(cr, r.DynamicParameters, credentials)
 	if err != nil {
-		r.Log.Error(err, fmt.Sprintf("Cannot create or update config map %s", m.Name))
+		r.Log.Error(err, "Failed creating Secret manifest")
+		return err
+	}
+
+	_, err = r.CreateOrUpdateConfigSecret(cr, m)
+	if err != nil {
+		r.Log.Error(err, fmt.Sprintf("Cannot create or update config secret %s", m.Name))
+		return err
+	}
+
+	if err = r.DeleteLegacyConfigMap(cr.GetNamespace(), util.AggregatorFluentbitComponentName); err != nil {
+		r.Log.Error(err, fmt.Sprintf("Cannot delete the legacy config map %s", util.AggregatorFluentbitComponentName))
 		return err
 	}
 
 	return nil
+}
+
+// resolveAggregatorOutputCredentials reads the Secrets referenced by the enabled
+// aggregator outputs and returns their values so that they can be inlined into the
+// configuration Secret instead of being exposed as environment variables or
+// persisted on the CR.
+func (r *HAFluentReconciler) resolveAggregatorOutputCredentials(cr *loggingService.LoggingService) (aggregatorOutputCredentials, error) {
+	credentials := aggregatorOutputCredentials{}
+	if cr.Spec.Fluentbit == nil || cr.Spec.Fluentbit.Aggregator == nil || cr.Spec.Fluentbit.Aggregator.Output == nil {
+		return credentials, nil
+	}
+	output := cr.Spec.Fluentbit.Aggregator.Output
+	outputs := make([]util.OutputAuth, 0, 3)
+	if output.Loki != nil {
+		outputs = append(outputs, util.OutputAuth{Values: &credentials.Loki, Enabled: output.Loki.Enabled, Auth: output.Loki.Auth})
+	}
+	if output.Http != nil {
+		outputs = append(outputs, util.OutputAuth{Values: &credentials.Http, Enabled: output.Http.Enabled, Auth: output.Http.Auth})
+	}
+	if output.Otel != nil {
+		outputs = append(outputs, util.OutputAuth{Values: &credentials.Otel, Enabled: output.Otel.Enabled, Auth: output.Otel.Auth})
+	}
+	if err := r.ResolveFluentbitOutputAuth(cr.GetNamespace(), outputs...); err != nil {
+		return aggregatorOutputCredentials{}, err
+	}
+	return credentials, nil
 }
 
 func (r *HAFluentReconciler) handleAggregatorStatefulSet(cr *loggingService.LoggingService) error {
@@ -152,33 +187,47 @@ func (r *HAFluentReconciler) handleAggregatorStatefulSet(cr *loggingService.Logg
 		return err
 	}
 
-	if err = r.CreateResource(cr, ss); err != nil {
-		if api_errors.IsAlreadyExists(err) {
-			e := &appsv1.StatefulSet{ObjectMeta: ss.ObjectMeta}
-			if err = r.GetResource(e); err != nil {
-				return err
-			}
-
-			//Set parameters
-			if e.Labels == nil && ss.Labels != nil {
-				e.SetLabels(ss.Labels)
-			} else {
-				maps.Copy(e.Labels, ss.Labels)
-			}
-			e.Spec.Template.SetLabels(ss.Spec.Template.GetLabels())
-			e.Spec.Template.Spec.Containers = ss.Spec.Template.Spec.Containers
-			e.Spec.Template.Spec.ServiceAccountName = ss.Spec.Template.Spec.ServiceAccountName
-			e.Spec.Template.Spec.NodeSelector = ss.Spec.Template.Spec.NodeSelector
-			e.Spec.Template.Spec.Volumes = ss.Spec.Template.Spec.Volumes
-			e.Spec.Template.Spec.Tolerations = ss.Spec.Template.Spec.Tolerations
-			e.Spec.Template.Spec.Affinity = ss.Spec.Template.Spec.Affinity
-			if err = r.UpdateResource(e); err != nil {
-				return err
-			}
-		} else {
-			return err
-		}
+	if err = r.createOrUpdateAggregatorStatefulSet(cr, ss); err != nil {
+		return err
 	}
+
+	return r.waitForAggregator(cr)
+}
+
+func (r *HAFluentReconciler) createOrUpdateAggregatorStatefulSet(cr *loggingService.LoggingService,
+	desired *appsv1.StatefulSet) error {
+	err := r.CreateResource(cr, desired)
+	if err == nil {
+		return nil
+	}
+	if !api_errors.IsAlreadyExists(err) {
+		return err
+	}
+
+	existing := &appsv1.StatefulSet{ObjectMeta: desired.ObjectMeta}
+	if err = r.GetResource(existing); err != nil {
+		return err
+	}
+
+	if existing.Labels == nil && desired.Labels != nil {
+		existing.SetLabels(desired.Labels)
+	} else {
+		maps.Copy(existing.Labels, desired.Labels)
+	}
+	existing.Spec.Replicas = desired.Spec.Replicas
+	existing.Spec.Template.SetLabels(desired.Spec.Template.GetLabels())
+	existing.Spec.Template.Spec.Containers = desired.Spec.Template.Spec.Containers
+	existing.Spec.Template.Spec.SecurityContext = desired.Spec.Template.Spec.SecurityContext
+	existing.Spec.Template.Spec.ServiceAccountName = desired.Spec.Template.Spec.ServiceAccountName
+	existing.Spec.Template.Spec.NodeSelector = desired.Spec.Template.Spec.NodeSelector
+	existing.Spec.Template.Spec.Volumes = desired.Spec.Template.Spec.Volumes
+	existing.Spec.Template.Spec.Tolerations = desired.Spec.Template.Spec.Tolerations
+	existing.Spec.Template.Spec.Affinity = desired.Spec.Template.Spec.Affinity
+
+	return r.UpdateResource(existing)
+}
+
+func (r *HAFluentReconciler) waitForAggregator(cr *loggingService.LoggingService) error {
 	// Delay to allow time for the deploy to be updated
 	time.Sleep(util.InitialDelay)
 
@@ -329,4 +378,23 @@ func (r *HAFluentReconciler) updateConfigMap(cr *loggingService.LoggingService, 
 	}
 
 	return true, nil
+}
+
+func (r *HAFluentReconciler) deleteSecret(cr *loggingService.LoggingService, name string) error {
+	e := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: cr.GetNamespace(),
+		},
+	}
+	if err := r.GetResource(e); err != nil {
+		if api_errors.IsNotFound(err) {
+			return nil
+		}
+		return err
+	}
+	if err := r.DeleteResource(e); err != nil {
+		return err
+	}
+	return nil
 }

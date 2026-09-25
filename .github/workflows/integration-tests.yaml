@@ -13,6 +13,7 @@ on:
       - charts/**
       - cmd/**
       - controllers/**
+      - test/fluent-pipeline/**
       - test/robot-tests/**
   pull_request:
     branches:
@@ -50,6 +51,7 @@ jobs:
       contents: read
     outputs:
       run: ${{ steps.filter.outputs.run }}
+      fluent: ${{ steps.filter.outputs.fluent }}
     steps:
     - name: Checkout code
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -63,6 +65,9 @@ jobs:
         BASE_SHA: ${{ github.event.pull_request.base.sha }}
         HEAD_SHA: ${{ github.event.pull_request.head.sha }}
       run: |
+        # The two test families read different sources: the cluster tests deploy the chart, the
+        # pipeline tests render the agent configuration and run the agents in Docker. A pull
+        # request that touches one of them should not pay for the other.
         if git diff --quiet "$BASE_SHA" "$HEAD_SHA" -- \
           .github/workflows/integration-tests.yaml \
           api \
@@ -73,6 +78,21 @@ jobs:
           echo "run=false" >> "$GITHUB_OUTPUT"
         else
           echo "run=true" >> "$GITHUB_OUTPUT"
+        fi
+        if git diff --quiet "$BASE_SHA" "$HEAD_SHA" -- \
+          .github/workflows/integration-tests.yaml \
+          api \
+          controllers/fluentbit \
+          controllers/fluentbit-forwarder-aggregator \
+          controllers/fluentd \
+          go.mod \
+          go.sum \
+          go.work \
+          go.work.sum \
+          test/fluent-pipeline; then
+          echo "fluent=false" >> "$GITHUB_OUTPUT"
+        else
+          echo "fluent=true" >> "$GITHUB_OUTPUT"
         fi
 
   integration_tests:
@@ -865,9 +885,74 @@ jobs:
         echo "</details>" >> $GITHUB_STEP_SUMMARY
       shell: bash
 
+  fluent_pipeline:
+    needs: changes
+    if: ${{ always() && (github.event_name != 'pull_request' || needs.changes.outputs.fluent == 'true') }}
+    name: Fluent pipeline (${{ matrix.scenario }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        scenario:
+        - fluentbit
+        - fluentbit-ha
+        - fluentd
+        - kube-metadata
+        - render
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
+
+    - name: Build the pipeline test image
+      run: >-
+        docker build
+        --tag qubership-fluent-pipeline-tests:local
+        --file test/fluent-pipeline/Dockerfile
+        .
+
+    - name: Run the ${{ matrix.scenario }} scenario
+      env:
+        TEST_CONTENT_PATH: ${{ runner.temp }}/fluent-pipeline-${{ matrix.scenario }}
+      run: test/fluent-pipeline/run.sh '${{ matrix.scenario }}'
+
+    - name: Report the comparison on the job summary
+      if: always()
+      env:
+        REPORT: ${{ runner.temp }}/fluent-pipeline-${{ matrix.scenario }}/report.txt
+      run: |
+        [ -f "${REPORT}" ] || exit 0
+        report=$(sed -e 's/\x1b\[[0-9;]*m//g' "${REPORT}")
+        matched=$(printf '%s\n' "${report}" | grep -c 'Succeeded' || true)
+        differed=$(printf '%s\n' "${report}" | grep -cE '\sFailed' || true)
+        echo "## ${{ matrix.scenario }}: ${matched} matched, ${differed} failed" >> "${GITHUB_STEP_SUMMARY}"
+        if [ "${differed}" -gt 0 ]; then
+          {
+            echo '```text'
+            printf '%s\n' "${report}" | grep -vE '^\S+\s+Succeeded'
+            echo '```'
+          } >> "${GITHUB_STEP_SUMMARY}"
+        fi
+
+    - name: Upload pipeline output
+      if: failure()
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      with:
+        name: fluent-pipeline-${{ matrix.scenario }}-output
+        # The rendered configuration, the generated logs, the agent log, the produced records, and
+        # the records the run expected, so that a failure can be read without the repository.
+        path: |
+          ${{ runner.temp }}/fluent-pipeline-${{ matrix.scenario }}
+          test/fluent-pipeline/testdata/output/${{ matrix.scenario }}
+        if-no-files-found: ignore
+
   integration-gate:
     name: Integration Gate
-    needs: [changes, integration_tests]
+    needs: [changes, integration_tests, fluent_pipeline]
     if: ${{ always() && github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -877,4 +962,10 @@ jobs:
       if: >-
         needs.changes.result != 'success' ||
         (needs.changes.outputs.run != 'false' && needs.integration_tests.result != 'success')
+      run: exit 1
+
+    - name: Require pipeline tests when applicable
+      if: >-
+        needs.changes.result != 'success' ||
+        (needs.changes.outputs.fluent != 'false' && needs.fluent_pipeline.result != 'success')
       run: exit 1

@@ -1,0 +1,38 @@
+[
+  {
+    "_test": {
+      "id": "consul-warn"
+    },
+    "container": "fake-container",
+    "fluentd_time": "2026-09-03T10:20:43.000Z",
+    "hostname": "fake-fluent",
+    "kubernetes_host": "fake-node",
+    "labels": "{\"app\" : \"fluent-pipeline-test\", \"app.kubernetes.io_version\" : \"0.1.0\"}",
+    "level": "info",
+    "log": "2026-09-03T10:20:43Z [WARN] raft: heartbeat timeout",
+    "namespace": "fake-namespace",
+    "nc_audit_label": "false",
+    "parse_level_unknown": "true",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "source_level": null,
+    "time": "2026-09-03T10:20:43.000007468Z"
+  },
+  {
+    "_test": {
+      "id": "consul-banner"
+    },
+    "container": "fake-container",
+    "fluentd_time": "2026-09-03T10:20:43.500Z",
+    "hostname": "fake-fluent",
+    "kubernetes_host": "fake-node",
+    "labels": "{\"app\" : \"fluent-pipeline-test\", \"app.kubernetes.io_version\" : \"0.1.0\"}",
+    "level": "info",
+    "log": "==> Starting Consul agent...",
+    "namespace": "fake-namespace",
+    "nc_audit_label": "false",
+    "parse_level_unknown": "true",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "source_level": null,
+    "time": "2026-09-03T10:20:43.500007468Z"
+  }
+]

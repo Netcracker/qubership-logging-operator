@@ -1,0 +1,71 @@
+[
+  {
+    "_test": {
+      "id": "coredns-error"
+    },
+    "container": "fake-container",
+    "detected_level": "error",
+    "domain": "example.org.",
+    "hostname": "fake-fluent",
+    "id": "2",
+    "labels": {
+      "metadata.app.kubernetes.io/version": "0.1.0",
+      "metadata.app": "fluent-pipeline-test"
+    },
+    "level": "err",
+    "module": "plugin/errors",
+    "namespace": "fake-namespace",
+    "nodename": "fake-node",
+    "parse_field_count": 12,
+    "parse_format": "coredns",
+    "parse_status": "success",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "record_type": "A",
+    "short_message": "read udp 10.0.0.2:53: timeout",
+    "source_level": "ERROR",
+    "time": "2026-09-03T10:20:40.000007468Z"
+  },
+  {
+    "_test": {
+      "id": "coredns-banner"
+    },
+    "container": "fake-container",
+    "detected_level": "info",
+    "hostname": "fake-fluent",
+    "labels": {
+      "metadata.app.kubernetes.io/version": "0.1.0",
+      "metadata.app": "fluent-pipeline-test"
+    },
+    "level": "info",
+    "namespace": "fake-namespace",
+    "nodename": "fake-node",
+    "parse_field_count": 6,
+    "parse_format": "unknown",
+    "parse_level_unknown": "true",
+    "parse_status": "failed",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "short_message": "CoreDNS-1.11.1 linux/amd64, go1.20.7, ae2bbc2",
+    "time": "2026-09-03T10:20:40.500007468Z"
+  },
+  {
+    "_test": {
+      "id": "coredns-empty-line",
+      "dropped": true
+    },
+    "time": "2026-09-03T10:20:40.250007468Z"
+  },
+  {
+    "_test": {
+      "id": "coredns-spaces-line",
+      "dropped": true
+    },
+    "time": "2026-09-03T10:20:40.260007468Z"
+  },
+  {
+    "_test": {
+      "id": "coredns-tab-line",
+      "dropped": true
+    },
+    "time": "2026-09-03T10:20:40.270007468Z"
+  }
+]

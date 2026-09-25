@@ -1,0 +1,11 @@
+{
+  "kind": "Pod",
+  "apiVersion": "v1",
+  "metadata": {
+    "name": "annotated-logfmt",
+    "namespace": "test-namespace",
+    "annotations": { "fluentbit.io/parser": "logfmt" },
+    "labels": { "app.kubernetes.io/name": "annotated-logfmt" }
+  },
+  "status": { "phase": "Running" }
+}

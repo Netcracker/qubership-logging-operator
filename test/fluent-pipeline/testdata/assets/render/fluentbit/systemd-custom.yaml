@@ -1,0 +1,41 @@
+# The journald input, path exclusion, extra fields, custom sections, and a custom Lua script.
+apiVersion: logging.netcracker.com/v1
+kind: LoggingService
+metadata:
+  name: logging-service
+spec:
+  containerRuntimeType: containerd
+  fluentbit:
+    multilineFirstLineRegexp: "/^(\\[\\d{4}\\-\\d{2}\\-\\d{2}).*/"
+    multilineOtherLinesRegexp: "/^(?!\\[\\d{4}\\-\\d{2}\\-\\d{2}).*/"
+    containerLogging: true
+    excludePath: /var/log/pods/kube-system_*/*/*.log
+    systemLogging: true
+    systemLogType: systemd
+    systemAuditLogging: false
+    kubeAuditLogging: false
+    kubeApiserverAuditLogging: false
+    extraFields:
+      cluster: render-test
+      region: eu-west-1
+    mockKubeData: true
+    graylogOutput: true
+    graylogHost: graylog.logging.svc
+    graylogPort: 12201
+    graylogProtocol: tcp
+    customInputConf: |-
+      [INPUT]
+          Name   dummy
+          Tag    custom.dummy
+          Dummy  {"log":"custom input"}
+    customFilterConf: |-
+      [FILTER]
+          Name    record_modifier
+          Match   custom.*
+          Record  custom_filter true
+    customLuaScriptConf:
+      custom.lua: |-
+        function mark(tag, timestamp, record)
+            record["custom_lua"] = "true"
+            return 2, timestamp, record
+        end

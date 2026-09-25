@@ -1,0 +1,39 @@
+# The Kubernetes filter as it runs in a cluster: the runner answers its requests with a fake API
+# server, so Merge_Log and the fluentbit.io/parser annotation take part in the pipeline.
+apiVersion: logging.netcracker.com/v1
+kind: LoggingService
+metadata:
+  name: logging-service
+spec:
+  openshiftDeploy: false
+  containerRuntimeType: containerd
+  fluentbit:
+    # The runner waits for readiness lines the agent logs at the info level, and reads the output as
+    # soon as it is flushed instead of sleeping.
+    logLevel: info
+    flush: 1
+
+    containerLogging: true
+    systemLogging: false
+    systemAuditLogging: false
+    kubeAuditLogging: false
+    kubeApiserverAuditLogging: false
+
+    watchKubernetesMetadata: true
+    mockKubeData: false
+    db:
+      enabled: false
+
+    multilineFirstLineRegexp: "/^(\\[\\d{4}\\-\\d{2}\\-\\d{2}).*/"
+    multilineOtherLinesRegexp: "/^(?!\\[\\d{4}\\-\\d{2}\\-\\d{2}).*/"
+
+    # Disable Graylog output because we will print data in the file
+    graylogOutput: false
+
+    customOutputConf: |-
+      [OUTPUT]
+          Name         file
+          Match        *
+          Format       plain
+          Path         /fluentbit-output
+          File         output-log

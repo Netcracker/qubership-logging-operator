@@ -1,0 +1,61 @@
+# Forwarder and aggregator with every aggregator output, TLS between the two, and the state
+# database.
+apiVersion: logging.netcracker.com/v1
+kind: LoggingService
+metadata:
+  name: logging-service
+spec:
+  containerRuntimeType: containerd
+  cloudEventsReader:
+    install: true
+  fluentbit:
+    containerLogging: true
+    systemLogging: true
+    systemLogType: varlogsyslog
+    systemAuditLogging: true
+    kubeAuditLogging: true
+    kubeApiserverAuditLogging: true
+    mockKubeData: true
+    db:
+      enabled: true
+    tls:
+      enabled: true
+      verify: true
+      generateCerts:
+        enabled: true
+    aggregator:
+      install: true
+      multilineFirstLineRegexp: "/^(\\[\\d{4}\\-\\d{2}\\-\\d{2}).*/"
+      multilineOtherLinesRegexp: "/^(?!\\[\\d{4}\\-\\d{2}\\-\\d{2}).*/"
+      replicas: 2
+      graylogOutput: true
+      graylogHost: graylog.logging.svc
+      graylogPort: 12201
+      graylogProtocol: tcp
+      extraFields:
+        cluster: render-test
+      output:
+        loki:
+          enabled: true
+          host: https://loki.logging.svc:3100
+          tenant: render-test
+          tls:
+            enabled: true
+            verify: true
+            ca:
+              secretName: loki-tls
+              secretKey: ca.crt
+        http:
+          enabled: true
+          host: victorialogs.logging.svc
+          port: 9428
+          routing:
+            enabled: true
+          tls:
+            enabled: true
+            verify: false
+        otel:
+          enabled: true
+          host: otel-collector.logging.svc
+          port: 4318
+          target: victorialogs

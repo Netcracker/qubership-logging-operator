@@ -1,0 +1,44 @@
+[
+  {
+    "_test": {
+      "id": "kube-scheduler"
+    },
+    "container": "kube-scheduler",
+    "detected_level": "info",
+    "file": "scheduler.go:45",
+    "hostname": "fake-fluent",
+    "klog_date": "0903 11:00:03.123456",
+    "level": "info",
+    "namespace": "test-namespace",
+    "nodename": "fake-node",
+    "parse_field_count": 10,
+    "parse_format": "klog",
+    "parse_status": "success",
+    "pid": "1",
+    "pod": "kube-scheduler",
+    "short_message": "\"Successfully bound pod to node\" pod=\"demo/app-0\"",
+    "source_level": "I",
+    "time": "2026-09-03T11:00:03.000007468Z"
+  },
+  {
+    "_test": {
+      "id": "clickhouse-operator-0"
+    },
+    "container": "operator",
+    "detected_level": "info",
+    "file": "worker.go:67",
+    "hostname": "fake-fluent",
+    "klog_date": "0903 11:00:04.123456",
+    "level": "info",
+    "namespace": "test-namespace",
+    "nodename": "fake-node",
+    "parse_field_count": 10,
+    "parse_format": "klog",
+    "parse_status": "success",
+    "pid": "1",
+    "pod": "clickhouse-operator-0",
+    "short_message": "\"Reconcile completed\" cluster=\"demo\"",
+    "source_level": "I",
+    "time": "2026-09-03T11:00:04.000007468Z"
+  }
+]

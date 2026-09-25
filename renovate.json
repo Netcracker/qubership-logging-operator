@@ -5,25 +5,14 @@
     "github>Netcracker/renovate-config:github-actions",
     "github>Netcracker/renovate-config:go",
     "github>Netcracker/renovate-config:netcracker-dependencies",
-    "github>Netcracker/renovate-config:annotated-versions"
+    "github>Netcracker/renovate-config:annotated-versions",
+    "github>Netcracker/renovate-config:automerge"
   ],
   "prConcurrentLimit": 20,
   "ignorePaths": [
     "deploy/kind/helmfile.yaml.gotmpl"
   ],
   "packageRules": [
-    {
-      "description": "Automerge Go and GitHub Actions updates: covered by the CI Gate and Lint Gate required checks",
-      "matchManagers": ["gomod", "github-actions"],
-      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
-      "automerge": true
-    },
-    {
-      "description": "Automerge container image updates, including the Dockerfile manager and the docker-annotated custom.regex entries",
-      "matchDatasources": ["docker"],
-      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
-      "automerge": true
-    },
     {
       "matchManagers": ["custom.regex"],
       "matchPackageNames": [
@@ -92,6 +81,7 @@
       "matchFileNames": [
         "Dockerfile",
         "docker-transfer/Dockerfile",
+        "test/fluent-pipeline/Dockerfile",
         "test/robot-tests/Dockerfile"
       ],
       "matchPackageNames": [
@@ -101,6 +91,5 @@
         "!registry-1.docker.io/library/golang"
       ]
     }
-  ],
-  "platformAutomerge": true
+  ]
 }

@@ -20,7 +20,6 @@
     "level": "warning",
     "namespace": "fake-namespace",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
-    "parse_field_count": 10,
     "parse_format": "fluentbit"
   },
   {
@@ -44,7 +43,6 @@
     "level": "debug",
     "namespace": "fake-namespace",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
-    "parse_field_count": 10,
     "parse_format": "fluentbit"
   },
   {
@@ -68,7 +66,6 @@
     "level": "info",
     "namespace": "fake-namespace",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
-    "parse_field_count": 10,
     "parse_format": "fluentbit"
   },
   {
@@ -92,7 +89,6 @@
     "level": "err",
     "namespace": "fake-namespace",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
-    "parse_field_count": 10,
     "parse_format": "fluentbit"
   },
   {
@@ -116,7 +112,6 @@
     "level": "crit",
     "namespace": "fake-namespace",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
-    "parse_field_count": 10,
     "parse_format": "fluentbit"
   }
 ]

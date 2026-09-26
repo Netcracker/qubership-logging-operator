@@ -17,7 +17,6 @@
       "metadata.app.kubernetes.io/version": "0.1.0"
     },
     "namespace": "fake-namespace",
-    "parse_field_count": 15,
     "hostname": "fake-fluent",
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
@@ -46,7 +45,6 @@
       "metadata.app.kubernetes.io/version": "0.1.0"
     },
     "namespace": "fake-namespace",
-    "parse_field_count": 15,
     "hostname": "fake-fluent",
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
@@ -75,7 +73,6 @@
       "metadata.app.kubernetes.io/version": "0.1.0"
     },
     "namespace": "fake-namespace",
-    "parse_field_count": 15,
     "hostname": "fake-fluent",
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
@@ -110,7 +107,6 @@
     "namespace": "fake-namespace",
     "nc_audit_label": "true",
     "nodename": "fake-node",
-    "parse_field_count": 15,
     "parse_format": "mongodb_structured",
     "parse_status": "success",
     "pod": "fake-fluent-577d48c6cb-4gfmp",

@@ -10,7 +10,6 @@
     "date": "2023-12-20T12:51:32.270",
     "time": "2023-12-20T12:51:32.270007468Z",
     "class": "co.ne.cd.ui.se.ca.PodSequenceCallParser",
-    "parse_field_count": 11,
     "container": "fake-container",
     "short_message": "[thread=pool-86-thread-4] [class=co.ne.cd.ui.se.ca.PodSequenceCallParser] [ui-769b5fdf5-sxggr_1701183746975.6048] parsed 6 calls, filtered 6 calls (with 921 tags, 122 params and 512 required ids)",
     "labels": {
@@ -45,7 +44,6 @@
     "container": "fake-container",
     "namespace": "fake-namespace",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
-    "parse_field_count": 10,
     "parse_format": "unknown"
   },
   {
@@ -68,7 +66,6 @@
     "level": "err",
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
-    "parse_field_count": 9,
     "parse_format": "unknown"
   },
   {
@@ -91,7 +88,6 @@
     "level": "err",
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
-    "parse_field_count": 9,
     "parse_format": "unknown"
   },
   {
@@ -101,7 +97,6 @@
     "hostname": "fake-fluent",
     "short_message": "This is the first line after multiline. So it should be separate log, not concatenated with previous.",
     "nodename": "fake-node",
-    "parse_field_count": 9,
     "source_level": "INFO",
     "detected_level": "info",
     "date": "2024-04-10T13:44:20,618",

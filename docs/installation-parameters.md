@@ -19,6 +19,7 @@ VictoriaLogs uses a separate Helm chart. See the
       - [Graylog Auth Proxy LDAP](#graylog-auth-proxy-ldap)
       - [Graylog Auth Proxy OAuth](#graylog-auth-proxy-oauth)
   - [FluentBit](#fluentbit)
+    - [VictoriaLogs timestamp handling](#victorialogs-timestamp-handling)
     - [FluentBit Aggregator](#fluentbit-aggregator)
     - [FluentBit TLS](#fluentbit-tls)
   - [FluentD](#fluentd)
@@ -880,7 +881,7 @@ fluentbit:
 | `output.http.enabled`             | boolean                                                                                                                           | no        | `false`                                                                                         | Enables `http` output.                                                                                                                                                                   |
 | `output.http.host`                | string                                                                                                                            | no        | `-`                                                                                             | Http host. Example: vlsingle-k8s.victorialogs                                                                                                                                            |
 | `output.http.port`                | integer                                                                                                                           | no        | `9428`                                                                                          | Http server port                                                                                                                                                                         |
-| `output.http.uri`                 | string                                                                                                                            | no        | `/insert/jsonline?_stream_fields=namespace,container&_msg_field=short_message&_time_field=time` | HTTP URI for the target web server                                                                                                                                                       |
+| `output.http.uri`                 | string                                                                                                                            | no        | `/insert/jsonline?_stream_fields=namespace,container&_msg_field=short_message&_time_field=time` | See [VictoriaLogs timestamp handling](#victorialogs-timestamp-handling).                                                                                                                 |
 | `output.http.routing.enabled`     | boolean                                                                                                                           | no        | `false`                                                                                         | Enables logs routing based on their tags through HTTP output.                                                                                                                            |
 | `output.http.routing.headerTag`   | string                                                                                                                            | no        | `X-Log-Type`                                                                                    | Header used to propagate logs tag.                                                                                                                                                       |
 | `output.http.auth.token.name`     | string                                                                                                                            | no        | `-`                                                                                             | Authentication for http with token. Name of the secret where token is stored                                                                                                             |
@@ -926,6 +927,26 @@ fluentbit:
 | `output.otel.tls.key.key`         | string                                                                                                                            | no        | `-`                                                                                             | Key (filename) in the Secret with private key                                                                                                                                            |
 | `output.otel.tls.verify`          | boolean                                                                                                                           | no        | `true`                                                                                          | Force certificate validation                                                                                                                                                             |
 <!-- markdownlint-enable line-length -->
+
+### VictoriaLogs timestamp handling
+
+The operator-managed default HTTP URI uses the root timestamp from the container log
+envelope. This behavior applies to both standalone FluentBit and the FluentBit aggregator.
+
+<!-- markdownlint-disable line-length -->
+| Field         | Source and purpose                                                                                                                                                                                        |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `time`        | Timestamp from the CRI/Docker container log envelope. The default VictoriaLogs URI uses it to populate `_time`. It remains in the FluentBit record unless a format-specific filter explicitly renames it. |
+| `parsed_time` | Application-provided `time` extracted from the log payload. It is created only when payload `time` collides with the authoritative root `time`, and is stored as a regular VictoriaLogs field.            |
+| `_time`       | Canonical VictoriaLogs timestamp populated from the root `time` field during ingestion.                                                                                                                   |
+<!-- markdownlint-enable line-length -->
+
+The default URI contains `_time_field=time`. The HTTP output also sets
+`json_date_key false`, because the record already has the timestamp required by
+VictoriaLogs and no additional generated timestamp field is needed. The collision handling
+keeps an application-provided `time` as `parsed_time`, so it cannot replace the container
+timestamp. When `output.http.uri` is overridden, timestamp selection is controlled by the
+custom URI and custom HTTP output parameters.
 
 Fluent Bit output authentication values are read from the referenced Kubernetes Secrets and written only to the
 generated Fluent Bit configuration Secret. The operator watches these credential Secrets and regenerates the
@@ -1252,7 +1273,7 @@ fluentbit:
 | `output.http.enabled`             | boolean                                                                                                                | no        | `false`                                                                                         | Enables `http` output.                                                                                                                                                                                                            |
 | `output.http.host`                | string                                                                                                                 | no        | `-`                                                                                             | Http host. Example: vlsingle-k8s.victorialogs                                                                                                                                                                                     |
 | `output.http.port`                | integer                                                                                                                | no        | `9428`                                                                                          | Http server port                                                                                                                                                                                                                  |
-| `output.http.uri`                 | string                                                                                                                 | no        | `/insert/jsonline?_stream_fields=namespace,container&_msg_field=short_message&_time_field=time` | HTTP URI for the target web server                                                                                                                                                                                                |
+| `output.http.uri`                 | string                                                                                                                 | no        | `/insert/jsonline?_stream_fields=namespace,container&_msg_field=short_message&_time_field=time` | See [VictoriaLogs timestamp handling](#victorialogs-timestamp-handling).                                                                                                                                                          |
 | `output.http.routing.enabled`     | boolean                                                                                                                | no        | `false`                                                                                         | Enables logs routing based on their tag through HTTP output.                                                                                                                                                                      |
 | `output.http.routing.headerTag`   | string                                                                                                                 | no        | `X-Log-Type`                                                                                    | Defines a header which is used for log type propagation and further routing.                                                                                                                                                      |
 | `output.http.auth.token.name`     | string                                                                                                                 | no        | `-`                                                                                             | Authentication for http with token. Name of the secret where token is stored                                                                                                                                                      |
@@ -1443,7 +1464,7 @@ fluentbit:
         enabled: true
         host: vlsingle-k8s.victorialogs
         port: 9428
-        uri: /insert/jsonline?_stream_fields=stream&_msg_field=short_message&_time_field=time
+        uri: /insert/jsonline?_stream_fields=namespace,container&_msg_field=short_message&_time_field=time
         auth:
           token:
             name: http-secret

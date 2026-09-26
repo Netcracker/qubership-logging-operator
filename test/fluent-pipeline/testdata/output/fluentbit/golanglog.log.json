@@ -6,7 +6,6 @@
     "hostname": "fake-fluent",
     "short_message": "Hello test log",
     "nodename": "fake-node",
-    "parse_field_count": 9,
     "source_level": "TRACE",
     "detected_level": "trace",
     "date": "2023-12-20T12:51:32.270",

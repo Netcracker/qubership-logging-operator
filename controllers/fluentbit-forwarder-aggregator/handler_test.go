@@ -754,3 +754,215 @@ func TestHandleAggregatorConfigSecretRemovesLegacyConfigMap(t *testing.T) {
 		t.Fatalf("the config Secret must be created: %v", err)
 	}
 }
+
+func TestAggregatorHTTPOutputTimestampConfiguration(t *testing.T) {
+	t.Run("uses the root container timestamp", testAggregatorDefaultHTTPTimestamp)
+	for name, extraParams := range map[string]string{
+		"custom value": "JSON_DATE_KEY custom_timestamp",
+		"disabled":     "json_date_key false",
+		"empty":        "json_date_key",
+		"duplicated":   "json_date_key first\njson_date_key second",
+	} {
+		t.Run("rejects "+name+" json_date_key for the default URI", func(t *testing.T) {
+			testAggregatorRejectsDefaultJSONDateKey(t, extraParams)
+		})
+	}
+	t.Run("preserves custom URI timestamp configuration", testAggregatorCustomHTTPTimestamp)
+	t.Run("preserves disabled json_date_key with a custom URI", testAggregatorDisabledCustomJSONDateKey)
+}
+
+func newAggregatorHTTPTestLoggingService(uri, extraParams string) *loggingService.LoggingService {
+	return &loggingService.LoggingService{
+		Spec: loggingService.LoggingServiceSpec{
+			Fluentbit: &loggingService.Fluentbit{
+				Aggregator: &loggingService.FluentbitAggregator{
+					Output: &loggingService.OutputFluentbit{
+						Http: &loggingService.HttpFluentbit{
+							Enabled:     true,
+							Uri:         uri,
+							ExtraParams: extraParams,
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func renderAggregatorHTTPOutput(t *testing.T, uri, extraParams string) string {
+	t.Helper()
+	configMap, err := aggregatorConfigSecret(newAggregatorHTTPTestLoggingService(uri, extraParams), util.DynamicParameters{}, aggregatorOutputCredentials{})
+	if err != nil {
+		t.Fatalf("failed to render aggregator Secret: %v", err)
+	}
+	return string(configMap.Data["output-http.conf"])
+}
+
+func assertAggregatorOutputContains(t *testing.T, output, expected, message string) {
+	t.Helper()
+	if !strings.Contains(output, expected) {
+		t.Error(message)
+	}
+}
+
+func assertAggregatorOutputExcludes(t *testing.T, output, unexpected, message string) {
+	t.Helper()
+	if strings.Contains(output, unexpected) {
+		t.Error(message)
+	}
+}
+
+func testAggregatorDefaultHTTPTimestamp(t *testing.T) {
+	output := renderAggregatorHTTPOutput(t, "", "")
+	assertAggregatorOutputContains(t, output, "_time_field=time", "expected the default HTTP URI to use the root time field")
+	assertAggregatorOutputExcludes(t, output, "ignore_fields=time", "did not expect VictoriaLogs ingestion to ignore its configured time field")
+	assertAggregatorOutputContains(t, output, "_stream_fields=namespace,container", "expected the default HTTP URI to use namespace and container stream fields")
+	assertAggregatorOutputContains(t, output, "json_date_key          false", "expected HTTP output not to generate a redundant timestamp field")
+}
+
+func testAggregatorRejectsDefaultJSONDateKey(t *testing.T, extraParams string) {
+	_, err := aggregatorConfigSecret(newAggregatorHTTPTestLoggingService("", extraParams), util.DynamicParameters{}, aggregatorOutputCredentials{})
+	if err == nil || !strings.Contains(err.Error(), "must not set json_date_key") {
+		t.Fatalf("expected an operator-managed json_date_key error, got: %v", err)
+	}
+}
+
+func testAggregatorCustomHTTPTimestamp(t *testing.T) {
+	const customURI = "/insert/jsonline?_stream_fields=custom&_msg_field=message&_time_field=date"
+	output := renderAggregatorHTTPOutput(t, customURI, "json_date_key date")
+	assertAggregatorOutputContains(t, output, "uri                    "+customURI, "expected the custom HTTP URI to be preserved")
+	assertAggregatorOutputContains(t, output, "json_date_key date", "expected the custom json_date_key to be preserved")
+	assertAggregatorOutputExcludes(t, output, "json_date_key          false", "did not expect the operator-managed json_date_key with a custom URI")
+	assertAggregatorOutputExcludes(t, output, "ignore_fields=time", "did not expect the operator-managed ignored fields with a custom URI")
+}
+
+func testAggregatorDisabledCustomJSONDateKey(t *testing.T) {
+	const customURI = "/insert/jsonline?_stream_fields=custom&_msg_field=message"
+	output := renderAggregatorHTTPOutput(t, customURI, "json_date_key false")
+	assertAggregatorOutputContains(t, output, "json_date_key false", "expected the disabled custom json_date_key to be preserved")
+}
+
+func TestParsedFieldsProtectReservedFields(t *testing.T) {
+	configMap, err := aggregatorConfigSecret(&loggingService.LoggingService{
+		Spec: loggingService.LoggingServiceSpec{
+			Fluentbit: &loggingService.Fluentbit{Aggregator: &loggingService.FluentbitAggregator{}},
+		},
+	}, util.DynamicParameters{}, aggregatorOutputCredentials{})
+	if err != nil {
+		t.Fatalf("failed to render aggregator Secret: %v", err)
+	}
+
+	enrichConfig := strings.Join(strings.Fields(string(configMap.Data["filter-enrich-fields.conf"])), " ")
+	for _, rule := range []string{
+		"Hard_rename namespace parsed_namespace",
+		"Hard_rename pod parsed_pod",
+		"Hard_rename container parsed_container",
+		"Hard_rename source parsed_source",
+		"Hard_rename labels parsed_labels",
+		"Hard_rename log parsed_log",
+		"Hard_rename time parsed_time",
+		"Hard_rename level parsed_level",
+		"Hard_rename parse_status parsed_parse_status",
+		"Hard_rename source_level parsed_source_level",
+	} {
+		if !strings.Contains(enrichConfig, rule) {
+			t.Errorf("missing reserved field rule %q", rule)
+		}
+	}
+	if strings.Contains(enrichConfig, "Add_prefix parsed_") {
+		t.Error("application fields without protected names must keep their original names")
+	}
+
+	hideIndex := strings.Index(enrichConfig, "Operation nest Wildcard namespace")
+	applicationIndex := strings.Index(enrichConfig, "Nested_under log_parsed")
+	renameIndex := strings.Index(enrichConfig, "Hard_rename namespace parsed_namespace")
+	restoreIndex := strings.LastIndex(enrichConfig, "Nested_under _record_metadata")
+	if hideIndex < 0 || hideIndex >= applicationIndex || applicationIndex >= renameIndex || renameIndex >= restoreIndex {
+		t.Error("protected fields must be hidden, application fields extracted and renamed, then protected fields restored")
+	}
+
+	levelConfig := strings.Join(strings.Fields(string(configMap.Data["filter-nonsupported-levels.conf"])), " ")
+	if !strings.Contains(levelConfig, "Rename parsed_source_level source_level") {
+		t.Error("source_level must be restored without overwriting the normalized value")
+	}
+
+	rawValidateConfig := string(configMap.Data["filter-validate.conf"])
+	validateConfig := strings.Join(strings.Fields(rawValidateConfig), " ")
+	for _, rule := range []string{
+		"Rename msg short_message",
+		"Rename message short_message",
+	} {
+		if !strings.Contains(validateConfig, rule) {
+			t.Errorf("missing parsed JSON field rule %q", rule)
+		}
+	}
+	if strings.Contains(validateConfig, "Rename parsed_msg short_message") ||
+		strings.Contains(validateConfig, "Rename parsed_message short_message") {
+		t.Error("msg and message are lifted from log_parsed without a parsed_ prefix")
+	}
+
+	// VictoriaLogs reads the event time from the root time field. The logfmt parser runs with
+	// Reserve_Data On and cannot overwrite that field, so nothing may move it to log_time.
+	postGenericConfig := strings.Join(strings.Fields(string(configMap.Data["filter-post-generic.conf"])), " ")
+	if strings.Contains(postGenericConfig, "Rename time log_time") {
+		t.Error("logfmt records must keep the container timestamp in the time field")
+	}
+
+	// Annotation-based parsers never reach the JSON branch, so a conditional restore leaves their
+	// level in parsed_level and the normalizer falls back to info.
+	levelRestore, found := filterBlockContaining(rawValidateConfig, "Rename parsed_level level")
+	if !found {
+		t.Error("filter-validate.conf must restore the application level from parsed_level")
+	} else if strings.Contains(levelRestore, "Condition") {
+		t.Error("the parsed_level restore must apply to every parsed format, not only JSON")
+	}
+}
+
+// filterBlockContaining returns the [FILTER] section holding the given rule, with the rule written
+// as single-spaced text. The second result reports whether any section holds it.
+func filterBlockContaining(config, rule string) (string, bool) {
+	for _, block := range strings.Split(config, "[FILTER]") {
+		if strings.Contains(strings.Join(strings.Fields(block), " "), rule) {
+			return block, true
+		}
+	}
+	return "", false
+}
+
+func TestParserSuccessUsesPreserveKeyOff(t *testing.T) {
+	configSecret, err := aggregatorConfigSecret(&loggingService.LoggingService{
+		Spec: loggingService.LoggingServiceSpec{
+			Fluentbit: &loggingService.Fluentbit{Aggregator: &loggingService.FluentbitAggregator{}},
+		},
+	}, util.DynamicParameters{}, aggregatorOutputCredentials{})
+	if err != nil {
+		t.Fatalf("failed to render aggregator Secret: %v", err)
+	}
+
+	genericConfig := strings.Join(strings.Fields(string(configSecret.Data["filter-generic.conf"])), " ")
+	for _, expected := range []string{
+		"Copy log _parser_input",
+		"Key_Name _parser_input",
+		"Preserve_Key Off",
+	} {
+		if !strings.Contains(genericConfig, expected) {
+			t.Errorf("generic parser pipeline is missing %q", expected)
+		}
+	}
+	if strings.Contains(genericConfig, "Preserve_Key On") {
+		t.Error("generic parsers must remove original_log after successful parsing")
+	}
+
+	statusConfig := string(configSecret.Data["filter-validate.conf"]) + string(configSecret.Data["filter-post-generic.conf"])
+	if strings.Count(statusConfig, "Key_does_not_exist _parser_input") != 2 {
+		t.Error("klog and generic parser success must be detected from the removed _parser_input field")
+	}
+	if !strings.Contains(string(configSecret.Data["filter-enrich-fields.conf"]), "Preserve_Key    Off") {
+		t.Error("klog parsers must remove original_log after successful parsing")
+	}
+	for name, content := range configSecret.Data {
+		if strings.Contains(string(content), "count_fields") {
+			t.Errorf("%s still uses field-count parsing detection", name)
+		}
+	}
+}

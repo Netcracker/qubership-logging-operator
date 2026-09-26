@@ -72,6 +72,36 @@ class ReportTransformTest(unittest.TestCase):
         self.assertEqual(problem["problem"], "Too many parsed fields")
         self.assertEqual(problem["evidence"][0]["source"], "service-a")
 
+    def test_detected_too_many_fields_uses_distinct_field_section(self) -> None:
+        source = {
+            "backend_type": "victorialogs",
+            "logs": {
+                "schema_quality": {
+                    "columns": {"top_by_distinct_fields": ["namespace", "container", "distinct_parsed_fields"]},
+                    "top_by_distinct_fields": [["app", "service-a", 123]],
+                }
+            },
+        }
+
+        problem = report.detected_too_many_fields(source, 20)
+
+        self.assertIsNotNone(problem)
+        self.assertEqual(problem["problem"], "Too many parsed fields")
+        self.assertEqual(problem["evidence"][0]["distinct_parsed_fields"], 123)
+        self.assertIn("distinct payload field names", problem["description"])
+
+    def test_detected_too_many_fields_ignores_counts_within_threshold(self) -> None:
+        source = {
+            "logs": {
+                "schema_quality": {
+                    "columns": {"top_by_distinct_fields": ["namespace", "container", "distinct_parsed_fields"]},
+                    "top_by_distinct_fields": [["app", "service-a", 20]],
+                }
+            }
+        }
+
+        self.assertIsNone(report.detected_too_many_fields(source, 20))
+
 
 if __name__ == "__main__":
     unittest.main()

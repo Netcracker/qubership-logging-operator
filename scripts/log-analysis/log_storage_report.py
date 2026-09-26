@@ -45,6 +45,8 @@ SOURCE_COLUMN_IGNORED = {
     "sum_message_size_kb",
     "max_message_size_kb",
     "max_parse_field_count",
+    "distinct_parsed_fields",
+    "avg_parsed_fields",
     "share_percent",
     "percent",
 }
@@ -239,7 +241,10 @@ def parser() -> argparse.ArgumentParser:
         "--fields-count-threshold",
         type=positive_int,
         default=env_positive_int("FIELDS_COUNT_THRESHOLD", "20"),
-        help="Minimum parse_field_count considered suspicious. Default: 20.",
+        help=(
+            "Minimum number of payload field names per source considered suspicious. "
+            "Default: 20."
+        ),
     )
     result.add_argument(
         "--graylog-large-record-threshold-kb",
@@ -284,6 +289,15 @@ def parser() -> argparse.ArgumentParser:
         type=percentage,
         default=env_percentage("ERROR_LEVEL_PERCENT_THRESHOLD", "10"),
         help="Warn when error-level logs exceed this share of total logs count. Default: 10.",
+    )
+    result.add_argument(
+        "--min-field-share-percent",
+        type=percentage,
+        default=env_percentage("MIN_FIELD_SHARE_PERCENT", "0"),
+        help=(
+            "VictoriaLogs only. Count a payload field name only when it reaches this share "
+            "of a source's records. Default: 0, which counts every name."
+        ),
     )
     result.add_argument(
         "--single-source-percent-threshold",
@@ -652,11 +666,26 @@ def detected_noisy_container_source(report: dict[str, Any], threshold_percent: f
     }
 
 
-def detected_too_many_fields(report: dict[str, Any], threshold: int) -> dict[str, Any] | None:
-    rows, columns = section_rows(report, ("logs", "schema_quality", "top_by_max_fields"))
+def detected_too_many_fields(
+    report: dict[str, Any], threshold: int
+) -> dict[str, Any] | None:
+    """Report sources whose payload produces more fields than the threshold allows.
+
+    The two backends measure this differently. VictoriaLogs reports the payload fields a
+    typical record carries, derived from `field_names` hits, because LogsQL cannot count the
+    fields of a single record. Graylog reads `max_parse_field_count` from the records
+    themselves, so its section stays empty unless the collector writes that field. Whichever
+    section the report carries is used.
+    """
+    rows, columns = section_rows(report, ("logs", "schema_quality", "top_by_fields_per_record"))
+    column, label = "avg_parsed_fields", "payload fields per record"
+    if not rows:
+        rows, columns = section_rows(report, ("logs", "schema_quality", "top_by_max_fields"))
+        column, label = "max_parse_field_count", "max parse_field_count"
+
     suspicious = [
         row for row in rows
-        if number_value(row_value(row, columns, "max_parse_field_count")) > threshold
+        if number_value(row_value(row, columns, column)) > threshold
     ]
     if not suspicious:
         return None
@@ -665,7 +694,7 @@ def detected_too_many_fields(report: dict[str, Any], threshold: int) -> dict[str
         {
             "namespace": row_value(row, columns, "namespace"),
             "source": source_value(row, columns),
-            "max_parse_field_count": int(number_value(row_value(row, columns, "max_parse_field_count"))),
+            column: int(number_value(row_value(row, columns, column))),
         }
         for row in suspicious[:5]
     ]
@@ -673,7 +702,7 @@ def detected_too_many_fields(report: dict[str, Any], threshold: int) -> dict[str
         "problem": "Too many parsed fields",
         "severity": "warning",
         "description": (
-            "At least one source has max parse_field_count above "
+            f"At least one source has {label} above "
             f"the configured threshold of {threshold}."
         ),
         "evidence": evidence,
@@ -730,6 +759,7 @@ def victorialogs_client(args: argparse.Namespace, time_filter: str) -> VictoriaL
         args.source_field,
         args.top_limit,
         parallel_queries=args.parallel_queries,
+        min_field_share_percent=args.min_field_share_percent,
     )
 
 

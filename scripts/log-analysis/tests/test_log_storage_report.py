@@ -72,6 +72,87 @@ class ReportTransformTest(unittest.TestCase):
         self.assertEqual(problem["problem"], "Too many parsed fields")
         self.assertEqual(problem["evidence"][0]["source"], "service-a")
 
+    def test_detected_too_many_fields_uses_the_per_record_section(self) -> None:
+        source = {
+            "backend_type": "victorialogs",
+            "logs": {
+                "schema_quality": {
+                    "columns": {"top_by_fields_per_record": ["namespace", "container", "avg_parsed_fields"]},
+                    "top_by_fields_per_record": [["app", "service-a", 42.5]],
+                }
+            },
+        }
+
+        problem = report.detected_too_many_fields(source, 20)
+
+        self.assertIsNotNone(problem)
+        self.assertEqual(problem["problem"], "Too many parsed fields")
+        self.assertEqual(problem["evidence"][0]["avg_parsed_fields"], 42)
+        self.assertIn("payload fields per record", problem["description"])
+
+    def test_detected_too_many_fields_ignores_counts_within_threshold(self) -> None:
+        source = {
+            "logs": {
+                "schema_quality": {
+                    "columns": {"top_by_fields_per_record": ["namespace", "container", "avg_parsed_fields"]},
+                    "top_by_fields_per_record": [["app", "service-a", 20]],
+                }
+            }
+        }
+
+        self.assertIsNone(report.detected_too_many_fields(source, 20))
+
+
+class PayloadFieldStatsTest(unittest.TestCase):
+    @staticmethod
+    def _client(min_field_share_percent: float = 0.0) -> clients.VictoriaLogsClient:
+        return clients.VictoriaLogsClient(
+            clients.HttpClient("http://logs.invalid"),
+            "_time:1d",
+            "container",
+            10,
+            min_field_share_percent=min_field_share_percent,
+        )
+
+    def test_skips_pipeline_fields(self) -> None:
+        rows = [
+            {"name": "_time", "hits": "10"},
+            {"name": "namespace", "hits": "10"},
+            {"name": "labels.app", "hits": "10"},
+            {"name": "parse_status", "hits": "10"},
+            {"name": "logger", "hits": "10"},
+            {"name": "request_id", "hits": "5"},
+        ]
+
+        distinct, per_record = self._client().payload_field_stats(rows, 10)
+
+        self.assertEqual(distinct, 2)
+        self.assertEqual(per_record, 1.5)
+
+    def test_rare_names_count_toward_distinct_but_barely_toward_the_average(self) -> None:
+        rows = [{"name": "banner_art", "hits": "1"}]
+
+        distinct, per_record = self._client().payload_field_stats(rows, 1000)
+
+        self.assertEqual(distinct, 1)
+        self.assertEqual(per_record, 0.0)
+
+    def test_min_share_drops_rare_names(self) -> None:
+        rows = [{"name": "logger", "hits": "900"}, {"name": "banner_art", "hits": "1"}]
+
+        distinct, per_record = self._client(min_field_share_percent=5).payload_field_stats(rows, 1000)
+
+        self.assertEqual(distinct, 1)
+        self.assertEqual(per_record, 0.9)
+
+    def test_average_is_zero_without_a_record_count(self) -> None:
+        rows = [{"name": "logger", "hits": "900"}]
+
+        distinct, per_record = self._client().payload_field_stats(rows, 0)
+
+        self.assertEqual(distinct, 1)
+        self.assertEqual(per_record, 0.0)
+
 
 if __name__ == "__main__":
     unittest.main()

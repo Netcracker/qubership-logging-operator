@@ -57,6 +57,23 @@ def field_name(value: str) -> str:
     return json.dumps(value)
 
 
+def number_or_zero(value: Any) -> float:
+    """Read a numeric query result. LogsQL returns counts as strings."""
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def logsql_value(value: str) -> str:
+    """Quote a value for a LogsQL exact-match filter.
+
+    Namespace and source names arrive from query results, so they are quoted rather than
+    interpolated raw.
+    """
+    return json.dumps(value)
+
+
 def graylog_field_name(value: str) -> str:
     if not SIMPLE_FIELD_PATTERN.fullmatch(value):
         raise ValueError(
@@ -114,6 +131,10 @@ class HttpClient:
             raise QueryError(f"cannot connect to {self.base_url}: {exc.reason}") from exc
         except (TimeoutError, socket.timeout) as exc:
             raise QueryError(f"{method} {path} timed out while connecting to {self.base_url}") from exc
+        except ConnectionError as exc:
+            # A dropped connection, such as http.client.RemoteDisconnected, is not a URLError,
+            # so it would otherwise escape as an unhandled error and lose the whole section.
+            raise QueryError(f"{method} {path} lost the connection to {self.base_url}: {exc}") from exc
         return body
 
 
@@ -300,11 +321,13 @@ class VictoriaLogsClient:
         *,
         parallel_queries: bool = True,
         max_parallel_queries: int = 4,
+        min_field_share_percent: float = 0.0,
     ) -> None:
         self.client = client
         self.time_filter = time_filter
         self.source_field = field_name(source_field)
         self.top_limit = top_limit
+        self.min_field_share_percent = min_field_share_percent
         self.parallel_queries = parallel_queries
         self.max_parallel_queries = max_parallel_queries if parallel_queries else 1
         self.query_semaphore = BoundedSemaphore(self.max_parallel_queries)
@@ -449,15 +472,102 @@ class VictoriaLogsClient:
             ),
         }
 
-    def schema_quality_queries(self) -> dict[str, str]:
-        prefix = f"{self.time_filter} NOT kind:KubernetesEvent parse_field_count:*"
-        return {
-            "top_by_max_fields": (
-                f"{prefix} | stats by (namespace, {self.source_field})"
-                " max(parse_field_count) as max_parse_field_count"
-                f" | sort by (max_parse_field_count desc) | limit {self.top_limit}"
-            ),
+    # Field names that the pipeline and the storage own. They land on every record, so
+    # counting them would bury the fields a source's own payload contributes.
+    PIPELINE_FIELDS = frozenset({
+        "_time", "_msg", "_stream", "_stream_id",
+        "namespace", "pod", "container", "source", "nodename", "hostname",
+        "level", "source_level", "detected_level", "log_category", "kind",
+        "log", "original_log", "short_message", "time",
+        "parse_status", "parse_format", "parse_level_unknown", "parse_field_count",
+    })
+    PIPELINE_FIELD_PREFIXES = ("labels.", "annotations.", "kubernetes.")
+
+    def schema_quality_sources_query(self) -> str:
+        return (
+            f"{self.time_filter} NOT kind:KubernetesEvent"
+            f" | top {self.top_limit} by (namespace, {self.source_field})"
+        )
+
+    def schema_quality_field_names_query(self, namespace: str, source: str) -> str:
+        return (
+            f"{self.time_filter} NOT kind:KubernetesEvent"
+            f" namespace:={logsql_value(namespace)}"
+            f" AND {self.source_field}:={logsql_value(source)}"
+            " | field_names | fields name"
+        )
+
+    def payload_field_stats(
+        self, rows: list[dict[str, Any]], source_records: float = 0
+    ) -> tuple[int, float]:
+        """Return how wide a source's schema is and how many fields a record carries.
+
+        The first value counts distinct payload names, which is what a name costs as a
+        column in the storage, so a name counts however rarely it appears. The second
+        divides the hits `field_names` reports by the source's record count, giving the
+        fields a typical record carries. LogsQL cannot report the largest count of any
+        single record, so this average stands in for the former max(parse_field_count).
+
+        Raising min_field_share_percent drops names below that share of the records, which
+        answers the narrower question of an unstable schema rather than a wide one.
+        """
+        minimum = 0.0
+        if self.min_field_share_percent > 0 and source_records > 0:
+            minimum = source_records * self.min_field_share_percent / 100.0
+        distinct = 0
+        hits = 0.0
+        for row in rows:
+            name = row.get("name", "")
+            if name in self.PIPELINE_FIELDS or name.startswith(self.PIPELINE_FIELD_PREFIXES):
+                continue
+            row_hits = number_or_zero(row.get("hits"))
+            if minimum and row_hits < minimum:
+                continue
+            distinct += 1
+            hits += row_hits
+        per_record = hits / source_records if source_records > 0 else 0.0
+        return distinct, round(per_record, 2)
+
+    def schema_quality_report(self, *, dry_run: bool) -> dict[str, Any]:
+        """Rank sources by how many payload fields their records carry.
+
+        LogsQL counts field names per query rather than per record, so this runs one
+        `field_names` query per source instead of a single aggregation.
+        """
+        columns = ["namespace", self.source_field, "avg_parsed_fields", "distinct_parsed_fields"]
+        sources_query = self.schema_quality_sources_query()
+        report: dict[str, Any] = {
+            "queries": {"top_by_fields_per_record": sources_query},
+            "columns": {"top_by_fields_per_record": columns},
         }
+        if dry_run:
+            return report
+        try:
+            sources = self.query(sources_query)
+        except (QueryError, json.JSONDecodeError) as exc:
+            report["top_by_fields_per_record"] = {"error": str(exc)}
+            return report
+
+        rows: list[dict[str, Any]] = []
+        for source in sources:
+            namespace = source.get("namespace", "")
+            name = source.get(self.source_field, "")
+            names = self.safe_query(self.schema_quality_field_names_query(namespace, name))
+            if isinstance(names, dict):
+                report["top_by_fields_per_record"] = names
+                return report
+            distinct, per_record = self.payload_field_stats(
+                names, number_or_zero(source.get("hits"))
+            )
+            rows.append({
+                "namespace": namespace,
+                self.source_field: name,
+                "avg_parsed_fields": per_record,
+                "distinct_parsed_fields": distinct,
+            })
+        rows.sort(key=lambda row: row["avg_parsed_fields"], reverse=True)
+        report["top_by_fields_per_record"] = rows[: self.top_limit]
+        return report
 
     def execute_set(self, queries: dict[str, str], *, dry_run: bool) -> dict[str, Any]:
         report: dict[str, Any] = {
@@ -914,6 +1024,12 @@ class GraylogClient:
         return report
 
     def schema_quality_report(self, *, dry_run: bool) -> dict[str, Any]:
+        """Rank sources by max `parse_field_count`.
+
+        Graylog aggregates over a named field and cannot count the fields of a message, so
+        this section needs a collector that writes `parse_field_count`. Pipelines that do
+        not write it leave the section empty; see the Schema Quality section of the README.
+        """
         body = {
             "query": f"NOT kind:KubernetesEvent AND parse_field_count:* AND namespace:* AND {self.source_field}:*",
             "timerange": self.timerange,

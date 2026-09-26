@@ -284,14 +284,42 @@ matches `level:6 OR level:info`, and `debug` matches
 
 ## Schema Quality
 
-The `schema_quality` section shows top sources by max observed
-`parse_field_count`. It helps find logs that expand into too many parsed
-fields after Fluent Bit processing. Kubernetes events are excluded from this
-section.
+The `schema_quality` section finds sources whose payload expands into too many fields.
+Kubernetes events are excluded from this section.
 
-The detected-problems check uses `FIELDS_COUNT_THRESHOLD` to decide when max
-`parse_field_count` should be highlighted. The threshold defaults to `20` and
-can be changed with:
+The two backends measure this differently, because only one of them can do the work at query
+time.
+
+### VictoriaLogs
+
+The `top_by_distinct_fields` table ranks sources by how many distinct field names their
+payload produces. The count excludes the fields the pipeline itself adds on every record —
+`namespace`, `pod`, `container`, `level`, `parse_status`, the `labels.*` group, and the rest
+of the reserved set — so the number reflects the source's own schema.
+
+A high value means the source writes a wide or unstable schema. Both cases cost storage and
+slow queries down. Field names that look like data rather than keys, such as an ASCII banner
+parsed as logfmt, show up here too.
+
+LogsQL has no per-record field count, so the section runs one `field_names` query per source
+on top of the query that picks the sources. With the default `TOP_LIMIT` that is a bounded
+number of extra queries.
+
+### Graylog
+
+The `top_by_max_fields` table ranks sources by the highest `parse_field_count` value stored
+on their records. Graylog aggregates over a named field and cannot count the fields of a
+message, so this table needs a collector that writes `parse_field_count` itself.
+
+Pipelines that do not write that field leave the table empty and report no
+`Too many parsed fields` problem. Fluentd, older logging versions, and Fluent Bit pipelines
+that detect parsing without field counts all fall into this group. On those deployments the
+check is unavailable rather than passing, so read an empty table as a gap in coverage.
+
+### Threshold
+
+The detected-problems check uses `FIELDS_COUNT_THRESHOLD` for whichever table the report
+carries. The threshold defaults to `20` and can be changed with:
 
 ```bash
 --fields-count-threshold 30
@@ -302,11 +330,6 @@ or:
 ```bash
 FIELDS_COUNT_THRESHOLD=30
 ```
-
-This section uses `parse_field_count`, which is produced by the Fluent Bit
-pipeline after parsing/post-processing. Fluentd and older logging versions may
-not add this field; in that case the `schema_quality` tables are expected to be
-empty and no `Too many parsed fields` problem is reported.
 
 ## Detected Problems
 
@@ -360,6 +383,7 @@ The report collects:
 - `k8s_events`: Kubernetes events selected by `kind=KubernetesEvent`.
 - `message_size`: VictoriaLogs uses `_msg` length.
 - `categories`: VictoriaLogs log counts grouped by `log_category`.
-- `schema_quality`: top sources by max `parse_field_count`.
+- `schema_quality`: top sources by distinct payload field names on VictoriaLogs, or by max
+  `parse_field_count` on Graylog.
 - `storage.victorialogs_block_stats`: optional VictoriaLogs-only disk usage
   diagnostics.

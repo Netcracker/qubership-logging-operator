@@ -236,6 +236,7 @@ def display_title(path: tuple[str, ...]) -> str:
         ("logs", "k8s_events", "top_by_count"): "Top Kubernetes Event Sources",
         ("logs", "message_size", "top_by_max_message_size"): "Top Sources By Max Message Size",
         ("logs", "schema_quality", "top_by_max_fields"): "Top Sources By Max Parse Field Count",
+        ("logs", "schema_quality", "top_by_distinct_fields"): "Top Sources By Distinct Payload Fields",
         ("logs", "large_messages"): "Large Records",
         ("logs", "large_messages", "top_by_max_message_size"): "Top Sources By Max Record Size",
         ("storage", "victorialogs_block_stats"): "VictoriaLogs Block Stats",
@@ -422,13 +423,18 @@ def table_description(path: tuple[str, ...]) -> str:
             "Sources with the largest single message size."
         ),
         ("logs", "schema_quality"): (
-            "Schema quality view based on `parse_field_count`. Use it to find sources that produce records "
-            "with too many parsed fields. This field is produced by the Fluent Bit pipeline; Fluentd or older "
-            "logging versions may not have it, so this section can be empty even when logs exist."
+            "Schema quality view. Use it to find sources whose payload expands into too many fields. "
+            "VictoriaLogs counts the distinct field names each source contributes. Graylog instead reads "
+            "`parse_field_count` from the records, so on Graylog this section is empty unless the collector "
+            "writes that field."
         ),
         ("logs", "schema_quality", "top_by_max_fields"): (
-            "Sources ranked by the highest observed `parse_field_count` value. If the collector does not add "
-            "`parse_field_count`, no rows are expected."
+            "Graylog only. Sources ranked by the highest observed `parse_field_count` value. If the collector "
+            "does not add `parse_field_count`, no rows are expected."
+        ),
+        ("logs", "schema_quality", "top_by_distinct_fields"): (
+            "Sources ranked by how many distinct field names their payload produces, excluding the fields the "
+            "pipeline itself adds. A high value means the source writes a wide or unstable schema."
         ),
         ("logs", "large_messages"): (
             "Sources ranked by the largest observed `gl2_accounted_message_size` value."

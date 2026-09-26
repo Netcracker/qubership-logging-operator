@@ -45,6 +45,7 @@ SOURCE_COLUMN_IGNORED = {
     "sum_message_size_kb",
     "max_message_size_kb",
     "max_parse_field_count",
+    "distinct_parsed_fields",
     "share_percent",
     "percent",
 }
@@ -239,7 +240,10 @@ def parser() -> argparse.ArgumentParser:
         "--fields-count-threshold",
         type=positive_int,
         default=env_positive_int("FIELDS_COUNT_THRESHOLD", "20"),
-        help="Minimum parse_field_count considered suspicious. Default: 20.",
+        help=(
+            "Minimum number of payload field names per source considered suspicious. "
+            "Default: 20."
+        ),
     )
     result.add_argument(
         "--graylog-large-record-threshold-kb",
@@ -652,11 +656,25 @@ def detected_noisy_container_source(report: dict[str, Any], threshold_percent: f
     }
 
 
-def detected_too_many_fields(report: dict[str, Any], threshold: int) -> dict[str, Any] | None:
-    rows, columns = section_rows(report, ("logs", "schema_quality", "top_by_max_fields"))
+def detected_too_many_fields(
+    report: dict[str, Any], threshold: int
+) -> dict[str, Any] | None:
+    """Report sources whose payload produces more fields than the threshold allows.
+
+    The two backends measure this differently. VictoriaLogs counts the distinct field names a
+    source contributes, because LogsQL cannot count the fields of a single record. Graylog
+    reads `max_parse_field_count` from the records themselves, so its section stays empty
+    unless the collector writes that field. Whichever section the report carries is used.
+    """
+    rows, columns = section_rows(report, ("logs", "schema_quality", "top_by_distinct_fields"))
+    column, label = "distinct_parsed_fields", "distinct payload field names"
+    if not rows:
+        rows, columns = section_rows(report, ("logs", "schema_quality", "top_by_max_fields"))
+        column, label = "max_parse_field_count", "max parse_field_count"
+
     suspicious = [
         row for row in rows
-        if number_value(row_value(row, columns, "max_parse_field_count")) > threshold
+        if number_value(row_value(row, columns, column)) > threshold
     ]
     if not suspicious:
         return None
@@ -665,7 +683,7 @@ def detected_too_many_fields(report: dict[str, Any], threshold: int) -> dict[str
         {
             "namespace": row_value(row, columns, "namespace"),
             "source": source_value(row, columns),
-            "max_parse_field_count": int(number_value(row_value(row, columns, "max_parse_field_count"))),
+            column: int(number_value(row_value(row, columns, column))),
         }
         for row in suspicious[:5]
     ]
@@ -673,7 +691,7 @@ def detected_too_many_fields(report: dict[str, Any], threshold: int) -> dict[str
         "problem": "Too many parsed fields",
         "severity": "warning",
         "description": (
-            "At least one source has max parse_field_count above "
+            f"At least one source has {label} above "
             f"the configured threshold of {threshold}."
         ),
         "evidence": evidence,

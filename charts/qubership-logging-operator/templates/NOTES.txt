@@ -1,0 +1,13 @@
+{{- if and .Release.IsUpgrade .Values.fluentbit.install }}
+FluentBit storage migration notice
+
+The active offset database path changed from /var/log to /fluent-bit/state. Existing offsets are not migrated, and
+inputs configured to read from the beginning may resend records during the first rollout.
+
+The upgrade leaves legacy offset databases under /var/log and buffered records under /var/log/flb-storage on each
+node. Remove old offset databases only after the new Pods are healthy. Deleting /var/log/flb-storage may discard
+records that were not delivered before the upgrade.
+
+Storage profile: {{ .Values.fluentbit.storageProfile }}
+Migration details: docs/examples/fluentbit.md#storage-profiles
+{{- end }}

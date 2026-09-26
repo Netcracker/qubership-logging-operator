@@ -17,7 +17,7 @@ ARTIFACT_NAME=qubership-logging-operator
 
 # Helm charts directory
 HELM_FOLDER=charts/qubership-logging-operator
-CRDS_HELM_CRDS_FOLDER=charts/qubership-logging-crds
+CRDS_HELM_CRDS_FOLDER=charts/qubership-logging-crds/crds
 
 # Directories and files
 BUILD_DIR=build
@@ -27,6 +27,8 @@ HELM_DIR=$(BUILD_DIR)/_helm
 
 # Documents folders
 PUBLIC_DOC_FOLDER := docs
+DOC_FOLDER := docs
+SITE_FOLDER := site
 CRD_FOLDER=$(HELM_FOLDER)/crds
 CRD_PUBLIC_DOC_FOLDER=$(PUBLIC_DOC_FOLDER)/crds
 
@@ -80,6 +82,8 @@ pkgs = $(shell go list ./... | grep -v /e2e-tests)
 CONTAINER_CLI?=docker
 CONTAINER_NAME="qubership-logging-operator"
 DOCKERFILE=Dockerfile
+FLUENT_PIPELINE_SCENARIO?=fluentbit
+FLUENT_PIPELINE_TEST_IMAGE?=qubership-fluent-pipeline-tests:local
 
 ###########
 # Generic #
@@ -187,6 +191,12 @@ image:
 .PHONY: test
 test: unit-test python-test
 
+.PHONY: test-fluent-pipeline
+test-fluent-pipeline:
+	docker build -t $(FLUENT_PIPELINE_TEST_IMAGE) -f test/fluent-pipeline/Dockerfile .
+	FLUENT_PIPELINE_TEST_IMAGE=$(FLUENT_PIPELINE_TEST_IMAGE) \
+		test/fluent-pipeline/run.sh $(FLUENT_PIPELINE_SCENARIO)
+
 # Run unit tests in all packages
 .PHONY: unit-test
 unit-test:
@@ -250,20 +260,44 @@ else
 API_DOC_GEN_BINARY=$(shell which gen-crd-api-reference-docs)
 endif
 
-# Copy CRDs from the Helm chart to documentation directory
+# Copy CRDs from qubership-logging-operator Helm chart to documentation directory
 docs/crds:
 	rm -rf $(CRD_PUBLIC_DOC_FOLDER)/*.yaml
 	cp $(CRD_FOLDER)/* $(CRD_PUBLIC_DOC_FOLDER)/
+
+#################
+# Building docs #
+#################
+
+# Install the dependencies
+.PHONY: install-site-dependencies
+install-site-dependencies:
+	echo "=> Install site dependencies ..."
+	pip install -r $(SITE_FOLDER)/requirements.txt
+
+# Prepare the docs directory
+.PHONY: prepare-site-directory
+prepare-site-directory:
+	echo "=> Prepare site directory ..."
+	rm -rf $(SITE_FOLDER)/docs
+	mkdir -p $(SITE_FOLDER)
+	cp -rL $(DOC_FOLDER) $(SITE_FOLDER)/
+
+# Build the docs
+.PHONY: build-site
+build-site: prepare-site-directory install-site-dependencies
+	echo "=> Build site ..."
+	mkdocs build --config-file $(SITE_FOLDER)/mkdocs.yml --strict
 
 ##########################
 # Update CRDs Helm chart #
 ##########################
 
-# Copy CRDs from documentation to the qubership-monitoring-crds Helm chart
+# Copy CRDs from qubership-logging-operator to qubership-logging-crds Helm chart
 .PHONY: update-crds
 update-crds:
 	echo "=> Update CRDs in dedicated Helm chart ..."
-	find $(CRD_FOLDER) \( -name "*.yaml" -o -name "*.yml" \) -exec cp {} ${CRDS_HELM_CRDS_FOLDER}/crds/ \;
+	find $(CRD_FOLDER) \( -name "*.yaml" -o -name "*.yml" \) -exec cp {} ${CRDS_HELM_CRDS_FOLDER}/ \;
 
 ###################
 # Running locally #

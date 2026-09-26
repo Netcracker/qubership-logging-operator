@@ -1,0 +1,39 @@
+[
+  {
+    "_test": {
+      "id": "payload-sets-source-level"
+    },
+    "container": "fake-container",
+    "fluentd_time": "2026-09-03T10:20:55.000Z",
+    "hostname": "fake-fluent",
+    "kubernetes_host": "fake-node",
+    "labels": "{\"app\" : \"fluent-pipeline-test\", \"app.kubernetes.io_version\" : \"0.1.0\"}",
+    "level": "err",
+    "log": "{\"level\":\"error\",\"source_level\":\"trace\",\"message\":\"a payload that names the fields the pipeline sets\"}",
+    "message": "a payload that names the fields the pipeline sets",
+    "namespace": "fake-namespace",
+    "nc_audit_label": "false",
+    "parse_level_unknown": "false",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "source_level": "error",
+    "time": "2026-09-03T10:20:55.000007468Z"
+  },
+  {
+    "_test": {
+      "id": "bracketed-line-with-json"
+    },
+    "container": "fake-container",
+    "fluentd_time": "2026-09-03T10:20:56.000Z",
+    "hostname": "fake-fluent",
+    "kubernetes_host": "fake-node",
+    "labels": "{\"app\" : \"fluent-pipeline-test\", \"app.kubernetes.io_version\" : \"0.1.0\"}",
+    "level": "info",
+    "log": "[2026-09-03T10:20:56.000] [INFO] {\"nested\":\"json inside a bracketed line\"}",
+    "namespace": "fake-namespace",
+    "nc_audit_label": "false",
+    "parse_level_unknown": "false",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "source_level": "INFO",
+    "time": "2026-09-03T10:20:56.000007468Z"
+  }
+]

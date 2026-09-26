@@ -1,0 +1,22 @@
+{{- if .Values.victorialogs.install }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "victorialogs.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "victorialogs.serviceLabels" (dict "ctx" . "role" "client") | nindent 4 }}
+  {{- with .Values.victorialogs.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: {{ .Values.victorialogs.service.port }}
+      protocol: TCP
+      targetPort: http
+  selector:
+    {{- include "victorialogs.selectorLabels" . | nindent 4 }}
+{{- end }}

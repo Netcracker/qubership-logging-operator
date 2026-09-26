@@ -27,7 +27,7 @@ func eventsReaderDeployment(cr *loggingService.LoggingService) (*appsv1.Deployme
 	if cr.Spec.CloudEventsReader != nil {
 		util.SetLabelsForWorkload(&deployment, &deployment.Spec.Template.Labels, util.LabelInput{
 			Name:            deployment.GetName(),
-			Component:       "events-reader",
+			Component:       util.ComponentBackend,
 			Instance:        util.GetInstanceLabel(deployment.GetName(), deployment.GetNamespace()),
 			Version:         util.GetTagFromImage(cr.Spec.CloudEventsReader.DockerImage),
 			Technology:      "go",
@@ -64,7 +64,7 @@ func eventsReaderService(cr *loggingService.LoggingService) (*corev1.Service, er
 	}
 	util.SetLabelsForResource(&service, util.LabelInput{
 		Name:            service.GetName(),
-		Component:       "events-reader",
+		Component:       util.ComponentBackend,
 		ComponentLabels: cr.Spec.CloudEventsReader.Labels,
 	}, nil)
 	return &service, nil

@@ -72,11 +72,11 @@ see the [Release notes](https://docs.redhat.com/en/documentation/openshift_conta
 
 ### Public Cloud Provider Support
 
-| Cloud Provider | Managed OpenSearch  | Graylog Support | Notes                             |
-| -------------- | ------------------- | --------------- | --------------------------------- |
-| AWS            | ✔ Yes               | ✔ Supported     | Requires minimum hardware specs   |
-| Azure          | ✘ No                | N/A             | Only custom marketplace solutions |
-| GCP            | ✘ No                | N/A             | Only custom marketplace solutions |
+| Cloud Provider | Managed OpenSearch | Graylog Support | Notes                             |
+| -------------- | ------------------ | --------------- | --------------------------------- |
+| AWS            | ✔ Yes              | ✔ Supported     | Requires minimum hardware specs   |
+| Azure          | ✘ No               | N/A             | Only custom marketplace solutions |
+| GCP            | ✘ No               | N/A             | Only custom marketplace solutions |
 
 #### Amazon Web Services (AWS)
 
@@ -107,10 +107,10 @@ in the Google marketplace from other vendors.
 
 #### Platform compatibility
 
-| Requirement       | Version/Specification                                | Notes                                                 |
-| ----------------- | ---------------------------------------------------- | ----------------------------------------------------- |
-| Kubernetes        | 1.25.x, 1.26.x, 1.28.x (recommended), 1.29.x, 1.30.x | Tested <1.29, Forward-compatible (API verified) ≥1.29 |
-| OpenShift         | 4.10+                                                | Based on Kubernetes version                           |
+| Requirement | Version/Specification                                | Notes                                                 |
+| ----------- | ---------------------------------------------------- | ----------------------------------------------------- |
+| Kubernetes  | 1.25.x, 1.26.x, 1.28.x (recommended), 1.29.x, 1.30.x | Tested <1.29, Forward-compatible (API verified) ≥1.29 |
+| OpenShift   | 4.10+                                                | Based on Kubernetes version                           |
 
 #### Tools
 
@@ -418,7 +418,7 @@ Installation consists of the following steps:
    fluentbit:
      install: true
      configmapReload:
-       dockerImage: ghcr.io/jimmidyson/configmap-reload:v0.13.1
+       dockerImage: ghcr.io/jimmidyson/configmap-reload:v0.15.0
      graylogHost: <graylog_host>
      graylogPort: 12201
    fluentd:
@@ -479,6 +479,9 @@ Installation consists of the following steps:
 
 ## Configuration parameters
 
+VictoriaLogs is installed from a separate Helm chart. See the
+[Qubership VictoriaLogs chart values](./victorialogs-chart-parameters.md) for its complete parameter reference.
+
 <!-- markdownlint-disable line-length -->
 | Level                     | Description                                                                                                 | Detailed parameters link                                                          |
 | ------------------------- | ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
@@ -526,6 +529,22 @@ considered to be whitelisted. Graylog uses the Java Pattern class to evaluate re
 [Back to TOC](#table-of-contents)
 
 ## Upgrade
+
+### FluentBit storage profile migration
+
+The default FluentBit storage profile changes to `memory-only`. An upgrade changes the active offset database path
+from `/var/log` to `/fluent-bit/state`, which is backed by memory for this profile. FluentBit does not migrate existing
+offsets, so inputs configured to read from the beginning may resend records during the first rollout.
+
+Set `fluentbit.storageProfile: persistent-offsets` before upgrading if new offsets must survive later Pod replacement
+on the same node. Set `fluentbit.storageProfile: node-persistent` if buffered records must also survive Pod replacement
+and output outages. Both profiles write to the node filesystem under `/var/lib/fluent-bit`; neither profile migrates
+the old offset databases during the first rollout.
+
+The upgrade does not remove legacy offset databases under `/var/log` or buffered records under
+`/var/log/flb-storage`. Remove old offset databases only after the new Pods are healthy. The legacy storage directory
+may contain undelivered records, so deleting it can lose logs. See
+[FluentBit storage profiles](./examples/fluentbit.md#storage-profiles) for the profile trade-offs and cleanup details.
 
 ## Frequently asked questions
 

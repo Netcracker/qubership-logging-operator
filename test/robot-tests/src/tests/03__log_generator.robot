@@ -335,6 +335,7 @@ Check Parsing Json Info Logs
     Log To Console  ${\n}Config for json log does not match format from documentation. Level is not parsed. Default level = 6
     ${log_type}=  Set Variable  json_error_log
     Check Message Parsing  ${log_type}  6  ${json_generator_pod_name}
+    Should Be Equal As Strings    ${message_field}    Reconciling component json_error_log
 
 Check Json Payload Metadata Collisions And Date Variants
     [Tags]  log-generator

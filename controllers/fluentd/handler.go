@@ -6,64 +6,89 @@ import (
 
 	loggingService "github.com/Netcracker/qubership-logging-operator/api/v1"
 	util "github.com/Netcracker/qubership-logging-operator/controllers/utils"
-	"github.com/google/go-cmp/cmp"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (r *FluentdReconciler) handleConfigMap(cr *loggingService.LoggingService) error {
-	m, err := fluentdConfigMap(cr, r.DynamicParameters)
+func (r *FluentdReconciler) handleConfigSecret(cr *loggingService.LoggingService) error {
+	credentials, err := r.resolveOutputCredentials(cr)
 	if err != nil {
-		r.Log.Error(err, "Failed creating ConfigMap manifest")
+		r.Log.Error(err, "Failed to resolve Fluentd output credentials")
 		return err
 	}
 
-	_, err = r.updateConfigMap(cr, m)
+	secret, err := fluentdConfigSecret(cr, r.DynamicParameters, credentials)
 	if err != nil {
-		r.Log.Error(err, fmt.Sprintf("Cannot create or update config map %s", m.Name))
+		r.Log.Error(err, "Failed creating Secret manifest")
+		return err
+	}
+
+	_, err = r.CreateOrUpdateConfigSecret(cr, secret)
+	if err != nil {
+		r.Log.Error(err, fmt.Sprintf("Cannot create or update config secret %s", secret.Name))
+		return err
+	}
+
+	if err = r.DeleteLegacyConfigMap(cr.GetNamespace(), util.FluentdComponentName); err != nil {
+		r.Log.Error(err, fmt.Sprintf("Cannot delete the legacy config map %s", util.FluentdComponentName))
 		return err
 	}
 
 	return nil
 }
 
+func (r *FluentdReconciler) resolveOutputCredentials(cr *loggingService.LoggingService) (outputCredentials, error) {
+	credentials := outputCredentials{}
+	if cr.Spec.Fluentd == nil || cr.Spec.Fluentd.Output == nil {
+		return credentials, nil
+	}
+	output := cr.Spec.Fluentd.Output
+	outputs := make([]util.OutputAuth, 0, 2)
+	if output.Loki != nil {
+		outputs = append(outputs, util.OutputAuth{Values: &credentials.Loki, Enabled: output.Loki.Enabled, Auth: output.Loki.Auth})
+	}
+	if output.Http != nil {
+		outputs = append(outputs, util.OutputAuth{Values: &credentials.Http, Enabled: output.Http.Enabled, Auth: output.Http.Auth})
+	}
+	if err := r.ResolveFluentdOutputAuth(cr.GetNamespace(), outputs...); err != nil {
+		return outputCredentials{}, err
+	}
+	return credentials, nil
+}
+
 func (r *FluentdReconciler) handleDaemonSet(cr *loggingService.LoggingService) error {
-	m, err := fluentdDaemonSet(cr, r.DynamicParameters)
+	desired, err := fluentdDaemonSet(cr, r.DynamicParameters)
 	if err != nil {
 		r.Log.Error(err, "Failed creating DaemonSet manifest")
 		return err
 	}
 
-	if err = r.CreateResource(cr, m); err != nil {
-		if errors.IsAlreadyExists(err) {
-			e := &appsv1.DaemonSet{ObjectMeta: m.ObjectMeta}
-			if err = r.GetResource(e); err != nil {
-				return err
-			}
-
-			//Set parameters
-			if e.Labels == nil && m.Labels != nil {
-				e.SetLabels(m.Labels)
-			} else {
-				maps.Copy(e.Labels, m.Labels)
-			}
-			e.Spec.Template.SetLabels(m.Spec.Template.GetLabels())
-			e.Spec.Template.Spec.Containers = m.Spec.Template.Spec.Containers
-			e.Spec.Template.Spec.ServiceAccountName = m.Spec.Template.Spec.ServiceAccountName
-			e.Spec.Template.Spec.NodeSelector = m.Spec.Template.Spec.NodeSelector
-			e.Spec.Template.Spec.Volumes = m.Spec.Template.Spec.Volumes
-			e.Spec.Template.Spec.Tolerations = m.Spec.Template.Spec.Tolerations
-			e.Spec.Template.Spec.Affinity = m.Spec.Template.Spec.Affinity
-			if err = r.UpdateResource(e); err != nil {
-				return err
-			}
-		} else {
-			return err
-		}
+	if err = r.CreateResource(cr, desired); err == nil {
+		return nil
 	}
-	return nil
+	if !errors.IsAlreadyExists(err) {
+		return err
+	}
+	return r.updateDaemonSet(desired)
+}
+
+func (r *FluentdReconciler) updateDaemonSet(desired *appsv1.DaemonSet) error {
+	existing := &appsv1.DaemonSet{ObjectMeta: desired.ObjectMeta}
+	if err := r.GetResource(existing); err != nil {
+		return err
+	}
+
+	if existing.Labels == nil && desired.Labels != nil {
+		existing.SetLabels(desired.Labels)
+	} else {
+		maps.Copy(existing.Labels, desired.Labels)
+	}
+	existing.Spec.Template.SetLabels(desired.Spec.Template.GetLabels())
+	existing.Spec.Template.Spec = desired.Spec.Template.Spec
+
+	return r.UpdateResource(existing)
 }
 
 func (r *FluentdReconciler) handleService(cr *loggingService.LoggingService) error {
@@ -114,8 +139,8 @@ func (r *FluentdReconciler) deleteDaemonSet(cr *loggingService.LoggingService) e
 	return nil
 }
 
-func (r *FluentdReconciler) deleteConfigMap(cr *loggingService.LoggingService) error {
-	e := &corev1.ConfigMap{
+func (r *FluentdReconciler) deleteConfigSecret(cr *loggingService.LoggingService) error {
+	e := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      util.FluentdComponentName,
 			Namespace: cr.GetNamespace(),
@@ -130,7 +155,7 @@ func (r *FluentdReconciler) deleteConfigMap(cr *loggingService.LoggingService) e
 	if err := r.DeleteResource(e); err != nil {
 		return err
 	}
-	return nil
+	return r.DeleteLegacyConfigMap(cr.GetNamespace(), util.FluentdComponentName)
 }
 
 func (r *FluentdReconciler) deleteService(cr *loggingService.LoggingService) error {
@@ -150,36 +175,4 @@ func (r *FluentdReconciler) deleteService(cr *loggingService.LoggingService) err
 		return err
 	}
 	return nil
-}
-
-func (r *FluentdReconciler) Equal(source *corev1.ConfigMap, target *corev1.ConfigMap) bool {
-	return cmp.Equal(source.Data, target.Data) &&
-		cmp.Equal(source.BinaryData, target.BinaryData) &&
-		cmp.Equal(source.GetLabels(), target.GetLabels())
-}
-
-func (r *FluentdReconciler) updateConfigMap(cr *loggingService.LoggingService, configMap *corev1.ConfigMap) (updated bool, err error) {
-	if err = r.CreateResource(cr, configMap); err != nil {
-		if errors.IsAlreadyExists(err) {
-			existedConfigMap := &corev1.ConfigMap{ObjectMeta: configMap.ObjectMeta}
-			if err = r.GetResource(existedConfigMap); err != nil {
-				return false, err
-			}
-
-			if !r.Equal(existedConfigMap, configMap) {
-				if err = r.UpdateResource(configMap); err != nil {
-					return false, err
-				}
-
-				return true, nil
-			}
-
-			r.Log.Info("The config map is not changed")
-			return false, nil
-		}
-
-		return false, err
-	}
-
-	return true, nil
 }

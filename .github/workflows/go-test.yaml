@@ -1,6 +1,19 @@
 name: Go test with Sonar
 on:
-  push: {}
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+    paths:
+      - .github/workflows/go-test.yaml
+      - .github/config/build-config.yaml
+      - api/**
+      - cmd/**
+      - controllers/**
+      - go.*
+      - Makefile
+      - test/envtests/**
   pull_request:
     types: [ opened, synchronize, reopened ]
 
@@ -12,7 +25,7 @@ jobs:
     outputs:
       sonar-project-key: ${{ steps.config.outputs.sonar-project-key }}
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Resolve sonar project key based on restricted actors
@@ -40,7 +53,7 @@ jobs:
   test:
     needs: prepare
     name: Build and test with coverage
-    uses: netcracker/qubership-core-infra/.github/workflows/generic-go-build.yaml@8668020927f2a84d8d096a359c719c3c3a403520 # v2.5.0
+    uses: netcracker/qubership-core-infra/.github/workflows/generic-go-build.yaml@71206242f5967ac6691337913593f8623863f711 # v2.5.2
     with:
       go-module-dir: '.'
       sonar-project-key: ${{ needs.prepare.outputs.sonar-project-key }}
@@ -52,3 +65,15 @@ jobs:
       contents: read
       pull-requests: write
       packages: write
+
+  ci-gate:
+    name: CI Gate
+    needs: [prepare, test]
+    # Runs even when a dependency fails, so the check resolves instead of being skipped.
+    if: always()
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Require successful CI jobs
+        if: needs.prepare.result != 'success' || needs.test.result != 'success'
+        run: exit 1

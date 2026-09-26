@@ -32,7 +32,8 @@ users:
   - system:serviceaccount:{{ .Release.Namespace }}:logging-fluentbit-aggregator
 defaultAddCapabilities: []
 requiredDropCapabilities: []
-allowedCapabilities: []
+allowedCapabilities:
+  - DAC_OVERRIDE
 seccompProfiles:
   - runtime/default
 volumes:
@@ -47,7 +48,7 @@ allowHostNetwork: false
 allowHostPorts: false
 allowHostPID: false
 allowHostIPC: false
-readOnlyRootFilesystem: false
+readOnlyRootFilesystem: true
       {{- end }}
     {{- end }}
   {{- end }}

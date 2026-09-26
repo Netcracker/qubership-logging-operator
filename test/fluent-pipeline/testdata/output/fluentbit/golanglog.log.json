@@ -6,7 +6,7 @@
     "hostname": "fake-fluent",
     "short_message": "Hello test log",
     "nodename": "fake-node",
-    "parse_field_count": 9,
+    "parse_field_count": 10,
     "source_level": "TRACE",
     "detected_level": "trace",
     "date": "2023-12-20T12:51:32.270",
@@ -20,6 +20,6 @@
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "namespace": "fake-namespace",
     "level": "debug",
-    "parse_format": "unknown"
+    "parse_format": "qubership"
   }
 ]

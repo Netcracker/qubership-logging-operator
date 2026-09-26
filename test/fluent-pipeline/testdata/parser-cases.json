@@ -565,33 +565,6 @@
       ]
     },
     {
-      "id": "java-matching",
-      "parser": "java",
-      "match": true,
-      "input": "[2026-09-03T10:20:45.123Z] [ERROR] request failed",
-      "expected": {
-        "date": "2026-09-03T10:20:45.123Z",
-        "level": "ERROR",
-        "short_message": "request failed"
-      },
-      "absent": [
-        "log"
-      ]
-    },
-    {
-      "id": "java-non-matching",
-      "parser": "java",
-      "match": false,
-      "input": "2026-09-03 10:20:45 ERROR request failed",
-      "expected": {
-        "log": "2026-09-03 10:20:45 ERROR request failed"
-      },
-      "absent": [
-        "level",
-        "short_message"
-      ]
-    },
-    {
       "id": "opensearch-matching",
       "parser": "opensearch",
       "match": true,
@@ -638,12 +611,42 @@
       "id": "qubership-non-matching",
       "parser": "qubership",
       "match": false,
-      "input": "[2026-09-03T10:20:47.123Z] [INFO] service ready",
+      "input": "[2026-09-03T10:20:47.123Z] [NOTICE] service ready",
       "expected": {
-        "log": "[2026-09-03T10:20:47.123Z] [INFO] service ready"
+        "log": "[2026-09-03T10:20:47.123Z] [NOTICE] service ready"
       },
       "absent": [
-        "short_message"
+        "level",
+        "short_message",
+        "__qubership_candidate"
+      ]
+    },
+    {
+      "id": "qubership-without-key-values",
+      "parser": "qubership",
+      "match": true,
+      "input": "[2026-09-03T10:20:45.123Z] [ERROR] request failed",
+      "expected": {
+        "date": "2026-09-03T10:20:45.123Z",
+        "level": "ERROR",
+        "short_message": "request failed"
+      },
+      "absent": [
+        "log"
+      ]
+    },
+    {
+      "id": "qubership-relaxed-timestamp",
+      "parser": "qubership",
+      "match": true,
+      "input": "[2026-09-03 10:20:45,123+03:00] [warning] disk almost full",
+      "expected": {
+        "date": "2026-09-03 10:20:45,123+03:00",
+        "level": "warning",
+        "short_message": "disk almost full"
+      },
+      "absent": [
+        "log"
       ]
     },
     {

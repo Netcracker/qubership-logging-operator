@@ -93,16 +93,32 @@ The message with the pattern above is sent as follows:
 * __Lightweight__ – minimize performance overhead.
 * __Secure__ – no sensitive data leakage.
 
-#### Quick‑Start Log Pattern
+#### Parsed format
 
 ```text
-[%TIME%] [%LEVEL%] [request_id=?] [tenant_id=?] [thread=?] [class=?]
-[method=?] [version=?] [error_code=?] [originating_bi_id=?]
-[business_identifiers={key=value}] [traceId=?] [spanId=?] %MESSAGE%
+[TIMESTAMP] [LEVEL] [key=value]... MESSAGE
 ```
 
-* __TIME__ `yyyy-MM-dd'T'HH:mm:ss.SSS'Z'` (ISO‑8601, UTC)
-* __LEVEL__ `ERROR | WARN | INFO | DEBUG | TRACE
+Only `TIMESTAMP` and `LEVEL` are required.
+
+* `TIMESTAMP` accepts `T`, `t`, or a space as the date-time separator. Fractional seconds with `.` or `,` and up to
+  nine digits are optional. The time zone may be `Z`, `z`, `+HH`, `+HHMM`, or `+HH:MM` and is optional.
+* `LEVEL` is case-insensitive and accepts `TRACE`, `DEBUG`, `INFO`, `WARN`, `WARNING`, `ERROR`, or `FATAL`.
+* Zero or more `[key=value]` fields may follow in any order. Values may be empty and may contain spaces or `=`, but
+  cannot contain `[` or `]`. Escaping square brackets is not supported.
+* `MESSAGE` is optional. It follows `LEVEL` when no `[key=value]` fields are present, or the final field otherwise.
+
+#### Recommended application pattern
+
+Applications should include correlation and source fields when they are available:
+
+```text
+[TIMESTAMP] [LEVEL] [request_id=?] [tenant_id=?] [thread=?] [class=?]
+[method=?] [version=?] [error_code=?] [originating_bi_id=?]
+[business_identifiers={key=value}] [traceId=?] [spanId=?] MESSAGE
+```
+
+The fields may appear in any order. The parser does not require them for Qubership format classification.
 
 _JSON alternative in ndjson format_
 
@@ -112,46 +128,46 @@ _JSON alternative in ndjson format_
 
 #### Field reference
 
-1. Mandatory (strict order)
+1. Required parser fields
 
-    | Pos | Field        | Description             | Example                               |
-    | --: | ------------ | ----------------------- | ------------------------------------- |
-    |   1 | `TIME`       | Timestamp               | `[2025‑05‑02T09:16:53.018]`           |
-    |   2 | `LEVEL`      | Log level               | `[INFO]`                              |
-    |   3 | `request_id` | Request correlation ID  | `[request_id=9f09fc89‑…]`             |
-    |   4 | `tenant_id`  | Current tenant or `-`   | `[tenant_id=b0c3…]`                   |
-    |   5 | `thread`     | Thread / goroutine name | `[thread=TaskScheduler‑1]`            |
-    |   6 | `class`      | Class / module name     | `[class=o.apa.kaf.cli.NetworkClient]` |
+    |  Pos | Field       | Description | Example                     |
+    | ---: | ----------- | ----------- | --------------------------- |
+    |    1 | `TIMESTAMP` | Timestamp   | `[2025-05-02T09:16:53.018]` |
+    |    2 | `LEVEL`     | Log level   | `[INFO]`                    |
 
-2. Optional (free order)
+2. Recommended application fields (free order)
 
     <!-- markdownlint-disable line-length -->
-    | Field                  | When to Use               | Note                     | Example                                                  |
+    | Field                  | When to use               | Note                     | Example                                                  |
     | ---------------------- | ------------------------- | ------------------------ | -------------------------------------------------------- |
+    | `request_id`           | Request correlation       | Request ID               | `request_id=9f09fc89-…`                                  |
+    | `tenant_id`            | Tenant context            | Current tenant or `-`    | `tenant_id=b0c3…`                                        |
+    | `thread`               | Execution context         | Thread or goroutine name | `thread=TaskScheduler-1`                                 |
+    | `class`                | Log source                | Class or module name     | `class=o.apa.kaf.cli.NetworkClient`                      |
     | `method`               | Java only                 | Method name              | `method=createOrder`                                     |
     | `version`              | Blue/Green deployments    | `x-version` header       | `version=v2`                                             |
-    | `error_code`           | Error catalogue           | Comma-separated list     | `error_code=PAY-401,DB-34`                               |
+    | `error_code`           | Error catalog             | Comma-separated list     | `error_code=PAY-401,DB-34`                               |
     | `originating_bi_id`    | Root business interaction | UUID                     | `originating_bi_id=c771005e-1a46-44ab-b004-6c2f6b9c13d7` |
     | `business_identifiers` | Up to 3 key-value pairs   | Runtime only             | `business_identifiers={object_id=12345,layer_id=98765}`  |
     | `traceId`, `spanId`    | Distributed tracing       | B3 or W3C headers        | `traceId=4a1ceb… spanId=7b2fae…`                         |
     | Custom `[key=value]`   | Exceptional needs         | Must follow parser rules | `[shard=eu-west-1a]`                                     |
     <!-- markdownlint-enable line-length -->
 
-3. Free text message
+3. Optional free-text message
 
-  The free‑text message follows the final key‑value pair.
+    The free-text message follows `LEVEL` when no key-value fields are present, or the final field otherwise.
 
 #### Log Levels
 
-| Level   | Purpose                                                            |
-| ------- | ------------------------------------------------------------------ |
-| `OFF`   | Disables all logging                                               |
-| `FATAL` | Critical, unrecoverable error causing the application to terminate |
-| `ERROR` | Error that prevents further processing                             |
-| `WARN`  | Potential issue that does not stop execution                       |
-| `INFO`  | Business-level milestones _(default)_                              |
-| `DEBUG` | Detailed execution flow for development and troubleshooting        |
-| `TRACE` | Extremely fine-grained diagnostic information                      |
+| Level     | Purpose                                                            |
+| --------- | ------------------------------------------------------------------ |
+| `FATAL`   | Critical, unrecoverable error causing the application to terminate |
+| `ERROR`   | Error that prevents further processing                             |
+| `WARN`    | Potential issue that does not stop execution                       |
+| `WARNING` | Alias for `WARN`                                                   |
+| `INFO`    | Business-level milestones _(default)_                              |
+| `DEBUG`   | Detailed execution flow for development and troubleshooting        |
+| `TRACE`   | Extremely fine-grained diagnostic information                      |
 
 #### Examples
 

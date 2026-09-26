@@ -591,14 +591,14 @@ func filterBlockContaining(config, rule string) (string, bool) {
 }
 
 func TestParserSuccessUsesPreserveKeyOff(t *testing.T) {
-	configMap, err := fluentbitConfigMap(&loggingService.LoggingService{
+	configSecret, err := fluentbitConfigSecret(&loggingService.LoggingService{
 		Spec: loggingService.LoggingServiceSpec{Fluentbit: &loggingService.Fluentbit{}},
-	}, util.DynamicParameters{})
+	}, util.DynamicParameters{}, outputCredentials{})
 	if err != nil {
-		t.Fatalf("failed to render Fluent Bit ConfigMap: %v", err)
+		t.Fatalf("failed to render Fluent Bit Secret: %v", err)
 	}
 
-	genericConfig := strings.Join(strings.Fields(configMap.Data["filter-generic.conf"]), " ")
+	genericConfig := strings.Join(strings.Fields(string(configSecret.Data["filter-generic.conf"])), " ")
 	for _, expected := range []string{
 		"Copy log _parser_input",
 		"Key_Name _parser_input",
@@ -612,15 +612,15 @@ func TestParserSuccessUsesPreserveKeyOff(t *testing.T) {
 		t.Error("generic parsers must remove original_log after successful parsing")
 	}
 
-	statusConfig := configMap.Data["filter-validate.conf"] + configMap.Data["filter-post-generic.conf"]
+	statusConfig := string(configSecret.Data["filter-validate.conf"]) + string(configSecret.Data["filter-post-generic.conf"])
 	if strings.Count(statusConfig, "Key_does_not_exist _parser_input") != 2 {
 		t.Error("klog and generic parser success must be detected from the removed _parser_input field")
 	}
-	if !strings.Contains(configMap.Data["filter-rewrite-tag.conf"], "Preserve_Key   Off") {
+	if !strings.Contains(string(configSecret.Data["filter-rewrite-tag.conf"]), "Preserve_Key   Off") {
 		t.Error("klog parsers must remove original_log after successful parsing")
 	}
-	for name, content := range configMap.Data {
-		if strings.Contains(content, "count_fields") {
+	for name, content := range configSecret.Data {
+		if strings.Contains(string(content), "count_fields") {
 			t.Errorf("%s still uses field-count parsing detection", name)
 		}
 	}

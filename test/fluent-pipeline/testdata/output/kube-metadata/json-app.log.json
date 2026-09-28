@@ -9,12 +9,29 @@
     "level": "err",
     "namespace": "test-namespace",
     "nodename": "fake-node",
-    "parse_field_count": 7,
     "parse_format": "json",
     "parse_status": "success",
     "pod": "json-app",
     "short_message": "a json line the kubernetes filter merges",
     "source_level": "error",
     "time": "2026-09-03T11:00:00.000007468Z"
+  },
+  {
+    "_test": {
+      "id": "json-app-parser-input-collision"
+    },
+    "container": "app",
+    "detected_level": "warn",
+    "hostname": "fake-fluent",
+    "level": "warning",
+    "namespace": "test-namespace",
+    "nodename": "fake-node",
+    "parse_format": "json",
+    "parse_status": "success",
+    "parsed_parser_input": "decoy that must not be parsed",
+    "pod": "json-app",
+    "short_message": "a json line whose payload names the parser input",
+    "source_level": "warn",
+    "time": "2026-09-03T11:00:05.000007468Z"
   }
 ]

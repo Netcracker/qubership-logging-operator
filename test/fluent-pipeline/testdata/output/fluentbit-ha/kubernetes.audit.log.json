@@ -48,8 +48,7 @@
       "authorization.k8s.io/reason": "RBAC: allowed by RoleBinding \"patroni-core-operator/postgres-ek\" of Role \"patroni-core-operator\" to ServiceAccount \"patroni-sa/postgres-ek\"",
       "authorization.k8s.io/decision": "allow"
     },
-    "short_message": "(message)",
-    "log": "(message)",
+    "short_message": "/api/v1/namespaces/postgres-ek/configmaps/patroni-leader",
     "hostname": "fake-fluent",
     "nodename": "fake-node",
     "objectRef": {
@@ -110,8 +109,7 @@
       "authorization.k8s.io/decision": "allow",
       "authorization.k8s.io/reason": "RBAC: allowed by RoleBinding \"greenplumdb-operator/cloudberry\" of Role \"greenplumdb-operator\" to ServiceAccount \"greenplumdb-sa/cloudberry\""
     },
-    "short_message": "(message)",
-    "log": "(message)",
+    "short_message": "/api/v1/namespaces/cloudberry/configmaps/cloudberry-common-leader",
     "hostname": "fake-fluent",
     "nodename": "fake-node",
     "objectRef": {

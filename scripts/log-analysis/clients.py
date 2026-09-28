@@ -322,6 +322,7 @@ class VictoriaLogsClient:
         parallel_queries: bool = True,
         max_parallel_queries: int = 4,
         min_field_share_percent: float = 0.0,
+        schema_quality_candidates: int = 0,
     ) -> None:
         self.client = client
         self.time_filter = time_filter
@@ -331,6 +332,9 @@ class VictoriaLogsClient:
         self.source_field_key = source_field
         self.top_limit = top_limit
         self.min_field_share_percent = min_field_share_percent
+        # Field width is measured per source, so the candidate set is capped separately from
+        # the number of rows the table shows.
+        self.schema_quality_candidates = schema_quality_candidates or top_limit
         self.parallel_queries = parallel_queries
         self.max_parallel_queries = max_parallel_queries if parallel_queries else 1
         self.query_semaphore = BoundedSemaphore(self.max_parallel_queries)
@@ -487,9 +491,14 @@ class VictoriaLogsClient:
     PIPELINE_FIELD_PREFIXES = ("labels.", "annotations.", "kubernetes.")
 
     def schema_quality_sources_query(self) -> str:
+        """Pick the sources whose field width gets measured.
+
+        Sources rank by log count here, not by field width, so a quiet source with wide
+        records only reaches the table while the candidate set still has room for it.
+        """
         return (
             f"{self.time_filter} NOT kind:KubernetesEvent"
-            f" | top {self.top_limit} by (namespace, {self.source_field})"
+            f" | top {self.schema_quality_candidates} by (namespace, {self.source_field})"
         )
 
     def schema_quality_field_names_query(self, namespace: str, source: str) -> str:
@@ -572,6 +581,9 @@ class VictoriaLogsClient:
             })
         rows.sort(key=lambda row: row["avg_parsed_fields"], reverse=True)
         report["top_by_fields_per_record"] = rows[: self.top_limit]
+        # A full candidate set means quieter sources went unmeasured, so an empty table is
+        # not evidence that every source is narrow.
+        report["candidates_truncated"] = len(sources) >= self.schema_quality_candidates
         return report
 
     def execute_set(self, queries: dict[str, str], *, dry_run: bool) -> dict[str, Any]:

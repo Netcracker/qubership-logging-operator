@@ -309,8 +309,25 @@ appears. A source scoring high here and low on the average writes an unstable sc
 than heavy records — field names carrying data, such as an ASCII banner parsed as logfmt.
 
 The table is sorted by `avg_parsed_fields`, and the section runs one `field_names` query per
-source on top of the query that picks the sources. With the default `TOP_LIMIT` that is a
-bounded number of extra queries.
+measured source on top of the query that picks them.
+
+Field width is measured per source, so the sources to measure are picked first, by log
+count. A quiet source with wide records therefore only reaches the table while the candidate
+set still has room for it:
+
+```bash
+--schema-quality-candidates 500
+```
+
+or:
+
+```bash
+SCHEMA_QUALITY_CANDIDATES=500
+```
+
+The default is `200`. When the candidate set fills up, the section sets
+`candidates_truncated`, and quieter sources went unmeasured. An empty table then says
+nothing about them, so raise the limit before reading it as an all-clear.
 
 ### Graylog
 

@@ -435,7 +435,8 @@ def table_description(path: tuple[str, ...]) -> str:
         ("logs", "schema_quality", "top_by_fields_per_record"): (
             "Sources ranked by the payload fields a typical record carries, excluding the fields the pipeline "
             "itself adds. `distinct_parsed_fields` counts the field names the source produces over the whole "
-            "range, which is what those names cost as columns in the storage."
+            "range, which is what those names cost as columns in the storage. Sources are picked for "
+            "measurement by log count, so when `candidates_truncated` is set, quieter sources went unmeasured."
         ),
         ("logs", "large_messages"): (
             "Sources ranked by the largest observed `gl2_accounted_message_size` value."

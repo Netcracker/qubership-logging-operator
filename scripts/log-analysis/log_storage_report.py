@@ -291,6 +291,15 @@ def parser() -> argparse.ArgumentParser:
         help="Warn when error-level logs exceed this share of total logs count. Default: 10.",
     )
     result.add_argument(
+        "--schema-quality-candidates",
+        type=positive_int,
+        default=env_positive_int("SCHEMA_QUALITY_CANDIDATES", "200"),
+        help=(
+            "VictoriaLogs only. How many sources to measure for field width before the table "
+            "keeps the widest. Default: 200."
+        ),
+    )
+    result.add_argument(
         "--min-field-share-percent",
         type=percentage,
         default=env_percentage("MIN_FIELD_SHARE_PERCENT", "0"),
@@ -760,6 +769,7 @@ def victorialogs_client(args: argparse.Namespace, time_filter: str) -> VictoriaL
         args.top_limit,
         parallel_queries=args.parallel_queries,
         min_field_share_percent=args.min_field_share_percent,
+        schema_quality_candidates=args.schema_quality_candidates,
     )
 
 

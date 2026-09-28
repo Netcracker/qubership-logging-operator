@@ -114,6 +114,39 @@ class PayloadFieldStatsTest(unittest.TestCase):
             min_field_share_percent=min_field_share_percent,
         )
 
+    def test_candidate_set_is_wider_than_the_table(self) -> None:
+        client = clients.VictoriaLogsClient(
+            clients.HttpClient("http://logs.invalid"), "_time:1d", "container", 10,
+            schema_quality_candidates=200,
+        )
+
+        self.assertIn("top 200 by", client.schema_quality_sources_query())
+
+    def test_candidate_set_defaults_to_the_table_size(self) -> None:
+        client = clients.VictoriaLogsClient(
+            clients.HttpClient("http://logs.invalid"), "_time:1d", "container", 10
+        )
+
+        self.assertEqual(client.schema_quality_candidates, 10)
+
+    def test_truncated_candidate_set_is_reported(self) -> None:
+        sources = [{"namespace": "ns", "container": "c%d" % i, "hits": "10"} for i in range(3)]
+
+        class Stub(clients.VictoriaLogsClient):
+            def query(self, expression: str) -> list[dict[str, str]]:
+                if "field_names" in expression:
+                    return [{"name": "logger", "hits": "10"}]
+                return sources
+
+        full = Stub(clients.HttpClient("http://logs.invalid"), "_time:1d", "container", 2,
+                    schema_quality_candidates=3)
+        room = Stub(clients.HttpClient("http://logs.invalid"), "_time:1d", "container", 2,
+                    schema_quality_candidates=9)
+
+        self.assertTrue(full.schema_quality_report(dry_run=False)["candidates_truncated"])
+        self.assertFalse(room.schema_quality_report(dry_run=False)["candidates_truncated"])
+        self.assertEqual(len(full.schema_quality_report(dry_run=False)["top_by_fields_per_record"]), 2)
+
     def test_composite_source_names_survive_the_result_lookup(self) -> None:
         # LogsQL needs app.name quoted, while the query result keys it unquoted.
         client = clients.VictoriaLogsClient(

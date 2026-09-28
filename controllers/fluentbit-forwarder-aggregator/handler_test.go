@@ -874,6 +874,7 @@ func TestParsedFieldsProtectReservedFields(t *testing.T) {
 		"Hard_rename level parsed_level",
 		"Hard_rename parse_status parsed_parse_status",
 		"Hard_rename source_level parsed_source_level",
+		"Hard_rename _parser_input parsed_parser_input",
 	)
 	if strings.Contains(enrichConfig, "Add_prefix parsed_") {
 		t.Error("application fields without protected names must keep their original names")

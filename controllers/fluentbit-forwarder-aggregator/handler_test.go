@@ -805,6 +805,16 @@ func assertAggregatorOutputContains(t *testing.T, output, expected, message stri
 	}
 }
 
+// assertAggregatorConfigContains reports every rule the rendered configuration is missing.
+func assertAggregatorConfigContains(t *testing.T, config, message string, rules ...string) {
+	t.Helper()
+	for _, rule := range rules {
+		if !strings.Contains(config, rule) {
+			t.Errorf("%s %q", message, rule)
+		}
+	}
+}
+
 func assertAggregatorOutputExcludes(t *testing.T, output, unexpected, message string) {
 	t.Helper()
 	if strings.Contains(output, unexpected) {
@@ -853,7 +863,7 @@ func TestParsedFieldsProtectReservedFields(t *testing.T) {
 	}
 
 	enrichConfig := strings.Join(strings.Fields(string(configMap.Data["filter-enrich-fields.conf"])), " ")
-	for _, rule := range []string{
+	assertAggregatorConfigContains(t, enrichConfig, "missing reserved field rule",
 		"Hard_rename namespace parsed_namespace",
 		"Hard_rename pod parsed_pod",
 		"Hard_rename container parsed_container",
@@ -864,11 +874,7 @@ func TestParsedFieldsProtectReservedFields(t *testing.T) {
 		"Hard_rename level parsed_level",
 		"Hard_rename parse_status parsed_parse_status",
 		"Hard_rename source_level parsed_source_level",
-	} {
-		if !strings.Contains(enrichConfig, rule) {
-			t.Errorf("missing reserved field rule %q", rule)
-		}
-	}
+	)
 	if strings.Contains(enrichConfig, "Add_prefix parsed_") {
 		t.Error("application fields without protected names must keep their original names")
 	}
@@ -888,14 +894,10 @@ func TestParsedFieldsProtectReservedFields(t *testing.T) {
 
 	rawValidateConfig := string(configMap.Data["filter-validate.conf"])
 	validateConfig := strings.Join(strings.Fields(rawValidateConfig), " ")
-	for _, rule := range []string{
+	assertAggregatorConfigContains(t, validateConfig, "missing parsed JSON field rule",
 		"Rename msg short_message",
 		"Rename message short_message",
-	} {
-		if !strings.Contains(validateConfig, rule) {
-			t.Errorf("missing parsed JSON field rule %q", rule)
-		}
-	}
+	)
 	if strings.Contains(validateConfig, "Rename parsed_msg short_message") ||
 		strings.Contains(validateConfig, "Rename parsed_message short_message") {
 		t.Error("msg and message are lifted from log_parsed without a parsed_ prefix")

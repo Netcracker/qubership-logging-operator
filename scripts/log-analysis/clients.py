@@ -325,7 +325,10 @@ class VictoriaLogsClient:
     ) -> None:
         self.client = client
         self.time_filter = time_filter
+        # Queries need the LogsQL form, which quotes a name such as app.name. Query results
+        # and report columns use the name as given.
         self.source_field = field_name(source_field)
+        self.source_field_key = source_field
         self.top_limit = top_limit
         self.min_field_share_percent = min_field_share_percent
         self.parallel_queries = parallel_queries
@@ -536,7 +539,7 @@ class VictoriaLogsClient:
         LogsQL counts field names per query rather than per record, so this runs one
         `field_names` query per source instead of a single aggregation.
         """
-        columns = ["namespace", self.source_field, "avg_parsed_fields", "distinct_parsed_fields"]
+        columns = ["namespace", self.source_field_key, "avg_parsed_fields", "distinct_parsed_fields"]
         sources_query = self.schema_quality_sources_query()
         report: dict[str, Any] = {
             "queries": {"top_by_fields_per_record": sources_query},
@@ -553,7 +556,7 @@ class VictoriaLogsClient:
         rows: list[dict[str, Any]] = []
         for source in sources:
             namespace = source.get("namespace", "")
-            name = source.get(self.source_field, "")
+            name = source.get(self.source_field_key, "")
             names = self.safe_query(self.schema_quality_field_names_query(namespace, name))
             if isinstance(names, dict):
                 report["top_by_fields_per_record"] = names
@@ -563,7 +566,7 @@ class VictoriaLogsClient:
             )
             rows.append({
                 "namespace": namespace,
-                self.source_field: name,
+                self.source_field_key: name,
                 "avg_parsed_fields": per_record,
                 "distinct_parsed_fields": distinct,
             })

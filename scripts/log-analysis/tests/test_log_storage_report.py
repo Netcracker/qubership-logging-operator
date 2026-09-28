@@ -114,6 +114,16 @@ class PayloadFieldStatsTest(unittest.TestCase):
             min_field_share_percent=min_field_share_percent,
         )
 
+    def test_composite_source_names_survive_the_result_lookup(self) -> None:
+        # LogsQL needs app.name quoted, while the query result keys it unquoted.
+        client = clients.VictoriaLogsClient(
+            clients.HttpClient("http://logs.invalid"), "_time:1d", "app.name", 10
+        )
+
+        self.assertEqual(client.source_field, '"app.name"')
+        self.assertEqual(client.source_field_key, "app.name")
+        self.assertIn('"app.name":="billing"', client.schema_quality_field_names_query("ns", "billing"))
+
     def test_field_names_query_keeps_the_hit_counts(self) -> None:
         # payload_field_stats divides the hits by the record count, so a projection that
         # keeps only the name would make every average zero.

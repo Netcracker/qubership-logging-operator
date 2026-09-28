@@ -17,10 +17,10 @@
     "container": "fake-container",
     "detected_level": "info",
     "source_level": "INFO",
-    "short_message": "[request_id=-              ] [tenant_id=-                                   ] [version=v1] [traceId=-               ] [spanId=-               ] [originating_bi_id=-               ] [business_identifiers=-               ] [thread=main           ] [class=org.apache.zookeeper.ZooKeeper                              ] [method=logEnv                        ] Client environment:java.library.path=/usr/lib/jvm/java-17-openjdk/lib/server:/usr/lib/jvm/java-17-openjdk/lib:/usr/lib/jvm/java-17-openjdk/../lib:/usr/java/packages/lib:/usr/lib64:/lib64:/lib:/usr/lib",
+    "short_message": "Client environment:java.library.path=/usr/lib/jvm/java-17-openjdk/lib/server:/usr/lib/jvm/java-17-openjdk/lib:/usr/lib/jvm/java-17-openjdk/../lib:/usr/java/packages/lib:/usr/lib64:/lib64:/lib:/usr/lib",
     "nodename": "fake-node",
     "hostname": "fake-fluent",
-    "parse_field_count": 19,
+    "parse_field_count": 10,
     "labels": {
       "metadata.app.kubernetes.io/version": "0.1.0",
       "metadata.app": "fluent-pipeline-test"
@@ -50,10 +50,10 @@
     "container": "fake-container",
     "detected_level": "info",
     "source_level": "INFO",
-    "short_message": "[request_id=-              ] [tenant_id=-                                   ] [version=v1] [traceId=-               ] [spanId=-               ] [originating_bi_id=-               ] [business_identifiers=-               ] [thread=ain-EventThread] [class=org.apache.curator.utils.Compatibility                      ] [method=<clinit>                      ] Using org.apache.zookeeper.server.quorum.MultipleAddresses",
+    "short_message": "Using org.apache.zookeeper.server.quorum.MultipleAddresses",
     "nodename": "fake-node",
     "hostname": "fake-fluent",
-    "parse_field_count": 19,
+    "parse_field_count": 10,
     "labels": {
       "metadata.app.kubernetes.io/version": "0.1.0",
       "metadata.app": "fluent-pipeline-test"
@@ -83,10 +83,10 @@
     "container": "fake-container",
     "detected_level": "info",
     "source_level": "INFO",
-    "short_message": "[request_id=-              ] [tenant_id=-                                   ] [version=v1] [traceId=-               ] [spanId=-               ] [originating_bi_id=-               ] [business_identifiers=-               ] [thread=ain-EventThread] [class=org.apache.curator.framework.imps.EnsembleTracker           ] [method=processConfigData             ] New config event received: {server.2=zookeeper-2.zookeeper-server.zookeeper:2888:3888:participant;0.0.0.0:2181, server.1=zookeeper-1.zookeeper-server.zookeeper:2888:3888:participant;0.0.0.0:2181, server.3=zookeeper-3.zookeeper-server.zookeeper:2888:3888:participant;0.0.0.0:2181, version=0}",
+    "short_message": "New config event received: {server.2=zookeeper-2.zookeeper-server.zookeeper:2888:3888:participant;0.0.0.0:2181, server.1=zookeeper-1.zookeeper-server.zookeeper:2888:3888:participant;0.0.0.0:2181, server.3=zookeeper-3.zookeeper-server.zookeeper:2888:3888:participant;0.0.0.0:2181, version=0}",
     "nodename": "fake-node",
     "hostname": "fake-fluent",
-    "parse_field_count": 19,
+    "parse_field_count": 10,
     "labels": {
       "metadata.app.kubernetes.io/version": "0.1.0",
       "metadata.app": "fluent-pipeline-test"
@@ -116,10 +116,10 @@
     "container": "fake-container",
     "detected_level": "warn",
     "source_level": "WARN",
-    "short_message": "[request_id=-              ] [tenant_id=-                                   ] [version=v1] [traceId=-               ] [spanId=-               ] [originating_bi_id=-               ] [business_identifiers=-               ] [thread=main           ] [class=org.springframework.core.annotation.AnnotationTypeMapping   ] [method=addConventionMappings         ] Support for convention-based annotation attribute overrides is deprecated and will be removed in Spring Framework 6.2. Please annotate the following attributes in @org.axonframework.eventhandling.EventHandler with appropriate @AliasFor declarations: [payloadType]",
+    "short_message": "Support for convention-based annotation attribute overrides is deprecated and will be removed in Spring Framework 6.2. Please annotate the following attributes in @org.axonframework.eventhandling.EventHandler with appropriate @AliasFor declarations: [payloadType]",
     "nodename": "fake-node",
     "hostname": "fake-fluent",
-    "parse_field_count": 19,
+    "parse_field_count": 10,
     "labels": {
       "metadata.app.kubernetes.io/version": "0.1.0",
       "metadata.app": "fluent-pipeline-test"
@@ -149,10 +149,10 @@
     "container": "fake-container",
     "detected_level": "info",
     "source_level": "INFO",
-    "short_message": "[request_id=-              ] [tenant_id=-                                   ] [version=v1] [traceId=-               ] [spanId=-               ] [originating_bi_id=-               ] [business_identifiers=-               ] [thread=main           ] [class=org.springframework.cloud.context.scope.GenericScope        ] [method=setSerializationId            ] BeanFactory id=00000000-0000-0000-0000-000000000000",
+    "short_message": "BeanFactory id=00000000-0000-0000-0000-000000000000",
     "nodename": "fake-node",
     "hostname": "fake-fluent",
-    "parse_field_count": 19,
+    "parse_field_count": 10,
     "labels": {
       "metadata.app.kubernetes.io/version": "0.1.0",
       "metadata.app": "fluent-pipeline-test"
@@ -182,10 +182,10 @@
     "container": "fake-container",
     "detected_level": "warn",
     "source_level": "WARN",
-    "short_message": "[request_id=-              ] [tenant_id=-                                   ] [version=v1] [traceId=-               ] [spanId=-               ] [originating_bi_id=-               ] [business_identifiers=-               ] [thread=main           ] [class=o.s.amqp.rabbit.connection.CachingConnectionFactory         ] [method=<init>                        ] ***\nAutomatic Recovery was Enabled in the provided connection factory;\nwhile Spring AMQP is generally compatible with this feature, there\nare some corner cases where problems arise. Spring AMQP\nprefers to use its own recovery mechanisms; when this option is true, you may receive\n'AutoRecoverConnectionNotCurrentlyOpenException's until the connection is recovered.\nIt has therefore been disabled; if you really wish to enable it, use\n'getRabbitConnectionFactory().setAutomaticRecoveryEnabled(true)',\nbut this is discouraged.",
+    "short_message": "***\nAutomatic Recovery was Enabled in the provided connection factory;\nwhile Spring AMQP is generally compatible with this feature, there\nare some corner cases where problems arise. Spring AMQP\nprefers to use its own recovery mechanisms; when this option is true, you may receive\n'AutoRecoverConnectionNotCurrentlyOpenException's until the connection is recovered.\nIt has therefore been disabled; if you really wish to enable it, use\n'getRabbitConnectionFactory().setAutomaticRecoveryEnabled(true)',\nbut this is discouraged.",
     "nodename": "fake-node",
     "hostname": "fake-fluent",
-    "parse_field_count": 19,
+    "parse_field_count": 10,
     "labels": {
       "metadata.app.kubernetes.io/version": "0.1.0",
       "metadata.app": "fluent-pipeline-test"
@@ -215,10 +215,10 @@
     "container": "fake-container",
     "detected_level": "info",
     "source_level": "INFO",
-    "short_message": "[request_id=-              ] [tenant_id=-                                   ] [version=v1] [traceId=-               ] [spanId=-               ] [originating_bi_id=-               ] [business_identifiers=-               ] [thread=main           ] [class=o.springframework.security.web.DefaultSecurityFilterChain   ] [method=<init>                        ] Will secure any request with [org.qubership.cloud.context.propagation.spring.common.filter.SpringPreAuthnContextProviderFilter@79d49790, org.springframework.security.web.session.DisableEncodeUrlFilter@5b8599c7, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@31e9d94f, org.springframework.security.web.context.SecurityContextHolderFilter@70940cb8, org.springframework.security.web.header.HeaderWriterFilter@205b73d8, org.springframework.security.web.authentication.logout.LogoutFilter@1b868ef0, org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter@6c9b6332, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@3810806c, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@7bd7c4cf, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@69a3944, org.springframework.security.web.session.SessionManagementFilter@1ee52741, org.springframework.security.web.access.ExceptionTranslationFilter@10f192d8, org.qubership.cloud.context.propagation.spring.common.filter.SpringPostAuthnContextProviderFilter@7f2ca6f8, org.springframework.security.web.access.intercept.AuthorizationFilter@17541204] ",
+    "short_message": "Will secure any request with [org.qubership.cloud.context.propagation.spring.common.filter.SpringPreAuthnContextProviderFilter@79d49790, org.springframework.security.web.session.DisableEncodeUrlFilter@5b8599c7, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@31e9d94f, org.springframework.security.web.context.SecurityContextHolderFilter@70940cb8, org.springframework.security.web.header.HeaderWriterFilter@205b73d8, org.springframework.security.web.authentication.logout.LogoutFilter@1b868ef0, org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter@6c9b6332, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@3810806c, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@7bd7c4cf, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@69a3944, org.springframework.security.web.session.SessionManagementFilter@1ee52741, org.springframework.security.web.access.ExceptionTranslationFilter@10f192d8, org.qubership.cloud.context.propagation.spring.common.filter.SpringPostAuthnContextProviderFilter@7f2ca6f8, org.springframework.security.web.access.intercept.AuthorizationFilter@17541204] ",
     "nodename": "fake-node",
     "hostname": "fake-fluent",
-    "parse_field_count": 19,
+    "parse_field_count": 10,
     "labels": {
       "metadata.app.kubernetes.io/version": "0.1.0",
       "metadata.app": "fluent-pipeline-test"
@@ -248,10 +248,10 @@
     "container": "fake-container",
     "detected_level": "info",
     "source_level": "INFO",
-    "short_message": "[request_id=-              ][tenant_id=-                                   ] [version=v1] [traceId=-               ] [spanId=-               ] [originating_bi_id=-               ] [business_identifiers=-               ] [thread=main           ] [class=c.datastax.oss.driver.internal.core.DefaultMavenCoordinates ] [method=buildFromResourceAndPrint     ] DataStax Java driver for Apache Cassandra(R) (com.datastax.oss:java-driver-core) version 4.15.0",
+    "short_message": "DataStax Java driver for Apache Cassandra(R) (com.datastax.oss:java-driver-core) version 4.15.0",
     "nodename": "fake-node",
     "hostname": "fake-fluent",
-    "parse_field_count": 19,
+    "parse_field_count": 10,
     "labels": {
       "metadata.app.kubernetes.io/version": "0.1.0",
       "metadata.app": "fluent-pipeline-test"
@@ -281,10 +281,10 @@
     "container": "fake-container",
     "detected_level": "info",
     "source_level": "INFO",
-    "short_message": "[request_id=465a8dcdc05a30e74c8ed9c7d66aa4a6] [tenant_id=00000000-0000-0000-0000-000000000000] [version=v1] [traceId=-               ] [spanId=-               ] [originating_bi_id=-               ] [business_identifiers={quote_id=00000000-0000-0000-0000-000000000000}] [thread=0.0-8080-exec-5] [class=c.n.s.tst.plugin.quotation.TstQuotePostCommandModificator   ] [method=modifyQuote                   ] [EP-0103] Starting EP Execution",
+    "short_message": "[EP-0103] Starting EP Execution",
     "nodename": "fake-node",
     "hostname": "fake-fluent",
-    "parse_field_count": 19,
+    "parse_field_count": 10,
     "labels": {
       "metadata.app.kubernetes.io/version": "0.1.0",
       "metadata.app": "fluent-pipeline-test"
@@ -314,10 +314,10 @@
     "container": "fake-container",
     "detected_level": "info",
     "source_level": "INFO",
-    "short_message": "[request_id=9becf266dd03e52ccc80369bf1921029] [tenant_id=00000000-0000-0000-0000-000000000000] [version=v1] [traceId=-               ] [spanId=-               ] [originating_bi_id=00000000-0000-0000-0000-000000000000] [business_identifiers=-               ] [thread=0.0-8080-exec-6] [class=c.n.c.c.q.e.a.web.pub.graphql.controller.GraphQLController  ] [method=graphql                       ] Start GraphQL Query processing",
+    "short_message": "Start GraphQL Query processing",
     "nodename": "fake-node",
     "hostname": "fake-fluent",
-    "parse_field_count": 19,
+    "parse_field_count": 10,
     "labels": {
       "metadata.app.kubernetes.io/version": "0.1.0",
       "metadata.app": "fluent-pipeline-test"
@@ -347,10 +347,10 @@
     "container": "fake-container",
     "detected_level": "info",
     "source_level": "INFO",
-    "short_message": "[request_id=9becf266dd03e52ccc80369bf1921029] [tenant_id=00000000-0000-0000-0000-000000000000] [version=v1] [traceId=-               ] [spanId=-               ] [originating_bi_id=00000000-0000-0000-0000-000000000000] [business_identifiers={quote_id=00000000-0000-0000-0000-000000000000}] [thread=0.0-8080-exec-6] [class=c.n.c.crm.quotation.engine.app.web.logging.LoggingHandler   ] [method=logAfterApi                   ] org.qubership.cloud.crm.quotation.engine.app.web.pub.graphql.controller.GraphQLController.graphql()",
+    "short_message": "org.qubership.cloud.crm.quotation.engine.app.web.pub.graphql.controller.GraphQLController.graphql()",
     "nodename": "fake-node",
     "hostname": "fake-fluent",
-    "parse_field_count": 19,
+    "parse_field_count": 10,
     "labels": {
       "metadata.app.kubernetes.io/version": "0.1.0",
       "metadata.app": "fluent-pipeline-test"
@@ -366,8 +366,8 @@
     "_test": {
       "id": "qes-12"
     },
-    "short_message": "[request_id=ff17deddbb17f5b0da468a87107b9a49][tenant_id=00000000-0000-0000-0000-000000000000] [version=v1] [traceId=-               ] [spanId=-               ] [originating_bi_id=00000000-0000-0000-0000-000000000000] [business_identifiers=-               ] [thread=0.0-8080-exec-9] [class=c.n.c.c.q.e.a.web.pub.graphql.controller.GraphQLController  ] [method=graphql                       ] Start GraphQL Query processing",
-    "parse_field_count": 19,
+    "short_message": "Start GraphQL Query processing",
+    "parse_field_count": 10,
     "version": "v1",
     "date": "2024-06-18T17:28:07.414",
     "time": "2024-06-18T17:28:07.414007468Z",

@@ -1,12 +1,11 @@
 -- input: https://docs.fluentbit.io/manual/pipeline/filters/lua#function-arguments
 -- output: https://docs.fluentbit.io/manual/pipeline/filters/lua#return-values
 function kv_parse(tag, timestamp, record)
-    -- Skip processing if this log was marked as logfmt candidate
-    -- to avoid conflicts between logfmt parser and key-value parsing
-    if record["logfmt_candidate"] == "true" then
+    -- Markers from non-Qubership payloads are removed by modify filters before this function runs.
+    if record["__qubership_candidate"] == nil then
         return 0, timestamp, record
     end
-    if record["log"] ~= nil and type(record["log"]) ~= "table" and record["parse_status"] == "success" then
+    if record["log"] ~= nil and type(record["log"]) ~= "table" then
         -- regex to find the end of key=value string in the original string
         -- this regex search the place:
         -- * start from ]
@@ -14,25 +13,31 @@ function kv_parse(tag, timestamp, record)
         -- * without [
         -- * start from alphabet symbol, digit or any symbol (expect [)
         local regex_kvs_end = "]%s*[^%[][%w%-%{%}%\\%/%.%,%!%@%#%$%%%^%&%*%(%)]%s*"
-        local regex_kvs = "%[([^=%[%]\"]+)=(%w*(.[^%[%]\"]*))%]"
+        local regex_kvs = "%[([^=%[%]\"]+)=([^%[%]\"]*)%]"
+        local regex_kvs_at_end = "%[[^=%[%]\"]+=[^%[%]\"]*%]%s*$"
         local s = record["log"]
+
         -- find the end position of [key=value] pairs
         -- and copy from original string only this string part, for example:
         -- [<time>] [INFO] [key1=value1][key2=value2] ... [keyN=valueN]
         local kvs_position = string.find(s, regex_kvs_end, 1)
-        local kvs = string.sub(s, 0, kvs_position)
-        if kvs ~= nil then
-            local trimmed_v
-            for k, v in string.gmatch(kvs, regex_kvs) do
-                trimmed_v = v:gsub("^%s*(.-)%s*$", "%1")
-                if trimmed_v ~= "" then
-                    record[k] = trimmed_v
-                end
-            end
-        else
-            -- return 0, that means the record will not be modified
+        -- A message-less record ends at the final key-value pair.
+        if kvs_position == nil and string.find(s, regex_kvs_at_end, 1) ~= nil then
+            kvs_position = string.len(s)
+        end
+        if kvs_position == nil then
             return 0, timestamp, record
         end
+
+        local kvs = string.sub(s, 1, kvs_position)
+        local trimmed_v
+        for k, v in string.gmatch(kvs, regex_kvs) do
+            trimmed_v = v:gsub("^%s*(.-)%s*$", "%1")
+            if trimmed_v ~= "" then
+                record[k] = trimmed_v
+            end
+        end
+
         -- return 2, that means the original timestamp is not modified and the record has been modified
         -- so it must be replaced by the returned values from the record
         return 2, timestamp, record

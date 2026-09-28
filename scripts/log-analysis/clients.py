@@ -490,11 +490,13 @@ class VictoriaLogsClient:
         )
 
     def schema_quality_field_names_query(self, namespace: str, source: str) -> str:
+        """Build the per-source query. It keeps the hits `field_names` reports, because
+        payload_field_stats divides them by the record count."""
         return (
             f"{self.time_filter} NOT kind:KubernetesEvent"
             f" namespace:={logsql_value(namespace)}"
             f" AND {self.source_field}:={logsql_value(source)}"
-            " | field_names | fields name"
+            " | field_names"
         )
 
     def payload_field_stats(

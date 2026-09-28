@@ -114,6 +114,22 @@ class PayloadFieldStatsTest(unittest.TestCase):
             min_field_share_percent=min_field_share_percent,
         )
 
+    def test_field_names_query_keeps_the_hit_counts(self) -> None:
+        # payload_field_stats divides the hits by the record count, so a projection that
+        # keeps only the name would make every average zero.
+        query = self._client().schema_quality_field_names_query("ns", "svc")
+
+        self.assertIn("| field_names", query)
+        self.assertNotIn("| fields ", query)
+
+    def test_stats_are_zero_when_the_query_drops_the_hits(self) -> None:
+        rows = [{"name": "logger"}, {"name": "request_id"}]
+
+        distinct, per_record = self._client().payload_field_stats(rows, 1000)
+
+        self.assertEqual(distinct, 2)
+        self.assertEqual(per_record, 0.0)
+
     def test_skips_pipeline_fields(self) -> None:
         rows = [
             {"name": "_time", "hits": "10"},

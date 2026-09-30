@@ -317,6 +317,29 @@ Parameters that affect out-of-box output configuration:
 You can find the full list of FluentBit parameters in
 [the installation guide](../installation.md#fluentbit).
 
+#### FluentBit HTTP stream routing
+
+`fluentbit.output.http.routing.enabled` makes the HTTP output send an `X-Log-Type` header, so that vmauth can route each
+stream to its own VictoriaLogs instance. The header name comes from `fluentbit.output.http.routing.headerTag`, and is
+`X-Log-Type` by default.
+
+The rules run in the order below and the first match wins, so a record marked as audit never reaches the `access` rule.
+
+| `X-Log-Type`    | Records                                                                          |
+|-----------------|----------------------------------------------------------------------------------|
+| `out_audit`     | Container records the audit filters marked, and everything the audit inputs read |
+| `out_k8s_event` | Container records whose `kind` is `KubernetesEvent`                              |
+| `out_nginx`     | Container records whose pod name contains `ingress-nginx`                        |
+| `out_access`    | Container records whose `logType` or `log_type` is `access`                      |
+| `out_int`       | Container records whose `logType` or `log_type` is `int`                         |
+| `out_pods`      | Every other container record                                                     |
+| `out_system`    | Everything the system input reads                                                |
+| `out_default`   | Anything else, a custom input for example                                        |
+
+A service sets `logType` or `log_type` itself; the pipeline never writes either. Both spellings are read, and both are
+matched exactly, the same way the `Route Access logs` and `Route Integration logs` processing rules match them on the
+Graylog side. A value of `integration` is therefore not `int`.
+
 #### FluentBit Custom output configuration
 
 You can add your own custom part of the output pipeline configuration by using `fluentbit.customOutputConf`.

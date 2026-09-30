@@ -243,6 +243,14 @@ fluentbit:
       Name   <name>
 ```
 
+Tags that start with `out_` are reserved. With `fluentbit.output.http.routing.enabled` set, the routing filters retag every
+record with that prefix and the GELF, Loki and OpenTelemetry outputs select on it. Give a custom input any other prefix.
+
+A custom input reaches the HTTP output and whatever you declare in `fluentbit.customOutputConf`. The built-in GELF, Loki
+and OpenTelemetry outputs select the tags the operator produces, so custom records do not reach them. Sending records
+there also needs a `short_message` field, which the built-in filters add only to container, audit and system records.
+GELF rejects a record without it.
+
 ### FluentBit Filters customization
 
 #### FluentBit Customization of the out-of-box configuration

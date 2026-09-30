@@ -67,6 +67,17 @@ local function normalize_levels(level)
 end
 
 function update_level(tag, timestamp, record)
+  -- rewrite_tag re-injects a record at the head of the filter chain, so this filter can see the
+  -- same record twice. Normalizing again would overwrite source_level with the value this
+  -- function already produced, and would report a detected trace level as debug.
+  -- detected_level marks a record this function has already handled: it is always set below, and
+  -- nothing else in the pipeline writes it. source_level is not a marker, because a record that
+  -- arrived without a level never gets one.
+  if record["detected_level"] ~= nil then
+    -- return 0, that means the record has not been modified
+    return 0, timestamp, record
+  end
+
   record["source_level"] = record["level"]
   local level_unknown
   record["level"], record["detected_level"], level_unknown = normalize_levels(record["level"])

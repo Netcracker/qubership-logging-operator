@@ -90,7 +90,7 @@ func TestAggregatorLokiMatcherSelectsKlogWithoutRouting(t *testing.T) {
 	}
 }
 
-func TestAggregatorRoutingPrecedesLevelNormalization(t *testing.T) {
+func TestAggregatorFormatDetectionPrecedesRoutingAndLevelNormalization(t *testing.T) {
 	data := renderAggregatorConfigData(t, &loggingService.FluentbitAggregator{
 		Output: &loggingService.OutputFluentbit{
 			Http: &loggingService.HttpFluentbit{
@@ -100,13 +100,19 @@ func TestAggregatorRoutingPrecedesLevelNormalization(t *testing.T) {
 		},
 	})
 	mainConfig := data["fluent-bit.conf"]
+	formatDetection := strings.Index(mainConfig, "filter-define-format.conf")
 	routing := strings.Index(mainConfig, "filter-http-routing.conf")
 	normalization := strings.Index(mainConfig, "filter-nonsupported-levels.conf")
-	if routing < 0 || normalization < 0 || routing >= normalization {
-		t.Errorf("HTTP routing must precede level normalization:\n%s", mainConfig)
+	if formatDetection < 0 || routing < 0 || normalization < 0 ||
+		formatDetection >= routing || routing >= normalization {
+		t.Errorf("format detection, HTTP routing, and level normalization are in the wrong order:\n%s", mainConfig)
 	}
 	if !strings.Contains(data["filter-http-routing.conf"], "Name                   rewrite_tag") {
 		t.Error("HTTP routing configuration has no rewrite_tag filter")
+	}
+	if !strings.Contains(data["filter-define-format.conf"],
+		`Condition          Key_value_matches   level  ^\s*[0-7pafscwnidvtePAFSCWNIDVTE]`) {
+		t.Error("Qubership format detection does not validate the original level")
 	}
 	if strings.Contains(data["output-http.conf"], "rewrite_tag") {
 		t.Error("HTTP output configuration still contains routing that runs after level normalization")

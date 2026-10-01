@@ -1,0 +1,46 @@
+[
+  {
+    "_test": {
+      "id": "builtin-python-trace"
+    },
+    "namespace": "fake-namespace",
+    "parse_status": "failed",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "parse_level_unknown": "true",
+    "hostname": "fake-fluent",
+    "labels": {
+      "metadata.app.kubernetes.io/version": "0.1.0",
+      "metadata.app": "fluent-pipeline-test"
+    },
+    "nodename": "fake-node",
+    "level": "info",
+    "detected_level": "info",
+    "time": "2026-09-03T10:22:30.000007468Z",
+    "parse_field_count": 8,
+    "container": "fake-container",
+    "short_message": "Traceback (most recent call last):\n  File \"/app/worker.py\", line 12, in run\n    raise ValueError(\"invalid task\")\nValueError: invalid task",
+    "parse_format": "unknown"
+  },
+  {
+    "_test": {
+      "id": "builtin-python-next-line"
+    },
+    "namespace": "fake-namespace",
+    "parse_status": "failed",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "parse_level_unknown": "true",
+    "hostname": "fake-fluent",
+    "labels": {
+      "metadata.app.kubernetes.io/version": "0.1.0",
+      "metadata.app": "fluent-pipeline-test"
+    },
+    "nodename": "fake-node",
+    "level": "info",
+    "detected_level": "info",
+    "time": "2026-09-03T10:22:31.000007468Z",
+    "parse_field_count": 8,
+    "container": "fake-container",
+    "short_message": "worker continues",
+    "parse_format": "unknown"
+  }
+]

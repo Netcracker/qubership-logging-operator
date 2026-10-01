@@ -1,0 +1,5 @@
+2026-09-03T10:22:20.000007468Z stderr F http: panic serving 10.0.0.1:1234: unexpected failure
+2026-09-03T10:22:20.100007468Z stderr F goroutine 18 [running]:
+2026-09-03T10:22:20.200007468Z stderr F net/http.(*conn).serve(0xc0000b6000, {0x123, 0xc0000ac000})
+2026-09-03T10:22:20.300007468Z stderr F 	/usr/local/go/src/net/http/server.go:2127 +0x5d0
+2026-09-03T10:22:21.000007468Z stdout F server continues

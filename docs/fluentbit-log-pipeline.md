@@ -49,6 +49,20 @@ does not match any defined parser, it will be marked with `parse_status: failed`
 
 ## Pipeline Design
 
+### Multiline boundaries in mixed logs
+
+Application multiline concatenation runs before JSON parsing. The default continuation rule excludes both
+`[YYYY-MM-DD` headers and lines that begin with `{` after optional whitespace. This keeps JSON objects on separate
+lines from being appended to preceding Qubership messages. A line beginning with `{` inside a text message also ends
+that multiline message.
+
+The two-second multiline flush sends buffered content but does not reset the regex continuation state in Fluent Bit
+5.1. JSON must be excluded from the continuation rule even when it arrives after a flush.
+
+The chart supplies this rule through `fluentbit.multilineOtherLinesRegexp` and
+`fluentbit.aggregator.multilineOtherLinesRegexp` in `LoggingService`. Updating only the operator image does not update
+these stored values. Explicit custom regex overrides remain in effect.
+
 ### Pods flowchart
 
 ```mermaid
@@ -56,8 +70,8 @@ flowchart LR
     subgraph Pods
         IC["input-containerd.conf<br/>Tag pods.*<br/>multiline.parser: docker, cri" ] --> FC
         ID["input-docker.conf<br/>Tag pods.*<br/>multiline.parser: docker"] --> FC
-        FC["filter-concat.conf<br/>Match pods*<br/>Match klog*<br/>Parsers multiline_qubership, multiline_klog"] --> FK
-        FC["filter-concat.conf<br/>Match pods*<br/>Match klog*<br/>Parsers multiline_qubership, multiline_klog"] --> FRTP
+        FC["filter-concat.conf<br/>Match pods*<br/>Application parser chain<br/>Dedicated multiline_klog parser"] --> FK
+        FC["filter-concat.conf<br/>Match pods*<br/>Application parser chain<br/>Dedicated multiline_klog parser"] --> FRTP
         FK["filter-enrich-fields.conf<br/>Match pods*<br/>Parsing by suggested parser in annotations<br/>Nesting, filtering fields, preliminary count"] --> FRT
         FRT["filter-rewrite-tag.conf<br/>Match pods*<br/>Rule: $pod ^kube-.* klog.$TAG false"] --> FC
         FRT["filter-rewrite-tag.conf<br/>Match pods*<br/>Rule: $pod ^kube-.* klog.$TAG false"] --> FVALID
@@ -73,6 +87,11 @@ flowchart LR
     end
 ```
 
+The application multiline filter tries `multiline_qubership`, Fluent Bit's built-in `java` and `go` parsers, and
+`multiline_python`, in that order. The last parser follows Fluent Bit's Python rules but keeps the terminal exception
+in the traceback state to avoid replaying it in Fluent Bit 5.1. This chain joins stack traces whose first line does
+not use the Qubership bracketed timestamp layout, without expanding the configurable Qubership expression.
+
 ### Detailed Pods parsing flow
 
 <!-- textlint-disable -->
@@ -81,7 +100,7 @@ flowchart LR
 | 1   | inputs/input-containerd.conf                  | INPUT Tail (multiline.parser docker)                                                  | Tag pods.*                                | Reads containerd logs and decodes them with docker parser                                                                                                                                                                    |
 | 2   | inputs/input-containerd.conf                  | INPUT Tail (multiline.parser cri)                                                     | Tag pods.*                                | Reads containerd logs and decodes them with cri prefix                                                                                                                                                                       |
 | 3   | inputs/input-docker.conf                      | INPUT Tail (multiline.parser docker)                                                  | Tag pods.*                                | Reads docker logs and parses them with docker parser                                                                                                                                                                         |
-| 4   | filters/filter-concat.conf                    | FILTER multiline (multiline.parser qubership_multiline)                               | Match pods*                               | Concatenates messages based on regex for stacktrace multiline                                                                                                                                                                |
+| 4   | filters/filter-concat.conf                    | FILTER multiline (Qubership, Java, Go, and Python parser chain)                       | Match pods*                               | Concatenates Qubership messages and language stack traces. The Qubership continuation rule excludes JSON records                                                                                                             |
 | 5   | filters/filter-concat.conf                    | FILTER multiline (multiline.parser klog_multiline)                                    | Match klog*                               | Concatenates messages based on klog trace messages format                                                                                                                                                                    |
 | 6   | filters/filter-enrich-fields.conf             | FILTER kubernetes (Regex_Parser kube-meta; Merge_Log_Key log_parsed)                  | Match pods*                               | Enriches messages with metadata. Parses log field with suggested parser in pod's annotations if provided, otherwise tries to parse with json parser. If message parsing succeeded saves parsed data in log_parsed field      |
 | 7   | filters/filter-enrich-fields.conf             | FILTER nest (Operation lift; Remove_prefix kubernetes.)                               | Match pods*                               | Lifts fields nested under kubernetes to the root level                                                                                                                                                                       |

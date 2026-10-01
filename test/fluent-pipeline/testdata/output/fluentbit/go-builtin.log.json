@@ -1,0 +1,46 @@
+[
+  {
+    "_test": {
+      "id": "builtin-go-trace"
+    },
+    "namespace": "fake-namespace",
+    "parse_status": "failed",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "parse_level_unknown": "true",
+    "hostname": "fake-fluent",
+    "labels": {
+      "metadata.app.kubernetes.io/version": "0.1.0",
+      "metadata.app": "fluent-pipeline-test"
+    },
+    "nodename": "fake-node",
+    "level": "info",
+    "detected_level": "info",
+    "time": "2026-09-03T10:22:20.000007468Z",
+    "parse_field_count": 6,
+    "container": "fake-container",
+    "short_message": "http: panic serving 10.0.0.1:1234: unexpected failure\ngoroutine 18 [running]:\nnet/http.(*conn).serve(0xc0000b6000, {0x123, 0xc0000ac000})\n\t/usr/local/go/src/net/http/server.go:2127 +0x5d0",
+    "parse_format": "unknown"
+  },
+  {
+    "_test": {
+      "id": "builtin-go-next-line"
+    },
+    "namespace": "fake-namespace",
+    "parse_status": "failed",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "parse_level_unknown": "true",
+    "hostname": "fake-fluent",
+    "labels": {
+      "metadata.app.kubernetes.io/version": "0.1.0",
+      "metadata.app": "fluent-pipeline-test"
+    },
+    "nodename": "fake-node",
+    "level": "info",
+    "detected_level": "info",
+    "time": "2026-09-03T10:22:21.000007468Z",
+    "parse_field_count": 6,
+    "container": "fake-container",
+    "short_message": "server continues",
+    "parse_format": "unknown"
+  }
+]

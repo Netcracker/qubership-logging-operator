@@ -68,3 +68,22 @@ func TestForwarderConfigMapStorageProfiles(t *testing.T) {
 		})
 	}
 }
+
+func TestForwarderConfigMapUsesLanguageMultilineParsers(t *testing.T) {
+	cr := &loggingService.LoggingService{Spec: loggingService.LoggingServiceSpec{
+		Fluentbit: &loggingService.Fluentbit{
+			ContainerLogging: true,
+			Aggregator:       &loggingService.FluentbitAggregator{},
+		},
+	}}
+	configMap, err := forwarderConfigMap(cr, util.DynamicParameters{ContainerRuntimeType: "containerd"})
+	if err != nil {
+		t.Fatalf("render Fluent Bit forwarder ConfigMap: %v", err)
+	}
+
+	if !strings.Contains(configMap.Data["filter-concat.conf"],
+		"multiline.parser       multiline_qubership, java, go, multiline_python") {
+		t.Errorf("expected the application multiline parser chain, got:\n%s",
+			configMap.Data["filter-concat.conf"])
+	}
+}

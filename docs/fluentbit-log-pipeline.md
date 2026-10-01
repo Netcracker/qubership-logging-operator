@@ -88,9 +88,11 @@ flowchart LR
 ```
 
 The application multiline filter tries `multiline_qubership`, Fluent Bit's built-in `java` and `go` parsers, and
-`multiline_python`, in that order. The last parser follows Fluent Bit's Python rules but keeps the terminal exception
-in the traceback state to avoid replaying it in Fluent Bit 5.1. This chain joins stack traces whose first line does
-not use the Qubership bracketed timestamp layout, without expanding the configurable Qubership expression.
+`multiline_python`, in that order. The last parser follows Fluent Bit's Python rules, except that the terminal
+exception moves the traceback to a closing state instead of `start_state`, which Fluent Bit 5.1 replays. The closing
+state continues only on indented notes, so the next unindented message keeps a record of its own. This chain joins
+stack traces whose first line does not use the Qubership bracketed timestamp layout, without expanding the
+configurable Qubership expression.
 
 ### Detailed Pods parsing flow
 

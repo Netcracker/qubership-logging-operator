@@ -243,9 +243,9 @@ fluentbit:
       Name   <name>
 ```
 
-With `fluentbit.output.http.routing.enabled` set, the routing filters use the exact tags `out_audit`, `out_system`,
-`out_pods`, `out_nginx`, `out_k8s_event`, `out_access`, and `out_int`. Do not assign these tags to a custom input. Other
-tags that start with `out_` remain available to `customInputConf`.
+With `fluentbit.output.http.routing.enabled` set, the exact tags `out_audit`, `out_system`, `out_pods`, `out_nginx`,
+`out_k8s_event`, `out_access`, `out_int`, and `out_default` are reserved for routing. Do not assign them to a custom
+input. Other tags that start with `out_` remain available to `customInputConf`.
 
 A custom input reaches the HTTP output and whatever you declare in `fluentbit.customOutputConf`. The built-in GELF, Loki
 and OpenTelemetry outputs select the tags the operator produces, so custom records do not reach them. Sending records

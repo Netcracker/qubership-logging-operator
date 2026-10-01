@@ -93,6 +93,35 @@ func TestFluentbitLokiMatcherSelectsKlogWithoutRouting(t *testing.T) {
 	}
 }
 
+func TestFluentbitRoutingPrecedesLevelNormalization(t *testing.T) {
+	data := renderConfigData(t, &loggingService.Fluentbit{Output: &loggingService.OutputFluentbit{
+		Http: &loggingService.HttpFluentbit{
+			Enabled: true,
+			Routing: &loggingService.FluentbitHTTPRouting{Enabled: true},
+		},
+	}})
+	mainConfig := data["fluent-bit.conf"]
+	routing := strings.Index(mainConfig, "filter-http-routing.conf")
+	normalization := strings.Index(mainConfig, "filter-nonsupported-levels.conf")
+	if routing < 0 || normalization < 0 || routing >= normalization {
+		t.Errorf("HTTP routing must precede level normalization:\n%s", mainConfig)
+	}
+	if !strings.Contains(data["filter-http-routing.conf"], "Name                   rewrite_tag") {
+		t.Error("HTTP routing configuration has no rewrite_tag filter")
+	}
+	if strings.Contains(data["output-http.conf"], "rewrite_tag") {
+		t.Error("HTTP output configuration still contains routing that runs after level normalization")
+	}
+
+	script := data["update_level_syslog.lua"]
+	if strings.Contains(script, `record["detected_level"] ~= nil`) {
+		t.Error("detected_level is used as a processing marker")
+	}
+	if strings.Contains(script, "routing_tags") {
+		t.Error("level normalization depends on routing tags")
+	}
+}
+
 func TestFluentbitConfigStorageDefaults(t *testing.T) {
 	data := renderConfigData(t, &loggingService.Fluentbit{
 		ContainerLogging:   true,

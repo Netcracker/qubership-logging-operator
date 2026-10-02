@@ -888,12 +888,17 @@ func TestParsedFieldsProtectReservedFields(t *testing.T) {
 		t.Error("the forwarder must rename the container stream before the allowlist is applied")
 	}
 
+	sanitizeLiftIndex := strings.Index(enrichConfig, "Operation lift Nested_under log_parsed Add_prefix __payload_")
+	sanitizeRemoveIndex := strings.Index(enrichConfig, "Remove __payload__record_metadata")
+	sanitizeNestIndex := strings.Index(enrichConfig, "Operation nest Wildcard __payload_* Nest_under log_parsed Remove_prefix __payload_")
 	hideIndex := strings.Index(enrichConfig, "Operation nest Wildcard namespace")
-	applicationIndex := strings.Index(enrichConfig, "Nested_under log_parsed")
+	applicationIndex := strings.LastIndex(enrichConfig, "Nested_under log_parsed")
 	renameIndex := strings.Index(enrichConfig, "Hard_rename namespace parsed_namespace")
 	restoreIndex := strings.LastIndex(enrichConfig, "Nested_under _record_metadata")
-	if hideIndex < 0 || hideIndex >= applicationIndex || applicationIndex >= renameIndex || renameIndex >= restoreIndex {
-		t.Error("protected fields must be hidden, application fields extracted and renamed, then protected fields restored")
+	if sanitizeLiftIndex < 0 || sanitizeLiftIndex >= sanitizeRemoveIndex || sanitizeRemoveIndex >= sanitizeNestIndex ||
+		sanitizeNestIndex >= hideIndex || hideIndex >= applicationIndex || applicationIndex >= renameIndex ||
+		renameIndex >= restoreIndex {
+		t.Error("the reserved payload object must be removed before protected fields are hidden and restored")
 	}
 
 	levelConfig := strings.Join(strings.Fields(string(configMap.Data["filter-nonsupported-levels.conf"])), " ")

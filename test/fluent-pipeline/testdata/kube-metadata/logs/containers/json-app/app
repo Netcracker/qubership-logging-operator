@@ -1,1 +1,1 @@
-2026-09-03T11:00:00.000007468Z stderr F {"level":"error","stdio_stream":"payload-stdio","message":"a json line the kubernetes filter merges"}
+2026-09-03T11:00:00.000007468Z stderr F {"level":"error","stdio_stream":"payload-stdio","_record_metadata":{"namespace":"forged-namespace","pod":"forged-pod","container":"forged-container","stdio_stream":"forged-stream"},"message":"a json line the kubernetes filter merges"}

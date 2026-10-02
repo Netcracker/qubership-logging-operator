@@ -4,6 +4,7 @@
       "id": "pnl-cms-1"
     },
     "parse_status": "success",
+    "stdio_stream": "stdout",
     "time": "2024-06-17T23:05:02.575007468Z",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
@@ -19,7 +20,7 @@
     "level": "warning",
     "thread": "main",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
-    "parse_field_count": 11,
+    "parse_field_count": 12,
     "hostname": "fake-fluent",
     "container": "fake-container",
     "short_message": "[request_id=               ] [tenant_id=                                    ] [version=v1] [traceId=                ] [spanId=                ] [originating_bi_id=                ] [business_identifiers=                ] [thread=           main] [class=i.qua.config                                                ] [method=null                          ] Unrecognized configuration key \"quarkus.bss.datasource.multi-tenant.use-service-db\" was provided; it will be ignored; verify that the dependency extension for this configuration is set or that you did not make a typo",
@@ -31,6 +32,7 @@
       "id": "pnl-cms-2"
     },
     "parse_status": "success",
+    "stdio_stream": "stdout",
     "time": "2024-06-17T23:05:06.786007468Z",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
@@ -47,7 +49,7 @@
     "level": "info",
     "short_message": "[request_id=1718665506784.0.8003954691402492][tenant_id=                                    ] [version=v1] [traceId=                ] [spanId=                ] [originating_bi_id=                ] [business_identifiers=                ] [thread=           main] [class=c.net.clo.fra.con.xve.BlueGreenVersionSynchronizer          ] [method=null                          ] Setting up XVersionDefaultSynchronizer with blueGreenVersionSyncEnabled=true, microserviceHost=null and bgVersionsApiClient=null",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
-    "parse_field_count": 11,
+    "parse_field_count": 12,
     "hostname": "fake-fluent",
     "container": "fake-container",
     "request_id": "1718665506784.0.8003954691402492",
@@ -59,6 +61,7 @@
       "id": "pnl-cms-3"
     },
     "parse_status": "success",
+    "stdio_stream": "stdout",
     "time": "2024-06-17T23:05:06.883007468Z",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
@@ -75,7 +78,7 @@
     "level": "warning",
     "short_message": "[request_id=1718665506784.0.8003954691402492] [tenant_id=                                    ] [version=v1] [traceId=                ] [spanId=                ] [originating_bi_id=                ] [business_identifiers=                ] [thread=       Thread-7] [class=c.net.clo.fra.con.uti.RetryUntilSuccessOrException          ] [method=perform                       ] [calling http://control-plane:8080/some-endpoint] got expected exception (will be rethrown): : org.qubership.cloud.framework.contexts.xversion.cpclient.MissingGetMsVersionApiException: Got status code 404 from API http://control-plane:8080/some-endpoint\n\tat org.qubership.cloud.framework.contexts.xversion.cpclient.okhttp.BlueGreenVersionsRestOkHttpClient.getMicroserviceVersionInternal(BlueGreenVersionsRestOkHttpClient.java:66)\n\tat org.qubership.cloud.framework.contexts.utils.RetryUntilSuccessOrException.perform(RetryUntilSuccessOrException.java:34)\n\tat org.qubership.cloud.framework.contexts.xversion.cpclient.okhttp.BlueGreenVersionsRestOkHttpClient.getMicroserviceVersion(BlueGreenVersionsRestOkHttpClient.java:52)\n\tat org.qubership.cloud.framework.contexts.xversion.cpclient.okhttp.BlueGreenVersionsCompositeOkHttpClient.getMicroserviceVersion(BlueGreenVersionsCompositeOkHttpClient.java:46)\n\tat org.qubership.cloud.framework.contexts.xversion.BlueGreenVersionSynchronizer.reloadMicroserviceVersion(BlueGreenVersionSynchronizer.java:98)\n\tat org.qubership.cloud.framework.contexts.xversion.BlueGreenVersionSynchronizer.enableSynchronization(BlueGreenVersionSynchronizer.java:82)\n\tat java.base/java.lang.Thread.run(Thread.java:833)\n2024-06-17T23:05:06.883007468Z stdout F",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
-    "parse_field_count": 11,
+    "parse_field_count": 12,
     "hostname": "fake-fluent",
     "container": "fake-container",
     "request_id": "1718665506784.0.8003954691402492",
@@ -87,6 +90,7 @@
       "id": "pnl-cms-4"
     },
     "parse_status": "success",
+    "stdio_stream": "stdout",
     "time": "2024-06-17T23:05:06.894007468Z",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
@@ -103,7 +107,7 @@
     "level": "warning",
     "short_message": "[request_id=1718665506784.0.8003954691402492] [tenant_id=                                    ] [version=v1] [traceId=                ] [spanId=                ] [originating_bi_id=                ] [business_identifiers=                ] [thread=       Thread-7] [class=c.net.clo.fra.con.xve.BlueGreenVersionSynchronizer          ] [method=enableSynchronization         ] Control-plane API for obtaining b/g version by microservice is missing; X-Version reloading feature will be disabled",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
-    "parse_field_count": 11,
+    "parse_field_count": 12,
     "hostname": "fake-fluent",
     "container": "fake-container",
     "request_id": "1718665506784.0.8003954691402492",
@@ -115,6 +119,7 @@
       "id": "pnl-cms-5"
     },
     "parse_status": "success",
+    "stdio_stream": "stdout",
     "time": "2024-06-17T23:05:08.699007468Z",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
@@ -131,7 +136,7 @@
     "level": "err",
     "short_message": "[request_id=1718665508344.0.007202810035220053] [tenant_id=                                    ] [version=v1] [traceId=                ] [spanId=                ] [originating_bi_id=                ] [business_identifiers=                ] [thread=      bss-probe] [class=c.net.clo.bss.bss.sma.hea.imp.SmartplugHealthCheck          ] [method=call                          ] Get throwable trying get plugin service: org.qubership.smartplug.api.exception.PluginServiceException: Cannot initialize plugin service\n\tat org.qubership.smartplug.impl.PluginServiceLookuper.lookupPluginService(PluginServiceLookuper.java:68)\n\tat org.qubership.cloud.bss.bsscq.smartplug.healthchecker.impl.SmartplugHealthCheck.call(SmartplugHealthCheck.java:86)\n\tat org.qubership.cloud.bss.bsscq.probe.impl.ReadyCheckRegistryEntry.call(ReadyCheckRegistryEntry.java:87)\n\tat org.qubership.cloud.bss.bsscq.probe.impl.ReadyCheckRegistryEntry.call(ReadyCheckRegistryEntry.java:22)\n\tat org.qubership.cloud.bss.bsscq.probe.impl.ContextUtils.lambda$callWithRequestIdAndClear$0(ContextUtils.java:27)\n\tat java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)\n\tat java.base/java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:304)\n\tat java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)\n\tat java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)\n\tat java.base/java.lang.Thread.run(Thread.java:833)\nCaused by: org.qubership.smartplug.api.exception.PluginListException: Failed to load active plugins, response code = 511 reason:\n\tat org.qubership.smartplug.impl.QarkusPluginsRestClient.getActivePluginsForInterfaces(QarkusPluginsRestClient.java:116)\n\tat org.qubership.smartplug.impl.update.PluginUpdateService$PluginsPollTask.run(PluginUpdateService.java:93)\n\tat org.qubership.smartplug.impl.update.PluginUpdateService.<init>(PluginUpdateService.java:52)\n\tat org.qubership.smartplug.impl.PluginServiceLookuper.lookupPluginService(PluginServiceLookuper.java:60)\n\t... 9 more\n2024-06-17T23:05:08.699007468Z stdout F",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
-    "parse_field_count": 11,
+    "parse_field_count": 12,
     "hostname": "fake-fluent",
     "container": "fake-container",
     "request_id": "1718665508344.0.007202810035220053",
@@ -143,6 +148,7 @@
       "id": "pnl-cms-6"
     },
     "parse_status": "success",
+    "stdio_stream": "stdout",
     "time": "2024-06-17T23:05:08.702007468Z",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
@@ -158,7 +164,7 @@
     "level": "info",
     "thread": "main",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
-    "parse_field_count": 11,
+    "parse_field_count": 12,
     "hostname": "fake-fluent",
     "container": "fake-container",
     "short_message": "[request_id=               ] [tenant_id=                                    ] [version=v1] [traceId=                ] [spanId=                ] [originating_bi_id=                ] [business_identifiers=                ] [thread=           main] [class=i.quarkus                                                   ] [method=printStartupTime              ] pnl-and-cost-management-service 2023.3.2.1 on JVM (powered by Quarkus 3.2.2.Final) started in 8.668s. Listening on: http://0.0.0.0:8080",
@@ -170,6 +176,7 @@
       "id": "pnl-cms-7"
     },
     "parse_status": "success",
+    "stdio_stream": "stdout",
     "time": "2024-06-17T23:05:08.972007468Z",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
@@ -186,7 +193,7 @@
     "level": "info",
     "short_message": "[request_id=1718665506784.0.8003954691402492][tenant_id=                                    ] [version=v1] [traceId=                ] [spanId=                ] [originating_bi_id=                ] [business_identifiers=                ] [thread=    rabbit-mq-2] [class=c.net.clo.bss.rab.imp.con.RabbitConsumerContainer           ] [method=handleConsumeOk               ] handleConsumeOk() for {channel=io.opentracing.contrib.rabbitmq.TracingChannel@77fc7db9, config=RabbitConsumerDefinition{id='pnl-quote-modify-rabbit-consumer', qos=1, consumeParameters=ConsumeParameters{queue='tst01-bss.pnl.quote.modify-v2', ackMode=MANUAL_ACK, consumerTag='', noLocal=false, exclusive=false, arguments={}, numberOfConsumers=1}, connection=org.qubership.cloud.bss.pnl.messaging.rabbitmq.cpq.configuration.RabbitMqBeanProducer$$Lambda$959/0x00000008018ed410@3ea70aec, listener=org.qubership.cloud.bss.pnl.messaging.rabbitmq.cpq.receiver.QuoteModifyMessageReceiver@7ea88fde}, consumerTag=amq.ctag-G3hwy9aGr6rvofY5mkqkYA, consumerNumber=0}",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
-    "parse_field_count": 11,
+    "parse_field_count": 12,
     "hostname": "fake-fluent",
     "container": "fake-container",
     "request_id": "1718665506784.0.8003954691402492",
@@ -198,6 +205,7 @@
       "id": "pnl-cms-8"
     },
     "parse_status": "success",
+    "stdio_stream": "stdout",
     "time": "2024-06-18T23:28:10.987007468Z",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
@@ -218,7 +226,7 @@
     "level": "info",
     "version": "v1",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
-    "parse_field_count": 11,
+    "parse_field_count": 12,
     "hostname": "fake-fluent",
     "container": "fake-container",
     "date": "2024-06-18T23:28:10.987",

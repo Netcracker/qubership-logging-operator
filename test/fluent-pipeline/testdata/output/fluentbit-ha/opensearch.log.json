@@ -13,12 +13,13 @@
     "level": "info",
     "namespace": "fake-namespace",
     "nodename": "fake-node",
-    "parse_field_count": 8,
+    "parse_field_count": 9,
     "parse_format": "unknown",
     "parse_level_unknown": "true",
     "parse_status": "failed",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "short_message": "Enabling execution of install_demo_configuration.sh for OpenSearch Security Plugin",
+    "stdio_stream": "stdout",
     "time": "2026-09-03T10:20:46.000007468Z"
   },
   {
@@ -38,12 +39,13 @@
     "namespace": "fake-namespace",
     "nodename": "fake-node",
     "opensearch_node": "opensearch-0",
-    "parse_field_count": 13,
+    "parse_field_count": 14,
     "parse_format": "opensearch",
     "parse_status": "success",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "short_message": " delayed allocation",
     "source_level": "WARN",
+    "stdio_stream": "stdout",
     "time": "2026-09-03T10:20:46.500007468Z"
   }
 ]

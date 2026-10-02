@@ -6,10 +6,11 @@
     "hostname": "fake-fluent",
     "short_message": "Hello test log",
     "nodename": "fake-node",
-    "parse_field_count": 9,
+    "parse_field_count": 10,
     "source_level": "TRACE",
     "detected_level": "trace",
     "date": "2023-12-20T12:51:32.270",
+    "stdio_stream": "stdout",
     "time": "2023-12-20T12:51:32.270507468Z",
     "labels": {
       "metadata.app.kubernetes.io/version": "0.1.0",

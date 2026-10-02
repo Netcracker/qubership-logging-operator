@@ -57,9 +57,12 @@ Two configuration details are intentional in the contract baseline:
 - `mongodb_structured` is valid as an isolated parser, while the pipeline handles MongoDB records through generic JSON
   parsing followed by field renames.
 
-The three `syslog_*` parsers expect no `syslog_time` field, because `Time_Key` consumes it into the record timestamp.
-Each one rejects the formats the other two accept, and the non-matching cases pin that: a line with whole-second
-precision has to reach `syslog_rfc3339_seconds` rather than stop at `syslog_rfc3339`.
+The `syslog_*` parsers split over their timestamp, and the contract cases pin both halves. `syslog_rfc3164` sets no
+`Time_Key`, so its cases require `syslog_time` back as a field and the record keeps the time the agent read the line:
+RFC 3164 carries device-local time with no zone, which Fluent Bit would read as UTC. The two RFC 3339 parsers do set
+`Time_Key`, because their input carries its own offset, so their cases expect `syslog_time` consumed. Each parser also
+rejects the formats the other two accept, which the non-matching cases pin: a line with whole-second precision has to
+reach `syslog_rfc3339_seconds` rather than stop at `syslog_rfc3339`.
 
 ## Scenarios
 

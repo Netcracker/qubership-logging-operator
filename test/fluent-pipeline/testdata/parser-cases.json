@@ -33,11 +33,11 @@
         "syslog_host": "master-1",
         "syslog_ident": "kubelet",
         "syslog_pid": "126456",
-        "syslog_message": "ExecSync cmd from runtime service failed"
+        "syslog_message": "ExecSync cmd from runtime service failed",
+        "syslog_time": "Jun 19 11:28:46"
       },
       "absent": [
-        "log",
-        "syslog_time"
+        "log"
       ]
     },
     {
@@ -48,12 +48,12 @@
       "expected": {
         "syslog_host": "master-1",
         "syslog_ident": "kernel",
-        "syslog_message": "IPv6: ADDRCONF(NETDEV_CHANGE): eth0: link becomes ready"
+        "syslog_message": "IPv6: ADDRCONF(NETDEV_CHANGE): eth0: link becomes ready",
+        "syslog_time": "Jun  9 03:04:05"
       },
       "absent": [
         "log",
-        "syslog_pid",
-        "syslog_time"
+        "syslog_pid"
       ]
     },
     {

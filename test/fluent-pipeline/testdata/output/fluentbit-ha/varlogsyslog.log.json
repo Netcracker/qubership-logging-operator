@@ -18,6 +18,7 @@
     "syslog_host": "master-1",
     "syslog_ident": "containerd",
     "syslog_pid": "2718",
+    "syslog_time": "Jun 19 11:28:46",
     "tag": "/var/log/syslog"
   },
   {
@@ -40,6 +41,7 @@
     "syslog_host": "master-1",
     "syslog_ident": "kubelet",
     "syslog_pid": "126456",
+    "syslog_time": "Jun 19 11:28:46",
     "tag": "/var/log/syslog"
   },
   {
@@ -62,6 +64,7 @@
     "syslog_host": "master-1",
     "syslog_ident": "kubelet",
     "syslog_pid": "126456",
+    "syslog_time": "Jun 19 11:28:47",
     "tag": "/var/log/syslog"
   },
   {
@@ -84,6 +87,7 @@
     "syslog_host": "master-1",
     "syslog_ident": "kubelet",
     "syslog_pid": "126456",
+    "syslog_time": "Jun 19 11:28:47",
     "tag": "/var/log/syslog"
   },
   {
@@ -103,6 +107,7 @@
     "syslog_host": "master-1",
     "syslog_ident": "systemd",
     "syslog_pid": "1",
+    "syslog_time": "Jun 19 11:28:49",
     "tag": "/var/log/syslog"
   },
   {
@@ -125,6 +130,7 @@
     "syslog_host": "master-1",
     "syslog_ident": "kubelet",
     "syslog_pid": "126456",
+    "syslog_time": "Jun 19 11:28:51",
     "tag": "/var/log/syslog"
   },
   {
@@ -143,6 +149,7 @@
     "short_message": "IPv6: ADDRCONF(NETDEV_CHANGE): eth0: link becomes ready",
     "syslog_host": "master-1",
     "syslog_ident": "kernel",
+    "syslog_time": "Jun  9 03:04:05",
     "tag": "/var/log/syslog"
   },
   {

@@ -86,8 +86,8 @@ flowchart LR
 | 5   | filters/filter-concat.conf                    | FILTER multiline (multiline.parser klog_multiline)                                    | Match klog*                               | Concatenates messages based on klog trace messages format                                                                                                                                                                    |
 | 6   | filters/filter-enrich-fields.conf             | FILTER kubernetes (Regex_Parser kube-meta; Merge_Log_Key log_parsed)                  | Match pods*                               | Enriches messages with metadata. Parses log field with suggested parser in pod's annotations if provided, otherwise tries to parse with json parser. If message parsing succeeded saves parsed data in log_parsed field      |
 | 7   | filters/filter-enrich-fields.conf             | FILTER nest (Operation lift; Remove_prefix kubernetes.)                               | Match pods*                               | Lifts fields nested under kubernetes to the root level                                                                                                                                                                       |
-| 8   | filters/filter-enrich-fields.conf             | FILTER modify (Hard_rename container_name container; ...)                             | Match pods*                               | Renames the fields to be more consistent with Monitoring labels                                                                                                                                                              |
-| 9   | filters/filter-enrich-fields.conf             | FILTER record_modifier (Allowlist_key pod; ...)                                       | Match pods*                               | Leaves only allowed fields in a record                                                                                                                                                                                       |
+| 8   | filters/filter-enrich-fields.conf             | FILTER modify (Hard_rename container_name container; Hard_rename stream stdio_stream; ...) | Match pods*                           | Normalizes Kubernetes metadata names and preserves the CRI/Docker standard output stream under `stdio_stream`.                                                                                                                                                              |
+| 9   | filters/filter-enrich-fields.conf             | FILTER record_modifier (Allowlist_key pod; Allowlist_key stdio_stream; ...)            | Match pods*                               | Leaves only allowed fields in a record                                                                                                                                                                                       |
 | 10  | filters/filter-enrich-fields.conf             | FILTER lua (Call first_count_fields)                                                  | Match pods*                               | Records the initial field count for generic parser validation.                                                                                                                                                               |
 | 11  | filters/filter-enrich-fields.conf             | FILTER nest (Operation nest; Nest_under `_record_metadata`)                           | Match pods*                               | Moves protected fields to the internal `_record_metadata` object while application fields are extracted.                                                                                                                     |
 | 12  | filters/filter-enrich-fields.conf             | FILTER nest (Operation lift; Nested_under log_parsed)                                 | Match pods*                               | Moves application fields from `log_parsed` to the root without changing their names.                                                                                                                                         |
@@ -133,6 +133,7 @@ of these names, FluentBit moves its value to the corresponding reserved field be
 | `namespace`     | `parsed_namespace`       |
 | `pod`           | `parsed_pod`             |
 | `container`     | `parsed_container`       |
+| `stdio_stream`  | `parsed_stdio_stream`    |
 | `source`        | `parsed_source`          |
 | `labels`        | `parsed_labels`          |
 | `log`           | `parsed_log`             |
@@ -147,6 +148,9 @@ of these names, FluentBit moves its value to the corresponding reserved field be
 
 Service authors must also not define the reserved collision fields listed above. Fields that are not listed keep their
 original application-defined names.
+
+For container logs, `stdio_stream` identifies the standard I/O stream reported by the CRI or Docker envelope. Its
+value is `stdout` or `stderr`. Audit and system logs do not carry this field.
 
 ### Expected fields in result logs
 

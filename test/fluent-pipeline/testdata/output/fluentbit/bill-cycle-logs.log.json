@@ -9,6 +9,7 @@
     "source_level": "INFO",
     "short_message": "[\"app.qubership.org/application=app\"] it is example of bill cycle log message",
     "date": "2024-07-20T11:51:31.234",
+    "stdio_stream": "stdout",
     "time": "2024-07-20T11:51:31.234007468Z",
     "nodename": "fake-node",
     "labels": {
@@ -19,7 +20,7 @@
     "level": "info",
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
-    "parse_field_count": 9,
+    "parse_field_count": 10,
     "parse_format": "unknown"
   },
   {
@@ -32,6 +33,7 @@
     "source_level": "INFO",
     "short_message": "[\"app.kubernetes.io/part-of=app\"] it is example of bill cycle log message",
     "date": "2024-07-20T11:51:32.234",
+    "stdio_stream": "stdout",
     "time": "2024-07-20T11:51:32.234007468Z",
     "nodename": "fake-node",
     "labels": {
@@ -42,7 +44,7 @@
     "level": "info",
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
-    "parse_field_count": 9,
+    "parse_field_count": 10,
     "parse_format": "unknown"
   },
   {
@@ -55,6 +57,7 @@
     "source_level": "WARN",
     "short_message": "[\"app.kubernetes.io/part-of=app\"] it is example of bill cycle log message",
     "date": "2024-07-20T11:51:33.234",
+    "stdio_stream": "stdout",
     "time": "2024-07-20T11:51:33.234007468Z",
     "nodename": "fake-node",
     "labels": {
@@ -65,7 +68,7 @@
     "level": "warning",
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
-    "parse_field_count": 9,
+    "parse_field_count": 10,
     "parse_format": "unknown"
   },
   {
@@ -76,10 +79,11 @@
     "hostname": "fake-fluent",
     "short_message": "[app.kubernetes.io/part-of=app] it is example of bill cycle log message but without quotes inside the label part-of",
     "nodename": "fake-node",
-    "parse_field_count": 10,
+    "parse_field_count": 11,
     "source_level": "WARN",
     "app.kubernetes.io/part-of": "app",
     "date": "2024-07-20T11:51:34.234",
+    "stdio_stream": "stdout",
     "time": "2024-07-20T11:51:34.234007468Z",
     "labels": {
       "metadata.app.kubernetes.io/version": "0.1.0",

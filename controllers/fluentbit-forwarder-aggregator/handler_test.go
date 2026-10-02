@@ -857,6 +857,7 @@ func TestParsedFieldsProtectReservedFields(t *testing.T) {
 		"Hard_rename namespace parsed_namespace",
 		"Hard_rename pod parsed_pod",
 		"Hard_rename container parsed_container",
+		"Hard_rename stdio_stream parsed_stdio_stream",
 		"Hard_rename source parsed_source",
 		"Hard_rename labels parsed_labels",
 		"Hard_rename log parsed_log",
@@ -870,6 +871,21 @@ func TestParsedFieldsProtectReservedFields(t *testing.T) {
 	}
 	if strings.Contains(enrichConfig, "Add_prefix parsed_") {
 		t.Error("application fields without protected names must keep their original names")
+	}
+
+	forwarderConfig, err := forwarderConfigMap(&loggingService.LoggingService{
+		Spec: loggingService.LoggingServiceSpec{
+			Fluentbit: &loggingService.Fluentbit{Aggregator: &loggingService.FluentbitAggregator{}},
+		},
+	}, util.DynamicParameters{})
+	if err != nil {
+		t.Fatalf("failed to render forwarder ConfigMap: %v", err)
+	}
+	forwarderKubernetesConfig := strings.Join(strings.Fields(forwarderConfig.Data["filter-kubernetes.conf"]), " ")
+	streamRenameIndex := strings.Index(forwarderKubernetesConfig, "Hard_rename stream stdio_stream")
+	streamAllowlistIndex := strings.Index(forwarderKubernetesConfig, "Allowlist_key stdio_stream")
+	if streamRenameIndex < 0 || streamRenameIndex >= streamAllowlistIndex {
+		t.Error("the forwarder must rename the container stream before the allowlist is applied")
 	}
 
 	hideIndex := strings.Index(enrichConfig, "Operation nest Wildcard namespace")

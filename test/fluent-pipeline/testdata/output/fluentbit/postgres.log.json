@@ -13,12 +13,13 @@
     "level": "err",
     "namespace": "fake-namespace",
     "nodename": "fake-node",
-    "parse_field_count": 8,
+    "parse_field_count": 9,
     "parse_format": "postgres",
     "parse_status": "success",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "short_message": "duplicate key value violates unique constraint",
     "source_level": "ERROR",
+    "stdio_stream": "stdout",
     "time": "2026-09-03T10:20:41.000007468Z"
   },
   {
@@ -36,13 +37,14 @@
     "namespace": "fake-namespace",
     "nc_audit_label": "true",
     "nodename": "fake-node",
-    "parse_field_count": 8,
+    "parse_field_count": 9,
     "parse_format": "postgres",
     "parse_level_unknown": "true",
     "parse_status": "success",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "short_message": "database system is ready to accept connections",
     "source_level": "LOG",
+    "stdio_stream": "stdout",
     "time": "2026-09-03T10:20:42.000007468Z"
   }
 ]

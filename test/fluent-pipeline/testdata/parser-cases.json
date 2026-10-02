@@ -25,55 +25,106 @@
       ]
     },
     {
-      "id": "syslog-matching",
-      "parser": "syslog",
+      "id": "syslog-rfc3164-matching",
+      "parser": "syslog_rfc3164",
       "match": true,
-      "input": "time=\"2026-09-03T10:20:30\" level=error msg=\"request failed\"",
+      "input": "Jun 19 11:28:46 master-1 kubelet[126456]: ExecSync cmd from runtime service failed",
       "expected": {
-        "level": "error",
-        "log": "request failed"
+        "syslog_host": "master-1",
+        "syslog_ident": "kubelet",
+        "syslog_pid": "126456",
+        "syslog_message": "ExecSync cmd from runtime service failed"
       },
       "absent": [
-        "time"
+        "log",
+        "syslog_time"
       ]
     },
     {
-      "id": "syslog-non-matching",
-      "parser": "syslog",
-      "match": false,
-      "input": "time=\"2026-09-03T10:20:30\" level=error msg=request failed",
-      "expected": {
-        "log": "time=\"2026-09-03T10:20:30\" level=error msg=request failed"
-      },
-      "absent": [
-        "level",
-        "time"
-      ]
-    },
-    {
-      "id": "varlogmessages-matching",
-      "parser": "varlogmessages",
+      "id": "syslog-rfc3164-no-pid",
+      "parser": "syslog_rfc3164",
       "match": true,
-      "input": "time=\"2026-09-03T10:20:31\" level=warn msg=\"disk almost full\"",
+      "input": "Jun  9 03:04:05 master-1 kernel: IPv6: ADDRCONF(NETDEV_CHANGE): eth0: link becomes ready",
       "expected": {
-        "level": "warn",
-        "log": "disk almost full"
+        "syslog_host": "master-1",
+        "syslog_ident": "kernel",
+        "syslog_message": "IPv6: ADDRCONF(NETDEV_CHANGE): eth0: link becomes ready"
       },
       "absent": [
-        "time"
+        "log",
+        "syslog_pid",
+        "syslog_time"
       ]
     },
     {
-      "id": "varlogmessages-non-matching",
-      "parser": "varlogmessages",
+      "id": "syslog-rfc3164-non-matching",
+      "parser": "syslog_rfc3164",
       "match": false,
-      "input": "time=\"2026-09-03T10:20:31\" level=warn msg=disk almost full",
+      "input": "not a syslog line at all, just text a process wrote to the file",
       "expected": {
-        "log": "time=\"2026-09-03T10:20:31\" level=warn msg=disk almost full"
+        "log": "not a syslog line at all, just text a process wrote to the file"
       },
       "absent": [
-        "level",
-        "time"
+        "syslog_host",
+        "syslog_message"
+      ]
+    },
+    {
+      "id": "syslog-rfc3339-matching",
+      "parser": "syslog_rfc3339",
+      "match": true,
+      "input": "2024-06-19T11:28:53.457254+00:00 master-1 kubelet[126456]: watch of *v1.Pod ended",
+      "expected": {
+        "syslog_host": "master-1",
+        "syslog_ident": "kubelet",
+        "syslog_pid": "126456",
+        "syslog_message": "watch of *v1.Pod ended"
+      },
+      "absent": [
+        "log",
+        "syslog_time"
+      ]
+    },
+    {
+      "id": "syslog-rfc3339-non-matching",
+      "parser": "syslog_rfc3339",
+      "match": false,
+      "input": "2026-02-11T07:08:10+03:00 master-1 cron: pam_unix(cron:session): session closed for user root",
+      "expected": {
+        "log": "2026-02-11T07:08:10+03:00 master-1 cron: pam_unix(cron:session): session closed for user root"
+      },
+      "absent": [
+        "syslog_host",
+        "syslog_message"
+      ]
+    },
+    {
+      "id": "syslog-rfc3339-seconds-matching",
+      "parser": "syslog_rfc3339_seconds",
+      "match": true,
+      "input": "2026-02-11T07:08:10+03:00 master-1 cron: pam_unix(cron:session): session closed for user root",
+      "expected": {
+        "syslog_host": "master-1",
+        "syslog_ident": "cron",
+        "syslog_message": "pam_unix(cron:session): session closed for user root"
+      },
+      "absent": [
+        "log",
+        "syslog_pid",
+        "syslog_time"
+      ]
+    },
+    {
+      "id": "syslog-rfc3339-seconds-non-matching",
+      "parser": "syslog_rfc3339_seconds",
+      "match": false,
+      "input": "2024-06-19T11:28:53.457254+00:00 master-1 kubelet[126456]: watch of *v1.Pod ended",
+      "expected": {
+        "log": "2024-06-19T11:28:53.457254+00:00 master-1 kubelet[126456]: watch of *v1.Pod ended"
+      },
+      "absent": [
+        "syslog_host",
+        "syslog_message"
       ]
     },
     {

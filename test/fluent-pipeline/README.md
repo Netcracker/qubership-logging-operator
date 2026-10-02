@@ -47,9 +47,9 @@ Parser contract expectations are partial: their generated `_test` block sets `pa
 `expected` lists fields that must be present, while `absent` lists fields that the parser must not produce. This
 keeps the expected result focused on the parser contract instead of generated host and pipeline metadata.
 
-The contract manifest covers 25 regular parsers. Existing end-to-end fixtures cover the two multiline parsers and CRI
+The contract manifest covers 26 regular parsers. Existing end-to-end fixtures cover the two multiline parsers and CRI
 partial-record concatenation. The isolated cases fill the previous content-format gaps for CoreDNS, Consul,
-PostgreSQL, OpenSearch, Calico, RabbitMQ, and the input-only system and audit formats.
+PostgreSQL, OpenSearch, Calico, RabbitMQ, the three syslog envelope formats, and the input-only audit format.
 
 Two configuration details are intentional in the contract baseline:
 
@@ -57,9 +57,9 @@ Two configuration details are intentional in the contract baseline:
 - `mongodb_structured` is valid as an isolated parser, while the pipeline handles MongoDB records through generic JSON
   parsing followed by field renames.
 
-The `syslog` and `varlogmessages` matching cases expect no `time` field. Their regular expressions capture a
-19-character timestamp without a time-zone offset, while `Time_Format` requires `%z`; Fluent Bit therefore rejects
-the parsed timestamp. The contract retains this behavior so a parser fix produces a focused expectation change.
+The three `syslog_*` parsers expect no `syslog_time` field, because `Time_Key` consumes it into the record timestamp.
+Each one rejects the formats the other two accept, and the non-matching cases pin that: a line with whole-second
+precision has to reach `syslog_rfc3339_seconds` rather than stop at `syslog_rfc3339`.
 
 ## Scenarios
 

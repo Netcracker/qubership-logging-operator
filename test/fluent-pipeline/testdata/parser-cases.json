@@ -99,6 +99,19 @@
       ]
     },
     {
+      "id": "syslog-rfc3339-comma-non-matching",
+      "parser": "syslog_rfc3339",
+      "match": false,
+      "input": "2024-06-19T11:28:53,457254+03:00 master-1 kubelet: comma fraction",
+      "expected": {
+        "log": "2024-06-19T11:28:53,457254+03:00 master-1 kubelet: comma fraction"
+      },
+      "absent": [
+        "syslog_time",
+        "syslog_message"
+      ]
+    },
+    {
       "id": "syslog-rfc3339-seconds-matching",
       "parser": "syslog_rfc3339_seconds",
       "match": true,

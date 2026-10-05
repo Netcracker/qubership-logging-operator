@@ -11,14 +11,13 @@
       "metadata.app.kubernetes.io/version": "0.1.0"
     },
     "level": "err",
-    "message": "a payload that names the fields the pipeline sets",
     "namespace": "fake-namespace",
     "nodename": "fake-node",
     "parse_field_count": 11,
-    "parse_format": "unknown",
+    "parse_format": "json",
     "parse_status": "success",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
-    "short_message": "{\"level\":\"error\",\"source_level\":\"trace\",\"message\":\"a payload that names the fields the pipeline sets\"}",
+    "short_message": "a payload that names the fields the pipeline sets",
     "source_level": "error",
     "time": "2026-09-03T10:20:55.000007468Z"
   },

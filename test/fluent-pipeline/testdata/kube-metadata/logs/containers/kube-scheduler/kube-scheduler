@@ -1,0 +1,1 @@
+2026-09-03T11:00:03.000007468Z stdout F I0903 11:00:03.123456     1 scheduler.go:45] "Successfully bound pod to node" pod="demo/app-0"

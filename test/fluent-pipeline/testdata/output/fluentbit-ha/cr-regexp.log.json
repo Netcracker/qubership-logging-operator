@@ -1,0 +1,48 @@
+[
+  {
+    "_test": {
+      "id": "cr-multiline-joined"
+    },
+    "container": "fake-container",
+    "date": "2026-09-03T10:21:00.000",
+    "detected_level": "error",
+    "hostname": "fake-fluent",
+    "labels": {
+      "metadata.app": "fluent-pipeline-test",
+      "metadata.app.kubernetes.io/version": "0.1.0"
+    },
+    "level": "err",
+    "namespace": "fake-namespace",
+    "nodename": "fake-node",
+    "parse_field_count": 11,
+    "parse_format": "unknown",
+    "parse_status": "success",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "short_message": "first line matches multilineFirstLineRegexp\n  continuation that matches multilineOtherLinesRegexp",
+    "source_level": "ERROR",
+    "time": "2026-09-03T10:21:00.000007468Z"
+  },
+  {
+    "_test": {
+      "id": "cr-multiline-second"
+    },
+    "container": "fake-container",
+    "date": "2026-09-03T10:21:00.200",
+    "detected_level": "info",
+    "hostname": "fake-fluent",
+    "labels": {
+      "metadata.app": "fluent-pipeline-test",
+      "metadata.app.kubernetes.io/version": "0.1.0"
+    },
+    "level": "info",
+    "namespace": "fake-namespace",
+    "nodename": "fake-node",
+    "parse_field_count": 11,
+    "parse_format": "unknown",
+    "parse_status": "success",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "short_message": "a second first line ends the previous record",
+    "source_level": "INFO",
+    "time": "2026-09-03T10:21:00.200007468Z"
+  }
+]

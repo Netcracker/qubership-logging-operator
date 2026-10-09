@@ -1,0 +1,2 @@
+2026-09-03T10:20:46.000007468Z stdout F Enabling execution of install_demo_configuration.sh for OpenSearch Security Plugin
+2026-09-03T10:20:46.500007468Z stdout F [2026-09-03T10:20:46.123Z] [WARN] [o.o.c.r.a.AllocationService] [opensearch-0] delayed allocation

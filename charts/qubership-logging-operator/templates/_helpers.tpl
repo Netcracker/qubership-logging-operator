@@ -332,7 +332,7 @@ Image can be found from:
     {{- printf "%s" .Values.fluentbit.dockerImage -}}
   {{- else -}}
     {{- /* # renovate: datasource=docker depName=fluent/fluent-bit */ -}}
-    {{- print "docker.io/fluent/fluent-bit:5.1.1" -}}
+    {{- print "docker.io/fluent/fluent-bit:5.1.2" -}}
   {{- end -}}
 {{- end -}}
 
@@ -436,7 +436,7 @@ Image can be found from:
     {{- printf "%s" .Values.graylog.initSetupImage -}}
   {{- else -}}
     {{- /* # renovate: datasource=docker depName=alpine */ -}}
-    {{- print "docker.io/alpine:3.24.1" -}}
+    {{- print "docker.io/alpine:3.24.2" -}}
   {{- end -}}
 {{- end -}}
 

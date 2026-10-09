@@ -9,7 +9,7 @@ WORKDIR /workspace
 COPY go.* /workspace/
 COPY api/go.* api/
 
-RUN go work sync && go mod download && go -C api mod download
+RUN go mod download && go -C api mod download
 
 COPY api/ api/
 COPY controllers/ controllers/

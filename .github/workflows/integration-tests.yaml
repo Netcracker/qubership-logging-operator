@@ -87,8 +87,6 @@ jobs:
           controllers/fluentd \
           go.mod \
           go.sum \
-          go.work \
-          go.work.sum \
           test/fluent-pipeline; then
           echo "fluent=false" >> "$GITHUB_OUTPUT"
         else

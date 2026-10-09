@@ -547,8 +547,9 @@ spec:
     {{- if .Values.fluentbit.logLevel }}
     logLevel: {{ .Values.fluentbit.logLevel }}
     {{- end }}
+    collectOwnLogs: {{ .Values.fluentbit.collectOwnLogs | default false }}
     {{- if .Values.fluentbit.excludePath }}
-    excludePath: {{ .Values.fluentbit.excludePath }}
+    excludePath: {{ .Values.fluentbit.excludePath | quote }}
     {{- end }}
     systemLogging: {{ .Values.fluentbit.systemLogging }}
     {{- if .Values.fluentbit.systemLogType }}

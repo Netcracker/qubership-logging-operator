@@ -908,6 +908,15 @@ bool
 </tr>
 <tr>
 <td>
+<code>collectOwnLogs</code><br/>
+<em>bool</em>
+</td>
+<td>
+<p>Includes logs from FluentBit collector pods. Disabled by default to prevent feedback loops.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>excludePath</code><br/>
 <em>
 string

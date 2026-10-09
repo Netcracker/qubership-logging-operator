@@ -5614,6 +5614,9 @@ spec:
                     required:
                     - dockerImage
                     type: object
+                  collectOwnLogs:
+                    description: CollectOwnLogs includes logs from the Fluentbit collector pods. Disabled by default to prevent feedback loops.
+                    type: boolean
                   containerLogging:
                     type: boolean
                   customFilterConf:

@@ -40,3 +40,8 @@ indent_style = tab
 # NodeID file for Graylog
 [node-id]
 insert_final_newline = false
+
+# Fluent pipeline fixtures are verbatim captures of real agent input and output.
+# Trailing whitespace is part of the recorded content and changes parser results.
+[test/fluent-pipeline/testdata/**]
+trim_trailing_whitespace = false

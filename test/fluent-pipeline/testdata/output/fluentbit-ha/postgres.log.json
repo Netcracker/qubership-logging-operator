@@ -1,0 +1,48 @@
+[
+  {
+    "_test": {
+      "id": "postgres-error"
+    },
+    "container": "fake-container",
+    "detected_level": "error",
+    "hostname": "fake-fluent",
+    "labels": {
+      "metadata.app.kubernetes.io/version": "0.1.0",
+      "metadata.app": "fluent-pipeline-test"
+    },
+    "level": "err",
+    "namespace": "fake-namespace",
+    "nodename": "fake-node",
+    "parse_field_count": 10,
+    "parse_format": "postgres",
+    "parse_status": "success",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "short_message": "duplicate key value violates unique constraint",
+    "source_level": "ERROR",
+    "time": "2026-09-03T10:20:41.000007468Z"
+  },
+  {
+    "_test": {
+      "id": "postgres-ready"
+    },
+    "container": "fake-container",
+    "detected_level": "info",
+    "hostname": "fake-fluent",
+    "labels": {
+      "metadata.app.kubernetes.io/version": "0.1.0",
+      "metadata.app": "fluent-pipeline-test"
+    },
+    "level": "info",
+    "namespace": "fake-namespace",
+    "nc_audit_label": "true",
+    "nodename": "fake-node",
+    "parse_field_count": 10,
+    "parse_format": "postgres",
+    "parse_level_unknown": "true",
+    "parse_status": "success",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "short_message": "database system is ready to accept connections",
+    "source_level": "LOG",
+    "time": "2026-09-03T10:20:42.000007468Z"
+  }
+]

@@ -1,0 +1,61 @@
+[
+  {
+    "_test": {
+      "id": "grafana-login",
+      "matchOn": [
+        "log_time"
+      ]
+    },
+    "container": "fake-container",
+    "detected_level": "info",
+    "hostname": "fake-fluent",
+    "labels": {
+      "metadata.app.kubernetes.io/version": "0.1.0",
+      "metadata.app": "fluent-pipeline-test"
+    },
+    "level": "info",
+    "log_time": "2026-09-03T10:20:50.000007468Z",
+    "logger": "authn.service",
+    "namespace": "fake-namespace",
+    "nc_audit_label": "true",
+    "nodename": "fake-node",
+    "parse_field_count": 11,
+    "parse_format": "logfmt",
+    "parse_status": "success",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "short_message": "Successful Login",
+    "source_level": "info",
+    "t": "2026-09-03T10:20:50.123+0000",
+    "user": "admin@localhost"
+  },
+  {
+    "_test": {
+      "id": "grafana-request",
+      "matchOn": [
+        "log_time"
+      ]
+    },
+    "container": "fake-container",
+    "detected_level": "info",
+    "hostname": "fake-fluent",
+    "labels": {
+      "metadata.app.kubernetes.io/version": "0.1.0",
+      "metadata.app": "fluent-pipeline-test"
+    },
+    "level": "info",
+    "log_time": "2026-09-03T10:20:51.000007468Z",
+    "logger": "http.server",
+    "method": "GET",
+    "namespace": "fake-namespace",
+    "nodename": "fake-node",
+    "parse_field_count": 13,
+    "parse_format": "logfmt",
+    "parse_status": "success",
+    "path": "/api/health",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "short_message": "Request Completed",
+    "source_level": "info",
+    "status": "200",
+    "t": "2026-09-03T10:20:51.123+0000"
+  }
+]

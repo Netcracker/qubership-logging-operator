@@ -84,6 +84,8 @@ api_pkgs = $(shell cd api && go list ./...)
 CONTAINER_CLI?=docker
 CONTAINER_NAME="qubership-logging-operator"
 DOCKERFILE=Dockerfile
+FLUENT_PIPELINE_SCENARIO?=fluentbit
+FLUENT_PIPELINE_TEST_IMAGE?=qubership-fluent-pipeline-tests:local
 
 ###########
 # Generic #
@@ -190,6 +192,12 @@ image:
 
 .PHONY: test
 test: unit-test python-test
+
+.PHONY: test-fluent-pipeline
+test-fluent-pipeline:
+	docker build -t $(FLUENT_PIPELINE_TEST_IMAGE) -f test/fluent-pipeline/Dockerfile .
+	FLUENT_PIPELINE_TEST_IMAGE=$(FLUENT_PIPELINE_TEST_IMAGE) \
+		test/fluent-pipeline/run.sh $(FLUENT_PIPELINE_SCENARIO)
 
 # Run unit tests in all packages
 .PHONY: unit-test

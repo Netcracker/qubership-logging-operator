@@ -1,0 +1,2 @@
+2026-09-03T10:20:50.000007468Z stdout F logger=authn.service t=2026-09-03T10:20:50.123+0000 level=info msg="Successful Login" user=admin@localhost
+2026-09-03T10:20:51.000007468Z stdout F logger=http.server t=2026-09-03T10:20:51.123+0000 level=info msg="Request Completed" method=GET path=/api/health status=200

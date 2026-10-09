@@ -291,6 +291,7 @@ _Appears in:_
 | `nodeSelectorKey` _string_ |  |  |  |
 | `priorityClassName` _string_ |  |  |  |
 | `totalLimitSize` _string_ |  |  |  |
+| `storageSizeLimit` _string_ |  |  |  |
 | `customFilterConf` _string_ |  |  |  |
 | `customOutputConf` _string_ |  |  |  |
 | `customLuaScriptConf` _object (keys:string, values:string)_ |  |  |  |

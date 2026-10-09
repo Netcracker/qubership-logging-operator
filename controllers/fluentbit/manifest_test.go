@@ -97,6 +97,15 @@ func TestFluentbitConfigStorageDefaults(t *testing.T) {
 	})
 }
 
+func TestFluentbitConfigUsesLanguageMultilineParsers(t *testing.T) {
+	data := renderConfigData(t, &loggingService.Fluentbit{ContainerLogging: true})
+
+	if !strings.Contains(data["filter-concat.conf"],
+		"multiline.parser       multiline_qubership, java, go, multiline_python") {
+		t.Errorf("expected the application multiline parser chain, got:\n%s", data["filter-concat.conf"])
+	}
+}
+
 func TestFluentbitPersistentOffsetsProfileUsesMemoryBuffer(t *testing.T) {
 	data := renderConfigData(t, &loggingService.Fluentbit{
 		ContainerLogging: true,

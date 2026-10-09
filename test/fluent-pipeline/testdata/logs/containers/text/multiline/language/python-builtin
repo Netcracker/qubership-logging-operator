@@ -1,0 +1,6 @@
+2026-09-03T10:22:30.000007468Z stderr F Traceback (most recent call last):
+2026-09-03T10:22:30.100007468Z stderr F   File "/app/worker.py", line 12, in run
+2026-09-03T10:22:30.200007468Z stderr F     raise ValueError("invalid task")
+2026-09-03T10:22:30.300007468Z stderr F ValueError: invalid task
+2026-09-03T10:22:31.000007468Z stdout F INFO: worker continues
+2026-09-03T10:22:32.000007468Z stdout F worker continues

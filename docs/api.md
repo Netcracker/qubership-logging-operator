@@ -68,6 +68,8 @@ _Appears in:_
 _Appears in:_
 - [AuthProxy](#authproxy)
 - [Certificates](#certificates)
+- [FluentbitHttpTLS](#fluentbithttptls)
+- [FluentbitLokiTLS](#fluentbitlokitls)
 - [FluentbitTLS](#fluentbittls)
 - [FluentdHttpTLS](#fluentdhttptls)
 - [FluentdLokiTLS](#fluentdlokitls)
@@ -92,6 +94,8 @@ _Appears in:_
 _Appears in:_
 - [AuthProxy](#authproxy)
 - [Certificates](#certificates)
+- [FluentbitHttpTLS](#fluentbithttptls)
+- [FluentbitLokiTLS](#fluentbitlokitls)
 - [FluentbitTLS](#fluentbittls)
 - [FluentdHttpTLS](#fluentdhttptls)
 - [FluentdLokiTLS](#fluentdlokitls)
@@ -115,6 +119,8 @@ _Appears in:_
 
 
 _Appears in:_
+- [FluentbitHttpTLS](#fluentbithttptls)
+- [FluentbitLokiTLS](#fluentbitlokitls)
 - [FluentbitTLS](#fluentbittls)
 - [FluentdHttpTLS](#fluentdhttptls)
 - [FluentdLokiTLS](#fluentdlokitls)
@@ -330,7 +336,7 @@ _Appears in:_
 
 #### FluentbitHTTPRouting
 
-_Underlying type:_ _[struct{Enabled bool "json:\"enabled,omitempty\""; HeaderTag string "json:\"headerTag,omitempty\""}](#struct{enabled-bool-"json:\"enabled,omitempty\"";-headertag-string-"json:\"headertag,omitempty\""})_
+
 
 
 
@@ -339,11 +345,15 @@ _Underlying type:_ _[struct{Enabled bool "json:\"enabled,omitempty\""; HeaderTag
 _Appears in:_
 - [HttpFluentbit](#httpfluentbit)
 
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `enabled` _boolean_ |  |  |  |
+| `headerTag` _string_ |  |  |  |
 
 
 #### FluentbitHttpTLS
 
-_Underlying type:_ _[struct{Certificates "json:\",inline\""; FluentbitTLSParams "json:\",inline\""}](#struct{certificates-"json:\",inline\"";-fluentbittlsparams-"json:\",inline\""})_
+
 
 
 
@@ -353,11 +363,19 @@ _Appears in:_
 - [HttpFluentbit](#httpfluentbit)
 - [OtelFluentbit](#otelfluentbit)
 
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `ca` _[CA](#ca)_ |  |  |  |
+| `cert` _[Cert](#cert)_ |  |  |  |
+| `key` _[Key](#key)_ |  |  |  |
+| `keyPasswd` _string_ |  |  |  |
+| `enabled` _boolean_ |  |  |  |
+| `verify` _boolean_ |  |  |  |
 
 
 #### FluentbitLokiTLS
 
-_Underlying type:_ _[struct{Certificates "json:\",inline\""; FluentbitTLSParams "json:\",inline\""}](#struct{certificates-"json:\",inline\"";-fluentbittlsparams-"json:\",inline\""})_
+
 
 
 
@@ -366,6 +384,14 @@ _Underlying type:_ _[struct{Certificates "json:\",inline\""; FluentbitTLSParams 
 _Appears in:_
 - [LokiFluentbit](#lokifluentbit)
 
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `ca` _[CA](#ca)_ |  |  |  |
+| `cert` _[Cert](#cert)_ |  |  |  |
+| `key` _[Key](#key)_ |  |  |  |
+| `keyPasswd` _string_ |  |  |  |
+| `enabled` _boolean_ |  |  |  |
+| `verify` _boolean_ |  |  |  |
 
 
 #### FluentbitTLS
@@ -400,6 +426,8 @@ _Appears in:_
 
 
 _Appears in:_
+- [FluentbitHttpTLS](#fluentbithttptls)
+- [FluentbitLokiTLS](#fluentbitlokitls)
 - [FluentbitTLS](#fluentbittls)
 
 | Field | Description | Default | Validation |
@@ -815,6 +843,8 @@ _Appears in:_
 _Appears in:_
 - [AuthProxy](#authproxy)
 - [Certificates](#certificates)
+- [FluentbitHttpTLS](#fluentbithttptls)
+- [FluentbitLokiTLS](#fluentbitlokitls)
 - [FluentbitTLS](#fluentbittls)
 - [FluentdHttpTLS](#fluentdhttptls)
 - [FluentdLokiTLS](#fluentdlokitls)

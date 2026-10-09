@@ -38,6 +38,9 @@ TYPES_V1_TARGET=api/v1/loggingservice_types.go
 # Tools
 CONTROLLER_GEN_PACKAGE=sigs.k8s.io/controller-tools/cmd/controller-gen@v0.20.1
 CRD_REF_DOCS_PACKAGE=github.com/elastic/crd-ref-docs@v0.3.0
+# The default depth of 10 is too shallow for the nested Fluent Bit output types: crd-ref-docs skips them and
+# leaves their field tables out of docs/api.md
+CRD_REF_DOCS_MAX_DEPTH?=20
 HELM_DOCS_PACKAGE=github.com/norwoodj/helm-docs/cmd/helm-docs@v1.14.2
 
 # Detect the build environment, local or Jenkins builder
@@ -246,6 +249,7 @@ docs/api.md: crd-ref-docs $(TYPES_V1_TARGET)
 	$(CRD_REF_DOCS) --source-path "./api/v1" \
 					--config "./scripts/docs/config.yaml" \
 					--renderer markdown \
+					--max-depth $(CRD_REF_DOCS_MAX_DEPTH) \
 					--output-path "./docs/api.md"
 	chmod +x ./scripts/build/append-markdown-linter-comments.sh
 	./scripts/build/append-markdown-linter-comments.sh

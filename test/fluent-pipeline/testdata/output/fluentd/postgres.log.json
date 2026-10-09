@@ -1,0 +1,38 @@
+[
+  {
+    "_test": {
+      "id": "postgres-error"
+    },
+    "container": "fake-container",
+    "fluentd_time": "2026-09-03T10:20:41.000Z",
+    "hostname": "fake-fluent",
+    "kubernetes_host": "fake-node",
+    "labels": "{\"app\" : \"fluent-pipeline-test\", \"app.kubernetes.io_version\" : \"0.1.0\"}",
+    "level": "info",
+    "log": "2026-09-03 10:20:41 UTC ERROR: duplicate key value violates unique constraint",
+    "namespace": "fake-namespace",
+    "nc_audit_label": "false",
+    "parse_level_unknown": "true",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "source_level": null,
+    "time": "2026-09-03T10:20:41.000007468Z"
+  },
+  {
+    "_test": {
+      "id": "postgres-ready"
+    },
+    "container": "fake-container",
+    "fluentd_time": "2026-09-03T10:20:42.000Z",
+    "hostname": "fake-fluent",
+    "kubernetes_host": "fake-node",
+    "labels": "{\"app\" : \"fluent-pipeline-test\", \"app.kubernetes.io_version\" : \"0.1.0\"}",
+    "level": "info",
+    "log": "2026-09-03 10:20:42 UTC LOG:  database system is ready to accept connections",
+    "namespace": "fake-namespace",
+    "nc_audit_label": "false",
+    "parse_level_unknown": "true",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "source_level": null,
+    "time": "2026-09-03T10:20:42.000007468Z"
+  }
+]

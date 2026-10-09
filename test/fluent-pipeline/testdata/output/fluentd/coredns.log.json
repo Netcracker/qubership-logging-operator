@@ -1,0 +1,81 @@
+[
+  {
+    "_test": {
+      "id": "coredns-error"
+    },
+    "container": "fake-container",
+    "fluentd_time": "2026-09-03T10:20:40.000Z",
+    "hostname": "fake-fluent",
+    "kubernetes_host": "fake-node",
+    "labels": "{\"app\" : \"fluent-pipeline-test\", \"app.kubernetes.io_version\" : \"0.1.0\"}",
+    "level": "info",
+    "log": "[ERROR] plugin/errors: 2 example.org. A: read udp 10.0.0.2:53: timeout",
+    "namespace": "fake-namespace",
+    "nc_audit_label": "false",
+    "parse_level_unknown": "true",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "source_level": null,
+    "time": "2026-09-03T10:20:40.000007468Z"
+  },
+  {
+    "_test": {
+      "id": "coredns-banner"
+    },
+    "container": "fake-container",
+    "fluentd_time": "2026-09-03T10:20:40.500Z",
+    "hostname": "fake-fluent",
+    "kubernetes_host": "fake-node",
+    "labels": "{\"app\" : \"fluent-pipeline-test\", \"app.kubernetes.io_version\" : \"0.1.0\"}",
+    "level": "info",
+    "log": "CoreDNS-1.11.1 linux/amd64, go1.20.7, ae2bbc2",
+    "namespace": "fake-namespace",
+    "nc_audit_label": "false",
+    "parse_level_unknown": "true",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "source_level": null,
+    "time": "2026-09-03T10:20:40.500007468Z"
+  },
+  {
+    "_test": {
+      "id": "coredns-empty-line",
+      "dropped": true
+    },
+    "time": "2026-09-03T10:20:40.250007468Z"
+  },
+  {
+    "_test": {
+      "id": "coredns-spaces-line"
+    },
+    "container": "fake-container",
+    "fluentd_time": "2026-09-03T10:20:40.260Z",
+    "hostname": "fake-fluent",
+    "kubernetes_host": "fake-node",
+    "labels": "{\"app\" : \"fluent-pipeline-test\", \"app.kubernetes.io_version\" : \"0.1.0\"}",
+    "level": "info",
+    "log": "   ",
+    "namespace": "fake-namespace",
+    "nc_audit_label": "false",
+    "parse_level_unknown": "true",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "source_level": null,
+    "time": "2026-09-03T10:20:40.260007468Z"
+  },
+  {
+    "_test": {
+      "id": "coredns-tab-line"
+    },
+    "container": "fake-container",
+    "fluentd_time": "2026-09-03T10:20:40.270Z",
+    "hostname": "fake-fluent",
+    "kubernetes_host": "fake-node",
+    "labels": "{\"app\" : \"fluent-pipeline-test\", \"app.kubernetes.io_version\" : \"0.1.0\"}",
+    "level": "info",
+    "log": "\t",
+    "namespace": "fake-namespace",
+    "nc_audit_label": "false",
+    "parse_level_unknown": "true",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "source_level": null,
+    "time": "2026-09-03T10:20:40.270007468Z"
+  }
+]

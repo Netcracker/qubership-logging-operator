@@ -1,0 +1,31 @@
+# Docker container runtime, the journald input, bill cycle filters, and the Graylog output with the
+# output block the chart always renders.
+apiVersion: logging.netcracker.com/v1
+kind: LoggingService
+metadata:
+  name: logging-service
+spec:
+  containerRuntimeType: docker
+  cloudEventsReader:
+    install: true
+  fluentd:
+    multilineFirstLineRegexp: "/(^\\[\\d{4}\\-\\d{2}\\-\\d{2})|(^\\{\")|(^*0m\\d{2}\\:\\d{2}\\:\\d{2})/"
+    containerLogging: true
+    systemLogging: true
+    systemLogType: systemd
+    systemAuditLogging: true
+    kubeAuditLogging: true
+    kubeApiserverAuditLogging: true
+    cloudEventsReaderFormat: json
+    billCycleConf: true
+    watchKubernetesMetadata: true
+    # The kubernetes_metadata plugin connects to the API server when it starts, so the dry run can
+    # only validate the mock branch.
+    mockKubeData: true
+    graylogOutput: true
+    graylogHost: graylog.logging.svc
+    graylogPort: 12201
+    graylogProtocol: tcp
+    output:
+      loki:
+        enabled: false

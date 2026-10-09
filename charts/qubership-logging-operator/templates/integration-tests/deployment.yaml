@@ -47,13 +47,30 @@ spec:
       {{- if .Values.integrationTests.priorityClassName }}
       priorityClassName: {{ .Values.integrationTests.priorityClassName }}
       {{- end }}
+      securityContext:
+        runAsNonRoot: true
+        runAsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+        {{- if not (or .Values.openshiftDeploy (.Capabilities.APIVersions.Has "security.openshift.io/v1")) }}
+        runAsUser: 1000
+        {{- end }}
       containers:
         - name: {{ .Values.integrationTests.service.name }}
           image: {{ template "logging-integration-tests.image" . }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL
           ports:
             - containerPort: 8080
               protocol: TCP
           env:
+            - name: PYTHONDONTWRITEBYTECODE
+              value: "1"
             - name: TAGS
               value: {{ .Values.integrationTests.tags }}
             - name: TIMEOUT_BEFORE_START
@@ -110,6 +127,10 @@ spec:
             - name: integration-credentials
               mountPath: /run/secrets/integration-tests
               readOnly: true
+            - name: tmp
+              mountPath: /tmp
+            - name: output
+              mountPath: /opt/robot/output
           {{- if .Values.integrationTests.victorialogs.auth }}
           {{- if .Values.integrationTests.victorialogs.auth.token }}
             - name: vl-token
@@ -138,6 +159,12 @@ spec:
         - name: integration-credentials
           secret:
             secretName: {{ .Values.integrationTests.service.name }}-secret
+        - name: tmp
+          emptyDir:
+            sizeLimit: 100Mi
+        - name: output
+          emptyDir:
+            sizeLimit: 200Mi
       {{- if .Values.integrationTests.victorialogs.auth }}
       {{- if .Values.integrationTests.victorialogs.auth.token }}
         - name: vl-token

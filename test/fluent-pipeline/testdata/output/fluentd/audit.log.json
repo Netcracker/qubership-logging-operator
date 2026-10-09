@@ -1,0 +1,15 @@
+[
+  {
+    "_test": {
+      "id": "os-audit-1",
+      "matchOn": [
+        "type"
+      ]
+    },
+    "hostname": "fake-fluent",
+    "kubernetes_host": "fake-node",
+    "message": "empty",
+    "nc_audit_label": "true",
+    "type": "AVC"
+  }
+]

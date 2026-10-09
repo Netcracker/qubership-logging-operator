@@ -1,0 +1,3 @@
+2026-09-03T10:21:00.000007468Z stdout F [2026-09-03T10:21:00.000] [ERROR] first line matches multilineFirstLineRegexp
+2026-09-03T10:21:00.100007468Z stdout F   continuation that matches multilineOtherLinesRegexp
+2026-09-03T10:21:00.200007468Z stdout F [2026-09-03T10:21:00.200] [INFO] a second first line ends the previous record

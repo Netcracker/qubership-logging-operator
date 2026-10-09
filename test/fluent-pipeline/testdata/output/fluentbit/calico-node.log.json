@@ -1,0 +1,62 @@
+[
+  {
+    "_test": {
+      "id": "calico-syn"
+    },
+    "container": "fake-container",
+    "detected_level": "info",
+    "dst_ip": "10.0.0.2",
+    "dst_namespace": "demo",
+    "dst_pod": "target-pod",
+    "dst_port": "8443",
+    "hostname": "fake-fluent",
+    "id": "12345",
+    "in_interface": "eth0",
+    "labels": {
+      "metadata.app.kubernetes.io/version": "0.1.0",
+      "metadata.app": "fluent-pipeline-test"
+    },
+    "level": "info",
+    "namespace": "fake-namespace",
+    "nodename": "fake-node",
+    "out_interface": "eth1",
+    "parse_field_count": 22,
+    "parse_format": "unknown",
+    "parse_level_unknown": "true",
+    "parse_status": "success",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "precedence": "0x0",
+    "reserved_bits": "0x0",
+    "short_message": "Sep 3 10:20:48 node-1 kernel: calico-packet: IN=eth0 OUT=eth1 MAC= SRC=10.0.0.1 DST=10.0.0.2 SRC_POD=demo/source-pod DST_POD=demo/target-pod LEN=60 TOS=0x00 PREC=0x0 TTL=64 ID=12345 DF PROTO=TCP SPT=12345 DPT=8443 WINDOW=64240 RES=0x0 SYN URGP=0",
+    "src_ip": "10.0.0.1",
+    "src_namespace": "demo",
+    "src_pod": "source-pod",
+    "src_port": "12345",
+    "time": "2026-09-03T10:20:48.000007468Z",
+    "ttl": "64",
+    "type_of_service": "0x00",
+    "window_size": "64240"
+  },
+  {
+    "_test": {
+      "id": "calico-plain"
+    },
+    "container": "fake-container",
+    "detected_level": "info",
+    "hostname": "fake-fluent",
+    "labels": {
+      "metadata.app.kubernetes.io/version": "0.1.0",
+      "metadata.app": "fluent-pipeline-test"
+    },
+    "level": "info",
+    "namespace": "fake-namespace",
+    "nodename": "fake-node",
+    "parse_field_count": 6,
+    "parse_format": "unknown",
+    "parse_level_unknown": "true",
+    "parse_status": "failed",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "short_message": "Sep 3 10:20:48 node-1 kernel: packet dropped",
+    "time": "2026-09-03T10:20:48.500007468Z"
+  }
+]

@@ -215,3 +215,23 @@ func TestFluentbitEffectiveMemoryOnlyStateSizeLimit(t *testing.T) {
 		})
 	}
 }
+
+func TestFluentbitAggregatorEffectiveStorageSizeLimit(t *testing.T) {
+	tests := []struct {
+		name       string
+		configured string
+		want       string
+	}{
+		{name: "default", want: FluentbitAggregatorDefaultStorageSizeLimit},
+		{name: "configured", configured: "6Gi", want: "6Gi"},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			aggregator := FluentbitAggregator{StorageSizeLimit: test.configured}
+			if got := aggregator.EffectiveStorageSizeLimit(); got != test.want {
+				t.Errorf("EffectiveStorageSizeLimit() = %q, want %q", got, test.want)
+			}
+		})
+	}
+}

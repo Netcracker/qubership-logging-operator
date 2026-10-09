@@ -11,10 +11,6 @@ spec:
       labels: {}
     spec:
       restartPolicy: Never
-      volumes:
-        - name: mongodb
-          persistentVolumeClaim:
-            claimName: mongo-claim
       containers:
         - name: mongo
           image: {{ .Values.Graylog.MongoDBUpgrade.MongoDBImage44 }}
@@ -31,13 +27,28 @@ spec:
             - name: mongodb
               mountPath: /data/db
               readOnly: false
-          {{ if not .Values.OpenshiftDeploy }}
+            - name: tmp
+              mountPath: /tmp
           securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
             runAsNonRoot: true
             runAsUser: 1001
-          {{ end }}
-      {{ if not .Values.OpenshiftDeploy }}
+            runAsGroup: 1001
+            capabilities:
+              drop:
+                - ALL
+      volumes:
+        - name: mongodb
+          persistentVolumeClaim:
+            claimName: mongo-claim
+        - name: tmp
+          emptyDir:
+            sizeLimit: 100Mi
       securityContext:
+        runAsNonRoot: true
         runAsUser: 1001
+        runAsGroup: 1001
         fsGroup: 1001
-      {{ end }}
+        seccompProfile:
+          type: RuntimeDefault

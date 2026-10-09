@@ -1,0 +1,2 @@
+2026-09-03T10:20:48.000007468Z stdout F Sep 3 10:20:48 node-1 kernel: calico-packet: IN=eth0 OUT=eth1 MAC= SRC=10.0.0.1 DST=10.0.0.2 SRC_POD=demo/source-pod DST_POD=demo/target-pod LEN=60 TOS=0x00 PREC=0x0 TTL=64 ID=12345 DF PROTO=TCP SPT=12345 DPT=8443 WINDOW=64240 RES=0x0 SYN URGP=0
+2026-09-03T10:20:48.500007468Z stdout F Sep 3 10:20:48 node-1 kernel: packet dropped

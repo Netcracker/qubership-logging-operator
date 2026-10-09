@@ -1,0 +1,59 @@
+apiVersion: logging.netcracker.com/v1
+kind: LoggingService
+metadata:
+  name: logging-service
+spec:
+  openshiftDeploy: false
+  containerRuntimeType: containerd
+  cloudEventsReader:
+    install: true
+  fluentbit:
+    # The runner waits for readiness lines the agent logs at the info level, and reads the output as soon as it
+    # is flushed instead of sleeping.
+    logLevel: info
+    flush: 1
+
+    systemLogging: true
+    systemLogType: varlogsyslog
+    containerLogging: true
+    systemAuditLogging: true
+    kubeAuditLogging: true
+    kubeApiserverAuditLogging: true
+    billCycleConf: false
+
+    watchKubernetesMetadata: true
+    mockKubeData: true
+    db:
+      enabled: false
+
+    # The forwarder and the aggregator read different custom sections. Each marks one pod of its
+    # own, so that a renderer handing a role the section of the other one shows up as two records
+    # that lost their marker rather than as a change to every record.
+    customFilterConf: |-
+      [FILTER]
+          Name          record_modifier
+          Match_Regex   pods.*coredns.*
+          Record        forwarder_custom_filter true
+
+    aggregator:
+      replicas: 2
+      install: true
+
+      multilineFirstLineRegexp: "/^(\\[\\d{4}\\-\\d{2}\\-\\d{2}).*/"
+      multilineOtherLinesRegexp: "/^(?!\\[\\d{4}\\-\\d{2}\\-\\d{2}).*/"
+
+      # Disable Graylog output because we will print data in the file
+      graylogOutput: false
+
+      customFilterConf: |-
+        [FILTER]
+            Name          record_modifier
+            Match_Regex   pods.*consul.*
+            Record        aggregator_custom_filter true
+      customOutputConf: |-
+        [OUTPUT]
+            Name    file
+            Match   *
+            Format  plain
+            Path    /fluentbit-output
+            File    output-log

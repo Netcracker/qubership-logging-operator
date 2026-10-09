@@ -26,8 +26,8 @@ and K8S Events Reader.
   * [Architecture](#architecture)
     * [System Overview](#system-overview)
   * [Testing](#testing)
-    * [Integration Tests](#integration-tests)
-    * [Robot Framework Tests](#robot-framework-tests)
+    * [Fluent pipeline tests](#fluent-pipeline-tests)
+    * [Robot Framework tests](#robot-framework-tests)
   * [Contributing](#contributing)
   * [License](#license)
 
@@ -172,14 +172,21 @@ For detailed architecture information, see the [Architecture Guide](https://netc
 
 The project includes comprehensive testing:
 
-### Integration Tests
+### Fluent pipeline tests
 
 ```bash
-# Run integration tests
-make test-integration
+# Run a Fluent Bit pipeline test
+make test-fluent-pipeline
+
+# Select another scenario: fluentbit, fluentbit-ha, or fluentd
+make test-fluent-pipeline FLUENT_PIPELINE_SCENARIO=fluentbit-ha
 ```
 
-### Robot Framework Tests
+The runtime tests render the configuration from the current checkout, process representative logs with a real logging
+agent, and compare the results with checked-in JSON records. See the
+[fluent pipeline test documentation](test/fluent-pipeline/README.md).
+
+### Robot Framework tests
 
 ```bash
 # Run robot tests
@@ -191,6 +198,7 @@ robot src/tests/
 For more testing information, see the test directories:
 
 * `test/envtests/` - Environment tests
+* `test/fluent-pipeline/` - Fluent Bit and Fluentd runtime pipeline tests
 * `test/robot-tests/` - Robot framework tests
 
 ## Contributing

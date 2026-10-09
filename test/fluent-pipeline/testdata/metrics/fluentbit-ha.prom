@@ -1,0 +1,6 @@
+# HELP fluentbit_parse_error_total Total number of parse errors
+# TYPE fluentbit_parse_error_total counter
+fluentbit_parse_error_total{namespace="fake-namespace",pod="fake-fluent-577d48c6cb-4gfmp",container="fake-container"} 9
+# HELP calico_syn_packets_total Total number of SYN packets messages in Calico logs
+# TYPE calico_syn_packets_total counter
+calico_syn_packets_total{src_ip="10.0.0.1",dst_ip="10.0.0.2",src_pod="source-pod",dst_pod="target-pod",src_namespace="demo",dst_namespace="demo",namespace="fake-namespace",pod="fake-fluent-577d48c6cb-4gfmp",container="fake-container"} 1

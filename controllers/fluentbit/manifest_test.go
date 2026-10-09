@@ -178,3 +178,59 @@ func TestFluentbitConfigDisabledDB(t *testing.T) {
 		}
 	}
 }
+
+func TestFluentbitLevelFilterMatchesRoutingState(t *testing.T) {
+	const routingMatch = "Match_regex  ^(?!out_(audit|k8s_event|nginx|access|int|pods|system|default)$).*"
+
+	tests := []struct {
+		name   string
+		output *loggingService.OutputFluentbit
+		want   string
+		absent string
+	}{
+		{
+			name:   "no HTTP output",
+			want:   "Match        *",
+			absent: "Match_regex",
+		},
+		{
+			name: "HTTP output without routing",
+			output: &loggingService.OutputFluentbit{Http: &loggingService.HttpFluentbit{
+				Enabled: true, Host: "vmauth", Port: 8427, Uri: "/insert/jsonline",
+			}},
+			want:   "Match        *",
+			absent: "Match_regex",
+		},
+		{
+			name: "HTTP output with routing disabled",
+			output: &loggingService.OutputFluentbit{Http: &loggingService.HttpFluentbit{
+				Enabled: true, Host: "vmauth", Port: 8427, Uri: "/insert/jsonline",
+				Routing: &loggingService.FluentbitHTTPRouting{Enabled: false},
+			}},
+			want:   "Match        *",
+			absent: "Match_regex",
+		},
+		{
+			name: "HTTP output with routing enabled",
+			output: &loggingService.OutputFluentbit{Http: &loggingService.HttpFluentbit{
+				Enabled: true, Host: "vmauth", Port: 8427, Uri: "/insert/jsonline",
+				Routing: &loggingService.FluentbitHTTPRouting{Enabled: true},
+			}},
+			want:   routingMatch,
+			absent: "Match        *",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			data := renderConfigData(t, &loggingService.Fluentbit{
+				ContainerLogging: true,
+				Output:           test.output,
+			})
+			filter := data["filter-nonsupported-levels.conf"]
+			if !strings.Contains(filter, test.want) || strings.Contains(filter, test.absent) {
+				t.Errorf("expected %q without %q in the level filter, got:\n%s", test.want, test.absent, filter)
+			}
+		})
+	}
+}

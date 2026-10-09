@@ -243,6 +243,11 @@ fluentbit:
       Name   <name>
 ```
 
+Do not assign the built-in HTTP routing tags `out_audit`, `out_k8s_event`, `out_nginx`, `out_access`, `out_int`,
+`out_pods`, `out_system`, or `out_default` in `fluentbit.customInputConf` or custom `rewrite_tag` rules. When
+`output.http.routing.enabled` is `true`, records with these exact tags skip level normalization. When HTTP routing is
+disabled, all tags are normalized. Other custom tags that start with `out_` are always normalized.
+
 ### FluentBit Filters customization
 
 #### FluentBit Customization of the out-of-box configuration

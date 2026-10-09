@@ -75,7 +75,7 @@
     },
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "level": "info",
-    "parse_format": "unknown"
+    "parse_format": "json"
   },
   {
     "_test": {
@@ -153,7 +153,7 @@
         "name": "APP"
       }
     },
-    "parse_format": "unknown"
+    "parse_format": "json"
   },
   {
     "_test": {
@@ -231,6 +231,6 @@
     "nodename": "fake-node",
     "parse_status": "success",
     "object": {},
-    "parse_format": "unknown"
+    "parse_format": "json"
   }
 ]

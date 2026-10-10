@@ -4,6 +4,7 @@
       "id": "bill-cycle-1"
     },
     "parse_status": "success",
+    "stdio_stream": "stdout",
     "time": "2024-07-20T11:51:31.234007468Z",
     "detected_level": "info",
     "labels": {
@@ -15,7 +16,7 @@
     "level": "info",
     "short_message": "[\"app.qubership.org/application=app\"] it is example of bill cycle log message",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
-    "parse_field_count": 11,
+    "parse_field_count": 12,
     "hostname": "fake-fluent",
     "container": "fake-container",
     "date": "2024-07-20T11:51:31.234",
@@ -27,6 +28,7 @@
       "id": "bill-cycle-2"
     },
     "parse_status": "success",
+    "stdio_stream": "stdout",
     "time": "2024-07-20T11:51:32.234007468Z",
     "detected_level": "info",
     "labels": {
@@ -38,7 +40,7 @@
     "level": "info",
     "short_message": "[\"app.kubernetes.io/part-of=app\"] it is example of bill cycle log message",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
-    "parse_field_count": 11,
+    "parse_field_count": 12,
     "hostname": "fake-fluent",
     "container": "fake-container",
     "date": "2024-07-20T11:51:32.234",
@@ -50,6 +52,7 @@
       "id": "bill-cycle-3"
     },
     "parse_status": "success",
+    "stdio_stream": "stdout",
     "time": "2024-07-20T11:51:33.234007468Z",
     "detected_level": "warn",
     "labels": {
@@ -61,7 +64,7 @@
     "level": "warning",
     "short_message": "[\"app.kubernetes.io/part-of=app\"] it is example of bill cycle log message",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
-    "parse_field_count": 11,
+    "parse_field_count": 12,
     "hostname": "fake-fluent",
     "container": "fake-container",
     "date": "2024-07-20T11:51:33.234",
@@ -74,6 +77,7 @@
     },
     "detected_level": "warn",
     "parse_status": "success",
+    "stdio_stream": "stdout",
     "time": "2024-07-20T11:51:34.234007468Z",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
@@ -84,7 +88,7 @@
     "level": "warning",
     "date": "2024-07-20T11:51:34.234",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
-    "parse_field_count": 11,
+    "parse_field_count": 12,
     "hostname": "fake-fluent",
     "container": "fake-container",
     "app.kubernetes.io/part-of": "app",

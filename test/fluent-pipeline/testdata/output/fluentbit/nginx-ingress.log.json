@@ -19,7 +19,6 @@
     },
     "parse_status": "success",
     "pid": "7",
-    "parse_field_count": 11,
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "file": "controller.go:1213",
     "parse_format": "klog"
@@ -44,7 +43,6 @@
     },
     "parse_status": "success",
     "pid": "7",
-    "parse_field_count": 11,
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "file": "controller.go:1435",
     "parse_format": "klog"
@@ -69,7 +67,6 @@
     },
     "parse_status": "success",
     "pid": "7",
-    "parse_field_count": 11,
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "file": "controller.go:190",
     "parse_format": "klog"
@@ -94,7 +91,6 @@
     },
     "parse_status": "success",
     "pid": "7",
-    "parse_field_count": 11,
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "file": "controller.go:210",
     "parse_format": "klog"
@@ -119,7 +115,6 @@
     },
     "parse_status": "success",
     "pid": "7",
-    "parse_field_count": 11,
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "file": "event.go:364",
     "parse_format": "klog"
@@ -141,7 +136,6 @@
     "parse_level_unknown": "true",
     "host": "10.10.10.10",
     "level": "info",
-    "parse_field_count": 23,
     "container": "fake-container",
     "code": "200",
     "detected_level": "info",
@@ -179,7 +173,6 @@
     "parse_level_unknown": "true",
     "host": "10.10.10.10",
     "level": "info",
-    "parse_field_count": 23,
     "container": "fake-container",
     "code": "200",
     "detected_level": "info",

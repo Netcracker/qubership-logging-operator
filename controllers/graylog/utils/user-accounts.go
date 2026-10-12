@@ -295,17 +295,8 @@ func (connector *GraylogConnector) CreateOrUpdateUsers(cr *loggingService.Loggin
 	return nil
 }
 
-func (connector *GraylogConnector) ManageUserAccounts(cr *loggingService.LoggingService, installGraylog5 bool) error {
-	// Dashboards API has different names of field with returned dashboards depending on the Graylog version
-	// Graylog 4: "views"
-	// Graylog 5: "elements"
-	var getDashboardDataField string
-	if installGraylog5 {
-		getDashboardDataField = "elements"
-	} else {
-		getDashboardDataField = "views"
-	}
-	dashboards, err := connector.GetData("dashboards", getDashboardDataField, nil)
+func (connector *GraylogConnector) ManageUserAccounts(cr *loggingService.LoggingService) error {
+	dashboards, err := connector.GetData("dashboards", "elements", nil)
 	if err != nil {
 		return err
 	}

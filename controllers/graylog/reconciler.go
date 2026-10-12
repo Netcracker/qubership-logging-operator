@@ -3,8 +3,6 @@ package graylog
 import (
 	"context"
 	"fmt"
-	"regexp"
-	"strings"
 
 	loggingService "github.com/Netcracker/qubership-logging-operator/api/v1"
 	"github.com/Netcracker/qubership-logging-operator/controllers/graylog/utils"
@@ -132,7 +130,7 @@ func (r *GraylogReconciler) configureGraylog(ctx context.Context, connector *uti
 		return err
 	}
 
-	if err := connector.ManageExtractors(cr, r.checkGraylog5(cr)); err != nil {
+	if err := connector.ManageExtractors(cr); err != nil {
 		return err
 	}
 
@@ -180,7 +178,7 @@ func (r *GraylogReconciler) configureGraylog(ctx context.Context, connector *uti
 		return err
 	}
 
-	if err := connector.ManageUserAccounts(cr, r.checkGraylog5(cr)); err != nil {
+	if err := connector.ManageUserAccounts(cr); err != nil {
 		return err
 	}
 
@@ -250,11 +248,4 @@ func (r *GraylogReconciler) deleteUpgradeJobs(cr *loggingService.LoggingService)
 		}
 	}
 	return nil
-}
-
-func (r *GraylogReconciler) checkGraylog5(cr *loggingService.LoggingService) bool {
-	// Parsing of the major version of the Graylog image
-	re := regexp.MustCompile(`([0-9]+)\.([0-9]+)\.([0-9]+)`)
-	majorVersion := strings.Split(re.FindString(cr.Spec.Graylog.DockerImage), ".")[0]
-	return majorVersion == "5"
 }

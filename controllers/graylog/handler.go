@@ -68,24 +68,6 @@ func (r *GraylogReconciler) handleStatefulset(cr *loggingService.LoggingService)
 		r.Log.Error(err, "Failed creating Statefulset manifest")
 		return err
 	}
-	for i, container := range m.Spec.Template.Spec.InitContainers {
-		if container.Name == "download-plugins" {
-			var graylogVersionEnv corev1.EnvVar
-			if r.checkGraylog5(cr) {
-				graylogVersionEnv = corev1.EnvVar{
-					Name:  "GRAYLOG_VERSION",
-					Value: "5",
-				}
-			} else {
-				graylogVersionEnv = corev1.EnvVar{
-					Name:  "GRAYLOG_VERSION",
-					Value: "4",
-				}
-			}
-			m.Spec.Template.Spec.InitContainers[i].Env = append(m.Spec.Template.Spec.InitContainers[i].Env, graylogVersionEnv)
-		}
-	}
-
 	if err = r.CreateResource(cr, m); err != nil {
 		if api_errors.IsAlreadyExists(err) {
 			e := &appsv1.StatefulSet{ObjectMeta: m.ObjectMeta}

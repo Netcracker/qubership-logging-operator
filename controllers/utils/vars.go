@@ -121,21 +121,13 @@ var (
 	GraylogKubernetesLabelsExtractorAsset      = "kubernetes_labels_extractor.json"
 	GraylogDockerExtractorAsset                = "docker_extractor.json"
 	GraylogMicroserviceFrameworkExtractorAsset = "microservice_framework_extractor.json"
-	Graylog4ExtractorsBasePath                 = path.Join(GraylogConfig, "extractors/graylog_4/")
-	Graylog5ExtractorsBasePath                 = path.Join(GraylogConfig, "extractors/graylog_5/")
-	Graylog4Extractors                         = map[string]string{
-		GraylogReplaceTimestampExtractorName:      path.Join(Graylog4ExtractorsBasePath, GraylogReplaceTimestampExtractorAsset),
-		GraylogKubernetesExtractorName:            path.Join(Graylog4ExtractorsBasePath, GraylogKubernetesExtractorAsset),
-		GraylogKubernetesLabelsExtractorName:      path.Join(Graylog4ExtractorsBasePath, GraylogKubernetesLabelsExtractorAsset),
-		GraylogDockerExtractorName:                path.Join(Graylog4ExtractorsBasePath, GraylogDockerExtractorAsset),
-		GraylogMicroserviceFrameworkExtractorName: path.Join(Graylog4ExtractorsBasePath, GraylogMicroserviceFrameworkExtractorAsset),
-	}
-	Graylog5Extractors = map[string]string{
-		GraylogReplaceTimestampExtractorName:      path.Join(Graylog5ExtractorsBasePath, GraylogReplaceTimestampExtractorAsset),
-		GraylogKubernetesExtractorName:            path.Join(Graylog5ExtractorsBasePath, GraylogKubernetesExtractorAsset),
-		GraylogKubernetesLabelsExtractorName:      path.Join(Graylog5ExtractorsBasePath, GraylogKubernetesLabelsExtractorAsset),
-		GraylogDockerExtractorName:                path.Join(Graylog5ExtractorsBasePath, GraylogDockerExtractorAsset),
-		GraylogMicroserviceFrameworkExtractorName: path.Join(Graylog5ExtractorsBasePath, GraylogMicroserviceFrameworkExtractorAsset),
+	GraylogExtractorsBasePath                  = path.Join(GraylogConfig, "extractors/")
+	GraylogExtractors                          = map[string]string{
+		GraylogReplaceTimestampExtractorName:      path.Join(GraylogExtractorsBasePath, GraylogReplaceTimestampExtractorAsset),
+		GraylogKubernetesExtractorName:            path.Join(GraylogExtractorsBasePath, GraylogKubernetesExtractorAsset),
+		GraylogKubernetesLabelsExtractorName:      path.Join(GraylogExtractorsBasePath, GraylogKubernetesLabelsExtractorAsset),
+		GraylogDockerExtractorName:                path.Join(GraylogExtractorsBasePath, GraylogDockerExtractorAsset),
+		GraylogMicroserviceFrameworkExtractorName: path.Join(GraylogExtractorsBasePath, GraylogMicroserviceFrameworkExtractorAsset),
 	}
 	GraylogAuditProcessingRule              = "Route Audit logs"
 	GraylogSystemLogsProcessingRule         = "Route System logs"

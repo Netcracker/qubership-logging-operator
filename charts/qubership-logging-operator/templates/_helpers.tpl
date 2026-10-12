@@ -66,15 +66,6 @@ Create the name of the service account to use
 {{- end -}}
 
 {{/*
-Check the major version of Graylog and return 'true' if it equal 5
-*/}}
-{{- define "graylog.isMajorVersion5" -}}
-  {{- if regexMatch "^*:5\\.[0-9]+\\.[0-9]+(@sha256:[a-f0-9]{64})?$" (include "graylog.image" . ) -}}
-true
-  {{- end -}}
-{{- end -}}
-
-{{/*
 Return true if generateCerts in TLS is enabled for Graylog HTTP.
 */}}
 {{- define "graylog.http.generateCerts.enabled" -}}

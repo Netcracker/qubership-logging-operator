@@ -126,13 +126,11 @@ When deploying Graylog in the cloud, you should use only the OpenSearch or Elast
 <!-- markdownlint-disable line-length -->
 | Graylog version | Elasticsearch versions    | OpenSearch versions     |
 | --------------- | ------------------------- | ----------------------- |
-| Graylog 4.x     | `6.8.x`, `7.7.x - 7.10.x` | `1.x *`                 |
-| Graylog 5.x     | `6.8.x`, `7.10.2`         | `1.x`, `2.0.x-2.5.x **` |
+| Graylog 5.x     | `6.8.x`, `7.10.2`         | `1.x`, `2.0.x-2.5.x *`  |
 <!-- markdownlint-enable line-length -->
 where:
 
-* `*` - for Graylog 4.x OpenSearch 1.x must be deployed and run **with** compatibility mode
-* `**` - for Graylog 5.x OpenSearch 2.x must be deployed and run **without** compatibility mode
+* `*` - for Graylog 5.x OpenSearch 2.x must be deployed and run **without** compatibility mode
 
 **Note:** Graylog may not work properly with OpenSearch/Elasticsearch versions other than specified in the table above.
 

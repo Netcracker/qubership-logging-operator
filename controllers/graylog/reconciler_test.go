@@ -18,49 +18,6 @@ import (
 
 const adminSHA256 = "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918"
 
-func TestCheckGraylog5(t *testing.T) {
-	r := &GraylogReconciler{
-		ComponentReconciler: &util.ComponentReconciler{
-			Log: util.Logger("test-graylog"),
-		},
-	}
-
-	tests := []struct {
-		name     string
-		image    string
-		expected bool
-	}{
-		{"graylog 5.2.1", "graylog/graylog:5.2.1", true},
-		{"graylog 4.3.0", "graylog/graylog:4.3.0", false},
-		{"graylog 6.0.0", "graylog/graylog:6.0.0", false},
-		{"registry with port", "registry:5000/graylog:5.0.0-rc1", true},
-		{"latest tag no semver", "graylog/graylog:latest", false},
-		{"no tag at all", "graylog", false},
-		{"version 5.0.0.1 extra segments", "graylog:5.0.0.1", true},
-		{"empty image", "", false},
-		{"just version 5.0.0", "5.0.0", true},
-		// Note: regex matches first semver in the entire string, not just the tag.
-		// This is acceptable since real Docker images don't have semver in the path.
-		{"version in path picks first semver", "5.0.0/graylog:4.0.0", true},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			cr := &loggingService.LoggingService{
-				Spec: loggingService.LoggingServiceSpec{
-					Graylog: &loggingService.Graylog{
-						DockerImage: tt.image,
-					},
-				},
-			}
-			result := r.checkGraylog5(cr)
-			if result != tt.expected {
-				t.Errorf("checkGraylog5(%q) = %v, want %v", tt.image, result, tt.expected)
-			}
-		})
-	}
-}
-
 func TestSetCredentialsLoadsSecretValues(t *testing.T) {
 	r, cr := newGraylogTestReconciler(t, &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
@@ -203,6 +160,33 @@ func TestGraylogStatefulsetIgnoresDeprecatedMongoDBUpgrade(t *testing.T) {
 	}
 	if !reflect.DeepEqual(want, got) {
 		t.Fatal("mongoDBUpgrade must not change the Graylog StatefulSet")
+	}
+}
+
+func TestGraylogDownloadPluginsTargetsGraylog5ForAnyImage(t *testing.T) {
+	for _, image := range []string{"docker.io/graylog/graylog:5.2.12", "registry.example.com/graylog:custom"} {
+		t.Run(image, func(t *testing.T) {
+			_, cr := newGraylogTestReconciler(t)
+			cr.Spec.Graylog.DockerImage = image
+			cr.Spec.Graylog.MongoDBImage = "docker.io/mongo:5.0.33"
+			cr.Spec.Graylog.InitSetupImage = "docker.io/alpine:3.23.4"
+			cr.Spec.Graylog.InitContainerDockerImage = "docker.io/alpine:3.23.4"
+
+			statefulSet, err := graylogStatefulset(cr)
+			if err != nil {
+				t.Fatalf("render Graylog StatefulSet: %v", err)
+			}
+			downloadPlugins := statefulSet.Spec.Template.Spec.InitContainers[1]
+			for _, env := range downloadPlugins.Env {
+				if env.Name == "GRAYLOG_VERSION" {
+					if env.Value != "5" {
+						t.Fatalf("GRAYLOG_VERSION = %q, want 5", env.Value)
+					}
+					return
+				}
+			}
+			t.Fatal("download-plugins must set GRAYLOG_VERSION")
+		})
 	}
 }
 

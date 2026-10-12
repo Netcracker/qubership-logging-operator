@@ -176,16 +176,34 @@ func TestGraylogWorkloadsUseHardenedApplicationContainers(t *testing.T) {
 	cr.Spec.Graylog.MongoDBImage = "docker.io/mongo:5.0.33"
 	cr.Spec.Graylog.InitSetupImage = "docker.io/alpine:3.23.4"
 	cr.Spec.Graylog.InitContainerDockerImage = "docker.io/alpine:3.23.4"
+
+	assertGraylogKubernetesWorkload(t, cr)
+	cr.Spec.OpenshiftDeploy = true
+	assertGraylogOpenShiftWorkload(t, cr)
+}
+
+func TestGraylogStatefulsetIgnoresDeprecatedMongoDBUpgrade(t *testing.T) {
+	_, cr := newGraylogTestReconciler(t)
+	cr.Spec.Graylog.DockerImage = "docker.io/graylog/graylog:5.2.12"
+	cr.Spec.Graylog.MongoDBImage = "docker.io/mongo:5.0.33"
+	cr.Spec.Graylog.InitSetupImage = "docker.io/alpine:3.23.4"
+
+	want, err := graylogStatefulset(cr)
+	if err != nil {
+		t.Fatalf("render Graylog StatefulSet: %v", err)
+	}
 	cr.Spec.Graylog.MongoDBUpgrade = &loggingService.MongoDBUpgrade{
 		MongoDBImage40: "docker.io/mongo:4.0.28",
 		MongoDBImage42: "docker.io/mongo:4.2.22",
 		MongoDBImage44: "docker.io/mongo:4.4.17",
 	}
-
-	assertGraylogKubernetesWorkload(t, cr)
-	cr.Spec.OpenshiftDeploy = true
-	assertGraylogOpenShiftWorkload(t, cr)
-	assertMongoUpgradeJobs(t, cr)
+	got, err := graylogStatefulset(cr)
+	if err != nil {
+		t.Fatalf("render Graylog StatefulSet with mongoDBUpgrade: %v", err)
+	}
+	if !reflect.DeepEqual(want, got) {
+		t.Fatal("mongoDBUpgrade must not change the Graylog StatefulSet")
+	}
 }
 
 func assertGraylogKubernetesWorkload(t *testing.T, cr *loggingService.LoggingService) {
@@ -227,44 +245,6 @@ func assertGraylogOpenShiftWorkload(t *testing.T, cr *loggingService.LoggingServ
 	assertRunAsGroup(t, openShiftMongo, 1001)
 	assertRunAsGroup(t, openShiftGraylog, 1100)
 	assertGraylogDataPermissions(t, openShiftStatefulSet, true)
-}
-
-func assertMongoUpgradeJobs(t *testing.T, cr *loggingService.LoggingService) {
-	t.Helper()
-	for name, assetPath := range util.GraylogMongoUpgradeAssets {
-		t.Run(name, func(t *testing.T) {
-			assertMongoUpgradeJob(t, cr, assetPath)
-		})
-	}
-}
-
-func assertMongoUpgradeJob(t *testing.T, cr *loggingService.LoggingService, assetPath string) {
-	t.Helper()
-	job, err := graylogMongoUpgradeJob(cr, assetPath)
-	if err != nil {
-		t.Fatalf("render MongoDB upgrade Job: %v", err)
-	}
-	podSpec := job.Spec.Template.Spec
-	if podSpec.SecurityContext == nil || podSpec.SecurityContext.SeccompProfile == nil ||
-		podSpec.SecurityContext.SeccompProfile.Type != corev1.SeccompProfileTypeRuntimeDefault {
-		t.Fatal("MongoDB upgrade pod must use the RuntimeDefault seccomp profile")
-	}
-	assertHardenedContainer(t, podSpec.Containers[0], nil)
-	assertRunAsUser(t, podSpec.Containers[0], 1001)
-	assertRunAsGroup(t, podSpec.Containers[0], 1001)
-	assertPodUserAndGroup(t, podSpec.SecurityContext, 1001)
-	assertBoundedEmptyDirs(t, podSpec.Volumes)
-}
-
-func assertPodUserAndGroup(t *testing.T, context *corev1.PodSecurityContext, expected int64) {
-	t.Helper()
-	if context == nil {
-		t.Fatal("pod security context is missing")
-	}
-	if context.RunAsUser == nil || *context.RunAsUser != expected || context.RunAsGroup == nil ||
-		*context.RunAsGroup != expected {
-		t.Fatalf("pod must use UID/GID %d: %#v", expected, context)
-	}
 }
 
 func TestGraylogDoesNotMountHTTPSecretsWhenTLSIsDisabled(t *testing.T) {

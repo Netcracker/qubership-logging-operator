@@ -53,22 +53,6 @@ This configuration demonstrates:
 - Annotations for operational metadata
 - Enhanced Kubernetes integration
 
-## Migration and Upgrades
-
-### Migration to Graylog v5
-
-Configuration example for upgrading to Graylog version 5:
-
-```yaml title="graylog-migration-to-v5.yaml"
---8<-- "examples/graylog/graylog-migration-to-v5.yaml"
-```
-
-This migration configuration includes:
-
-- Version-specific parameters
-- Compatibility settings
-- Upgrade considerations
-
 ## Key Configuration Parameters
 
 | Parameter | Description | Example |
@@ -129,5 +113,4 @@ scope.
 - **Dynamic Storage**: Cloud environments with automatic provisioning
 - **Static Storage**: On-premises with predefined storage
 - **Custom Metadata**: Enhanced Kubernetes integration and organization
-- **Version Migration**: Upgrading between Graylog versions
 - **Resource Optimization**: Specific resource allocation requirements

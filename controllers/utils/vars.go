@@ -199,7 +199,6 @@ var (
 	GraylogAuditViewerUser          = path.Join(GraylogConfig, "user_accounts/auditViewer.json")
 	GraylogAdminWithTrustedHeader   = path.Join(GraylogConfig, "user_accounts/admin_with_trusted_header.json")
 	GraylogStartupTimeout           = time.Minute * 10
-	GraylogMongoUpgradeJobTimeout   = time.Minute * 2
 	GraylogLabels                   = map[string]string{"name": "graylog"}
 	GraylogSecretSelector           = "graylog=secret"
 	GraylogSecretKeyRootPasswordSHA2 = "rootPasswordSha2"
@@ -212,13 +211,6 @@ var (
 		"mongo-upgrade-job-44",
 		"mongo-upgrade-job-50",
 	}
-	GraylogMongoUpgradeAssets = map[string]string{
-		"mongo-upgrade-job-40": path.Join(BasePath, "mongo-upgrade-job-40.yaml"),
-		"mongo-upgrade-job-42": path.Join(BasePath, "mongo-upgrade-job-42.yaml"),
-		"mongo-upgrade-job-44": path.Join(BasePath, "mongo-upgrade-job-44.yaml"),
-		"mongo-upgrade-job-50": path.Join(BasePath, "mongo-upgrade-job-50.yaml"),
-	}
-	GraylogMongoUpgradeLabels = map[string]string{"name": "mongo-upgrade-job"}
 
 	ComponentPendingStatus            = "ComponentPendingStatus"
 	ComponentPendingTimeout           = time.Minute * 5

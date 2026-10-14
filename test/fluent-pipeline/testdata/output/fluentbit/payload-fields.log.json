@@ -19,7 +19,7 @@
     "parse_status": "success",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "short_message": "{\"level\":\"error\",\"source_level\":\"trace\",\"message\":\"a payload that names the fields the pipeline sets\"}",
-    "source_level": "err",
+    "source_level": "trace",
     "time": "2026-09-03T10:20:55.000007468Z"
   },
   {

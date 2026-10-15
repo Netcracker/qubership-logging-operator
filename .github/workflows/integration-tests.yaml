@@ -221,7 +221,7 @@ jobs:
           config:
             cluster.routing.allocation.disk.threshold_enabled: false
           dockerImage: ghcr.io/netcracker/qubership-docker-opensearch-${{ env.opensearch_major_version }}:${{ env.opensearch_image_version }}
-          dockerTlsInitImage: ghcr.io/netcracker/qubership-opensearch-tls-init:${{ env.opensearch_image_version }}
+          dockerTlsInitImage: ghcr.io/netcracker/qubership-opensearch-tls-init:${{ env.opensearch_version }}
         monitoring:
           enabled: false
         dbaasAdapter:

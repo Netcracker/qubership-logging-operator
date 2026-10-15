@@ -74,6 +74,7 @@
       }
     },
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "level": "info",
     "parse_format": "unknown"
   },
@@ -142,6 +143,7 @@
     "parse_status": "success",
     "nodename": "fake-node",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "source": {
       "method": "org.qubership.app.api.core.v2023_3_0.services.BatchApply/TransactionalExecute",
       "service": {
@@ -167,6 +169,7 @@
     "time": "2024-04-02T13:38:12.549768326Z",
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "level": "err",
     "hostname": "fake-fluent",
     "subject": {

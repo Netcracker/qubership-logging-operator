@@ -74,7 +74,7 @@
     },
     "short_message": "[2023-03-01 11:16:30,247: INFO/MainProcess] Task airflow.executors.celery_executor.execute_command[00000000-0000-0000-0000-000000000000] received",
     "parse_level_unknown": "true",
-    "parse_field_count": 6,
+    "parse_field_count": 7,
     "container": "fake-container",
     "namespace": "fake-namespace",
     "time": "2023-03-01T11:16:30.247007468Z",

@@ -25,6 +25,7 @@
     "id": 22315,
     "level": "info",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "context": "initandlisten",
     "parse_format": "mongodb_structured"
   },
@@ -54,6 +55,7 @@
     "id": 22430,
     "level": "info",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "context": "initandlisten",
     "parse_format": "mongodb_structured"
   },
@@ -71,6 +73,7 @@
     "time": "2025-07-08T10:53:18.438611709Z",
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "level": "info",
     "hostname": "fake-fluent",
     "nodename": "fake-node",
@@ -114,6 +117,7 @@
     "parse_format": "mongodb_structured",
     "parse_status": "success",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "short_message": "Authentication succeeded",
     "source_level": "I",
     "time": "2025-07-08T10:53:19.000007468Z"

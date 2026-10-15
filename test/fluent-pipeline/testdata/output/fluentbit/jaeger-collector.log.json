@@ -21,6 +21,7 @@
     "parse_field_count": 10,
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "route": "/metrics",
     "parse_format": "jaeger"
   },
@@ -47,6 +48,7 @@
     "parse_field_count": 11,
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "health-status": "unavailable",
     "parse_format": "jaeger"
   },
@@ -72,6 +74,7 @@
     "parse_field_count": 10,
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "version": 7,
     "parse_format": "jaeger"
   },
@@ -97,6 +100,7 @@
     "parse_field_count": 10,
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "http host-port": ":14268",
     "parse_format": "jaeger"
   },
@@ -123,6 +127,7 @@
     "parse_status": "success",
     "parse_field_count": 11,
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "container": "fake-container",
     "parse_format": "jaeger"
   },
@@ -151,6 +156,7 @@
     "short_message": "{\"level\":\"error\",\"ts\":1724654566.0687397,\"caller\":\"config/config.go:155\",\"msg\":\"Elasticsearch could not process bulk request\",\"request_count\":2,\"failed_count\":0,\"error\":\"Post \\\"https://opensearch.opensearch-service-v2.svc:9200/_bulk\\\": dial tcp 172.30.128.108:9200: connect: connection refused\",\"response\":null,\"stacktrace\":\"github.com/jaegertracing/jaeger/pkg/es/config.NewClient.func2\\n\\tgithub.com/jaegertracing/jaeger/pkg/es/config/config.go:155\\ngithub.com/olivere/elastic.(*bulkWorker).commit\\n\\tgithub.com/olivere/elastic@v6.2.37+incompatible/bulk_processor.go:588\\ngithub.com/olivere/elastic.(*bulkWorker).work\\n\\tgithub.com/olivere/elastic@v6.2.37+incompatible/bulk_processor.go:501\"}",
     "error": "Post \"https://opensearch.opensearch-service-v2.svc:9200/_bulk\": dial tcp 172.30.128.108:9200: connect: connection refused",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "level": "err",
     "parse_format": "jaeger"
   },
@@ -166,6 +172,7 @@
     "container": "fake-container",
     "msg": "Elasticsearch part of bulk request failed",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "level": "err",
     "hostname": "fake-fluent",
     "nodename": "fake-node",

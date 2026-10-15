@@ -21,6 +21,7 @@
     "pid": "7",
     "parse_field_count": 11,
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "file": "controller.go:1213",
     "parse_format": "klog"
   },
@@ -46,6 +47,7 @@
     "pid": "7",
     "parse_field_count": 11,
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "file": "controller.go:1435",
     "parse_format": "klog"
   },
@@ -71,6 +73,7 @@
     "pid": "7",
     "parse_field_count": 11,
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "file": "controller.go:190",
     "parse_format": "klog"
   },
@@ -96,6 +99,7 @@
     "pid": "7",
     "parse_field_count": 11,
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "file": "controller.go:210",
     "parse_format": "klog"
   },
@@ -121,6 +125,7 @@
     "pid": "7",
     "parse_field_count": 11,
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "file": "event.go:364",
     "parse_format": "klog"
   },
@@ -154,6 +159,7 @@
     "path": "/opensearch?prefix=backup-storage%2F20240620T230000%2F.lock&max-keys=1&encoding-type=url",
     "request_time": "0.002",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "labels": {
       "metadata.app.kubernetes.io/version": "0.1.0",
       "metadata.app": "fluent-pipeline-test"
@@ -192,6 +198,7 @@
     "path": "/api/v1/namespace",
     "request_time": "0.025",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "labels": {
       "metadata.app.kubernetes.io/version": "0.1.0",
       "metadata.app": "fluent-pipeline-test"

@@ -23,6 +23,7 @@
     "container": "fake-container",
     "thread": "main",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "level": "warning",
     "parse_format": "java"
   },
@@ -51,6 +52,7 @@
     "container": "fake-container",
     "thread": "main",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "level": "info",
     "parse_format": "java"
   },
@@ -79,6 +81,7 @@
     "container": "fake-container",
     "thread": "Thread-7",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "level": "warning",
     "parse_format": "java"
   },
@@ -107,6 +110,7 @@
     "container": "fake-container",
     "thread": "Thread-7",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "level": "warning",
     "parse_format": "java"
   },
@@ -135,6 +139,7 @@
     "container": "fake-container",
     "thread": "bss-probe",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "level": "err",
     "parse_format": "java"
   },
@@ -162,6 +167,7 @@
     "container": "fake-container",
     "thread": "main",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "level": "info",
     "parse_format": "java"
   },
@@ -204,6 +210,7 @@
     "time": "2024-06-18T23:28:10.987007468Z",
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "level": "info",
     "hostname": "fake-fluent",
     "originating_bi_id": "00000000-0000-0000-0000-000000000000",

@@ -19,6 +19,7 @@
     "level": "info",
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "parse_field_count": 9,
     "parse_format": "unknown"
   },
@@ -42,6 +43,7 @@
     "level": "info",
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "parse_field_count": 9,
     "parse_format": "unknown"
   },
@@ -65,6 +67,7 @@
     "level": "warning",
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "parse_field_count": 9,
     "parse_format": "unknown"
   },
@@ -88,6 +91,7 @@
     "parse_status": "success",
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "namespace": "fake-namespace",
     "level": "warning",
     "parse_format": "unknown"

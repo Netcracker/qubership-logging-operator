@@ -23,6 +23,7 @@
     "parse_field_count": 13,
     "tenant_id": "t1",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "time": "2024-03-15T08:12:33.456007468Z",
     "parse_format": "qubership"
   },
@@ -50,6 +51,7 @@
     "parse_field_count": 13,
     "tenant_id": "-",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "time": "2024-03-15T09:15:23.200008804Z",
     "parse_format": "qubership"
   },
@@ -77,6 +79,7 @@
     "parse_field_count": 13,
     "tenant_id": "a5b6",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "time": "2024-03-15T09:15:26.500008804Z",
     "parse_format": "qubership"
   },
@@ -104,6 +107,7 @@
     "parse_field_count": 13,
     "tenant_id": "-",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "time": "2024-03-15T09:15:31.000008804Z",
     "parse_format": "qubership"
   },
@@ -118,6 +122,7 @@
     "time": "2024-03-15T10:20:42.345008804Z",
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "level": "err",
     "hostname": "fake-fluent",
     "request_id": "8t9u0v1w-2x3y",

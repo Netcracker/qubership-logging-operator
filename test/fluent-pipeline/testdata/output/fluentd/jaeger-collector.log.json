@@ -169,5 +169,21 @@
     "kubernetes_host": "fake-node",
     "nc_audit_label": "false",
     "fluentd_time": "2024-08-23T07:21:45.242Z"
+  },
+  {
+    "_test": {
+      "id": "jaeger-unparsed-text",
+      "partial": true
+    },
+    "time": "2026-10-05T10:00:01.000000001Z",
+    "log": "[2026-10-05] unable to initialize storage"
+  },
+  {
+    "_test": {
+      "id": "jaeger-invalid-json",
+      "partial": true
+    },
+    "time": "2026-10-05T10:00:02.000000001Z",
+    "log": "{\"msg\":\"broken JSON\",}"
   }
 ]

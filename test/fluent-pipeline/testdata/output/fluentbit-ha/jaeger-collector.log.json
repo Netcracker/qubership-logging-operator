@@ -5,7 +5,7 @@
     },
     "parse_status": "success",
     "time": "2024-08-23T07:21:45.242027473Z",
-    "short_message": "{\"level\":\"info\",\"ts\":1724397681.6182842,\"caller\":\"flags/service.go:110\",\"msg\":\"Mounting metrics handler on admin server\",\"route\":\"/metrics\"}",
+    "short_message": "Mounting metrics handler on admin server",
     "nodename": "fake-node",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
@@ -18,11 +18,10 @@
     "route": "/metrics",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "detected_level": "info",
-    "msg": "Mounting metrics handler on admin server",
     "container": "fake-container",
     "level": "info",
     "source_level": "info",
-    "parse_format": "jaeger"
+    "parse_format": "json"
   },
   {
     "_test": {
@@ -30,7 +29,7 @@
     },
     "parse_status": "success",
     "http.host-port": "[::]:14269",
-    "short_message": "{\"level\":\"info\",\"ts\":1724397681.6206834,\"caller\":\"flags/admin.go:122\",\"msg\":\"Admin server started\",\"http.host-port\":\"[::]:14269\",\"health-status\":\"unavailable\"}",
+    "short_message": "Admin server started",
     "nodename": "fake-node",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
@@ -39,7 +38,6 @@
     "namespace": "fake-namespace",
     "caller": "flags/admin.go:122",
     "parse_field_count": 13,
-    "msg": "Admin server started",
     "container": "fake-container",
     "detected_level": "info",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
@@ -48,7 +46,7 @@
     "level": "info",
     "health-status": "unavailable",
     "source_level": "info",
-    "parse_format": "jaeger"
+    "parse_format": "json"
   },
   {
     "_test": {
@@ -56,7 +54,7 @@
     },
     "parse_status": "success",
     "time": "2024-08-23T07:21:45.242129580Z",
-    "short_message": "{\"level\":\"info\",\"ts\":1724397681.6648026,\"caller\":\"config/config.go:192\",\"msg\":\"Elasticsearch detected\",\"version\":7}",
+    "short_message": "Elasticsearch detected",
     "nodename": "fake-node",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
@@ -69,11 +67,10 @@
     "level": "info",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "detected_level": "info",
-    "msg": "Elasticsearch detected",
     "version": 7,
     "container": "fake-container",
     "source_level": "info",
-    "parse_format": "jaeger"
+    "parse_format": "json"
   },
   {
     "_test": {
@@ -81,7 +78,7 @@
     },
     "parse_status": "success",
     "time": "2024-08-23T07:21:45.242429580Z",
-    "short_message": "{\"level\":\"info\",\"ts\":1724397681.7368004,\"caller\":\"server/http.go:56\",\"msg\":\"Starting jaeger-collector HTTP server\",\"http host-port\":\":14268\"}",
+    "short_message": "Starting jaeger-collector HTTP server",
     "http host-port": ":14268",
     "nodename": "fake-node",
     "labels": {
@@ -95,10 +92,9 @@
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "detected_level": "info",
-    "msg": "Starting jaeger-collector HTTP server",
     "level": "info",
     "source_level": "info",
-    "parse_format": "jaeger"
+    "parse_format": "json"
   },
   {
     "_test": {
@@ -106,7 +102,7 @@
     },
     "feature gate ID": "component.UseLocalHostAsDefaultHost",
     "parse_status": "success",
-    "short_message": "{\"level\":\"warn\",\"ts\":1724397681.7370617,\"caller\":\"internal@v0.102.1/warning.go:42\",\"msg\":\"Using the 0.0.0.0 address exposes this server to every network interface, which may facilitate Denial of Service attacks. Enable the feature gate to change the default and remove this warning.\",\"documentation\":\"https://github.com/open-telemetry/opentelemetry-collector/blob/main/docs/security-best-practices.md#safeguards-against-denial-of-service-attacks\",\"feature gate ID\":\"component.UseLocalHostAsDefaultHost\"}",
+    "short_message": "Using the 0.0.0.0 address exposes this server to every network interface, which may facilitate Denial of Service attacks. Enable the feature gate to change the default and remove this warning.",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
       "metadata.app.kubernetes.io/version": "0.1.0"
@@ -114,7 +110,6 @@
     "nodename": "fake-node",
     "namespace": "fake-namespace",
     "caller": "internal@v0.102.1/warning.go:42",
-    "msg": "Using the 0.0.0.0 address exposes this server to every network interface, which may facilitate Denial of Service attacks. Enable the feature gate to change the default and remove this warning.",
     "detected_level": "warn",
     "documentation": "https://github.com/open-telemetry/opentelemetry-collector/blob/main/docs/security-best-practices.md#safeguards-against-denial-of-service-attacks",
     "time": "2024-08-23T07:21:45.242488570Z",
@@ -124,7 +119,7 @@
     "container": "fake-container",
     "level": "warning",
     "source_level": "warn",
-    "parse_format": "jaeger"
+    "parse_format": "json"
   },
   {
     "_test": {
@@ -142,7 +137,6 @@
     "nodename": "fake-node",
     "namespace": "fake-namespace",
     "caller": "config/config.go:155",
-    "msg": "Elasticsearch could not process bulk request",
     "detected_level": "error",
     "error": "Post \"https://opensearch.opensearch-service-v2.svc:9200/_bulk\": dial tcp 172.30.128.108:9200: connect: connection refused",
     "level": "err",
@@ -150,9 +144,9 @@
     "parse_field_count": 15,
     "hostname": "fake-fluent",
     "container": "fake-container",
-    "short_message": "{\"level\":\"error\",\"ts\":1724654566.0687397,\"caller\":\"config/config.go:155\",\"msg\":\"Elasticsearch could not process bulk request\",\"request_count\":2,\"failed_count\":0,\"error\":\"Post \\\"https://opensearch.opensearch-service-v2.svc:9200/_bulk\\\": dial tcp 172.30.128.108:9200: connect: connection refused\",\"response\":null,\"stacktrace\":\"github.com/jaegertracing/jaeger/pkg/es/config.NewClient.func2\\n\\tgithub.com/jaegertracing/jaeger/pkg/es/config/config.go:155\\ngithub.com/olivere/elastic.(*bulkWorker).commit\\n\\tgithub.com/olivere/elastic@v6.2.37+incompatible/bulk_processor.go:588\\ngithub.com/olivere/elastic.(*bulkWorker).work\\n\\tgithub.com/olivere/elastic@v6.2.37+incompatible/bulk_processor.go:501\"}",
+    "short_message": "Elasticsearch could not process bulk request",
     "source_level": "error",
-    "parse_format": "jaeger"
+    "parse_format": "json"
   },
   {
     "_test": {
@@ -169,10 +163,9 @@
     "namespace": "fake-namespace",
     "caller": "config/config.go:139",
     "detected_level": "error",
-    "msg": "Elasticsearch part of bulk request failed",
     "map-key": "index",
     "level": "err",
-    "short_message": "{\"level\":\"error\",\"ts\":1724860356.2803042,\"caller\":\"config/config.go:139\",\"msg\":\"Elasticsearch part of bulk request failed\",\"map-key\":\"index\",\"response\":{\"_index\":\"jaeger-span-2024-08-28\",\"_id\":\"cNKvmZEBzWAsmkWObM1n\",\"status\":500,\"error\":{\"type\":\"retry_on_primary_exception\",\"reason\":\"shard is not in primary mode\",\"index\":\"jaeger-span-2024-08-28\",\"caused_by\":{\"index\":\"jaeger-span-2024-08-28\",\"index_uuid\":\"kFmn8Cu5RsaUIDuphvJOhg\",\"reason\":\"CurrentState[STARTED] shard is not in primary mode\",\"shard\":\"1\",\"type\":\"shard_not_in_primary_mode_exception\"}}},\"stacktrace\":\"github.com/jaegertracing/jaeger/pkg/es/config.NewClient.func2\\n\\tgithub.com/jaegertracing/jaeger/pkg/es/config/config.go:139\\ngithub.com/olivere/elastic.(*bulkWorker).commit\\n\\tgithub.com/olivere/elastic@v6.2.37+incompatible/bulk_processor.go:588\\ngithub.com/olivere/elastic.(*bulkWorker).work\\n\\tgithub.com/olivere/elastic@v6.2.37+incompatible/bulk_processor.go:501\"}",
+    "short_message": "Elasticsearch part of bulk request failed",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "parse_field_count": 14,
     "hostname": "fake-fluent",
@@ -195,6 +188,26 @@
       }
     },
     "source_level": "error",
-    "parse_format": "jaeger"
+    "parse_format": "json"
+  },
+  {
+    "_test": {
+      "id": "jaeger-unparsed-text",
+      "partial": true
+    },
+    "time": "2026-10-05T10:00:01.000000001Z",
+    "parse_status": "failed",
+    "parse_format": "unknown",
+    "short_message": "[2026-10-05] unable to initialize storage"
+  },
+  {
+    "_test": {
+      "id": "jaeger-invalid-json",
+      "partial": true
+    },
+    "time": "2026-10-05T10:00:02.000000001Z",
+    "parse_status": "failed",
+    "parse_format": "unknown",
+    "short_message": "{\"msg\":\"broken JSON\",}"
   }
 ]

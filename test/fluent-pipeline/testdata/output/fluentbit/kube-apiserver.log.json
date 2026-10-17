@@ -18,7 +18,6 @@
       "metadata.app": "fluent-pipeline-test"
     },
     "parse_status": "success",
-    "parse_field_count": 11,
     "file": "reflector.go:424",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "hostname": "fake-fluent",
@@ -43,7 +42,6 @@
       "metadata.app": "fluent-pipeline-test"
     },
     "parse_status": "success",
-    "parse_field_count": 11,
     "file": "controller.go:1213",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "hostname": "fake-fluent",

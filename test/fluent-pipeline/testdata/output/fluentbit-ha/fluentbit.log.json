@@ -11,7 +11,6 @@
       "metadata.app": "fluent-pipeline-test",
       "metadata.app.kubernetes.io/version": "0.1.0"
     },
-    "parse_field_count": 12,
     "short_message": "buffer overflow detected, old records will be dropped",
     "level": "warning",
     "time": "2023-11-15T08:30:47.456007468Z",
@@ -35,7 +34,6 @@
       "metadata.app": "fluent-pipeline-test",
       "metadata.app.kubernetes.io/version": "0.1.0"
     },
-    "parse_field_count": 12,
     "short_message": "HTTP Status=200 URL=http://example.com/api",
     "level": "debug",
     "time": "2023-11-15T08:30:48.456007468Z",
@@ -59,7 +57,6 @@
       "metadata.app": "fluent-pipeline-test",
       "metadata.app.kubernetes.io/version": "0.1.0"
     },
-    "parse_field_count": 12,
     "short_message": "Filter plugin 'grep' initialized",
     "level": "info",
     "time": "2023-11-15T08:30:49.456007468Z",
@@ -83,7 +80,6 @@
       "metadata.app": "fluent-pipeline-test",
       "metadata.app.kubernetes.io/version": "0.1.0"
     },
-    "parse_field_count": 12,
     "short_message": "Elasticsearch connection failed, retrying in 30 seconds",
     "level": "err",
     "time": "2023-11-15T08:30:50.456007468Z",
@@ -107,7 +103,6 @@
       "metadata.app": "fluent-pipeline-test",
       "metadata.app.kubernetes.io/version": "0.1.0"
     },
-    "parse_field_count": 12,
     "short_message": "Unexpected signal 11 (Segmentation fault) received",
     "level": "crit",
     "time": "2023-11-15T08:30:52.456007468Z",

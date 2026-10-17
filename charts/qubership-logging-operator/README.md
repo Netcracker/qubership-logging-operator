@@ -730,6 +730,15 @@ false
 			<td>A docker image to use for ConfigMap Reload daemon set. dockerImage: ghcr.io/jimmidyson/configmap-reload:v0.15.0 The resources describe to compute resource requests and limits for single Pods. Ref: https://kubernetes.io/docs/user-guide/compute-resources/</td>
 		</tr>
 		<tr>
+			<td>fluentbit.collectOwnLogs</td>
+			<td>bool</td>
+			<td><pre lang="json">
+false
+</pre>
+</td>
+			<td>Collect logs from FluentBit collector pods. Enable only when you need their logs in the output pipeline.</td>
+		</tr>
+		<tr>
 			<td>fluentbit.containerLogging</td>
 			<td>bool</td>
 			<td><pre lang="json">

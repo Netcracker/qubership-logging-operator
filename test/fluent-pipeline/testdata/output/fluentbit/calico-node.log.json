@@ -20,7 +20,7 @@
     "namespace": "fake-namespace",
     "nodename": "fake-node",
     "out_interface": "eth1",
-    "parse_field_count": 22,
+    "parse_field_count": 23,
     "parse_format": "unknown",
     "parse_level_unknown": "true",
     "parse_status": "success",
@@ -32,6 +32,7 @@
     "src_namespace": "demo",
     "src_pod": "source-pod",
     "src_port": "12345",
+    "stdio_stream": "stdout",
     "time": "2026-09-03T10:20:48.000007468Z",
     "ttl": "64",
     "type_of_service": "0x00",
@@ -51,12 +52,13 @@
     "level": "info",
     "namespace": "fake-namespace",
     "nodename": "fake-node",
-    "parse_field_count": 6,
+    "parse_field_count": 7,
     "parse_format": "unknown",
     "parse_level_unknown": "true",
     "parse_status": "failed",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "short_message": "Sep 3 10:20:48 node-1 kernel: packet dropped",
+    "stdio_stream": "stdout",
     "time": "2026-09-03T10:20:48.500007468Z"
   }
 ]

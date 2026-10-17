@@ -8,6 +8,15 @@ import (
 	util "github.com/Netcracker/qubership-logging-operator/controllers/utils"
 )
 
+func assertRawLogFallbackAfterPlaceholder(t *testing.T, normalizedConfig, originalConfig string) {
+	t.Helper()
+	placeholderIndex := strings.Index(normalizedConfig, `Set short_message "<Empty message>"`)
+	copyIndex := strings.Index(normalizedConfig, "Copy log short_message")
+	if placeholderIndex == -1 || copyIndex <= placeholderIndex {
+		t.Errorf("expected the raw-log fallback after the Qubership placeholder, got:\n%s", originalConfig)
+	}
+}
+
 func TestForwarderConfigMapStorageProfiles(t *testing.T) {
 	tests := []struct {
 		name                  string
@@ -66,5 +75,112 @@ func TestForwarderConfigMapStorageProfiles(t *testing.T) {
 					configMap.Data["filter-concat.conf"])
 			}
 		})
+	}
+}
+
+func TestAggregatorGeneralizedQubershipParserAndEmptyMessagePlaceholder(t *testing.T) {
+	cr := &loggingService.LoggingService{Spec: loggingService.LoggingServiceSpec{
+		Fluentbit: &loggingService.Fluentbit{Aggregator: &loggingService.FluentbitAggregator{}},
+	}}
+	secret, err := aggregatorConfigSecret(cr, util.DynamicParameters{}, aggregatorOutputCredentials{})
+	if err != nil {
+		t.Fatalf("render Fluent Bit aggregator config Secret: %v", err)
+	}
+
+	genericConfig := string(secret.Data["filter-generic.conf"])
+	if !strings.Contains(genericConfig, "Parser         qubership") {
+		t.Errorf("expected the generalized Qubership parser in the generic filter, got:\n%s", genericConfig)
+	}
+	normalizedGenericConfig := strings.Join(strings.Fields(genericConfig), " ")
+	if !strings.Contains(normalizedGenericConfig,
+		`Match_Regex ^pods(?!.*opensearch-\d{1,2}_).* Key_Name log Parser qubership`) {
+		t.Errorf("expected the generalized Qubership parser to exclude OpenSearch tags, got:\n%s", genericConfig)
+	}
+	if !strings.Contains(genericConfig, "Parser         json") {
+		t.Errorf("expected the generic JSON parser to remain enabled, got:\n%s", genericConfig)
+	}
+	if strings.Contains(genericConfig, "Parser         java") {
+		t.Errorf("unexpected Java parser in the generic filter:\n%s", genericConfig)
+	}
+	parsersConfig := string(secret.Data["parsers.conf"])
+	if strings.Contains(parsersConfig, "\n    Name        java\n") {
+		t.Errorf("unexpected separate Java parser definition:\n%s", parsersConfig)
+	}
+	if !strings.Contains(parsersConfig, `(?<__qubership_candidate>\[)`) {
+		t.Errorf("expected the Qubership parser to emit a match marker, got:\n%s", parsersConfig)
+	}
+	if !strings.Contains(parsersConfig, `(?<short_message>[\s\S]*)`) {
+		t.Errorf("expected the Qubership parser to allow an empty message, got:\n%s", parsersConfig)
+	}
+	if !strings.Contains(parsersConfig, `\]\s*)*(?<short_message>`) {
+		t.Errorf("expected the generalized Qubership parser to allow zero key-value pairs, got:\n%s", parsersConfig)
+	}
+
+	postGenericConfig := string(secret.Data["filter-post-generic.conf"])
+	normalizedPostGenericConfig := strings.Join(strings.Fields(postGenericConfig), " ")
+	for _, configName := range []string{"filter-validate.conf", "filter-post-generic.conf"} {
+		config := string(secret.Data[configName])
+		normalizedConfig := strings.Join(strings.Fields(config), " ")
+		cleanupIndex := strings.Index(normalizedConfig, "Condition Key_exists __qubership_candidate")
+		parseIndex := strings.Index(normalizedConfig, "kv_parse")
+		if cleanupIndex == -1 || parseIndex == -1 || cleanupIndex > parseIndex ||
+			!strings.Contains(normalizedConfig, "Condition Key_value_does_not_match log") ||
+			!strings.Contains(normalizedConfig, `^\[\d{4}-\d{2}-\d{2}[Tt\x20]\d{2}:\d{2}:\d{2}`) ||
+			!strings.Contains(normalizedConfig, "Remove __qubership_candidate") {
+			t.Errorf("expected non-Qubership marker cleanup before key-value parsing in %s, got:\n%s", configName, config)
+		}
+	}
+	for _, expected := range []string{
+		"Match pods* Condition Key_exists __qubership_candidate Set parse_format qubership",
+		"Match pods* Condition Key_value_equals parse_format qubership",
+		"Condition Key_exists __qubership_candidate",
+		"Condition Key_value_equals parse_format qubership",
+		"Condition Key_does_not_exist short_message",
+		`Set short_message "<Empty message>"`,
+		"Copy log short_message",
+		"Remove_key __qubership_candidate",
+	} {
+		if !strings.Contains(normalizedPostGenericConfig, expected) {
+			t.Errorf("expected %q in the post-generic config, got:\n%s", expected, postGenericConfig)
+		}
+	}
+	if strings.Contains(normalizedPostGenericConfig,
+		"Match_regex (pods|klog).* Condition Key_exists __qubership_candidate Set parse_format qubership") {
+		t.Errorf("unexpected Qubership classification for rewritten klog records:\n%s", postGenericConfig)
+	}
+	if strings.Contains(postGenericConfig, "qubership_short_message_missing") {
+		t.Errorf("unexpected missing-message marker in the post-generic config:\n%s", postGenericConfig)
+	}
+	for _, unexpected := range []string{
+		"Set parse_format java",
+		"Condition Key_exists tenant_id",
+		"Condition Key_exists thread",
+		"Condition Key_exists request_id",
+		"Condition Key_exists class",
+	} {
+		if strings.Contains(normalizedPostGenericConfig, unexpected) {
+			t.Errorf("unexpected %q in the post-generic config:\n%s", unexpected, postGenericConfig)
+		}
+	}
+	assertRawLogFallbackAfterPlaceholder(t, normalizedPostGenericConfig, postGenericConfig)
+}
+
+func TestAggregatorQubershipKeyValueParserGuard(t *testing.T) {
+	cr := &loggingService.LoggingService{Spec: loggingService.LoggingServiceSpec{
+		Fluentbit: &loggingService.Fluentbit{Aggregator: &loggingService.FluentbitAggregator{}},
+	}}
+	secret, err := aggregatorConfigSecret(cr, util.DynamicParameters{}, aggregatorOutputCredentials{})
+	if err != nil {
+		t.Fatalf("render Fluent Bit aggregator config Secret: %v", err)
+	}
+	script := string(secret.Data["parse_key_value.lua"])
+
+	if !strings.Contains(script, `if record["__qubership_candidate"] == nil then`) {
+		t.Errorf("expected key-value parsing to require a Qubership parser marker, got:\n%s", script)
+	}
+	nilGuardIndex := strings.Index(script, "if kvs_position == nil then")
+	sliceIndex := strings.Index(script, "string.sub(s, 1, kvs_position)")
+	if nilGuardIndex == -1 || sliceIndex == -1 || nilGuardIndex > sliceIndex {
+		t.Errorf("expected a missing key-value boundary to be handled before slicing, got:\n%s", script)
 	}
 }

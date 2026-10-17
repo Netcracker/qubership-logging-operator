@@ -7,7 +7,7 @@
     "hostname": "fake-fluent",
     "detected_level": "info",
     "source_level": "INFO",
-    "short_message": "[\"app.qubership.org/application=app\"] it is example of bill cycle log message",
+    "short_message": "it is example of bill cycle log message",
     "date": "2024-07-20T11:51:31.234",
     "time": "2024-07-20T11:51:31.234007468Z",
     "nodename": "fake-node",
@@ -19,8 +19,8 @@
     "level": "info",
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
-    "parse_field_count": 9,
-    "parse_format": "unknown"
+    "parse_field_count": 10,
+    "parse_format": "qubership"
   },
   {
     "_test": {
@@ -30,7 +30,7 @@
     "hostname": "fake-fluent",
     "detected_level": "info",
     "source_level": "INFO",
-    "short_message": "[\"app.kubernetes.io/part-of=app\"] it is example of bill cycle log message",
+    "short_message": "it is example of bill cycle log message",
     "date": "2024-07-20T11:51:32.234",
     "time": "2024-07-20T11:51:32.234007468Z",
     "nodename": "fake-node",
@@ -42,8 +42,8 @@
     "level": "info",
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
-    "parse_field_count": 9,
-    "parse_format": "unknown"
+    "parse_field_count": 10,
+    "parse_format": "qubership"
   },
   {
     "_test": {
@@ -53,7 +53,7 @@
     "hostname": "fake-fluent",
     "detected_level": "warn",
     "source_level": "WARN",
-    "short_message": "[\"app.kubernetes.io/part-of=app\"] it is example of bill cycle log message",
+    "short_message": "it is example of bill cycle log message",
     "date": "2024-07-20T11:51:33.234",
     "time": "2024-07-20T11:51:33.234007468Z",
     "nodename": "fake-node",
@@ -65,8 +65,8 @@
     "level": "warning",
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
-    "parse_field_count": 9,
-    "parse_format": "unknown"
+    "parse_field_count": 10,
+    "parse_format": "qubership"
   },
   {
     "_test": {
@@ -74,7 +74,7 @@
     },
     "detected_level": "warn",
     "hostname": "fake-fluent",
-    "short_message": "[app.kubernetes.io/part-of=app] it is example of bill cycle log message but without quotes inside the label part-of",
+    "short_message": "it is example of bill cycle log message but without quotes inside the label part-of",
     "nodename": "fake-node",
     "parse_field_count": 10,
     "source_level": "WARN",
@@ -90,6 +90,6 @@
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "namespace": "fake-namespace",
     "level": "warning",
-    "parse_format": "unknown"
+    "parse_format": "qubership"
   }
 ]

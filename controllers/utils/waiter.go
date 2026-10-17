@@ -18,38 +18,6 @@ const (
 	TerminatingPodTimeout = time.Minute * 2
 )
 
-func (manager *PodManager) WaitForJobSucceeded(jobName string, timeout time.Duration) (bool, error) {
-	var initialTime = time.Now()
-	var isSucceeded = false
-
-	manager.log.Info(fmt.Sprintf("Wait for %s job is succeeded", jobName))
-	err := wait.PollUntilContextTimeout(context.TODO(), Interval, timeout, true, func(ctx context.Context) (bool, error) {
-		isJobSucceeded, err := manager.IsJobSucceeded(jobName)
-		isSucceeded = isJobSucceeded
-		if err != nil {
-			return false, err
-		}
-
-		if isSucceeded {
-			manager.log.Info(fmt.Sprintf("Job %s sucessfully finished in %s",
-				jobName, time.Since(initialTime)))
-			return true, err
-		}
-
-		return false, err
-	})
-
-	if err != nil {
-		if wait.Interrupted(err) {
-			return isSucceeded, nil
-		} else {
-			return isSucceeded, err
-		}
-	}
-
-	return isSucceeded, nil
-}
-
 func (manager *PodManager) WaitForStatefulsetUpdated(serviceName string, timeout time.Duration) (bool, error) {
 	var initialTime = time.Now()
 	var isAvailable = false

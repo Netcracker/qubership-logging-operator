@@ -7,8 +7,6 @@ OpenSearch as storage.
 * Graylog >= 4.3 required. We include it in Logging since:
   * Either `Logging Application` >= **v.10.9.0**
   * Or `logging-operator` >= **13.4.0**
-* OpenSearch 2.x **isn't officially supported** by Graylog 4.x. See offical documenation
-  [Upgradiing to OpenSearch](https://go2docs.graylog.org/4-x/planning_your_deployment/upgrading_to_opensearch_-_installation.htm?Highlight=Opensearch)
 * Recommended use OpenSearch with resources not less that:
   * CPU: >= 2 cores
   * Memory: >= 8 Gb

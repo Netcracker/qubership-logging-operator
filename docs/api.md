@@ -2764,6 +2764,7 @@ MongoDBUpgrade
 </em>
 </td>
 <td>
+<p>Deprecated: the operator ignores this field. It will be removed in a future release.</p>
 </td>
 </tr>
 <tr>
@@ -4402,7 +4403,9 @@ string
 (<em>Appears on:</em><a href="#logging.netcracker.com/v1.Graylog">Graylog</a>)
 </p>
 <div>
-<p>MongoDBUpgrade is used for the sequential MongoDB upgrading from 3.6 to 5.0</p>
+<p>MongoDBUpgrade held the images for the step-by-step MongoDB upgrade from 3.6 to 5.0.</p>
+<p>Deprecated: the operator no longer runs the upgrade and ignores these fields.
+The type will be removed in a future release.</p>
 </div>
 <table>
 <thead>

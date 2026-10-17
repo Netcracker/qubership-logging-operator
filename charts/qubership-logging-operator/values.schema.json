@@ -3466,7 +3466,8 @@
                     "type": "string"
                 },
                 "mongoUpgrade": {
-                    "description": "Activates automatic step-by-step upgrade of the MongoDB database.",
+                    "deprecated": true,
+                    "description": "Deprecated and ignored. The automatic step-by-step upgrade of the MongoDB database was removed.",
                     "type": "boolean"
                 },
                 "mongodbImage": {

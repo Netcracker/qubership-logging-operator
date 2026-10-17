@@ -6,7 +6,6 @@ import (
 
 	"github.com/go-logr/logr"
 	appsv1 "k8s.io/api/apps/v1"
-	batchv1 "k8s.io/api/batch/v1"
 	core "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/labels"
@@ -165,20 +164,4 @@ func (manager *PodManager) IsStatefulsetReplicasSynchronised(serviceName string)
 		serviceName, ss.Status.Replicas, ss.Status.ReadyReplicas, *ss.Spec.Replicas))
 
 	return ss.Status.Replicas == *ss.Spec.Replicas && ss.Status.ReadyReplicas == *ss.Spec.Replicas, nil
-}
-
-func (manager *PodManager) IsJobSucceeded(jobName string) (bool, error) {
-	job := &batchv1.Job{}
-
-	err := manager.client.Get(context.TODO(), types.NamespacedName{
-		Name: jobName, Namespace: manager.namespace,
-	}, job)
-	if err != nil {
-		return false, err
-	}
-
-	manager.log.V(Debug).Info(fmt.Sprintf("Job: %s. RunningPods: %d, FailedPods: %d, SucceededPods: %d.",
-		jobName, job.Status.Active, job.Status.Failed, job.Status.Succeeded))
-
-	return job.Status.Active == 0 && job.Status.Succeeded == *job.Spec.Completions, nil
 }

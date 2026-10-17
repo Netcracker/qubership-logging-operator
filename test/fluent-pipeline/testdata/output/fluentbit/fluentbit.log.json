@@ -20,7 +20,8 @@
     "level": "warning",
     "namespace": "fake-namespace",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
-    "parse_field_count": 10,
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
+    "parse_field_count": 11,
     "parse_format": "fluentbit"
   },
   {
@@ -44,7 +45,8 @@
     "level": "debug",
     "namespace": "fake-namespace",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
-    "parse_field_count": 10,
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
+    "parse_field_count": 11,
     "parse_format": "fluentbit"
   },
   {
@@ -68,7 +70,8 @@
     "level": "info",
     "namespace": "fake-namespace",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
-    "parse_field_count": 10,
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
+    "parse_field_count": 11,
     "parse_format": "fluentbit"
   },
   {
@@ -92,7 +95,8 @@
     "level": "err",
     "namespace": "fake-namespace",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
-    "parse_field_count": 10,
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
+    "parse_field_count": 11,
     "parse_format": "fluentbit"
   },
   {
@@ -116,7 +120,8 @@
     "level": "crit",
     "namespace": "fake-namespace",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
-    "parse_field_count": 10,
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
+    "parse_field_count": 11,
     "parse_format": "fluentbit"
   }
 ]

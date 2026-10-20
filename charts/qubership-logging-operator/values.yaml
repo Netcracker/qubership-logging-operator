@@ -1479,7 +1479,8 @@ fluentbit:
         # keyPasswd: secret
 
       routing:
-        # -- Enables streams routing filters for Http output.
+        # -- Enables streams routing filters for Http output. The exact tags `out_audit`, `out_system`,
+        # `out_pods`, `out_nginx`, `out_k8s_event`, `out_access`, `out_int`, and `out_default` are reserved.
         enabled: false
 
         # -- Header which is used by vmauth in routing rules to different vlsingle instances.
@@ -1897,7 +1898,8 @@ fluentbit:
 
         routing:
 
-          # -- Enables streams routing filters for Http output.
+          # -- Enables streams routing filters for Http output. The exact tags `out_audit`, `out_system`,
+          # `out_pods`, `out_nginx`, `out_k8s_event`, `out_access`, `out_int`, and `out_default` are reserved.
           enabled: false
 
           # -- Header which is used by vmauth in routing rules to different vlsingle instances.

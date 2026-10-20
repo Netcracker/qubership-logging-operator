@@ -5,7 +5,6 @@
     },
     "message": "Back-off pulling image \"ghcr.io/netcracker/qubership-disaster-recovery-daemon:v0.4.5\"",
     "involvedObjectKind": "Pod",
-    "parse_field_count": 13,
     "involvedObjectName": "rabbitmq-operator-59d457d796-xh27k",
     "namespace": "fake-namespace",
     "time": "2024-06-11T07:40:20.272007468Z",

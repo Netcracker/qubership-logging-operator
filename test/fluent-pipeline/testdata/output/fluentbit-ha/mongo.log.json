@@ -4,6 +4,7 @@
       "id": "mongo-1"
     },
     "date": "2025-07-08T10:53:16.089+00:00",
+    "stdio_stream": "stdout",
     "time": "2025-07-08T10:53:16.090040268Z",
     "id": 22315,
     "context": "initandlisten",
@@ -17,7 +18,7 @@
       "metadata.app.kubernetes.io/version": "0.1.0"
     },
     "namespace": "fake-namespace",
-    "parse_field_count": 15,
+    "parse_field_count": 16,
     "hostname": "fake-fluent",
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
@@ -33,6 +34,7 @@
       "id": "mongo-2"
     },
     "date": "2025-07-08T10:53:18.438+00:00",
+    "stdio_stream": "stdout",
     "time": "2025-07-08T10:53:18.438549961Z",
     "id": 22430,
     "context": "initandlisten",
@@ -46,7 +48,7 @@
       "metadata.app.kubernetes.io/version": "0.1.0"
     },
     "namespace": "fake-namespace",
-    "parse_field_count": 15,
+    "parse_field_count": 16,
     "hostname": "fake-fluent",
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
@@ -62,6 +64,7 @@
       "id": "mongo-3"
     },
     "date": "2025-07-08T10:53:18.438+00:00",
+    "stdio_stream": "stdout",
     "time": "2025-07-08T10:53:18.438611709Z",
     "id": 22430,
     "context": "initandlisten",
@@ -75,7 +78,7 @@
       "metadata.app.kubernetes.io/version": "0.1.0"
     },
     "namespace": "fake-namespace",
-    "parse_field_count": 15,
+    "parse_field_count": 16,
     "hostname": "fake-fluent",
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
@@ -110,12 +113,13 @@
     "namespace": "fake-namespace",
     "nc_audit_label": "true",
     "nodename": "fake-node",
-    "parse_field_count": 15,
+    "parse_field_count": 16,
     "parse_format": "mongodb_structured",
     "parse_status": "success",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "short_message": "Authentication succeeded",
     "source_level": "I",
+    "stdio_stream": "stdout",
     "time": "2025-07-08T10:53:19.000007468Z"
   }
 ]

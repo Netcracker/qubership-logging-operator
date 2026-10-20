@@ -14,12 +14,13 @@
     "message": "a payload that names the fields the pipeline sets",
     "namespace": "fake-namespace",
     "nodename": "fake-node",
-    "parse_field_count": 11,
+    "parse_field_count": 12,
     "parse_format": "unknown",
     "parse_status": "success",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "short_message": "{\"level\":\"error\",\"source_level\":\"trace\",\"message\":\"a payload that names the fields the pipeline sets\"}",
     "source_level": "error",
+    "stdio_stream": "stdout",
     "time": "2026-09-03T10:20:55.000007468Z"
   },
   {
@@ -37,12 +38,13 @@
     "level": "info",
     "namespace": "fake-namespace",
     "nodename": "fake-node",
-    "parse_field_count": 11,
+    "parse_field_count": 12,
     "parse_format": "unknown",
     "parse_status": "success",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "short_message": "{\"nested\":\"json inside a bracketed line\"}",
     "source_level": "INFO",
+    "stdio_stream": "stderr",
     "time": "2026-09-03T10:20:56.000007468Z"
   }
 ]

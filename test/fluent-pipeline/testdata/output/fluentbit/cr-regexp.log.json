@@ -14,12 +14,13 @@
     "level": "err",
     "namespace": "fake-namespace",
     "nodename": "fake-node",
-    "parse_field_count": 9,
+    "parse_field_count": 10,
     "parse_format": "unknown",
     "parse_status": "success",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "short_message": "first line matches multilineFirstLineRegexp\n  continuation that matches multilineOtherLinesRegexp",
     "source_level": "ERROR",
+    "stdio_stream": "stdout",
     "time": "2026-09-03T10:21:00.000007468Z"
   },
   {
@@ -37,12 +38,13 @@
     "level": "info",
     "namespace": "fake-namespace",
     "nodename": "fake-node",
-    "parse_field_count": 9,
+    "parse_field_count": 10,
     "parse_format": "unknown",
     "parse_status": "success",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "short_message": "a second first line ends the previous record",
     "source_level": "INFO",
+    "stdio_stream": "stdout",
     "time": "2026-09-03T10:21:00.200007468Z"
   }
 ]

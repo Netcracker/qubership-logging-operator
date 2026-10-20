@@ -16,7 +16,7 @@
     "container": "fake-container",
     "method": "runMayThrow",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
-    "parse_field_count": 12,
+    "parse_field_count": 13,
     "hostname": "fake-fluent",
     "date": "2024-09-05T12:19:31,575",
     "level": "info",

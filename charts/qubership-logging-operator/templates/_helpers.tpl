@@ -391,7 +391,7 @@ Image can be found from:
     {{- printf "%s" .Values.graylog.initContainerDockerImage -}}
   {{- else -}}
     {{- /* # renovate: datasource=github-releases depName=Netcracker/qubership-graylog-plugins-init versioning=semver */ -}}
-    {{- print "ghcr.io/netcracker/qubership-graylog-plugins-init:0.1.0" -}}
+    {{- print "ghcr.io/netcracker/qubership-graylog-plugins-init:0.2.0" -}}
   {{- end -}}
 {{- end -}}
 

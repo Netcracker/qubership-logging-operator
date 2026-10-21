@@ -17,7 +17,7 @@
     "method": "runMayThrow",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
-    "parse_field_count": 13,
+    "parse_field_count": 14,
     "hostname": "fake-fluent",
     "date": "2024-09-05T12:19:31,575",
     "level": "info",

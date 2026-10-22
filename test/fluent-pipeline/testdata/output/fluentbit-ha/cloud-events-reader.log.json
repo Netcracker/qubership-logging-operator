@@ -5,6 +5,7 @@
     },
     "parse_status": "success",
     "time": "2024-06-11T07:40:20.272007468Z",
+    "cri_time": "2024-06-11T07:40:20.272007468Z",
     "involvedObjectName": "rabbitmq-operator-59d457d796-xh27k",
     "involvedObjectUid": "00000000-0000-0000-0000-000000000000",
     "involvedObjectApiVersion": "v1",

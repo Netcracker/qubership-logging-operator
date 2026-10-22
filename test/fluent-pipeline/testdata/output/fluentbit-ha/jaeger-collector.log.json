@@ -5,6 +5,7 @@
     },
     "parse_status": "success",
     "time": "2024-08-23T07:21:45.242027473Z",
+    "cri_time": "2024-08-23T07:21:45.242027473Z",
     "short_message": "{\"level\":\"info\",\"ts\":1724397681.6182842,\"caller\":\"flags/service.go:110\",\"msg\":\"Mounting metrics handler on admin server\",\"route\":\"/metrics\"}",
     "nodename": "fake-node",
     "labels": {
@@ -46,6 +47,7 @@
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "time": "2024-08-23T07:21:45.242029580Z",
+    "cri_time": "2024-08-23T07:21:45.242029580Z",
     "hostname": "fake-fluent",
     "level": "info",
     "health-status": "unavailable",
@@ -58,6 +60,7 @@
     },
     "parse_status": "success",
     "time": "2024-08-23T07:21:45.242129580Z",
+    "cri_time": "2024-08-23T07:21:45.242129580Z",
     "short_message": "{\"level\":\"info\",\"ts\":1724397681.6648026,\"caller\":\"config/config.go:192\",\"msg\":\"Elasticsearch detected\",\"version\":7}",
     "nodename": "fake-node",
     "labels": {
@@ -84,6 +87,7 @@
     },
     "parse_status": "success",
     "time": "2024-08-23T07:21:45.242429580Z",
+    "cri_time": "2024-08-23T07:21:45.242429580Z",
     "short_message": "{\"level\":\"info\",\"ts\":1724397681.7368004,\"caller\":\"server/http.go:56\",\"msg\":\"Starting jaeger-collector HTTP server\",\"http host-port\":\":14268\"}",
     "http host-port": ":14268",
     "nodename": "fake-node",
@@ -122,6 +126,7 @@
     "detected_level": "warn",
     "documentation": "https://github.com/open-telemetry/opentelemetry-collector/blob/main/docs/security-best-practices.md#safeguards-against-denial-of-service-attacks",
     "time": "2024-08-23T07:21:45.242488570Z",
+    "cri_time": "2024-08-23T07:21:45.242488570Z",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "parse_field_count": 15,
@@ -137,6 +142,7 @@
     },
     "parse_status": "success",
     "time": "2024-08-23T07:21:45.242498570Z",
+    "cri_time": "2024-08-23T07:21:45.242498570Z",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
       "metadata.app.kubernetes.io/version": "0.1.0"
@@ -166,6 +172,7 @@
     },
     "parse_status": "success",
     "time": "2024-08-23T07:21:45.242597870Z",
+    "cri_time": "2024-08-23T07:21:45.242597870Z",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
       "metadata.app.kubernetes.io/version": "0.1.0"

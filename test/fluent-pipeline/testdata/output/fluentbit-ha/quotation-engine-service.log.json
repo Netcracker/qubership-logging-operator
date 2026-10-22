@@ -5,6 +5,7 @@
     },
     "parse_status": "success",
     "time": "2024-06-17T15:58:02.219007468Z",
+    "cri_time": "2024-06-17T15:58:02.219007468Z",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
       "metadata.app.kubernetes.io/version": "0.1.0"
@@ -39,6 +40,7 @@
     },
     "parse_status": "success",
     "time": "2024-06-17T15:58:02.771007468Z",
+    "cri_time": "2024-06-17T15:58:02.771007468Z",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
       "metadata.app.kubernetes.io/version": "0.1.0"
@@ -73,6 +75,7 @@
     },
     "parse_status": "success",
     "time": "2024-06-17T15:58:02.772007468Z",
+    "cri_time": "2024-06-17T15:58:02.772007468Z",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
       "metadata.app.kubernetes.io/version": "0.1.0"
@@ -107,6 +110,7 @@
     },
     "parse_status": "success",
     "time": "2024-06-17T15:58:04.045007468Z",
+    "cri_time": "2024-06-17T15:58:04.045007468Z",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
       "metadata.app.kubernetes.io/version": "0.1.0"
@@ -141,6 +145,7 @@
     },
     "parse_status": "success",
     "time": "2024-06-17T15:58:24.426007468Z",
+    "cri_time": "2024-06-17T15:58:24.426007468Z",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
       "metadata.app.kubernetes.io/version": "0.1.0"
@@ -175,6 +180,7 @@
     },
     "parse_status": "success",
     "time": "2024-06-17T15:58:50.440007468Z",
+    "cri_time": "2024-06-17T15:58:50.440007468Z",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
       "metadata.app.kubernetes.io/version": "0.1.0"
@@ -209,6 +215,7 @@
     },
     "parse_status": "success",
     "time": "2024-06-17T15:59:10.376007468Z",
+    "cri_time": "2024-06-17T15:59:10.376007468Z",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
       "metadata.app.kubernetes.io/version": "0.1.0"
@@ -260,6 +267,7 @@
     "date": "2024-06-17T15:59:12.462",
     "spanId": "-",
     "time": "2024-06-17T15:59:12.462007468Z",
+    "cri_time": "2024-06-17T15:59:12.462007468Z",
     "level": "info",
     "parse_field_count": 13,
     "originating_bi_id": "-",
@@ -294,6 +302,7 @@
     "date": "2024-06-18T17:28:04.014",
     "spanId": "-",
     "time": "2024-06-18T17:28:04.014007468Z",
+    "cri_time": "2024-06-18T17:28:04.014007468Z",
     "level": "info",
     "parse_field_count": 13,
     "originating_bi_id": "-",
@@ -328,6 +337,7 @@
     "date": "2024-06-18T17:28:06.867",
     "spanId": "-",
     "time": "2024-06-18T17:28:06.867007468Z",
+    "cri_time": "2024-06-18T17:28:06.867007468Z",
     "level": "info",
     "parse_field_count": 13,
     "originating_bi_id": "00000000-0000-0000-0000-000000000000",
@@ -362,6 +372,7 @@
     "date": "2024-06-18T17:28:06.873",
     "spanId": "-",
     "time": "2024-06-18T17:28:06.873007468Z",
+    "cri_time": "2024-06-18T17:28:06.873007468Z",
     "level": "info",
     "parse_field_count": 13,
     "originating_bi_id": "00000000-0000-0000-0000-000000000000",
@@ -396,6 +407,7 @@
     "date": "2024-06-18T17:28:07.414",
     "spanId": "-",
     "time": "2024-06-18T17:28:07.414007468Z",
+    "cri_time": "2024-06-18T17:28:07.414007468Z",
     "level": "info",
     "parse_field_count": 13,
     "originating_bi_id": "00000000-0000-0000-0000-000000000000",

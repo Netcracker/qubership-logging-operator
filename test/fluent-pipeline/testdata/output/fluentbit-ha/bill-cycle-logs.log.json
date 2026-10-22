@@ -5,6 +5,7 @@
     },
     "parse_status": "success",
     "time": "2024-07-20T11:51:31.234007468Z",
+    "cri_time": "2024-07-20T11:51:31.234007468Z",
     "detected_level": "info",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
@@ -29,6 +30,7 @@
     },
     "parse_status": "success",
     "time": "2024-07-20T11:51:32.234007468Z",
+    "cri_time": "2024-07-20T11:51:32.234007468Z",
     "detected_level": "info",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
@@ -53,6 +55,7 @@
     },
     "parse_status": "success",
     "time": "2024-07-20T11:51:33.234007468Z",
+    "cri_time": "2024-07-20T11:51:33.234007468Z",
     "detected_level": "warn",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
@@ -78,6 +81,7 @@
     "detected_level": "warn",
     "parse_status": "success",
     "time": "2024-07-20T11:51:34.234007468Z",
+    "cri_time": "2024-07-20T11:51:34.234007468Z",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
       "metadata.app.kubernetes.io/version": "0.1.0"

@@ -16,6 +16,7 @@
     "short_message": "[thread=pool-86-thread-4] [class=co.ne.cd.ui.se.ca.PodSequenceCallParser] [ui-769b5fdf5-sxggr_1701183746975.6048] parsed 6 calls, filtered 6 calls (with 921 tags, 122 params and 512 required ids)",
     "level": "info",
     "time": "2023-12-20T12:51:32.270007468Z",
+    "cri_time": "2023-12-20T12:51:32.270007468Z",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "parse_field_count": 13,
@@ -32,6 +33,7 @@
     "detected_level": "info",
     "parse_status": "success",
     "time": "2023-12-21T09:18:48.918576888Z",
+    "cri_time": "2023-12-21T09:18:48.918576888Z",
     "nodename": "fake-node",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
@@ -56,6 +58,7 @@
     },
     "parse_status": "success",
     "time": "2024-04-10T13:44:20.618576888Z",
+    "cri_time": "2024-04-10T13:44:20.618576888Z",
     "detected_level": "error",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
@@ -80,6 +83,7 @@
     },
     "parse_status": "success",
     "time": "2024-04-10T13:44:20.697007468Z",
+    "cri_time": "2024-04-10T13:44:20.697007468Z",
     "detected_level": "error",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
@@ -104,6 +108,7 @@
     },
     "parse_status": "success",
     "time": "2024-04-10T13:44:20.618578953Z",
+    "cri_time": "2024-04-10T13:44:20.618578953Z",
     "detected_level": "info",
     "labels": {
       "metadata.app": "fluent-pipeline-test",

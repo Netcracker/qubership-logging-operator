@@ -27,7 +27,7 @@
     "_test": {
       "id": "plain-logfmt",
       "matchOn": [
-        "time"
+        "log_time"
       ]
     },
     "attempt": "3",
@@ -35,11 +35,10 @@
     "detected_level": "warn",
     "hostname": "fake-fluent",
     "level": "warning",
-    "time": "2026-09-03T11:00:02.000007468Z",
-    "cri_time": "2026-09-03T11:00:02.000007468Z",
+    "log_time": "2026-09-03T11:00:02.000007468Z",
     "namespace": "test-namespace",
     "nodename": "fake-node",
-    "parse_field_count": 9,
+    "parse_field_count": 8,
     "parse_format": "logfmt",
     "parse_status": "success",
     "pod": "plain-logfmt",

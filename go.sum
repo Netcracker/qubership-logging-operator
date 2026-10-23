@@ -6,8 +6,8 @@ github.com/Masterminds/semver/v3 v3.4.0 h1:Zog+i5UMtVoCU8oKka5P7i9q9HgrJeGzI9SA1
 github.com/Masterminds/semver/v3 v3.4.0/go.mod h1:4V+yj/TJE1HU9XfppCwVMZq3I84lprf4nC11bSS5beM=
 github.com/Masterminds/sprig v2.22.0+incompatible h1:z4yfnGrZ7netVz+0EDJ0Wi+5VZCSYp4Z0m2dk6cEM60=
 github.com/Masterminds/sprig v2.22.0+incompatible/go.mod h1:y6hNFY5UBTIWBxnzTeuNhlNS5hqE0NB0E6fgfo2Br3o=
-github.com/Netcracker/qubership-logging-operator/api v0.0.0-20261022214117-a0997d2de46e h1:TRuRkoOrWwAq5Lu/gCnA2y9xB2LXXabpbElpr8KIYbc=
-github.com/Netcracker/qubership-logging-operator/api v0.0.0-20261022214117-a0997d2de46e/go.mod h1:a0OF7F6MbYCIFtMXITfd3AujmEWsXfiC9a2NHQr+0Ac=
+github.com/Netcracker/qubership-logging-operator/api v0.0.0-20261023022935-0f99b787e18c h1:BFY7WBvfXpiULHjZ9pKmxPCsxREtofJSGB3JaiaBwaY=
+github.com/Netcracker/qubership-logging-operator/api v0.0.0-20261023022935-0f99b787e18c/go.mod h1:a0OF7F6MbYCIFtMXITfd3AujmEWsXfiC9a2NHQr+0Ac=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
 github.com/cespare/xxhash/v2 v2.3.0 h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs=

@@ -25,6 +25,7 @@
     "short_message": "read udp 10.0.0.2:53: timeout",
     "source_level": "ERROR",
     "time": "2026-09-03T10:20:40.000007468Z",
+    "cri_time": "2026-09-03T10:20:40.000007468Z",
     "forwarder_custom_filter": "true"
   },
   {

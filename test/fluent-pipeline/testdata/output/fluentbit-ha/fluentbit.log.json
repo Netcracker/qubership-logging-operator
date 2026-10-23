@@ -67,7 +67,7 @@
     "short_message": "Filter plugin 'grep' initialized",
     "level": "info",
     "time": "2023-11-15T08:30:49.456007468Z",
-    "cri_time": "2023-11-15T08:30:48.456007468Z",
+    "cri_time": "2023-11-15T08:30:49.456007468Z",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "component": "filter",

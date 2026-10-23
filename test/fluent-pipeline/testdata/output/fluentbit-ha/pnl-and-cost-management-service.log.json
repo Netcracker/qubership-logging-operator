@@ -5,6 +5,7 @@
     },
     "parse_status": "success",
     "time": "2024-06-17T23:05:02.575007468Z",
+    "cri_time": "2024-06-17T23:05:02.575007468Z",
     "log_time": "2024-06-17T23:05:02.575007468Z",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
@@ -34,6 +35,7 @@
     },
     "parse_status": "success",
     "time": "2024-06-17T23:05:06.786007468Z",
+    "cri_time": "2024-06-17T23:05:06.786007468Z",
     "log_time": "2024-06-17T23:05:06.786007468Z",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
@@ -64,6 +66,7 @@
     },
     "parse_status": "success",
     "time": "2024-06-17T23:05:06.883007468Z",
+    "cri_time": "2024-06-17T23:05:06.883007468Z",
     "log_time": "2024-06-17T23:05:06.883007468Z",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
@@ -94,6 +97,7 @@
     },
     "parse_status": "success",
     "time": "2024-06-17T23:05:06.894007468Z",
+    "cri_time": "2024-06-17T23:05:06.894007468Z",
     "log_time": "2024-06-17T23:05:06.894007468Z",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
@@ -124,6 +128,7 @@
     },
     "parse_status": "success",
     "time": "2024-06-17T23:05:08.699007468Z",
+    "cri_time": "2024-06-17T23:05:08.699007468Z",
     "log_time": "2024-06-17T23:05:08.699007468Z",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
@@ -154,6 +159,7 @@
     },
     "parse_status": "success",
     "time": "2024-06-17T23:05:08.702007468Z",
+    "cri_time": "2024-06-17T23:05:08.702007468Z",
     "log_time": "2024-06-17T23:05:08.702007468Z",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
@@ -183,6 +189,7 @@
     },
     "parse_status": "success",
     "time": "2024-06-17T23:05:08.972007468Z",
+    "cri_time": "2024-06-17T23:05:08.972007468Z",
     "log_time": "2024-06-17T23:05:08.972007468Z",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
@@ -213,6 +220,7 @@
     },
     "parse_status": "success",
     "time": "2024-06-18T23:28:10.987007468Z",
+    "cri_time": "2024-06-18T23:28:10.987007468Z",
     "log_time": "2024-06-18T23:28:10.987007468Z",
     "labels": {
       "metadata.app": "fluent-pipeline-test",

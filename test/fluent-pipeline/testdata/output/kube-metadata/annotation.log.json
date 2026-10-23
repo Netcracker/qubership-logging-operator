@@ -14,13 +14,14 @@
     "msg": "a logfmt line the annotation names a parser for",
     "namespace": "test-namespace",
     "nodename": "fake-node",
-    "parse_field_count": 9,
+    "parse_field_count": 10,
     "parse_format": "unknown",
     "parse_status": "success",
     "pod": "annotated-logfmt",
     "short_message": "level=warn msg=\"a logfmt line the annotation names a parser for\" attempt=3",
     "source_level": "warn",
-    "time": "2026-09-03T11:00:01.000007468Z"
+    "time": "2026-09-03T11:00:01.000007468Z",
+    "cri_time": "2026-09-03T11:00:01.000007468Z"
   },
   {
     "_test": {

@@ -1112,6 +1112,9 @@ fluentbit:
   # -- Allow to exclude some logs of pods/containers
   excludePath: ""
 
+  # -- Collect logs from FluentBit collector pods. Enable only when you need their logs in the output pipeline.
+  collectOwnLogs: false
+
   # -- Volumes specified will be appended to other volumes that are generated as a result of StorageSpec objects.
   # Ref: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#volume-v1-core
   # @default -- not set

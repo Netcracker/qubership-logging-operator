@@ -855,6 +855,7 @@ fluentbit:
 | `annotations`                     | map                                                                                                                               | no        | `{}`                                                                                            | Specifies the list of additional annotations                                                                                                                                             |
 | `labels`                          | map                                                                                                                               | no        | `{}`                                                                                            | Specifies the list of additional labels                                                                                                                                                  |
 | `priorityClassName`               | string                                                                                                                            | no        | `-`                                                                                             | Pod priority. Indicates the importance of a Pod relative to other Pods and prevents it from evicting.                                                                                    |
+| `collectOwnLogs`                  | boolean                                                                                                                           | no        | `false`                                                                                         | Collects FluentBit collector logs. User exclusions still apply when enabled.                                                                                                             |
 | `excludePath`                     | string                                                                                                                            | no        | `-`                                                                                             | One or more shell patterns, separated by commas, to exclude files matching specific criteria, e.g: *.gz,*.zip.                                                                           |
 | `output.loki.enabled`             | boolean                                                                                                                           | no        | `false`                                                                                         | Enables Loki output                                                                                                                                                                      |
 | `output.loki.host`                | string                                                                                                                            | no        | `-`                                                                                             | Loki host                                                                                                                                                                                |
@@ -1177,6 +1178,16 @@ fluentbit:
 ```
 
 [Back to TOC](#table-of-contents)
+
+### FluentBit collector logs
+
+FluentBit excludes its own container logs by default to prevent output errors from feeding back into the pipeline.
+In forwarder/aggregator mode, the forwarder excludes both forwarder and aggregator container logs.
+The operator adds these exclusions to `fluentbit.excludePath` for containerd, CRI-O, and Docker.
+This behavior also applies when you create a `LoggingService` directly.
+
+Set `fluentbit.collectOwnLogs: true` to collect these logs. Your `excludePath` patterns still apply.
+Custom inputs in `customInputConf` must define their own exclusions.
 
 ### FluentBit Aggregator
 

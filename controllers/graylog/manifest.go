@@ -8,7 +8,6 @@ import (
 	loggingService "github.com/Netcracker/qubership-logging-operator/api/v1"
 	util "github.com/Netcracker/qubership-logging-operator/controllers/utils"
 	appsv1 "k8s.io/api/apps/v1"
-	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/yaml"
@@ -61,27 +60,6 @@ func graylogConfigMap(cr *loggingService.LoggingService) (*corev1.ConfigMap, err
 		ComponentLabels: cr.Spec.Graylog.Labels,
 	}, nil)
 	return &configMap, nil
-}
-
-func graylogMongoUpgradeJob(cr *loggingService.LoggingService, assetPath string) (*batchv1.Job, error) {
-	if cr.Spec.Graylog == nil {
-		return nil, fmt.Errorf("graylog configuration in Logging Service %s is nil in the namespace %s", cr.GetName(), cr.GetNamespace())
-	}
-	job := batchv1.Job{}
-	fileContent, err := util.ParseTemplate(util.MustAssetReader(assets, assetPath), assetPath, cr.ToParams())
-	if err != nil {
-		return nil, err
-	}
-	if err = yaml.NewYAMLOrJSONDecoder(strings.NewReader(fileContent), util.BufferSize).Decode(&job); err != nil {
-		return nil, err
-	}
-	util.SetLabelsForResource(&job, util.LabelInput{
-		Name:            job.GetName(),
-		Component:       "graylog",
-		ComponentLabels: cr.Spec.Graylog.Labels,
-	}, nil)
-	job.Spec.Template.Labels = util.MergeLabels(util.ResourceLabels(job.GetName(), "graylog"), cr.Spec.Graylog.Labels)
-	return &job, nil
 }
 
 func graylogStatefulset(cr *loggingService.LoggingService) (*appsv1.StatefulSet, error) {

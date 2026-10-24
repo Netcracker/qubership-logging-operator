@@ -62,70 +62,12 @@ func (r *GraylogReconciler) handleConfigMap(cr *loggingService.LoggingService) e
 	return nil
 }
 
-func (r *GraylogReconciler) handleMongoUpgradeJob(cr *loggingService.LoggingService, jobName, assetPath string) error {
-	m, err := graylogMongoUpgradeJob(cr, assetPath)
-	if err != nil {
-		r.Log.Error(err, "Failed creating Job for MongoDB upgrade manifest")
-		return err
-	}
-
-	if err = r.CreateResource(cr, m); err != nil {
-		if api_errors.IsAlreadyExists(err) {
-			r.Log.Info("Job for MongoDB upgrade already exists, skip creating")
-			return nil
-		} else {
-			return err
-		}
-	}
-
-	// Delay to allow time for the job finished successfully
-	time.Sleep(util.InitialDelay)
-
-	podManager := util.NewPodManager(r.Client, cr.GetNamespace(), r.Log)
-	timeout := util.GraylogMongoUpgradeJobTimeout
-	succeeded, err := podManager.WaitForJobSucceeded(jobName, timeout)
-	if err != nil {
-		return err
-	}
-
-	if !succeeded {
-		r.StatusUpdater.UpdateStatus(util.GraylogStatus, util.Failed, false, "Job failed")
-		return errors.New("mongo upgrade job failed")
-	}
-
-	// Delete pods when the job is done
-	_, err = podManager.DeletePods(util.GraylogMongoUpgradeLabels)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (r *GraylogReconciler) handleStatefulset(cr *loggingService.LoggingService) error {
 	m, err := graylogStatefulset(cr)
 	if err != nil {
 		r.Log.Error(err, "Failed creating Statefulset manifest")
 		return err
 	}
-	for i, container := range m.Spec.Template.Spec.InitContainers {
-		if container.Name == "download-plugins" {
-			var graylogVersionEnv corev1.EnvVar
-			if r.checkGraylog5(cr) {
-				graylogVersionEnv = corev1.EnvVar{
-					Name:  "GRAYLOG_VERSION",
-					Value: "5",
-				}
-			} else {
-				graylogVersionEnv = corev1.EnvVar{
-					Name:  "GRAYLOG_VERSION",
-					Value: "4",
-				}
-			}
-			m.Spec.Template.Spec.InitContainers[i].Env = append(m.Spec.Template.Spec.InitContainers[i].Env, graylogVersionEnv)
-		}
-	}
-
 	if err = r.CreateResource(cr, m); err != nil {
 		if api_errors.IsAlreadyExists(err) {
 			e := &appsv1.StatefulSet{ObjectMeta: m.ObjectMeta}
@@ -344,48 +286,6 @@ func (r *GraylogReconciler) deleteJob(cr *loggingService.LoggingService, jobName
 	}
 	if err := r.DeleteResource(e); err != nil {
 		return err
-	}
-	return nil
-}
-
-func (r *GraylogReconciler) scaleDownStatefulset(cr *loggingService.LoggingService) error {
-	e := &appsv1.StatefulSet{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      util.GraylogStatefulsetName,
-			Namespace: cr.GetNamespace(),
-		},
-	}
-	if err := r.GetResource(e); err != nil {
-		if api_errors.IsNotFound(err) {
-			return nil
-		}
-		return err
-	}
-
-	replicas := new(int32)
-	*replicas = 0
-	e.Spec.Replicas = replicas
-
-	if err := r.UpdateResource(e); err != nil {
-		return err
-	}
-	// Delay to allow time for the statefulset to be updated
-	time.Sleep(util.InitialDelay)
-
-	// Wait for Graylog running
-	podManager := util.NewPodManager(r.Client, cr.GetNamespace(), r.Log)
-	timeout := util.GraylogStartupTimeout
-	if cr.Spec.Graylog.StartupTimeout != 0 {
-		timeout = time.Duration(cr.Spec.Graylog.StartupTimeout) * time.Minute
-	}
-	updated, err := podManager.WaitForStatefulsetUpdated(util.GraylogStatefulsetName, timeout)
-	if err != nil {
-		return err
-	}
-
-	if !updated {
-		r.StatusUpdater.UpdateStatus(util.GraylogStatus, util.Failed, false, "Graylog has not scaled down")
-		return errors.New("graylog has not scaled down")
 	}
 	return nil
 }

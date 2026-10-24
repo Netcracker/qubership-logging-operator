@@ -3,8 +3,6 @@ package graylog
 import (
 	"context"
 	"fmt"
-	"regexp"
-	"strings"
 
 	loggingService "github.com/Netcracker/qubership-logging-operator/api/v1"
 	"github.com/Netcracker/qubership-logging-operator/controllers/graylog/utils"
@@ -60,14 +58,8 @@ func (r *GraylogReconciler) Run(ctx context.Context, cr *loggingService.LoggingS
 		if err = r.deleteDeployment(cr); err != nil {
 			r.Log.Error(err, "Can not delete Deployment")
 		}
-		if cr.Spec.Graylog.MongoDBUpgrade != nil && r.checkGraylog5(cr) {
-			if err = r.mongoUpgrade(cr); err != nil {
-				r.Log.Error(err, "MongoDB upgrade failed. Try to continue the reconciliation anyway")
-			}
-		} else {
-			if err = r.deleteUpgradeJobs(cr); err != nil {
-				r.Log.Error(err, "Can not delete MongoDB upgrade jobs")
-			}
+		if err = r.deleteUpgradeJobs(cr); err != nil {
+			r.Log.Error(err, "Can not delete MongoDB upgrade jobs")
 		}
 		if err = r.handleStatefulset(cr); err != nil {
 			return err
@@ -138,7 +130,7 @@ func (r *GraylogReconciler) configureGraylog(ctx context.Context, connector *uti
 		return err
 	}
 
-	if err := connector.ManageExtractors(cr, r.checkGraylog5(cr)); err != nil {
+	if err := connector.ManageExtractors(cr); err != nil {
 		return err
 	}
 
@@ -186,7 +178,7 @@ func (r *GraylogReconciler) configureGraylog(ctx context.Context, connector *uti
 		return err
 	}
 
-	if err := connector.ManageUserAccounts(cr, r.checkGraylog5(cr)); err != nil {
+	if err := connector.ManageUserAccounts(cr); err != nil {
 		return err
 	}
 
@@ -248,33 +240,12 @@ func (r *GraylogReconciler) watchSecret(cr *loggingService.LoggingService) error
 	return nil
 }
 
-func (r *GraylogReconciler) mongoUpgrade(cr *loggingService.LoggingService) error {
-	// Scale down the Graylog statefulset before starting upgrade jobs to avoid conflicts between MongoDB instances
-	if err := r.scaleDownStatefulset(cr); err != nil {
-		return err
-	}
-	// Run jobs in particular order
-	for _, jobName := range util.GraylogMongoUpgradeOrderedJobs {
-		assetPath := util.GraylogMongoUpgradeAssets[jobName]
-		if err := r.handleMongoUpgradeJob(cr, jobName, assetPath); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
+// deleteUpgradeJobs deletes the Jobs that the removed MongoDB step-by-step upgrade left in the namespace.
 func (r *GraylogReconciler) deleteUpgradeJobs(cr *loggingService.LoggingService) error {
-	for jobName := range util.GraylogMongoUpgradeAssets {
+	for _, jobName := range util.GraylogMongoUpgradeOrderedJobs {
 		if err := r.deleteJob(cr, jobName); err != nil {
 			return err
 		}
 	}
 	return nil
-}
-
-func (r *GraylogReconciler) checkGraylog5(cr *loggingService.LoggingService) bool {
-	// Parsing of the major version of the Graylog image
-	re := regexp.MustCompile(`([0-9]+)\.([0-9]+)\.([0-9]+)`)
-	majorVersion := strings.Split(re.FindString(cr.Spec.Graylog.DockerImage), ".")[0]
-	return majorVersion == "5"
 }

@@ -123,7 +123,7 @@ func (connector *GraylogConnector) CreateOrUpdateExtractors(extractors []Entity,
 	return nil
 }
 
-func (connector *GraylogConnector) ManageExtractors(cr *loggingService.LoggingService, installGraylog5 bool) error {
+func (connector *GraylogConnector) ManageExtractors(cr *loggingService.LoggingService) error {
 	inputs, err := connector.GetAllInputs()
 	if err != nil {
 		return err
@@ -136,14 +136,7 @@ func (connector *GraylogConnector) ManageExtractors(cr *loggingService.LoggingSe
 		return err
 	}
 
-	// Extractors APIs for Graylog 4 and 5 are different
-	var extractorsAssets map[string]string
-	if installGraylog5 {
-		extractorsAssets = util.Graylog5Extractors
-	} else {
-		extractorsAssets = util.Graylog4Extractors
-	}
-	if err = connector.CreateOrUpdateExtractors(extractors, extractorsAssets, id, cr); err != nil {
+	if err = connector.CreateOrUpdateExtractors(extractors, util.GraylogExtractors, id, cr); err != nil {
 		return err
 	}
 

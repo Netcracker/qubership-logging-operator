@@ -249,10 +249,10 @@ graylog:
       #   namespace: gateway-infra
       #   sectionName: http
 
-  ############################################# Graylog 4 -> 5  migration ##############################################
+  ################################################ Deprecated parameters ###############################################
 
-  # -- Activates automatic step-by-step upgrade of the MongoDB database.
-  # Can be used only for migration from Graylog 4 to 5.
+  # -- Deprecated and ignored. The automatic step-by-step upgrade of the MongoDB database was removed.
+  # The parameter will be removed in a future release.
   mongoUpgrade: false
 
   ############################################ Service monitor configuration ###########################################

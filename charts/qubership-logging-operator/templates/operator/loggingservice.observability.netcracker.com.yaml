@@ -285,12 +285,6 @@ spec:
         secretName: {{ .Values.graylog.authProxy.key.secretName }}
       {{- end }}
     {{- end }}
-    {{- if and .Values.graylog.mongoUpgrade (include "graylog.isMajorVersion5" . ) }}
-    mongoDBUpgrade:
-      mongoDBImage40: {{ template "mongodb40.image" . }}
-      mongoDBImage42: {{ template "mongodb42.image" . }}
-      mongoDBImage44: {{ template "mongodb44.image" . }}
-    {{- end }}
     pathRepo: {{ default "/ush/share/opensearch/snapshots/graylog/" .Values.graylog.pathRepo }}
     s3Archive: {{ default false .Values.graylog.s3Archive }}
   {{- end }}

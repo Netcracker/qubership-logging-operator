@@ -10,6 +10,7 @@
     "short_message": "[\"app.qubership.org/application=app\"] it is example of bill cycle log message",
     "date": "2024-07-20T11:51:31.234",
     "time": "2024-07-20T11:51:31.234007468Z",
+    "cri_time": "2024-07-20T11:51:31.234007468Z",
     "nodename": "fake-node",
     "labels": {
       "metadata.app.kubernetes.io/version": "0.1.0",
@@ -20,7 +21,7 @@
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
-    "parse_field_count": 10,
+    "parse_field_count": 11,
     "parse_format": "unknown"
   },
   {
@@ -34,6 +35,7 @@
     "short_message": "[\"app.kubernetes.io/part-of=app\"] it is example of bill cycle log message",
     "date": "2024-07-20T11:51:32.234",
     "time": "2024-07-20T11:51:32.234007468Z",
+    "cri_time": "2024-07-20T11:51:32.234007468Z",
     "nodename": "fake-node",
     "labels": {
       "metadata.app.kubernetes.io/version": "0.1.0",
@@ -44,7 +46,7 @@
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
-    "parse_field_count": 10,
+    "parse_field_count": 11,
     "parse_format": "unknown"
   },
   {
@@ -58,6 +60,7 @@
     "short_message": "[\"app.kubernetes.io/part-of=app\"] it is example of bill cycle log message",
     "date": "2024-07-20T11:51:33.234",
     "time": "2024-07-20T11:51:33.234007468Z",
+    "cri_time": "2024-07-20T11:51:33.234007468Z",
     "nodename": "fake-node",
     "labels": {
       "metadata.app.kubernetes.io/version": "0.1.0",
@@ -68,7 +71,7 @@
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
-    "parse_field_count": 10,
+    "parse_field_count": 11,
     "parse_format": "unknown"
   },
   {
@@ -79,11 +82,12 @@
     "hostname": "fake-fluent",
     "short_message": "[app.kubernetes.io/part-of=app] it is example of bill cycle log message but without quotes inside the label part-of",
     "nodename": "fake-node",
-    "parse_field_count": 11,
+    "parse_field_count": 12,
     "source_level": "WARN",
     "app.kubernetes.io/part-of": "app",
     "date": "2024-07-20T11:51:34.234",
     "time": "2024-07-20T11:51:34.234007468Z",
+    "cri_time": "2024-07-20T11:51:34.234007468Z",
     "labels": {
       "metadata.app.kubernetes.io/version": "0.1.0",
       "metadata.app": "fluent-pipeline-test"

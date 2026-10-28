@@ -168,3 +168,7 @@ When `output.http.routing.enabled` is `true`, level normalization excludes the b
 HTTP-routed records from being normalized a second time and preserves values such as `detected_level="trace"`. Other
 tags, including custom tags that start with `out_`, are normalized. When HTTP routing is disabled, the filter matches
 every tag, so custom inputs that use one of the routing tag names keep level normalization.
+
+### Field Naming Restrictions
+
+The **'log_'** prefix is reserved for internal system purposes. Therefore, log field names cannot start with this prefix.

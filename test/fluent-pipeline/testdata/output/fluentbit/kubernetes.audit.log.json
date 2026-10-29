@@ -29,7 +29,6 @@
     },
     "detected_level": "info",
     "nc_audit_label": "true",
-    "log": "(message)",
     "nodename": "fake-node",
     "level": "info",
     "parse_level_unknown": "true",
@@ -38,7 +37,7 @@
     ],
     "hostname": "fake-fluent",
     "userAgent": "Patroni/3.3.0 Python/3.6.8 Linux",
-    "short_message": "(message)",
+    "short_message": "/api/v1/namespaces/postgres-ek/configmaps/patroni-leader",
     "objectRef": {
       "apiVersion": "v1",
       "namespace": "postgres-ek",
@@ -90,7 +89,6 @@
     },
     "detected_level": "info",
     "nc_audit_label": "true",
-    "log": "(message)",
     "nodename": "fake-node",
     "level": "info",
     "parse_level_unknown": "true",
@@ -99,7 +97,7 @@
     ],
     "hostname": "fake-fluent",
     "userAgent": "Swagger-Codegen/7.0.0/python",
-    "short_message": "(message)",
+    "short_message": "/api/v1/namespaces/cloudberry/configmaps/cloudberry-common-leader",
     "objectRef": {
       "apiVersion": "v1",
       "namespace": "cloudberry",

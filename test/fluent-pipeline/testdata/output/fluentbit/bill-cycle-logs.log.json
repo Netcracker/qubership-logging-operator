@@ -7,7 +7,8 @@
     "hostname": "fake-fluent",
     "detected_level": "info",
     "source_level": "INFO",
-    "short_message": "[\"app.qubership.org/application=app\"] it is example of bill cycle log message",
+    "stdio_stream": "stdout",
+    "short_message": "it is example of bill cycle log message",
     "date": "2024-07-20T11:51:31.234",
     "time": "2024-07-20T11:51:31.234007468Z",
     "nodename": "fake-node",
@@ -19,8 +20,9 @@
     "level": "info",
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
-    "parse_field_count": 9,
-    "parse_format": "unknown"
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
+    "parse_field_count": 12,
+    "parse_format": "qubership"
   },
   {
     "_test": {
@@ -30,7 +32,8 @@
     "hostname": "fake-fluent",
     "detected_level": "info",
     "source_level": "INFO",
-    "short_message": "[\"app.kubernetes.io/part-of=app\"] it is example of bill cycle log message",
+    "stdio_stream": "stdout",
+    "short_message": "it is example of bill cycle log message",
     "date": "2024-07-20T11:51:32.234",
     "time": "2024-07-20T11:51:32.234007468Z",
     "nodename": "fake-node",
@@ -42,8 +45,9 @@
     "level": "info",
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
-    "parse_field_count": 9,
-    "parse_format": "unknown"
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
+    "parse_field_count": 12,
+    "parse_format": "qubership"
   },
   {
     "_test": {
@@ -53,7 +57,8 @@
     "hostname": "fake-fluent",
     "detected_level": "warn",
     "source_level": "WARN",
-    "short_message": "[\"app.kubernetes.io/part-of=app\"] it is example of bill cycle log message",
+    "stdio_stream": "stdout",
+    "short_message": "it is example of bill cycle log message",
     "date": "2024-07-20T11:51:33.234",
     "time": "2024-07-20T11:51:33.234007468Z",
     "nodename": "fake-node",
@@ -65,8 +70,9 @@
     "level": "warning",
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
-    "parse_field_count": 9,
-    "parse_format": "unknown"
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
+    "parse_field_count": 12,
+    "parse_format": "qubership"
   },
   {
     "_test": {
@@ -74,10 +80,11 @@
     },
     "detected_level": "warn",
     "hostname": "fake-fluent",
-    "short_message": "[app.kubernetes.io/part-of=app] it is example of bill cycle log message but without quotes inside the label part-of",
+    "short_message": "it is example of bill cycle log message but without quotes inside the label part-of",
     "nodename": "fake-node",
-    "parse_field_count": 10,
+    "parse_field_count": 12,
     "source_level": "WARN",
+    "stdio_stream": "stdout",
     "app.kubernetes.io/part-of": "app",
     "date": "2024-07-20T11:51:34.234",
     "time": "2024-07-20T11:51:34.234007468Z",
@@ -88,8 +95,9 @@
     "parse_status": "success",
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "namespace": "fake-namespace",
     "level": "warning",
-    "parse_format": "unknown"
+    "parse_format": "qubership"
   }
 ]

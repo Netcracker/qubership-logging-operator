@@ -428,3 +428,38 @@ func TestFluentbitRoutingFollowsLevelNormalizationAndFormatDetection(t *testing.
 		t.Error("level normalization depends on routing tags")
 	}
 }
+
+// HTTP routing re-emits records with out_* tags after level normalization, which skips those tags.
+// The enrichment filters must skip them too, or an extra field such as level undoes the normalization.
+func TestFluentbitEnrichmentSkipsRoutedRecords(t *testing.T) {
+	const routedTags = "Match_regex ^(?!out_(audit|k8s_event|nginx|access|int|pods|system|default)$).*"
+	for _, routing := range []bool{false, true} {
+		data := renderConfigData(t, &loggingService.Fluentbit{
+			ExtraFields: map[string]string{"level": "ERROR"},
+			Output: &loggingService.OutputFluentbit{Http: &loggingService.HttpFluentbit{
+				Enabled: true, Host: "vmauth", Port: 8427,
+				Routing: &loggingService.FluentbitHTTPRouting{Enabled: routing},
+			}},
+		})
+		want := "Match *"
+		if routing {
+			want = routedTags
+		}
+		for _, setter := range []string{"Set hostname ${HOSTNAME}", "Set nodename ${NODE_NAME}", "Set level ERROR"} {
+			found := false
+			for _, filter := range strings.Split(data["filter-post-generic.conf"], "[FILTER]") {
+				normalized := strings.Join(strings.Fields(filter), " ")
+				if !strings.Contains(normalized, setter) {
+					continue
+				}
+				found = true
+				if !strings.Contains(normalized, want) {
+					t.Errorf("routing %v: the filter with %q must use %q, got:\n%s", routing, setter, want, filter)
+				}
+			}
+			if !found {
+				t.Errorf("routing %v: no filter with %q in filter-post-generic.conf", routing, setter)
+			}
+		}
+	}
+}

@@ -12,8 +12,8 @@
     "source_level": "INFO",
     "container": "fake-container",
     "date": "2024-09-05T12:19:31,575",
+    "stdio_stream": "stdout",
     "time": "2024-09-05T12:19:31.575007468Z",
-    "cri_time": "2024-09-05T12:19:31.575007468Z",
     "labels": {
       "metadata.app.kubernetes.io/version": "0.1.0",
       "metadata.app": "fluent-pipeline-test"

@@ -4,8 +4,8 @@
       "id": "golanglog"
     },
     "parse_status": "success",
+    "stdio_stream": "stdout",
     "time": "2023-12-20T12:51:32.270507468Z",
-    "cri_time": "2023-12-20T12:51:32.270507468Z",
     "detected_level": "trace",
     "labels": {
       "metadata.app": "fluent-pipeline-test",

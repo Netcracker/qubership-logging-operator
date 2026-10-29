@@ -20,8 +20,8 @@
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "short_message": "Enabling execution of install_demo_configuration.sh for OpenSearch Security Plugin",
-    "time": "2026-09-03T10:20:46.000007468Z",
-    "cri_time": "2026-09-03T10:20:46.000007468Z"
+    "stdio_stream": "stdout",
+    "time": "2026-09-03T10:20:46.000007468Z"
   },
   {
     "_test": {
@@ -47,7 +47,7 @@
     "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "short_message": " delayed allocation",
     "source_level": "WARN",
-    "time": "2026-09-03T10:20:46.500007468Z",
-    "cri_time": "2026-09-03T10:20:46.500007468Z"
+    "stdio_stream": "stdout",
+    "time": "2026-09-03T10:20:46.500007468Z"
   }
 ]

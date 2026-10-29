@@ -3,7 +3,7 @@
     "_test": {
       "id": "grafana-login",
       "matchOn": [
-        "log_time"
+        "time"
       ]
     },
     "container": "fake-container",
@@ -14,8 +14,6 @@
       "metadata.app": "fluent-pipeline-test"
     },
     "level": "info",
-    "log_time": "2026-09-03T10:20:50.000007468Z",
-    "cri_time": "2026-09-03T10:20:50.000007468Z",
     "logger": "authn.service",
     "namespace": "fake-namespace",
     "nc_audit_label": "true",
@@ -28,13 +26,15 @@
     "short_message": "Successful Login",
     "source_level": "info",
     "t": "2026-09-03T10:20:50.123+0000",
+    "stdio_stream": "stdout",
+    "time": "2026-09-03T10:20:50.000007468Z",
     "user": "admin@localhost"
   },
   {
     "_test": {
       "id": "grafana-request",
       "matchOn": [
-        "log_time"
+        "time"
       ]
     },
     "container": "fake-container",
@@ -45,8 +45,6 @@
       "metadata.app": "fluent-pipeline-test"
     },
     "level": "info",
-    "log_time": "2026-09-03T10:20:51.000007468Z",
-    "cri_time": "2026-09-03T10:20:51.000007468Z",
     "logger": "http.server",
     "method": "GET",
     "namespace": "fake-namespace",
@@ -60,6 +58,8 @@
     "short_message": "Request Completed",
     "source_level": "info",
     "status": "200",
-    "t": "2026-09-03T10:20:51.123+0000"
+    "t": "2026-09-03T10:20:51.123+0000",
+    "stdio_stream": "stdout",
+    "time": "2026-09-03T10:20:51.000007468Z"
   }
 ]

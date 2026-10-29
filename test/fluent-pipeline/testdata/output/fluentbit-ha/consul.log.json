@@ -20,8 +20,8 @@
     "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "short_message": "raft: heartbeat timeout",
     "source_level": "WARN",
+    "stdio_stream": "stdout",
     "time": "2026-09-03T10:20:43.000007468Z",
-    "cri_time": "2026-09-03T10:20:43.000007468Z",
     "aggregator_custom_filter": "true"
   },
   {
@@ -45,8 +45,8 @@
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "short_message": "==> Starting Consul agent...",
+    "stdio_stream": "stdout",
     "time": "2026-09-03T10:20:43.500007468Z",
-    "cri_time": "2026-09-03T10:20:43.500007468Z",
     "aggregator_custom_filter": "true"
   }
 ]

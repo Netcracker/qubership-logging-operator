@@ -4,8 +4,8 @@
       "id": "qes-1"
     },
     "parse_status": "success",
+    "stdio_stream": "stdout",
     "time": "2024-06-17T15:58:02.219007468Z",
-    "cri_time": "2024-06-17T15:58:02.219007468Z",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
       "metadata.app.kubernetes.io/version": "0.1.0"
@@ -39,8 +39,8 @@
       "id": "qes-2"
     },
     "parse_status": "success",
+    "stdio_stream": "stdout",
     "time": "2024-06-17T15:58:02.771007468Z",
-    "cri_time": "2024-06-17T15:58:02.771007468Z",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
       "metadata.app.kubernetes.io/version": "0.1.0"
@@ -74,8 +74,8 @@
       "id": "qes-3"
     },
     "parse_status": "success",
+    "stdio_stream": "stdout",
     "time": "2024-06-17T15:58:02.772007468Z",
-    "cri_time": "2024-06-17T15:58:02.772007468Z",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
       "metadata.app.kubernetes.io/version": "0.1.0"
@@ -109,8 +109,8 @@
       "id": "qes-4"
     },
     "parse_status": "success",
+    "stdio_stream": "stdout",
     "time": "2024-06-17T15:58:04.045007468Z",
-    "cri_time": "2024-06-17T15:58:04.045007468Z",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
       "metadata.app.kubernetes.io/version": "0.1.0"
@@ -144,8 +144,8 @@
       "id": "qes-5"
     },
     "parse_status": "success",
+    "stdio_stream": "stdout",
     "time": "2024-06-17T15:58:24.426007468Z",
-    "cri_time": "2024-06-17T15:58:24.426007468Z",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
       "metadata.app.kubernetes.io/version": "0.1.0"
@@ -179,8 +179,8 @@
       "id": "qes-6"
     },
     "parse_status": "success",
+    "stdio_stream": "stdout",
     "time": "2024-06-17T15:58:50.440007468Z",
-    "cri_time": "2024-06-17T15:58:50.440007468Z",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
       "metadata.app.kubernetes.io/version": "0.1.0"
@@ -214,8 +214,8 @@
       "id": "qes-7"
     },
     "parse_status": "success",
+    "stdio_stream": "stdout",
     "time": "2024-06-17T15:59:10.376007468Z",
-    "cri_time": "2024-06-17T15:59:10.376007468Z",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
       "metadata.app.kubernetes.io/version": "0.1.0"
@@ -266,8 +266,8 @@
     "short_message": "[request_id=-              ][tenant_id=-                                   ] [version=v1] [traceId=-               ] [spanId=-               ] [originating_bi_id=-               ] [business_identifiers=-               ] [thread=main           ] [class=c.datastax.oss.driver.internal.core.DefaultMavenCoordinates ] [method=buildFromResourceAndPrint     ] DataStax Java driver for Apache Cassandra(R) (com.datastax.oss:java-driver-core) version 4.15.0",
     "date": "2024-06-17T15:59:12.462",
     "spanId": "-",
+    "stdio_stream": "stdout",
     "time": "2024-06-17T15:59:12.462007468Z",
-    "cri_time": "2024-06-17T15:59:12.462007468Z",
     "level": "info",
     "parse_field_count": 13,
     "originating_bi_id": "-",
@@ -301,8 +301,8 @@
     "short_message": "[request_id=465a8dcdc05a30e74c8ed9c7d66aa4a6] [tenant_id=00000000-0000-0000-0000-000000000000] [version=v1] [traceId=-               ] [spanId=-               ] [originating_bi_id=-               ] [business_identifiers={quote_id=00000000-0000-0000-0000-000000000000}] [thread=0.0-8080-exec-5] [class=c.n.s.tst.plugin.quotation.TstQuotePostCommandModificator   ] [method=modifyQuote                   ] [EP-0103] Starting EP Execution",
     "date": "2024-06-18T17:28:04.014",
     "spanId": "-",
+    "stdio_stream": "stdout",
     "time": "2024-06-18T17:28:04.014007468Z",
-    "cri_time": "2024-06-18T17:28:04.014007468Z",
     "level": "info",
     "parse_field_count": 13,
     "originating_bi_id": "-",
@@ -336,8 +336,8 @@
     "short_message": "[request_id=9becf266dd03e52ccc80369bf1921029] [tenant_id=00000000-0000-0000-0000-000000000000] [version=v1] [traceId=-               ] [spanId=-               ] [originating_bi_id=00000000-0000-0000-0000-000000000000] [business_identifiers=-               ] [thread=0.0-8080-exec-6] [class=c.n.c.c.q.e.a.web.pub.graphql.controller.GraphQLController  ] [method=graphql                       ] Start GraphQL Query processing",
     "date": "2024-06-18T17:28:06.867",
     "spanId": "-",
+    "stdio_stream": "stdout",
     "time": "2024-06-18T17:28:06.867007468Z",
-    "cri_time": "2024-06-18T17:28:06.867007468Z",
     "level": "info",
     "parse_field_count": 13,
     "originating_bi_id": "00000000-0000-0000-0000-000000000000",
@@ -371,8 +371,8 @@
     "short_message": "[request_id=9becf266dd03e52ccc80369bf1921029] [tenant_id=00000000-0000-0000-0000-000000000000] [version=v1] [traceId=-               ] [spanId=-               ] [originating_bi_id=00000000-0000-0000-0000-000000000000] [business_identifiers={quote_id=00000000-0000-0000-0000-000000000000}] [thread=0.0-8080-exec-6] [class=c.n.c.crm.quotation.engine.app.web.logging.LoggingHandler   ] [method=logAfterApi                   ] org.qubership.cloud.crm.quotation.engine.app.web.pub.graphql.controller.GraphQLController.graphql()",
     "date": "2024-06-18T17:28:06.873",
     "spanId": "-",
+    "stdio_stream": "stdout",
     "time": "2024-06-18T17:28:06.873007468Z",
-    "cri_time": "2024-06-18T17:28:06.873007468Z",
     "level": "info",
     "parse_field_count": 13,
     "originating_bi_id": "00000000-0000-0000-0000-000000000000",
@@ -406,8 +406,8 @@
     "short_message": "[request_id=ff17deddbb17f5b0da468a87107b9a49][tenant_id=00000000-0000-0000-0000-000000000000] [version=v1] [traceId=-               ] [spanId=-               ] [originating_bi_id=00000000-0000-0000-0000-000000000000] [business_identifiers=-               ] [thread=0.0-8080-exec-9] [class=c.n.c.c.q.e.a.web.pub.graphql.controller.GraphQLController  ] [method=graphql                       ] Start GraphQL Query processing",
     "date": "2024-06-18T17:28:07.414",
     "spanId": "-",
+    "stdio_stream": "stdout",
     "time": "2024-06-18T17:28:07.414007468Z",
-    "cri_time": "2024-06-18T17:28:07.414007468Z",
     "level": "info",
     "parse_field_count": 13,
     "originating_bi_id": "00000000-0000-0000-0000-000000000000",

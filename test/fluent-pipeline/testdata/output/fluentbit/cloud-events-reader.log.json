@@ -5,12 +5,11 @@
     },
     "message": "Back-off pulling image \"ghcr.io/netcracker/qubership-disaster-recovery-daemon:v0.4.5\"",
     "involvedObjectKind": "Pod",
-    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "parse_field_count": 15,
     "involvedObjectName": "rabbitmq-operator-59d457d796-xh27k",
     "namespace": "fake-namespace",
+    "stdio_stream": "stdout",
     "time": "2024-06-11T07:40:20.272007468Z",
-    "cri_time": "2024-06-11T07:40:20.272007468Z",
     "involvedObjectUid": "00000000-0000-0000-0000-000000000000",
     "kind": "KubernetesEvent",
     "involvedObjectApiVersion": "v1",
@@ -25,6 +24,7 @@
     "type": "Normal",
     "reason": "BackOff",
     "involvedObjectNamespace": "rabbitmq",
-    "parse_format": "unknown"
+    "parse_format": "unknown",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d"
   }
 ]

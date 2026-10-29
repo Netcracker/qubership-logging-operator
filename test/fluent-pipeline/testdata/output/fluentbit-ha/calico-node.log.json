@@ -33,8 +33,8 @@
     "src_namespace": "demo",
     "src_pod": "source-pod",
     "src_port": "12345",
+    "stdio_stream": "stdout",
     "time": "2026-09-03T10:20:48.000007468Z",
-    "cri_time": "2026-09-03T10:20:48.000007468Z",
     "ttl": "64",
     "type_of_service": "0x00",
     "window_size": "64240"
@@ -60,7 +60,7 @@
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "short_message": "Sep 3 10:20:48 node-1 kernel: packet dropped",
-    "time": "2026-09-03T10:20:48.500007468Z",
-    "cri_time": "2026-09-03T10:20:48.500007468Z"
+    "stdio_stream": "stdout",
+    "time": "2026-09-03T10:20:48.500007468Z"
   }
 ]

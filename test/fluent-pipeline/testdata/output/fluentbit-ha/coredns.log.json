@@ -24,8 +24,8 @@
     "record_type": "A",
     "short_message": "read udp 10.0.0.2:53: timeout",
     "source_level": "ERROR",
+    "stdio_stream": "stdout",
     "time": "2026-09-03T10:20:40.000007468Z",
-    "cri_time": "2026-09-03T10:20:40.000007468Z",
     "forwarder_custom_filter": "true"
   },
   {
@@ -49,8 +49,8 @@
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "short_message": "CoreDNS-1.11.1 linux/amd64, go1.20.7, ae2bbc2",
+    "stdio_stream": "stdout",
     "time": "2026-09-03T10:20:40.500007468Z",
-    "cri_time": "2026-09-03T10:20:40.500007468Z",
     "forwarder_custom_filter": "true"
   },
   {
@@ -58,23 +58,20 @@
       "id": "coredns-empty-line",
       "dropped": true
     },
-    "time": "2026-09-03T10:20:40.250007468Z",
-    "cri_time": "2026-09-03T10:20:40.250007468Z"
+    "time": "2026-09-03T10:20:40.250007468Z"
   },
   {
     "_test": {
       "id": "coredns-spaces-line",
       "dropped": true
     },
-    "time": "2026-09-03T10:20:40.260007468Z",
-    "cri_time": "2026-09-03T10:20:40.260007468Z"
+    "time": "2026-09-03T10:20:40.260007468Z"
   },
   {
     "_test": {
       "id": "coredns-tab-line",
       "dropped": true
     },
-    "time": "2026-09-03T10:20:40.270007468Z",
-    "cri_time": "2026-09-03T10:20:40.270007468Z"
+    "time": "2026-09-03T10:20:40.270007468Z"
   }
 ]

@@ -5,8 +5,8 @@
     },
     "detected_level": "info",
     "parse_status": "success",
+    "stdio_stream": "stdout",
     "time": "2024-09-05T12:19:31.575007468Z",
-    "cri_time": "2024-09-05T12:19:31.575007468Z",
     "nodename": "fake-node",
     "labels": {
       "metadata.app": "fluent-pipeline-test",

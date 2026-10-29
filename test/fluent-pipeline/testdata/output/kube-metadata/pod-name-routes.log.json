@@ -18,8 +18,8 @@
     "pod": "kube-scheduler",
     "short_message": "\"Successfully bound pod to node\" pod=\"demo/app-0\"",
     "source_level": "I",
-    "time": "2026-09-03T11:00:03.000007468Z",
-    "cri_time": "2026-09-03T11:00:03.000007468Z"
+    "stdio_stream": "stdout",
+    "time": "2026-09-03T11:00:03.000007468Z"
   },
   {
     "_test": {
@@ -40,7 +40,7 @@
     "pod": "clickhouse-operator-0",
     "short_message": "\"Reconcile completed\" cluster=\"demo\"",
     "source_level": "I",
-    "time": "2026-09-03T11:00:04.000007468Z",
-    "cri_time": "2026-09-03T11:00:04.000007468Z"
+    "stdio_stream": "stdout",
+    "time": "2026-09-03T11:00:04.000007468Z"
   }
 ]

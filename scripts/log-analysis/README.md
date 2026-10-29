@@ -284,14 +284,67 @@ matches `level:6 OR level:info`, and `debug` matches
 
 ## Schema Quality
 
-The `schema_quality` section shows top sources by max observed
-`parse_field_count`. It helps find logs that expand into too many parsed
-fields after Fluent Bit processing. Kubernetes events are excluded from this
-section.
+The `schema_quality` section finds sources whose payload expands into too many fields.
+Kubernetes events are excluded from this section.
 
-The detected-problems check uses `FIELDS_COUNT_THRESHOLD` to decide when max
-`parse_field_count` should be highlighted. The threshold defaults to `20` and
-can be changed with:
+The two backends measure this differently, because only one of them can do the work at query
+time.
+
+### VictoriaLogs
+
+The `top_by_fields_per_record` table carries two numbers per source, both counted over the
+payload only. Fields the pipeline adds to every record — `namespace`, `pod`, `container`,
+`level`, `parse_status`, the `labels.*` group, and the rest of the reserved set — are
+excluded, so the numbers reflect the source's own schema.
+
+`avg_parsed_fields` is how many payload fields a typical record of that source carries. It
+comes from the hits `field_names` reports, divided by the source's record count. LogsQL has
+no per-record field count, so this average stands in for the `max(parse_field_count)` the
+pipeline used to provide: it finds sources whose records are field-heavy, but a single
+unusually wide record among ordinary ones does not stand out.
+
+`distinct_parsed_fields` is how many field names the source produced over the whole range.
+That is what those names cost as columns in the storage, so a name counts however rarely it
+appears. A source scoring high here and low on the average writes an unstable schema rather
+than heavy records — field names carrying data, such as an ASCII banner parsed as logfmt.
+
+The table is sorted by `avg_parsed_fields`, and the section runs one `field_names` query per
+measured source on top of the query that picks them.
+
+Field width is measured per source, so the sources to measure are picked first, by log
+count. A quiet source with wide records therefore only reaches the table while the candidate
+set still has room for it:
+
+```bash
+--schema-quality-candidates 500
+```
+
+or:
+
+```bash
+SCHEMA_QUALITY_CANDIDATES=500
+```
+
+The default is `200`. When the candidate set fills up, the section sets
+`candidates_truncated`, and quieter sources went unmeasured. An empty table then says
+nothing about them, so raise the limit before reading it as an all-clear.
+
+### Graylog
+
+The `top_by_max_fields` table ranks sources by the highest `parse_field_count` value stored
+on their records. Graylog aggregates over a named field and cannot count the fields of a
+message, so this table needs a collector that writes `parse_field_count` itself.
+
+Pipelines that do not write that field leave the table empty and report no
+`Too many parsed fields` problem. Fluentd, older logging versions, and Fluent Bit pipelines
+that detect parsing without field counts all fall into this group. On those deployments the
+check is unavailable rather than passing, so read an empty table as a gap in coverage.
+
+### Threshold
+
+The detected-problems check compares `avg_parsed_fields` against `FIELDS_COUNT_THRESHOLD` on
+VictoriaLogs, and `max_parse_field_count` on Graylog. Both are per-record numbers, so the
+threshold keeps the meaning it had before. It defaults to `20` and can be changed with:
 
 ```bash
 --fields-count-threshold 30
@@ -303,10 +356,34 @@ or:
 FIELDS_COUNT_THRESHOLD=30
 ```
 
-This section uses `parse_field_count`, which is produced by the Fluent Bit
-pipeline after parsing/post-processing. Fluentd and older logging versions may
-not add this field; in that case the `schema_quality` tables are expected to be
-empty and no `Too many parsed fields` problem is reported.
+`distinct_parsed_fields` is not compared against the threshold, because it grows with the
+selected range and with the schema drift inside it. One source measured over five ranges:
+
+| Range | Records | Distinct names | Fields per record |
+| ----- | ------- | -------------- | ----------------- |
+| `1d`  | 55      | 20             | 11.2              |
+| `7d`  | 117954  | 123            | 42.5              |
+
+Read that column next to the average rather than on its own.
+
+### Rare field names
+
+Both numbers count a field name however rarely it appears. To drop names that only a few
+records carry, require each one to reach a share of the source's records:
+
+```bash
+--min-field-share-percent 5
+```
+
+or:
+
+```bash
+MIN_FIELD_SHARE_PERCENT=5
+```
+
+The default is `0`, which counts every name. Raising it hides the unstable-schema sources
+that `distinct_parsed_fields` finds by default, so change it only when the wide-schema
+question is the one you are asking.
 
 ## Detected Problems
 
@@ -360,6 +437,7 @@ The report collects:
 - `k8s_events`: Kubernetes events selected by `kind=KubernetesEvent`.
 - `message_size`: VictoriaLogs uses `_msg` length.
 - `categories`: VictoriaLogs log counts grouped by `log_category`.
-- `schema_quality`: top sources by max `parse_field_count`.
+- `schema_quality`: top sources by distinct payload field names on VictoriaLogs, or by max
+  `parse_field_count` on Graylog.
 - `storage.victorialogs_block_stats`: optional VictoriaLogs-only disk usage
   diagnostics.

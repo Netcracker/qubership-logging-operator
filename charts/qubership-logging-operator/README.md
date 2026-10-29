@@ -730,15 +730,6 @@ false
 			<td>A docker image to use for ConfigMap Reload daemon set. dockerImage: ghcr.io/jimmidyson/configmap-reload:v0.15.0 The resources describe to compute resource requests and limits for single Pods. Ref: https://kubernetes.io/docs/user-guide/compute-resources/</td>
 		</tr>
 		<tr>
-			<td>fluentbit.collectOwnLogs</td>
-			<td>bool</td>
-			<td><pre lang="json">
-false
-</pre>
-</td>
-			<td>Collect logs from FluentBit collector pods. Enable only when you need their logs in the output pipeline.</td>
-		</tr>
-		<tr>
 			<td>fluentbit.containerLogging</td>
 			<td>bool</td>
 			<td><pre lang="json">
@@ -1345,6 +1336,15 @@ false
 </pre>
 </td>
 			<td>Allow creating security resources as PodSecurityPolicy, SecurityContextConstraints</td>
+		</tr>
+		<tr>
+			<td>fluentbit.selfLogging</td>
+			<td>bool</td>
+			<td><pre lang="json">
+false
+</pre>
+</td>
+			<td>Collect logs from FluentBit collector pods. Enable only when you need their logs in the output pipeline.</td>
 		</tr>
 		<tr>
 			<td>fluentbit.storageProfile</td>
@@ -3165,6 +3165,15 @@ true
 </pre>
 </td>
 			<td>Type of pprof service</td>
+		</tr>
+		<tr>
+			<td>pvc.metadata.annotations</td>
+			<td>object</td>
+			<td><pre lang="json">
+{}
+</pre>
+</td>
+			<td>Annotations added to every PVC that the chart creates, for example `argocd.argoproj.io/sync-options: Prune=false`. Values must be strings. On key conflict, these annotations override `graylog.annotations` on Graylog PVCs. They do not apply to the Fluent Bit aggregator PVCs, which the operator creates. When `graylog.install` is `false`, the operator deletes the Graylog and MongoDB PVCs whatever the annotations.</td>
 		</tr>
 		<tr>
 			<td>readinessProbe</td>

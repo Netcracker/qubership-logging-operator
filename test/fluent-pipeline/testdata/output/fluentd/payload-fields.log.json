@@ -15,7 +15,7 @@
     "nc_audit_label": "false",
     "parse_level_unknown": "false",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
-    "source_level": "error",
+    "source_level": "trace",
     "time": "2026-09-03T10:20:55.000007468Z"
   },
   {

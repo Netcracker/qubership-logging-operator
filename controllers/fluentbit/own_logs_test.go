@@ -13,10 +13,10 @@ import (
 
 func TestCollectorLogExclusions(t *testing.T) {
 	for _, runtime := range []string{"containerd", "cri-o", "docker"} {
-		for _, collect := range []bool{false, true} {
+		for _, selfLogging := range []bool{false, true} {
 			for _, custom := range []string{"", "/custom/*.log,/other/*.log"} {
-				t.Run(fmt.Sprintf("%s/collect=%t/custom=%t", runtime, collect, custom != ""), func(t *testing.T) {
-					fb := &loggingService.Fluentbit{ContainerLogging: true, CollectOwnLogs: collect, ExcludePath: custom, Aggregator: &loggingService.FluentbitAggregator{Install: false}}
+				t.Run(fmt.Sprintf("%s/selfLogging=%t/custom=%t", runtime, selfLogging, custom != ""), func(t *testing.T) {
+					fb := &loggingService.Fluentbit{ContainerLogging: true, SelfLogging: selfLogging, ExcludePath: custom, Aggregator: &loggingService.FluentbitAggregator{Install: false}}
 
 					cr := &loggingService.LoggingService{ObjectMeta: metav1.ObjectMeta{Namespace: "observability"}, Spec: loggingService.LoggingServiceSpec{Fluentbit: fb}}
 					secret, err := fluentbitConfigSecret(cr, util.DynamicParameters{ContainerRuntimeType: runtime}, outputCredentials{})
@@ -40,7 +40,7 @@ func TestCollectorLogExclusions(t *testing.T) {
 							exclusions = fields[1]
 						}
 					}
-					if collect {
+					if selfLogging {
 						if exclusions != custom {
 							t.Fatalf("exclusions = %q, want %q", exclusions, custom)
 						}

@@ -64,7 +64,7 @@ func (r *LoggingServiceReconciler) Reconcile(context context.Context, request ct
 			// Request object not found, could have been deleted after reconcile request.
 			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
 			// Return and don't requeue
-			return reconcile.Result{Requeue: false}, nil
+			return reconcile.Result{}, nil
 		}
 		// Error reading the object - requeue the request.
 		return reconcile.Result{}, err

@@ -258,9 +258,10 @@ type Fluentbit struct {
 	KubeApiserverAuditLogging bool                     `json:"kubeApiserverAuditLogging,omitempty"`
 	ContainerLogging          bool                     `json:"containerLogging,omitempty"`
 	ExcludePath               string                   `json:"excludePath,omitempty"`
-	// CollectOwnLogs includes logs from the Fluentbit collector pods. Disabled by default to prevent feedback loops.
-	CollectOwnLogs bool             `json:"collectOwnLogs,omitempty"`
-	Output         *OutputFluentbit `json:"output,omitempty"`
+	// SelfLogging enables the collection of logs from the FluentBit collector pods. It is disabled by default to
+	// prevent feedback loops.
+	SelfLogging bool             `json:"selfLogging,omitempty"`
+	Output      *OutputFluentbit `json:"output,omitempty"`
 
 	// Flush is an interval in seconds to flush records to the outputs.
 	// Increasing the interval reduces the amount of produced chunks and, as a result, the disk load.
@@ -947,7 +948,7 @@ func (tlsConfig *TLSConfig) GetCertificates(ctx context.Context, clientSet kuber
 
 // ContainerLogExcludePath combines user exclusions with the collector log paths.
 func (in *Fluentbit) ContainerLogExcludePath(namespace, runtime string) string {
-	if in.CollectOwnLogs {
+	if in.SelfLogging {
 		return in.ExcludePath
 	}
 	names := []string{"logging-fluentbit"}

@@ -6,6 +6,7 @@
     "namespace": "fake-namespace",
     "parse_status": "failed",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "parse_level_unknown": "true",
     "hostname": "fake-fluent",
     "labels": {
@@ -16,10 +17,10 @@
     "level": "info",
     "detected_level": "info",
     "time": "2026-09-03T10:22:10.000007468Z",
-    "parse_field_count": 8,
     "container": "fake-container",
     "short_message": "2026-09-03 10:22:10 ERROR request failed: java.lang.IllegalStateException: unavailable\n\tat com.example.Service.call(Service.java:42)\nCaused by: java.io.IOException: connection reset\n\tat com.example.Client.read(Client.java:18)",
-    "parse_format": "unknown"
+    "parse_format": "unknown",
+    "stdio_stream": "stdout"
   },
   {
     "_test": {
@@ -28,6 +29,7 @@
     "namespace": "fake-namespace",
     "parse_status": "failed",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "parse_level_unknown": "true",
     "hostname": "fake-fluent",
     "labels": {
@@ -38,9 +40,9 @@
     "level": "info",
     "detected_level": "info",
     "time": "2026-09-03T10:22:11.000007468Z",
-    "parse_field_count": 8,
     "container": "fake-container",
     "short_message": "2026-09-03 10:22:11 INFO request recovered",
-    "parse_format": "unknown"
+    "parse_format": "unknown",
+    "stdio_stream": "stdout"
   }
 ]

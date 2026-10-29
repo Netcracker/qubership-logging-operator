@@ -6,6 +6,7 @@
     "namespace": "fake-namespace",
     "parse_status": "failed",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "parse_level_unknown": "true",
     "hostname": "fake-fluent",
     "labels": {
@@ -16,10 +17,10 @@
     "level": "info",
     "detected_level": "info",
     "time": "2026-09-03T10:22:20.000007468Z",
-    "parse_field_count": 6,
     "container": "fake-container",
     "short_message": "http: panic serving 10.0.0.1:1234: unexpected failure\ngoroutine 18 [running]:\nnet/http.(*conn).serve(0xc0000b6000, {0x123, 0xc0000ac000})\n\t/usr/local/go/src/net/http/server.go:2127 +0x5d0",
-    "parse_format": "unknown"
+    "parse_format": "unknown",
+    "stdio_stream": "stderr"
   },
   {
     "_test": {
@@ -28,6 +29,7 @@
     "namespace": "fake-namespace",
     "parse_status": "failed",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "parse_level_unknown": "true",
     "hostname": "fake-fluent",
     "labels": {
@@ -38,9 +40,9 @@
     "level": "info",
     "detected_level": "info",
     "time": "2026-09-03T10:22:21.000007468Z",
-    "parse_field_count": 6,
     "container": "fake-container",
     "short_message": "server continues",
-    "parse_format": "unknown"
+    "parse_format": "unknown",
+    "stdio_stream": "stdout"
   }
 ]

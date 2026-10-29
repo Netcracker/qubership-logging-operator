@@ -1,5 +1,6 @@
 {{- if and .Values.victorialogs.install (not .Values.victorialogs.storage.existingClaim) }}
-{{- $annotations := mergeOverwrite (deepCopy (.Values.victorialogs.storage.annotations | default dict)) (dict "helm.sh/resource-policy" "keep") }}
+{{- /* Precedence on key conflict: pvc.metadata.annotations < victorialogs.storage.annotations < resource-policy keep. */}}
+{{- $annotations := mergeOverwrite (deepCopy (((.Values.pvc).metadata).annotations | default dict)) (deepCopy (.Values.victorialogs.storage.annotations | default dict)) (dict "helm.sh/resource-policy" "keep") }}
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:

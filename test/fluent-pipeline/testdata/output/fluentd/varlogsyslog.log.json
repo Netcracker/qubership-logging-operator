@@ -82,5 +82,48 @@
     "kubernetes_host": "fake-node",
     "message": "E0619 11:28:51.938462  126456 pod_workers.go:1298] \"Error syncing pod, skipping\" err=\"failed to \\\"StartContainer\\\" for \\\"esc-collector-service\\\" with ImagePullBackOff: \\\"Back-off pulling image \\\\\\\"docker.io/cloud-diagnostic-toolset/esc-collector-service-assembly-bugfix-cpdev-93288:build2\\\\\\\"\\\"\" pod=\"profiler/esc-collector-service-5d557698f-pvmhx\" podUID=\"00000000-0000-0000-0000-000000000000\"",
     "pid": "126456"
+  },
+  {
+    "_test": {
+      "id": "syslog-7",
+      "matchOn": [
+        "message"
+      ]
+    },
+    "host": "master-1",
+    "hostname": "fake-fluent",
+    "ident": "kernel",
+    "kubernetes_host": "fake-node",
+    "message": "IPv6: ADDRCONF(NETDEV_CHANGE): eth0: link becomes ready"
+  },
+  {
+    "_test": {
+      "id": "syslog-8-rfc3339-dropped",
+      "matchOn": [
+        "message"
+      ],
+      "dropped": true
+    },
+    "message": "watch of *v1.Pod ended with: an error on the server"
+  },
+  {
+    "_test": {
+      "id": "syslog-9-rfc3339-seconds-dropped",
+      "matchOn": [
+        "message"
+      ],
+      "dropped": true
+    },
+    "message": "pam_unix(cron:session): session closed for user root"
+  },
+  {
+    "_test": {
+      "id": "syslog-10-non-syslog-dropped",
+      "matchOn": [
+        "message"
+      ],
+      "dropped": true
+    },
+    "message": "not a syslog line at all, just text a process wrote to the file"
   }
 ]

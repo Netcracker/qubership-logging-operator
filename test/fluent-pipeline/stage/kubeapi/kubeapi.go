@@ -112,7 +112,7 @@ func writeCredentials(dir string) (tls.Certificate, error) {
 		"ca.crt":  certificatePEM,
 		"tls.crt": certificatePEM,
 		"tls.key": keyPEM,
-		"token":   []byte(serviceAccount + "\n"),
+		"token":   []byte(serviceAccount),
 	} {
 		if err := os.WriteFile(filepath.Join(dir, name), content, 0o644); err != nil {
 			return tls.Certificate{}, fmt.Errorf("write %s: %w", name, err)

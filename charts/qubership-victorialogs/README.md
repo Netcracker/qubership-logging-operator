@@ -56,6 +56,7 @@ corresponding Prometheus Operator or Grafana Operator v5 CRDs are installed.
 | CLOUD_PUBLIC_HOST | string | `""` | Public DNS suffix used to generate external hosts when an explicit host is not set. |
 | annotations | object | `{}` | Annotations applied to VictoriaLogs and VMAuth workloads. |
 | labels | object | `{}` | Labels applied to all VictoriaLogs and VMAuth resources. |
+| pvc.metadata.annotations | object | `{}` | Annotations added to every PVC that this chart creates, for example `argocd.argoproj.io/sync-options: Prune=false`. Values must be strings. They apply to this release only, not to the logging operator chart release. On key conflict, `victorialogs.storage.annotations` wins. The chart always sets `helm.sh/resource-policy: keep`. |
 | victorialogs.addIngressIgnoreAnnotation | bool | `true` | Add the gateway converter ignore annotation to Ingress when HTTPRoute is enabled. |
 | victorialogs.affinity | object | `{}` | Affinity and anti-affinity rules for the VictoriaLogs Pod. |
 | victorialogs.annotations | object | `{}` | Annotations for the VictoriaLogs StatefulSet. |

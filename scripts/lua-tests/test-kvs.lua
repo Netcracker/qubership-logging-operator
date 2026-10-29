@@ -173,4 +173,20 @@ assert(bracket_code == 2, "kv_parse did not process a marked Qubership record")
 assert(bracket_record.request_id == "abc", "kv_parse did not extract the valid field before a bracketed value")
 assert(bracket_record.array == nil, "kv_parse extracted a truncated field from a bracketed value")
 
+local bracketed_message_code, bracketed_message_record = parse(
+    "[2026-09-17T12:00:00Z] [INFO] [request_id=abc] [thread=main] [done]",
+    1006
+)
+assert(bracketed_message_code == 2, "kv_parse did not process a record whose message is bracketed text")
+assert(bracketed_message_record.request_id == "abc", "kv_parse skipped a field before a bracketed message")
+assert(bracketed_message_record.thread == "main", "kv_parse skipped the last field before a bracketed message")
+
+local message_kv_code, message_kv_record = parse(
+    "[2026-09-17T12:00:00Z] [INFO] [request_id=abc] [done] [late=value]",
+    1007
+)
+assert(message_kv_code == 2, "kv_parse did not process a record with key-value text in the message")
+assert(message_kv_record.request_id == "abc", "kv_parse skipped a field before the message")
+assert(message_kv_record.late == nil, "kv_parse extracted key-value text from the message")
+
 print("parse_key_value.lua tests passed")

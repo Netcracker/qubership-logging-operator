@@ -6,36 +6,34 @@ function kv_parse(tag, timestamp, record)
         return 0, timestamp, record
     end
     if record["log"] ~= nil and type(record["log"]) ~= "table" then
-        -- regex to find the end of key=value string in the original string
-        -- this regex search the place:
-        -- * start from ]
-        -- * with 0 or more space symbols
-        -- * without [
-        -- * start from alphabet symbol, digit or any symbol (expect [)
-        local regex_kvs_end = "]%s*[^%[][%w%-%{%}%\\%/%.%,%!%@%#%$%%%^%&%*%(%)]%s*"
-        local regex_kvs = "%[([^=%[%]\"]+)=([^%[%]\"]*)%]"
-        local regex_kvs_at_end = "%[[^=%[%]\"]+=[^%[%]\"]*%]%s*$"
+        -- The record matched the qubership parser:
+        -- [<time>] [<level>] [key1=value1] ... [keyN=valueN] <message>
+        -- Read the [key=value] groups that directly follow the header, the same groups the parser skips before
+        -- short_message. The message can contain brackets of its own, so it never decides where the groups end.
+        local regex_header = "^%s*%[[^%[%]]*%]%s*%[[^%[%]]*%]"
+        local regex_kv = "^%s*%[%s*([^%[%]%s=]+)%s*=([^%[%]]*)%]()"
         local s = record["log"]
 
-        -- find the end position of [key=value] pairs
-        -- and copy from original string only this string part, for example:
-        -- [<time>] [INFO] [key1=value1][key2=value2] ... [keyN=valueN]
-        local kvs_position = string.find(s, regex_kvs_end, 1)
-        -- A message-less record ends at the final key-value pair.
-        if kvs_position == nil and string.find(s, regex_kvs_at_end, 1) ~= nil then
-            kvs_position = string.len(s)
-        end
-        if kvs_position == nil then
+        local _, header_end = string.find(s, regex_header)
+        if header_end == nil then
             return 0, timestamp, record
         end
 
-        local kvs = string.sub(s, 1, kvs_position)
-        local trimmed_v
-        for k, v in string.gmatch(kvs, regex_kvs) do
-            trimmed_v = v:gsub("^%s*(.-)%s*$", "%1")
-            if trimmed_v ~= "" then
-                record[k] = trimmed_v
+        local found = false
+        local key, value, next_position = string.match(s, regex_kv, header_end + 1)
+        while key ~= nil do
+            found = true
+            local trimmed_value = value:gsub("^%s*(.-)%s*$", "%1")
+            -- Quoted keys and values are not key-value fields, and empty values are skipped.
+            if trimmed_value ~= "" and not string.find(key, "\"", 1, true) and
+                not string.find(trimmed_value, "\"", 1, true) then
+                record[key] = trimmed_value
             end
+            key, value, next_position = string.match(s, regex_kv, next_position)
+        end
+
+        if not found then
+            return 0, timestamp, record
         end
 
         -- return 2, that means the original timestamp is not modified and the record has been modified

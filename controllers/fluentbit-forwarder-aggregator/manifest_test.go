@@ -178,10 +178,10 @@ func TestAggregatorQubershipKeyValueParserGuard(t *testing.T) {
 	if !strings.Contains(script, `if record["__qubership_candidate"] == nil then`) {
 		t.Errorf("expected key-value parsing to require a Qubership parser marker, got:\n%s", script)
 	}
-	nilGuardIndex := strings.Index(script, "if kvs_position == nil then")
-	sliceIndex := strings.Index(script, "string.sub(s, 1, kvs_position)")
-	if nilGuardIndex == -1 || sliceIndex == -1 || nilGuardIndex > sliceIndex {
-		t.Errorf("expected a missing key-value boundary to be handled before slicing, got:\n%s", script)
+	headerGuardIndex := strings.Index(script, "if header_end == nil then")
+	pairIndex := strings.Index(script, "string.match(s, regex_kv, header_end + 1)")
+	if headerGuardIndex == -1 || pairIndex == -1 || headerGuardIndex > pairIndex {
+		t.Errorf("expected key-value fields to be read only after the Qubership header, got:\n%s", script)
 	}
 }
 

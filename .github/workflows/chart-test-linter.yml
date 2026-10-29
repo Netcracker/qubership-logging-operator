@@ -83,6 +83,9 @@ jobs:
       - name: Test monitoring selectors
         run: scripts/chart-tests/test-monitoring-selectors.sh
 
+      - name: Test PVC annotations
+        run: scripts/chart-tests/test-pvc-annotations.sh
+
   chart-gate:
     name: Chart Gate
     needs: [changes, lint-test]

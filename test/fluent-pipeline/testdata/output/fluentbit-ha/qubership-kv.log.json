@@ -19,10 +19,12 @@
     "level": "err",
     "short_message": "NullPointerException\n    at com.example.app.Main.processRequest(Main.java:42)\n    at com.example.app.Main.main(Main.java:17)\nCaused by: java.lang.NullPointerException: Cannot invoke \"String.length()\" because \"input\" is null\n    at com.example.app.Utils.validateInput(Utils.java:89)",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "hostname": "fake-fluent",
     "container": "fake-container",
     "request_id": "8a7b6c5d-4e3f",
     "source_level": "ERROR",
+    "stdio_stream": "stdout",
     "parse_format": "qubership"
   },
   {
@@ -45,10 +47,12 @@
     "level": "debug",
     "short_message": "Sending payload: size=2KB",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "hostname": "fake-fluent",
     "container": "fake-container",
     "request_id": "5f6e7d8c-9a0b",
     "source_level": "DEBUG",
+    "stdio_stream": "stdout",
     "parse_format": "qubership"
   },
   {
@@ -71,10 +75,12 @@
     "level": "debug",
     "short_message": "Processing transaction: amount=29.99USD",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "hostname": "fake-fluent",
     "container": "fake-container",
     "request_id": "0q1w2e3r-4t5y",
     "source_level": "TRACE",
+    "stdio_stream": "stdout",
     "parse_format": "qubership"
   },
   {
@@ -97,10 +103,12 @@
     "level": "warning",
     "short_message": "Deprecated config key used: \"legacy_mode\"",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "hostname": "fake-fluent",
     "container": "fake-container",
     "request_id": "2k3l4m5n-6o7p",
     "source_level": "WARN",
+    "stdio_stream": "stdout",
     "parse_format": "qubership"
   },
   {
@@ -123,10 +131,12 @@
     "level": "err",
     "short_message": "Invalid configuration\n    at com.example.util.Config.validate(Config.java:145)\n    at com.example.util.Config.load(Config.java:78)\nCaused by: java.lang.IllegalArgumentException: Port must be between 1 and 65535\n    at com.example.util.Config.parsePort(Config.java:201)",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "hostname": "fake-fluent",
     "container": "fake-container",
     "request_id": "8t9u0v1w-2x3y",
     "source_level": "ERROR",
+    "stdio_stream": "stdout",
     "parse_format": "qubership"
   }
 ]

@@ -17,7 +17,9 @@
     "parse_level_unknown": "true",
     "parse_status": "failed",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "short_message": "Enabling execution of install_demo_configuration.sh for OpenSearch Security Plugin",
+    "stdio_stream": "stdout",
     "time": "2026-09-03T10:20:46.000007468Z"
   },
   {
@@ -40,8 +42,10 @@
     "parse_format": "opensearch",
     "parse_status": "success",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "short_message": " delayed allocation",
     "source_level": "WARN",
+    "stdio_stream": "stdout",
     "time": "2026-09-03T10:20:46.500007468Z"
   }
 ]

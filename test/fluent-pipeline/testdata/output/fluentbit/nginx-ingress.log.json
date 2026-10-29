@@ -8,6 +8,7 @@
     "nodename": "fake-node",
     "source_level": "W",
     "detected_level": "warn",
+    "stdio_stream": "stderr",
     "time": "2024-06-14T08:33:57.630003297Z",
     "level": "warning",
     "container": "fake-container",
@@ -20,6 +21,7 @@
     "parse_status": "success",
     "pid": "7",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "file": "controller.go:1213",
     "parse_format": "klog"
   },
@@ -32,6 +34,7 @@
     "nodename": "fake-node",
     "source_level": "W",
     "detected_level": "warn",
+    "stdio_stream": "stderr",
     "time": "2024-06-14T08:33:57.630711319Z",
     "level": "warning",
     "container": "fake-container",
@@ -44,6 +47,7 @@
     "parse_status": "success",
     "pid": "7",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "file": "controller.go:1435",
     "parse_format": "klog"
   },
@@ -56,6 +60,7 @@
     "nodename": "fake-node",
     "source_level": "I",
     "detected_level": "info",
+    "stdio_stream": "stderr",
     "time": "2024-06-14T08:33:57.631388352Z",
     "level": "info",
     "container": "fake-container",
@@ -68,6 +73,7 @@
     "parse_status": "success",
     "pid": "7",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "file": "controller.go:190",
     "parse_format": "klog"
   },
@@ -80,6 +86,7 @@
     "nodename": "fake-node",
     "source_level": "I",
     "detected_level": "info",
+    "stdio_stream": "stderr",
     "time": "2024-06-14T08:33:59.146293383Z",
     "level": "info",
     "container": "fake-container",
@@ -92,6 +99,7 @@
     "parse_status": "success",
     "pid": "7",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "file": "controller.go:210",
     "parse_format": "klog"
   },
@@ -104,6 +112,7 @@
     "nodename": "fake-node",
     "source_level": "I",
     "detected_level": "info",
+    "stdio_stream": "stderr",
     "time": "2024-06-14T08:33:59.146941221Z",
     "level": "info",
     "container": "fake-container",
@@ -116,6 +125,7 @@
     "parse_status": "success",
     "pid": "7",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "file": "event.go:364",
     "parse_format": "klog"
   },
@@ -130,6 +140,7 @@
     "nodename": "fake-node",
     "request_length": "805",
     "upstream_addr": "10.10.10.11:9000",
+    "stdio_stream": "stdout",
     "time": "2024-06-26T11:27:51.543241221Z",
     "proxy_upstream_name": "minio-service-minio-gateway-svc-9000",
     "upstream_response_length": "331",
@@ -148,6 +159,7 @@
     "path": "/opensearch?prefix=backup-storage%2F20240620T230000%2F.lock&max-keys=1&encoding-type=url",
     "request_time": "0.002",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "labels": {
       "metadata.app.kubernetes.io/version": "0.1.0",
       "metadata.app": "fluent-pipeline-test"
@@ -167,6 +179,7 @@
     "nodename": "fake-node",
     "request_length": "3507",
     "upstream_addr": "10.10.10.11:8443",
+    "stdio_stream": "stdout",
     "time": "2024-06-24T07:13:01.49189865Z",
     "proxy_upstream_name": "kubernetes-dashboard-kubernetes-dashboard-443",
     "upstream_response_length": "6760",
@@ -185,6 +198,7 @@
     "path": "/api/v1/namespace",
     "request_time": "0.025",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "labels": {
       "metadata.app.kubernetes.io/version": "0.1.0",
       "metadata.app": "fluent-pipeline-test"

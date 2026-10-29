@@ -21,7 +21,9 @@
     "parse_status": "success",
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "level": "info",
+    "stdio_stream": "stdout",
     "time": "2023-12-20T12:51:32.272007468Z"
   },
   {
@@ -36,6 +38,7 @@
     "namespace": "fake-namespace",
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "parse_format": "logfmt",
     "hostname": "fake-fluent",
     "nodename": "fake-node",
@@ -49,6 +52,7 @@
     "level": "err",
     "error": "ssh: handshake failed: knownhosts key mismatch",
     "attempt": "3",
+    "stdio_stream": "stdout",
     "time": "2023-12-20T12:51:33.272007468Z"
   }
 ]

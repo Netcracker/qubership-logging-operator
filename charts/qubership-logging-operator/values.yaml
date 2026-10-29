@@ -48,6 +48,16 @@ annotations: {}
 # Ref: https://kubernetes.io/docs/user-guide/labels
 labels: {}
 
+# PVC settings shared by all PVCs that the chart creates.
+pvc:
+  metadata:
+    # -- Annotations added to every PVC that the chart creates, for example
+    # `argocd.argoproj.io/sync-options: Prune=false`. Values must be strings.
+    # On key conflict, these annotations override `graylog.annotations` on Graylog PVCs.
+    # They do not apply to the Fluent Bit aggregator PVCs, which the operator creates.
+    # When `graylog.install` is `false`, the operator deletes the Graylog and MongoDB PVCs whatever the annotations.
+    annotations: {}
+
 # -- logging-operator pprof
 pprof:
   # -- Indicates if logging-operator has pprof enabled.

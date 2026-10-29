@@ -15,6 +15,7 @@
     "short_message": "NullPointerException\n    at com.example.app.Main.processRequest(Main.java:42)\n    at com.example.app.Main.main(Main.java:17)\nCaused by: java.lang.NullPointerException: Cannot invoke \"String.length()\" because \"input\" is null\n    at com.example.app.Utils.validateInput(Utils.java:89)",
     "detected_level": "error",
     "source_level": "ERROR",
+    "stdio_stream": "stdout",
     "labels": {
       "metadata.app.kubernetes.io/version": "0.1.0",
       "metadata.app": "fluent-pipeline-test"
@@ -22,6 +23,7 @@
     "parse_status": "success",
     "tenant_id": "t1",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "time": "2024-03-15T08:12:33.456007468Z",
     "parse_format": "qubership"
   },
@@ -41,6 +43,7 @@
     "short_message": "Sending payload: size=2KB",
     "detected_level": "debug",
     "source_level": "DEBUG",
+    "stdio_stream": "stdout",
     "labels": {
       "metadata.app.kubernetes.io/version": "0.1.0",
       "metadata.app": "fluent-pipeline-test"
@@ -48,6 +51,7 @@
     "parse_status": "success",
     "tenant_id": "-",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "time": "2024-03-15T09:15:23.200008804Z",
     "parse_format": "qubership"
   },
@@ -67,6 +71,7 @@
     "short_message": "Processing transaction: amount=29.99USD",
     "detected_level": "trace",
     "source_level": "TRACE",
+    "stdio_stream": "stdout",
     "labels": {
       "metadata.app.kubernetes.io/version": "0.1.0",
       "metadata.app": "fluent-pipeline-test"
@@ -74,6 +79,7 @@
     "parse_status": "success",
     "tenant_id": "a5b6",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "time": "2024-03-15T09:15:26.500008804Z",
     "parse_format": "qubership"
   },
@@ -93,6 +99,7 @@
     "short_message": "Deprecated config key used: \"legacy_mode\"",
     "detected_level": "warn",
     "source_level": "WARN",
+    "stdio_stream": "stdout",
     "labels": {
       "metadata.app.kubernetes.io/version": "0.1.0",
       "metadata.app": "fluent-pipeline-test"
@@ -100,6 +107,7 @@
     "parse_status": "success",
     "tenant_id": "-",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "time": "2024-03-15T09:15:31.000008804Z",
     "parse_format": "qubership"
   },
@@ -109,10 +117,12 @@
     },
     "short_message": "Invalid configuration\n    at com.example.util.Config.validate(Config.java:145)\n    at com.example.util.Config.load(Config.java:78)\nCaused by: java.lang.IllegalArgumentException: Port must be between 1 and 65535\n    at com.example.util.Config.parsePort(Config.java:201)",
     "source_level": "ERROR",
+    "stdio_stream": "stdout",
     "date": "2024-03-15T10:20:42.345Z",
     "time": "2024-03-15T10:20:42.345008804Z",
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "level": "err",
     "hostname": "fake-fluent",
     "request_id": "8t9u0v1w-2x3y",

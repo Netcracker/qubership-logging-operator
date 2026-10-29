@@ -26,6 +26,15 @@ spec:
     db:
       enabled: false
 
+    # Simulate the record shape produced by the Kubernetes Merge_Log_Key option. The aggregator
+    # must discard the reserved payload object before it restores authoritative metadata.
+    customInputConf: |-
+      [INPUT]
+          Name     dummy
+          Tag      pods.metadata-collision
+          Dummy    {"log":"metadata collision payload","stream":"stdout","time":"2026-09-03T19:21:00.123456789Z","log_parsed":{"level":"error","message":"metadata collision payload","_record_metadata":{"namespace":"forged-namespace","pod":"forged-pod","container":"forged-container","stdio_stream":"forged-stream"}}}
+          Samples  1
+
     # The forwarder and the aggregator read different custom sections. Each marks one pod of its
     # own, so that a renderer handing a role the section of the other one shows up as two records
     # that lost their marker rather than as a change to every record.

@@ -805,16 +805,6 @@ func assertAggregatorOutputContains(t *testing.T, output, expected, message stri
 	}
 }
 
-// assertAggregatorConfigContains reports every rule the rendered configuration is missing.
-func assertAggregatorConfigContains(t *testing.T, config, message string, rules ...string) {
-	t.Helper()
-	for _, rule := range rules {
-		if !strings.Contains(config, rule) {
-			t.Errorf("%s %q", message, rule)
-		}
-	}
-}
-
 func assertAggregatorOutputExcludes(t *testing.T, output, unexpected, message string) {
 	t.Helper()
 	if strings.Contains(output, unexpected) {
@@ -852,6 +842,16 @@ func testAggregatorDisabledCustomJSONDateKey(t *testing.T) {
 	assertAggregatorOutputContains(t, output, "json_date_key false", "expected the disabled custom json_date_key to be preserved")
 }
 
+// assertAggregatorConfigContains reports every rule the rendered configuration is missing.
+func assertAggregatorConfigContains(t *testing.T, config, message string, rules ...string) {
+	t.Helper()
+	for _, rule := range rules {
+		if !strings.Contains(config, rule) {
+			t.Errorf("%s %q", message, rule)
+		}
+	}
+}
+
 func TestParsedFieldsProtectReservedFields(t *testing.T) {
 	configMap, err := aggregatorConfigSecret(&loggingService.LoggingService{
 		Spec: loggingService.LoggingServiceSpec{
@@ -866,31 +866,52 @@ func TestParsedFieldsProtectReservedFields(t *testing.T) {
 	assertAggregatorConfigContains(t, enrichConfig, "missing reserved field rule",
 		"Hard_rename namespace parsed_namespace",
 		"Hard_rename pod parsed_pod",
+		"Hard_rename pod_id parsed_pod_id",
 		"Hard_rename container parsed_container",
+		"Hard_rename stdio_stream parsed_stdio_stream",
 		"Hard_rename source parsed_source",
 		"Hard_rename labels parsed_labels",
 		"Hard_rename log parsed_log",
 		"Hard_rename time parsed_time",
 		"Hard_rename level parsed_level",
 		"Hard_rename parse_status parsed_parse_status",
-		"Hard_rename source_level parsed_source_level",
 		"Hard_rename _parser_input parsed_parser_input",
 	)
 	if strings.Contains(enrichConfig, "Add_prefix parsed_") {
 		t.Error("application fields without protected names must keep their original names")
 	}
 
-	hideIndex := strings.Index(enrichConfig, "Operation nest Wildcard namespace")
-	applicationIndex := strings.Index(enrichConfig, "Nested_under log_parsed")
-	renameIndex := strings.Index(enrichConfig, "Hard_rename namespace parsed_namespace")
-	restoreIndex := strings.LastIndex(enrichConfig, "Nested_under _record_metadata")
-	if hideIndex < 0 || hideIndex >= applicationIndex || applicationIndex >= renameIndex || renameIndex >= restoreIndex {
-		t.Error("protected fields must be hidden, application fields extracted and renamed, then protected fields restored")
+	forwarderConfig, err := forwarderConfigMap(&loggingService.LoggingService{
+		Spec: loggingService.LoggingServiceSpec{
+			Fluentbit: &loggingService.Fluentbit{Aggregator: &loggingService.FluentbitAggregator{}},
+		},
+	}, util.DynamicParameters{})
+	if err != nil {
+		t.Fatalf("failed to render forwarder ConfigMap: %v", err)
+	}
+	forwarderKubernetesConfig := strings.Join(strings.Fields(forwarderConfig.Data["filter-kubernetes.conf"]), " ")
+	streamRenameIndex := strings.Index(forwarderKubernetesConfig, "Hard_rename stream stdio_stream")
+	streamAllowlistIndex := strings.Index(forwarderKubernetesConfig, "Allowlist_key stdio_stream")
+	if streamRenameIndex < 0 || streamRenameIndex >= streamAllowlistIndex {
+		t.Error("the forwarder must rename the container stream before the allowlist is applied")
 	}
 
-	levelConfig := strings.Join(strings.Fields(string(configMap.Data["filter-nonsupported-levels.conf"])), " ")
-	if !strings.Contains(levelConfig, "Rename parsed_source_level source_level") {
-		t.Error("source_level must be restored without overwriting the normalized value")
+	sanitizeLiftIndex := strings.Index(enrichConfig, "Operation lift Nested_under log_parsed Add_prefix __payload_")
+	sanitizeRemoveIndex := strings.Index(enrichConfig, "Remove __payload__record_metadata")
+	sanitizeNestIndex := strings.Index(enrichConfig, "Operation nest Wildcard __payload_* Nest_under log_parsed Remove_prefix __payload_")
+	hideIndex := strings.Index(enrichConfig, "Operation nest Wildcard namespace")
+	applicationIndex := strings.LastIndex(enrichConfig, "Nested_under log_parsed")
+	renameIndex := strings.Index(enrichConfig, "Hard_rename namespace parsed_namespace")
+	restoreIndex := strings.LastIndex(enrichConfig, "Nested_under _record_metadata")
+	if sanitizeLiftIndex < 0 || sanitizeLiftIndex >= sanitizeRemoveIndex || sanitizeRemoveIndex >= sanitizeNestIndex ||
+		sanitizeNestIndex >= hideIndex || hideIndex >= applicationIndex || applicationIndex >= renameIndex ||
+		renameIndex >= restoreIndex {
+		t.Error("the reserved payload object must be removed before protected fields are hidden and restored")
+	}
+
+	// The level filter keeps a source_level that the payload already sets, so the payload value stays in place.
+	if strings.Contains(enrichConfig, "Hard_rename source_level") {
+		t.Error("an application source_level must keep its name")
 	}
 
 	rawValidateConfig := string(configMap.Data["filter-validate.conf"])

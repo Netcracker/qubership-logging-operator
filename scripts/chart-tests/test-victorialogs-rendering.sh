@@ -50,10 +50,26 @@ expect_schema_failure "additional properties 'limit' not allowed" \
     --set victorialogs.tmpVolume.limit=64Mi
 expect_schema_failure "at '/victorialogs/vmauth/tmpVolume/sizeLimit': got boolean, want string" \
     --set victorialogs.vmauth.tmpVolume.sizeLimit=true
+expect_schema_failure "at '/pvc/metadata/annotations/a': got number, want string" \
+    --set pvc.metadata.annotations.a=1
 
 pvc=$(helm template logging "$chart" --show-only templates/pvc.yaml \
     --set victorialogs.install=true)
 assert_contains 'helm.sh/resource-policy: keep' "$pvc" "the PVC"
+
+annotated_pvc=$(helm template logging "$chart" --show-only templates/pvc.yaml \
+    --set victorialogs.install=true \
+    --set-string 'pvc.metadata.annotations.argocd\.argoproj\.io/sync-options=Prune=false')
+assert_contains 'argocd.argoproj.io/sync-options: Prune=false' "$annotated_pvc" "the annotated PVC"
+assert_contains 'helm.sh/resource-policy: keep' "$annotated_pvc" "the annotated PVC"
+
+precedence_pvc=$(helm template logging "$chart" --show-only templates/pvc.yaml \
+    --set victorialogs.install=true \
+    --set-string pvc.metadata.annotations.owner=pvc \
+    --set-string victorialogs.storage.annotations.owner=storage \
+    --set-string 'pvc.metadata.annotations.helm\.sh/resource-policy=delete')
+assert_contains 'owner: storage' "$precedence_pvc" "the PVC with conflicting annotations"
+assert_contains 'helm.sh/resource-policy: keep' "$precedence_pvc" "the PVC with conflicting annotations"
 
 services=$(helm template logging "$chart" \
     --show-only templates/service.yaml \

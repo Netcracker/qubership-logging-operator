@@ -4156,6 +4156,24 @@
                 }
             },
             "type": "object"
+        },
+        "pvc": {
+            "description": "Settings shared by all PVCs that the chart creates.",
+            "properties": {
+                "metadata": {
+                    "properties": {
+                        "annotations": {
+                            "additionalProperties": {
+                                "type": "string"
+                            },
+                            "description": "Annotations added to every PVC that the chart creates. Values must be strings.",
+                            "type": "object"
+                        }
+                    },
+                    "type": "object"
+                }
+            },
+            "type": "object"
         }
     },
     "title": "Logging Service Configuration Schema",

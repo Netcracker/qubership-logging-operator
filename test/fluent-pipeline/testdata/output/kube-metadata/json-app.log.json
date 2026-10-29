@@ -11,9 +11,11 @@
     "nodename": "fake-node",
     "parse_format": "json",
     "parse_status": "success",
+    "parsed_stdio_stream": "payload-stdio",
     "pod": "json-app",
     "short_message": "a json line the kubernetes filter merges",
     "source_level": "error",
+    "stdio_stream": "stderr",
     "time": "2026-09-03T11:00:00.000007468Z"
   },
   {
@@ -32,6 +34,7 @@
     "pod": "json-app",
     "short_message": "a json line whose payload names the parser input",
     "source_level": "warn",
+    "stdio_stream": "stdout",
     "time": "2026-09-03T11:00:05.000007468Z"
   }
 ]

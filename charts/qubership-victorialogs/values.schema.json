@@ -17,6 +17,26 @@
       "description": "Annotations applied to VictoriaLogs and VMAuth workloads.",
       "type": "object"
     },
+    "pvc": {
+      "description": "Settings shared by all PVCs that the chart creates.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "metadata": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "annotations": {
+              "description": "Annotations added to every PVC that the chart creates. Values must be strings.",
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
     "victorialogs": {
       "description": "Standalone single-node VictoriaLogs deployment configuration.",
       "properties": {

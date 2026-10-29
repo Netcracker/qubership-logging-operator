@@ -4,6 +4,7 @@
       "id": "mongo-1"
     },
     "date": "2025-07-08T10:53:16.089+00:00",
+    "stdio_stream": "stdout",
     "time": "2025-07-08T10:53:16.090040268Z",
     "id": 22315,
     "context": "initandlisten",
@@ -20,6 +21,7 @@
     "hostname": "fake-fluent",
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "detected_level": "info",
     "source_level": "I",
     "parse_status": "success",
@@ -32,6 +34,7 @@
       "id": "mongo-2"
     },
     "date": "2025-07-08T10:53:18.438+00:00",
+    "stdio_stream": "stdout",
     "time": "2025-07-08T10:53:18.438549961Z",
     "id": 22430,
     "context": "initandlisten",
@@ -48,6 +51,7 @@
     "hostname": "fake-fluent",
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "detected_level": "info",
     "source_level": "I",
     "parse_status": "success",
@@ -60,6 +64,7 @@
       "id": "mongo-3"
     },
     "date": "2025-07-08T10:53:18.438+00:00",
+    "stdio_stream": "stdout",
     "time": "2025-07-08T10:53:18.438611709Z",
     "id": 22430,
     "context": "initandlisten",
@@ -76,6 +81,7 @@
     "hostname": "fake-fluent",
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "detected_level": "info",
     "source_level": "I",
     "parse_status": "success",
@@ -110,8 +116,10 @@
     "parse_format": "mongodb_structured",
     "parse_status": "success",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "short_message": "Authentication succeeded",
     "source_level": "I",
+    "stdio_stream": "stdout",
     "time": "2025-07-08T10:53:19.000007468Z"
   }
 ]

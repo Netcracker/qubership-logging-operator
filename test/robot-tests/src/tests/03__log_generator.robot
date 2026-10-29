@@ -354,6 +354,8 @@ Check Json Payload Metadata Collisions And Date Variants
     Dictionary Should Contain Item    ${record}    parsed_pod    payload-pod
     Dictionary Should Contain Item    ${record}    parsed_labels    payload-labels
     Dictionary Should Contain Item    ${record}    parsed_time    2026-07-17T07:45:14,937Z
+    Dictionary Should Contain Item    ${record}    stdio_stream    stdout
+    Dictionary Should Contain Item    ${record}    parsed_stdio_stream    payload-stdio
     Dictionary Should Contain Item    ${record}    date    not-a-timestamp
     ${time}=    Get From Dictionary    ${record}    _time
     Should Match Regexp    ${time}    ${DATE_TIME_REGEXP}

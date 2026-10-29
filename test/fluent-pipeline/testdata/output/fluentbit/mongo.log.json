@@ -8,6 +8,7 @@
     "nodename": "fake-node",
     "source_level": "I",
     "date": "2025-07-08T10:53:16.089+00:00",
+    "stdio_stream": "stdout",
     "time": "2025-07-08T10:53:16.090040268Z",
     "container": "fake-container",
     "short_message": "Opening WiredTiger",
@@ -24,6 +25,7 @@
     "id": 22315,
     "level": "info",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "context": "initandlisten",
     "parse_format": "mongodb_structured"
   },
@@ -36,6 +38,7 @@
     "nodename": "fake-node",
     "source_level": "I",
     "date": "2025-07-08T10:53:18.438+00:00",
+    "stdio_stream": "stdout",
     "time": "2025-07-08T10:53:18.438549961Z",
     "container": "fake-container",
     "short_message": "WiredTiger message",
@@ -52,6 +55,7 @@
     "id": 22430,
     "level": "info",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "context": "initandlisten",
     "parse_format": "mongodb_structured"
   },
@@ -65,9 +69,11 @@
     "short_message": "WiredTiger message",
     "source_level": "I",
     "namespace": "fake-namespace",
+    "stdio_stream": "stdout",
     "time": "2025-07-08T10:53:18.438611709Z",
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "level": "info",
     "hostname": "fake-fluent",
     "nodename": "fake-node",
@@ -110,8 +116,10 @@
     "parse_format": "mongodb_structured",
     "parse_status": "success",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "short_message": "Authentication succeeded",
     "source_level": "I",
+    "stdio_stream": "stdout",
     "time": "2025-07-08T10:53:19.000007468Z"
   }
 ]

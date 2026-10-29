@@ -11,6 +11,7 @@
     "short_message": "buffer overflow detected, old records will be dropped",
     "date": "2023/11/15 08:30:47",
     "time": "2023-11-15T08:30:47.456007468Z",
+    "cri_time": "2023-11-15T08:30:47.456007468Z",
     "nodename": "fake-node",
     "labels": {
       "metadata.app.kubernetes.io/version": "0.1.0",
@@ -21,7 +22,7 @@
     "namespace": "fake-namespace",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
-    "parse_field_count": 11,
+    "parse_field_count": 12,
     "parse_format": "fluentbit"
   },
   {
@@ -36,6 +37,7 @@
     "short_message": "HTTP Status=200 URL=http://example.com/api",
     "date": "2023/11/15 08:30:48",
     "time": "2023-11-15T08:30:48.456007468Z",
+    "cri_time": "2023-11-15T08:30:48.456007468Z",
     "nodename": "fake-node",
     "labels": {
       "metadata.app.kubernetes.io/version": "0.1.0",
@@ -46,7 +48,7 @@
     "namespace": "fake-namespace",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
-    "parse_field_count": 11,
+    "parse_field_count": 12,
     "parse_format": "fluentbit"
   },
   {
@@ -61,6 +63,7 @@
     "short_message": "Filter plugin 'grep' initialized",
     "date": "2023/11/15 08:30:49",
     "time": "2023-11-15T08:30:49.456007468Z",
+    "cri_time": "2023-11-15T08:30:49.456007468Z",
     "nodename": "fake-node",
     "labels": {
       "metadata.app.kubernetes.io/version": "0.1.0",
@@ -71,7 +74,7 @@
     "namespace": "fake-namespace",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
-    "parse_field_count": 11,
+    "parse_field_count": 12,
     "parse_format": "fluentbit"
   },
   {
@@ -86,6 +89,7 @@
     "short_message": "Elasticsearch connection failed, retrying in 30 seconds",
     "date": "2023/11/15 08:30:50",
     "time": "2023-11-15T08:30:50.456007468Z",
+    "cri_time": "2023-11-15T08:30:50.456007468Z",
     "nodename": "fake-node",
     "labels": {
       "metadata.app.kubernetes.io/version": "0.1.0",
@@ -96,7 +100,7 @@
     "namespace": "fake-namespace",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
-    "parse_field_count": 11,
+    "parse_field_count": 12,
     "parse_format": "fluentbit"
   },
   {
@@ -111,6 +115,7 @@
     "short_message": "Unexpected signal 11 (Segmentation fault) received",
     "date": "2023/11/15 08:30:52",
     "time": "2023-11-15T08:30:52.456007468Z",
+    "cri_time": "2023-11-15T08:30:52.456007468Z",
     "nodename": "fake-node",
     "labels": {
       "metadata.app.kubernetes.io/version": "0.1.0",
@@ -121,7 +126,7 @@
     "namespace": "fake-namespace",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
-    "parse_field_count": 11,
+    "parse_field_count": 12,
     "parse_format": "fluentbit"
   }
 ]

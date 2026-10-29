@@ -8,6 +8,7 @@
     "nodename": "fake-node",
     "source_level": "info",
     "detected_level": "info",
+    "stdio_stream": "stdout",
     "time": "2024-08-23T07:21:45.242027473Z",
     "level": "info",
     "caller": "flags/service.go:110",
@@ -17,9 +18,9 @@
       "metadata.app": "fluent-pipeline-test"
     },
     "parse_status": "success",
-    "parse_field_count": 10,
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "route": "/metrics",
     "parse_format": "json"
   },
@@ -32,6 +33,7 @@
     "nodename": "fake-node",
     "source_level": "info",
     "detected_level": "info",
+    "stdio_stream": "stdout",
     "time": "2024-08-23T07:21:45.242029580Z",
     "level": "info",
     "caller": "flags/admin.go:122",
@@ -42,9 +44,9 @@
       "metadata.app": "fluent-pipeline-test"
     },
     "parse_status": "success",
-    "parse_field_count": 11,
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "health-status": "unavailable",
     "parse_format": "json"
   },
@@ -57,6 +59,7 @@
     "nodename": "fake-node",
     "source_level": "info",
     "detected_level": "info",
+    "stdio_stream": "stdout",
     "time": "2024-08-23T07:21:45.242129580Z",
     "level": "info",
     "caller": "config/config.go:192",
@@ -66,9 +69,9 @@
       "metadata.app": "fluent-pipeline-test"
     },
     "parse_status": "success",
-    "parse_field_count": 10,
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "version": 7,
     "parse_format": "json"
   },
@@ -81,6 +84,7 @@
     "nodename": "fake-node",
     "source_level": "info",
     "detected_level": "info",
+    "stdio_stream": "stdout",
     "time": "2024-08-23T07:21:45.242429580Z",
     "level": "info",
     "caller": "server/http.go:56",
@@ -90,9 +94,9 @@
       "metadata.app": "fluent-pipeline-test"
     },
     "parse_status": "success",
-    "parse_field_count": 10,
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "http host-port": ":14268",
     "parse_format": "json"
   },
@@ -105,6 +109,7 @@
     "nodename": "fake-node",
     "source_level": "warn",
     "detected_level": "warn",
+    "stdio_stream": "stdout",
     "time": "2024-08-23T07:21:45.242488570Z",
     "feature gate ID": "component.UseLocalHostAsDefaultHost",
     "documentation": "https://github.com/open-telemetry/opentelemetry-collector/blob/main/docs/security-best-practices.md#safeguards-against-denial-of-service-attacks",
@@ -116,8 +121,8 @@
       "metadata.app": "fluent-pipeline-test"
     },
     "parse_status": "success",
-    "parse_field_count": 11,
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "container": "fake-container",
     "parse_format": "json"
   },
@@ -130,8 +135,8 @@
     "nodename": "fake-node",
     "source_level": "error",
     "detected_level": "error",
+    "stdio_stream": "stdout",
     "time": "2024-08-23T07:21:45.242498570Z",
-    "parse_field_count": 13,
     "container": "fake-container",
     "request_count": 2,
     "failed_count": 0,
@@ -145,6 +150,7 @@
     "short_message": "Elasticsearch could not process bulk request",
     "error": "Post \"https://opensearch.opensearch-service-v2.svc:9200/_bulk\": dial tcp 172.30.128.108:9200: connect: connection refused",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "level": "err",
     "parse_format": "json"
   },
@@ -153,12 +159,13 @@
       "id": "jaeger-7"
     },
     "short_message": "Elasticsearch part of bulk request failed",
-    "parse_field_count": 12,
     "source_level": "error",
     "namespace": "fake-namespace",
+    "stdio_stream": "stdout",
     "time": "2024-08-23T07:21:45.242597870Z",
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "level": "err",
     "hostname": "fake-fluent",
     "nodename": "fake-node",
@@ -209,5 +216,29 @@
     "parse_status": "failed",
     "parse_format": "unknown",
     "short_message": "{\"msg\":\"broken JSON\",}"
+  },
+  {
+    "_test": {
+      "id": "json-object-msg",
+      "partial": true
+    },
+    "time": "2026-10-05T10:00:03.000000001Z",
+    "parse_status": "success",
+    "parse_format": "json",
+    "short_message": "{\"level\":\"info\",\"msg\":{\"why\":\"failed\"}}",
+    "msg": {
+      "why": "failed"
+    }
+  },
+  {
+    "_test": {
+      "id": "json-empty-msg",
+      "partial": true
+    },
+    "time": "2026-10-05T10:00:04.000000001Z",
+    "parse_status": "success",
+    "parse_format": "json",
+    "short_message": "fallback text",
+    "msg": ""
   }
 ]

@@ -4,6 +4,7 @@
       "id": "jaeger-1"
     },
     "parse_status": "success",
+    "stdio_stream": "stdout",
     "time": "2024-08-23T07:21:45.242027473Z",
     "short_message": "Mounting metrics handler on admin server",
     "nodename": "fake-node",
@@ -13,10 +14,10 @@
     },
     "namespace": "fake-namespace",
     "caller": "flags/service.go:110",
-    "parse_field_count": 12,
     "hostname": "fake-fluent",
     "route": "/metrics",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "detected_level": "info",
     "container": "fake-container",
     "level": "info",
@@ -37,10 +38,11 @@
     },
     "namespace": "fake-namespace",
     "caller": "flags/admin.go:122",
-    "parse_field_count": 13,
     "container": "fake-container",
     "detected_level": "info",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
+    "stdio_stream": "stdout",
     "time": "2024-08-23T07:21:45.242029580Z",
     "hostname": "fake-fluent",
     "level": "info",
@@ -53,6 +55,7 @@
       "id": "jaeger-3"
     },
     "parse_status": "success",
+    "stdio_stream": "stdout",
     "time": "2024-08-23T07:21:45.242129580Z",
     "short_message": "Elasticsearch detected",
     "nodename": "fake-node",
@@ -62,10 +65,10 @@
     },
     "namespace": "fake-namespace",
     "caller": "config/config.go:192",
-    "parse_field_count": 12,
     "hostname": "fake-fluent",
     "level": "info",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "detected_level": "info",
     "version": 7,
     "container": "fake-container",
@@ -77,6 +80,7 @@
       "id": "jaeger-4"
     },
     "parse_status": "success",
+    "stdio_stream": "stdout",
     "time": "2024-08-23T07:21:45.242429580Z",
     "short_message": "Starting jaeger-collector HTTP server",
     "http host-port": ":14268",
@@ -87,10 +91,10 @@
     },
     "namespace": "fake-namespace",
     "caller": "server/http.go:56",
-    "parse_field_count": 12,
     "hostname": "fake-fluent",
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "detected_level": "info",
     "level": "info",
     "source_level": "info",
@@ -112,9 +116,10 @@
     "caller": "internal@v0.102.1/warning.go:42",
     "detected_level": "warn",
     "documentation": "https://github.com/open-telemetry/opentelemetry-collector/blob/main/docs/security-best-practices.md#safeguards-against-denial-of-service-attacks",
+    "stdio_stream": "stdout",
     "time": "2024-08-23T07:21:45.242488570Z",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
-    "parse_field_count": 13,
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "hostname": "fake-fluent",
     "container": "fake-container",
     "level": "warning",
@@ -126,6 +131,7 @@
       "id": "jaeger-6"
     },
     "parse_status": "success",
+    "stdio_stream": "stdout",
     "time": "2024-08-23T07:21:45.242498570Z",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
@@ -141,7 +147,7 @@
     "error": "Post \"https://opensearch.opensearch-service-v2.svc:9200/_bulk\": dial tcp 172.30.128.108:9200: connect: connection refused",
     "level": "err",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
-    "parse_field_count": 15,
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "hostname": "fake-fluent",
     "container": "fake-container",
     "short_message": "Elasticsearch could not process bulk request",
@@ -153,6 +159,7 @@
       "id": "jaeger-7"
     },
     "parse_status": "success",
+    "stdio_stream": "stdout",
     "time": "2024-08-23T07:21:45.242597870Z",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
@@ -167,7 +174,7 @@
     "level": "err",
     "short_message": "Elasticsearch part of bulk request failed",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
-    "parse_field_count": 14,
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "hostname": "fake-fluent",
     "container": "fake-container",
     "response": {
@@ -209,5 +216,29 @@
     "parse_status": "failed",
     "parse_format": "unknown",
     "short_message": "{\"msg\":\"broken JSON\",}"
+  },
+  {
+    "_test": {
+      "id": "json-object-msg",
+      "partial": true
+    },
+    "time": "2026-10-05T10:00:03.000000001Z",
+    "parse_status": "success",
+    "parse_format": "json",
+    "short_message": "{\"level\":\"info\",\"msg\":{\"why\":\"failed\"}}",
+    "msg": {
+      "why": "failed"
+    }
+  },
+  {
+    "_test": {
+      "id": "json-empty-msg",
+      "partial": true
+    },
+    "time": "2026-10-05T10:00:04.000000001Z",
+    "parse_status": "success",
+    "parse_format": "json",
+    "short_message": "fallback text",
+    "msg": ""
   }
 ]

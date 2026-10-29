@@ -38,8 +38,13 @@ spec:
               value: intlog,access,bc,go,java,nginx
             - name: LOG_MESSAGES_MULTILINE
               value: 'true'
+            # Every multiline test asserts on a continuation line, and the generator emits one
+            # per message only with this probability. At 0.3 a run produced as few as one
+            # continuation per eleven messages, so zero was reachable and the test flaked.
+            # Not 1.0: that collapses the generator to a single multiline message per template,
+            # whatever LOG_GENERATION_TIME says.
             - name: LOG_MULTILINE_PROBABILITY
-              value: '0.3'
+              value: '0.9'
           resources:
             limits:
               cpu: 400m

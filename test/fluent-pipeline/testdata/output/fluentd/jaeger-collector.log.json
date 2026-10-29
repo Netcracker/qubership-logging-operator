@@ -185,5 +185,21 @@
     },
     "time": "2026-10-05T10:00:02.000000001Z",
     "log": "{\"msg\":\"broken JSON\",}"
+  },
+  {
+    "_test": {
+      "id": "json-object-msg",
+      "partial": true
+    },
+    "time": "2026-10-05T10:00:03.000000001Z",
+    "log": "{\"level\":\"info\",\"msg\":{\"why\":\"failed\"}}"
+  },
+  {
+    "_test": {
+      "id": "json-empty-msg",
+      "partial": true
+    },
+    "time": "2026-10-05T10:00:04.000000001Z",
+    "log": "{\"level\":\"info\",\"msg\":\"\",\"message\":\"fallback text\"}"
   }
 ]

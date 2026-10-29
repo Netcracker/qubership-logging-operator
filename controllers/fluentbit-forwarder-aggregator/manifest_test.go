@@ -93,7 +93,7 @@ func TestAggregatorGeneralizedQubershipParserAndEmptyMessagePlaceholder(t *testi
 	}
 	normalizedGenericConfig := strings.Join(strings.Fields(genericConfig), " ")
 	if !strings.Contains(normalizedGenericConfig,
-		`Match_Regex ^pods(?!.*opensearch-\d{1,2}_).* Key_Name log Parser qubership`) {
+		`Match_Regex ^pods(?!.*opensearch-\d{1,2}_).* Key_Name _parser_input Parser qubership`) {
 		t.Errorf("expected the generalized Qubership parser to exclude OpenSearch tags, got:\n%s", genericConfig)
 	}
 	if !strings.Contains(genericConfig, "Parser         json") {

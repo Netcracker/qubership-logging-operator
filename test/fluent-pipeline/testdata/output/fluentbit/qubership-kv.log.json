@@ -21,7 +21,6 @@
       "metadata.app": "fluent-pipeline-test"
     },
     "parse_status": "success",
-    "parse_field_count": 12,
     "tenant_id": "t1",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
@@ -50,7 +49,6 @@
       "metadata.app": "fluent-pipeline-test"
     },
     "parse_status": "success",
-    "parse_field_count": 12,
     "tenant_id": "-",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
@@ -79,7 +77,6 @@
       "metadata.app": "fluent-pipeline-test"
     },
     "parse_status": "success",
-    "parse_field_count": 12,
     "tenant_id": "a5b6",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
@@ -108,7 +105,6 @@
       "metadata.app": "fluent-pipeline-test"
     },
     "parse_status": "success",
-    "parse_field_count": 12,
     "tenant_id": "-",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
@@ -120,7 +116,6 @@
       "id": "qubership-kv-5"
     },
     "short_message": "Invalid configuration\n    at com.example.util.Config.validate(Config.java:145)\n    at com.example.util.Config.load(Config.java:78)\nCaused by: java.lang.IllegalArgumentException: Port must be between 1 and 65535\n    at com.example.util.Config.parsePort(Config.java:201)",
-    "parse_field_count": 12,
     "source_level": "ERROR",
     "stdio_stream": "stdout",
     "date": "2024-03-15T10:20:42.345Z",

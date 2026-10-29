@@ -21,7 +21,6 @@
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
-    "parse_field_count": 12,
     "parse_format": "qubership"
   },
   {
@@ -30,7 +29,6 @@
     },
     "short_message": "This log record keys-values are separated by containerd. But should be concatenated and contain key `partial-message` with value `true`",
     "partial-message": "true",
-    "parse_field_count": 12,
     "source_level": "ERROR",
     "stdio_stream": "stdout",
     "date": "2024-04-20T12:51:32.270",

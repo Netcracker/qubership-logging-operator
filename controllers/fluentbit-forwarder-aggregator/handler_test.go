@@ -842,6 +842,16 @@ func testAggregatorDisabledCustomJSONDateKey(t *testing.T) {
 	assertAggregatorOutputContains(t, output, "json_date_key false", "expected the disabled custom json_date_key to be preserved")
 }
 
+// assertAggregatorConfigContains reports every rule the rendered configuration is missing.
+func assertAggregatorConfigContains(t *testing.T, config, message string, rules ...string) {
+	t.Helper()
+	for _, rule := range rules {
+		if !strings.Contains(config, rule) {
+			t.Errorf("%s %q", message, rule)
+		}
+	}
+}
+
 func TestParsedFieldsProtectReservedFields(t *testing.T) {
 	configMap, err := aggregatorConfigSecret(&loggingService.LoggingService{
 		Spec: loggingService.LoggingServiceSpec{
@@ -853,7 +863,7 @@ func TestParsedFieldsProtectReservedFields(t *testing.T) {
 	}
 
 	enrichConfig := strings.Join(strings.Fields(string(configMap.Data["filter-enrich-fields.conf"])), " ")
-	for _, rule := range []string{
+	assertAggregatorConfigContains(t, enrichConfig, "missing reserved field rule",
 		"Hard_rename namespace parsed_namespace",
 		"Hard_rename pod parsed_pod",
 		"Hard_rename pod_id parsed_pod_id",
@@ -864,11 +874,9 @@ func TestParsedFieldsProtectReservedFields(t *testing.T) {
 		"Hard_rename log parsed_log",
 		"Hard_rename time parsed_time",
 		"Hard_rename level parsed_level",
-	} {
-		if !strings.Contains(enrichConfig, rule) {
-			t.Errorf("missing reserved field rule %q", rule)
-		}
-	}
+		"Hard_rename parse_status parsed_parse_status",
+		"Hard_rename _parser_input parsed_parser_input",
+	)
 	if strings.Contains(enrichConfig, "Add_prefix parsed_") {
 		t.Error("application fields without protected names must keep their original names")
 	}
@@ -908,14 +916,10 @@ func TestParsedFieldsProtectReservedFields(t *testing.T) {
 
 	rawValidateConfig := string(configMap.Data["filter-validate.conf"])
 	validateConfig := strings.Join(strings.Fields(rawValidateConfig), " ")
-	for _, rule := range []string{
+	assertAggregatorConfigContains(t, validateConfig, "missing parsed JSON field rule",
 		"Rename msg short_message",
 		"Rename message short_message",
-	} {
-		if !strings.Contains(validateConfig, rule) {
-			t.Errorf("missing parsed JSON field rule %q", rule)
-		}
-	}
+	)
 	if strings.Contains(validateConfig, "Rename parsed_msg short_message") ||
 		strings.Contains(validateConfig, "Rename parsed_message short_message") {
 		t.Error("msg and message are lifted from log_parsed without a parsed_ prefix")
@@ -947,4 +951,42 @@ func filterBlockContaining(config, rule string) (string, bool) {
 		}
 	}
 	return "", false
+}
+
+func TestParserSuccessUsesPreserveKeyOff(t *testing.T) {
+	configSecret, err := aggregatorConfigSecret(&loggingService.LoggingService{
+		Spec: loggingService.LoggingServiceSpec{
+			Fluentbit: &loggingService.Fluentbit{Aggregator: &loggingService.FluentbitAggregator{}},
+		},
+	}, util.DynamicParameters{}, aggregatorOutputCredentials{})
+	if err != nil {
+		t.Fatalf("failed to render aggregator Secret: %v", err)
+	}
+
+	genericConfig := strings.Join(strings.Fields(string(configSecret.Data["filter-generic.conf"])), " ")
+	for _, expected := range []string{
+		"Copy log _parser_input",
+		"Key_Name _parser_input",
+		"Preserve_Key Off",
+	} {
+		if !strings.Contains(genericConfig, expected) {
+			t.Errorf("generic parser pipeline is missing %q", expected)
+		}
+	}
+	if strings.Contains(genericConfig, "Preserve_Key On") {
+		t.Error("generic parsers must remove original_log after successful parsing")
+	}
+
+	statusConfig := string(configSecret.Data["filter-validate.conf"]) + string(configSecret.Data["filter-post-generic.conf"])
+	if strings.Count(statusConfig, "Key_does_not_exist _parser_input") != 2 {
+		t.Error("klog and generic parser success must be detected from the removed _parser_input field")
+	}
+	if !strings.Contains(string(configSecret.Data["filter-enrich-fields.conf"]), "Preserve_Key    Off") {
+		t.Error("klog parsers must remove original_log after successful parsing")
+	}
+	for name, content := range configSecret.Data {
+		if strings.Contains(string(content), "count_fields") {
+			t.Errorf("%s still uses field-count parsing detection", name)
+		}
+	}
 }

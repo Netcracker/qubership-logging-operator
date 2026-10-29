@@ -8,9 +8,13 @@ Qubership Logging Operator is a Kubernetes operator that deploys and manages a l
 
 ### Go Module Structure
 
-The project uses Go workspaces (`go.work`) with two modules:
+The project has two Go modules:
 - `.` — main operator module (`github.com/Netcracker/qubership-logging-operator`)
 - `./api` — CRD types module (independently versioned)
+
+The main module consumes `./api` through a `replace` directive in `go.mod`, so local changes to
+the CRD types take effect without publishing a new `api` version. Run `go mod tidy` in each
+module directory separately.
 
 ### Entry Point
 
@@ -90,13 +94,13 @@ Framework in `test/robot-tests/` and run via GitHub Actions.
 ### Documentation
 
 ```bash
-make docs             # Generate API docs and copy CRDs to docs/
+make docs             # Generate API docs (crd-ref-docs) and copy CRDs to docs/
 ```
 
 ## Commands
 
-- Run `go test ./api/...` as well as `make unit-test` when you change `api/`. `api/` is a separate Go module in
-  `go.work`, and `make unit-test` covers only the root module.
+- Run `make unit-test` to test both Go modules. `api/` is a separate Go module, so `go test ./...` from the
+  repository root skips it.
 - Check changes to `charts/qubership-logging-operator/` with `helm lint charts/qubership-logging-operator -f <file>`
   for the `*-values.yaml` files in `docs/examples/*/`. CI lints the chart with each of those files as values, so a
   values or schema change can break an example.

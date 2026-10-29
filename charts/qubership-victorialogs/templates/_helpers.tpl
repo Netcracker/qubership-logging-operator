@@ -132,7 +132,7 @@ Return the VMAuth image.
 {{- .Values.victorialogs.vmauth.dockerImage -}}
 {{- else -}}
 {{- /* renovate: datasource=docker depName=victoriametrics/vmauth */ -}}
-{{- print "docker.io/victoriametrics/vmauth:v1.147.0" -}}
+{{- print "docker.io/victoriametrics/vmauth:v1.154.1" -}}
 {{- end -}}
 {{- end -}}
 
@@ -196,6 +196,6 @@ Return the VictoriaLogs image.
 {{- .Values.victorialogs.dockerImage -}}
 {{- else -}}
 {{- /* renovate: datasource=docker depName=victoriametrics/victoria-logs */ -}}
-{{- print "docker.io/victoriametrics/victoria-logs:v1.51.0" -}}
+{{- print "docker.io/victoriametrics/victoria-logs:v1.53.0" -}}
 {{- end -}}
 {{- end -}}

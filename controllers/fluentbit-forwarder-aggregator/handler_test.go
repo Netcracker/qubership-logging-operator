@@ -856,6 +856,7 @@ func TestParsedFieldsProtectReservedFields(t *testing.T) {
 	for _, rule := range []string{
 		"Hard_rename namespace parsed_namespace",
 		"Hard_rename pod parsed_pod",
+		"Hard_rename pod_id parsed_pod_id",
 		"Hard_rename container parsed_container",
 		"Hard_rename stdio_stream parsed_stdio_stream",
 		"Hard_rename source parsed_source",
@@ -863,7 +864,6 @@ func TestParsedFieldsProtectReservedFields(t *testing.T) {
 		"Hard_rename log parsed_log",
 		"Hard_rename time parsed_time",
 		"Hard_rename level parsed_level",
-		"Hard_rename source_level parsed_source_level",
 	} {
 		if !strings.Contains(enrichConfig, rule) {
 			t.Errorf("missing reserved field rule %q", rule)
@@ -901,9 +901,9 @@ func TestParsedFieldsProtectReservedFields(t *testing.T) {
 		t.Error("the reserved payload object must be removed before protected fields are hidden and restored")
 	}
 
-	levelConfig := strings.Join(strings.Fields(string(configMap.Data["filter-nonsupported-levels.conf"])), " ")
-	if !strings.Contains(levelConfig, "Rename parsed_source_level source_level") {
-		t.Error("source_level must be restored without overwriting the normalized value")
+	// The level filter keeps a source_level that the payload already sets, so the payload value stays in place.
+	if strings.Contains(enrichConfig, "Hard_rename source_level") {
+		t.Error("an application source_level must keep its name")
 	}
 
 	rawValidateConfig := string(configMap.Data["filter-validate.conf"])

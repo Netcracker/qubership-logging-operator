@@ -24,7 +24,7 @@ jobs:
     outputs:
       reason: ${{ steps.validate.outputs.reason }}
     container:
-      image: renovate/renovate:43.288.0@sha256:3b72fc4274c56f65f53dcd4dcbed3143289358e0a2d96f7af215e6cf1923e5f6
+      image: renovate/renovate:44.161.1@sha256:a57b12d2415446e8e6695c7506881651134f6bbc3572b26882194da2069def00
       options: --user 0
     permissions:
       contents: read
@@ -36,7 +36,7 @@ jobs:
 
       - name: Validate configuration and resolve shared presets
         id: validate
-        uses: netcracker/qubership-workflow-hub/actions/renovate-validate@288a6a0d9a78e80dfdefccab1be6497a39deb746 # v2.8.0
+        uses: netcracker/qubership-workflow-hub/actions/renovate-validate@e6afd0a6bcc4f24d73e3e4d5fb9a31ada009e3f1 # v2.8.2
         env:
           GITHUB_COM_TOKEN: ${{ github.token }}
 
@@ -52,7 +52,7 @@ jobs:
     outputs:
       reason: ${{ steps.lookup.outputs.reason }}
     container:
-      image: renovate/renovate:43.288.0@sha256:3b72fc4274c56f65f53dcd4dcbed3143289358e0a2d96f7af215e6cf1923e5f6
+      image: renovate/renovate:44.161.1@sha256:a57b12d2415446e8e6695c7506881651134f6bbc3572b26882194da2069def00
       options: --user 0
     permissions:
       contents: read
@@ -64,7 +64,7 @@ jobs:
 
       - name: Look up dependencies
         id: lookup
-        uses: netcracker/qubership-workflow-hub/actions/renovate-lookup@288a6a0d9a78e80dfdefccab1be6497a39deb746 # v2.8.0
+        uses: netcracker/qubership-workflow-hub/actions/renovate-lookup@e6afd0a6bcc4f24d73e3e4d5fb9a31ada009e3f1 # v2.8.2
         env:
           GITHUB_COM_TOKEN: ${{ github.token }}
 
@@ -89,7 +89,7 @@ jobs:
       GH_TOKEN: ${{ github.token }}
     steps:
       - name: Inspect Dependency Dashboard and report health
-        uses: netcracker/qubership-workflow-hub/actions/renovate-monitor@288a6a0d9a78e80dfdefccab1be6497a39deb746 # v2.8.0
+        uses: netcracker/qubership-workflow-hub/actions/renovate-monitor@e6afd0a6bcc4f24d73e3e4d5fb9a31ada009e3f1 # v2.8.2
         with:
           validation-result: ${{ needs.validate-renovate-config.result }}
           lookup-result: ${{ needs.lookup-renovate-dependencies.result }}

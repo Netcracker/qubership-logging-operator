@@ -49,6 +49,20 @@ does not match any defined parser, it will be marked with `parse_status: failed`
 
 ## Pipeline Design
 
+### Multiline boundaries in mixed logs
+
+Application multiline concatenation runs before JSON parsing. The default continuation rule excludes both
+`[YYYY-MM-DD` headers and lines that begin with `{` after optional whitespace. This keeps JSON objects on separate
+lines from being appended to preceding Java or Qubership messages. A line beginning with `{` inside a text message
+also ends that multiline message.
+
+The two-second multiline flush sends buffered content but does not reset the regex continuation state in Fluent Bit
+5.1.1. JSON must be excluded from the continuation rule even when it arrives after a flush.
+
+The chart supplies this rule through `fluentbit.multilineOtherLinesRegexp` and
+`fluentbit.aggregator.multilineOtherLinesRegexp` in `LoggingService`. Updating only the operator image does not update
+these stored values. Explicit custom regex overrides remain in effect.
+
 ### Pods flowchart
 
 ```mermaid
@@ -66,8 +80,8 @@ flowchart LR
         FVALID["filter-validate.conf<br/>Second count fields<br/>Set parse_status: success | false<br/>Restore parsed_level with non-overwriting Rename<br/>Remove log field if parse_status: success"] --> FGEN
         FGEN["filter-generic.conf<br/>Generic filters chain<br/>Match pods*<br/>Applied only to messages with existing and not empty log field"] --> FPGEN
         FPGEN["filter-post-generic.conf<br/>Count fields<br/>Set parse_status: success | false<br/>Parse [key=value] labels<br/>Add mandatory fields for GELF format<br/>Mark audit messages with special field"] --> FNL
-        FNL["filter-nonsupported-levels.conf<br/>Lua script converting level to FluentBit supported values<br/>Restore parsed_source_level with non-overwriting Rename"] --> FULC
-        FNL["filter-nonsupported-levels.conf<br/>Lua script converting level to FluentBit supported values<br/>Restore parsed_source_level with non-overwriting Rename"] --> OGRAY
+        FNL["filter-nonsupported-levels.conf<br/>Lua script converting level to FluentBit supported values"] --> FULC
+        FNL["filter-nonsupported-levels.conf<br/>Lua script converting level to FluentBit supported values"] --> OGRAY
         OGRAY["output-graylog.conf<br/>Sends data to graylog host in GELF format"]
         FULC["filter-unparsed-log-counter.conf<br/>Match_regex (pods|klog).*<br/>Generates metric fluentbit_parse_error_total"] --> OPLTM
         OPLTM["output-prometheus-log-to-metric.conf</br>Exposes the metric in prometheus format on port 2021"]
@@ -115,12 +129,11 @@ flowchart LR
 | 34  | filters/filter-post-generic.conf              | FILTER modify (Condition Key_value_matches parsed true; Hard_rename log original_log) | Match_regex (pods\|klog).*                | If `parsed: true`, renames the `log` field to `original_log` and removes the auxiliary fields used to determine whether the message was parsed                                                                               |
 | 35  | filters/filter-post-generic.conf              | FILTER record_modifier (Record hostname ${HOSTNAME})                                  | Match *                                   | Adds the `hostname` field, sourced from a FluentBit pod's environment variable, required for the GELF format                                                                                                                 |
 | 36  | filters/filter-post-generic.conf              | FILTER record_modifier (Record nodename ${NODE_NAME})                                 | Match *                                   | Adds the `nodename` field, sourced from a FluentBit pod's environment variable, required for the GELF format                                                                                                                 |
-| 37  | filters/filter-nonsupported-levels.conf       | FILTER lua (Script /fluent-bit/etc/update_level_syslog.lua)                           | Match *                                   | Converts the value of the `level` field to FluentBit supported severity levels                                                                                                                                               |
-| 38  | filters/filter-nonsupported-levels.conf       | FILTER modify (Rename parsed_source_level source_level)                               | Match *                                   | Restores the application `source_level` only when level normalization did not create the canonical field.                                                                                                                    |
-| 39  | filters/filter-unparsed-log-counter.conf      | FILTER log_to_metrics (Regex parsed ^false$)                                          | Match_regex (pods\|klog).*                | Generates the prometheus metric `fluentbit_parse_error_total`                                                                                                                                                                |
-| 40  | outputs/output-graylog.conf                   | OUTPUT gelf                                                                           | Match_regex (audit\|system\|pods\|klog).* | Sends data in GELF format to graylog host defined in the output config                                                                                                                                                       |
-| 41  | outputs/output-prometheus-log-to-metrics.conf | OUTPUT prometheus_exporter                                                            | Match parse_error_metrics                 | Exposes the metric `fluentbit_parse_error_total` to the `2021` port                                                                                                                                                          |
-| 42  | outputs/output-http.conf                      | OUTPUT http                                                                           | Match *                                   | Sends data in json_lines format to HTTP storage backend (VictoriaLogs)                                                                                                                                                       |
+| 37  | filters/filter-nonsupported-levels.conf       | FILTER lua (Script /fluent-bit/etc/update_level_syslog.lua)                           | Excludes built-in HTTP routing tags       | Converts the value of the `level` field to FluentBit supported severity levels                                                                                                                                               |
+| 38  | filters/filter-unparsed-log-counter.conf      | FILTER log_to_metrics (Regex parsed ^false$)                                          | Match_regex (pods\|klog).*                | Generates the prometheus metric `fluentbit_parse_error_total`                                                                                                                                                                |
+| 39  | outputs/output-graylog.conf                   | OUTPUT gelf                                                                           | Match_regex (audit\|system\|pods\|klog).* | Sends data in GELF format to graylog host defined in the output config                                                                                                                                                       |
+| 40  | outputs/output-prometheus-log-to-metrics.conf | OUTPUT prometheus_exporter                                                            | Match parse_error_metrics                 | Exposes the metric `fluentbit_parse_error_total` to the `2021` port                                                                                                                                                          |
+| 41  | outputs/output-http.conf                      | OUTPUT http                                                                           | Match *                                   | Sends data in json_lines format to HTTP storage backend (VictoriaLogs)                                                                                                                                                       |
 <!-- textlint-enable -->
 
 ### Reserved fields
@@ -132,6 +145,7 @@ of these names, FluentBit moves its value to the corresponding reserved field be
 | --------------- | ------------------------ |
 | `namespace`     | `parsed_namespace`       |
 | `pod`           | `parsed_pod`             |
+| `pod_id`        | `parsed_pod_id`          |
 | `container`     | `parsed_container`       |
 | `stdio_stream`  | `parsed_stdio_stream`    |
 | `source`        | `parsed_source`          |
@@ -139,7 +153,6 @@ of these names, FluentBit moves its value to the corresponding reserved field be
 | `log`           | `parsed_log`             |
 | `time`          | `parsed_time`            |
 | `level`         | `parsed_level`           |
-| `source_level`  | `parsed_source_level`    |
 
 > [!IMPORTANT]
 > Service authors must not use `_record_metadata` in structured log payloads. FluentBit reserves this field as a
@@ -179,3 +192,17 @@ the following fields must always be present in the resulting log output:
 10) nodename – The Kubernetes node where the log source is located.
 11) hostname – The FluentBit pod that processed and sent the log.
 12) labels - The set of labels from the pod originated the log.
+13) source_level - Preserves an existing value; otherwise, stores `level` after parsing and before normalization.
+    If the incoming payload already contains `source_level`, its value is preserved even if it differs from `level`.
+    If both fields are absent, `source_level` remains absent, including for audit and system logs.
+    Normalization derives `level` and `detected_level` from `level`, regardless of any existing `source_level`.
+
+When `output.http.routing.enabled` is `true`, level normalization excludes the built-in HTTP routing tags `out_audit`,
+`out_k8s_event`, `out_nginx`, `out_access`, `out_int`, `out_pods`, `out_system`, and `out_default`. This prevents
+HTTP-routed records from being normalized a second time and preserves values such as `detected_level="trace"`. Other
+tags, including custom tags that start with `out_`, are normalized. When HTTP routing is disabled, the filter matches
+every tag, so custom inputs that use one of the routing tag names keep level normalization.
+
+### Field Naming Restrictions
+
+The **'log_'** prefix is reserved for internal system purposes. Therefore, log field names cannot start with this prefix.

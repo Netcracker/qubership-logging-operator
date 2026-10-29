@@ -48,6 +48,16 @@ annotations: {}
 # Ref: https://kubernetes.io/docs/user-guide/labels
 labels: {}
 
+# PVC settings shared by all PVCs that the chart creates.
+pvc:
+  metadata:
+    # -- Annotations added to every PVC that the chart creates, for example
+    # `argocd.argoproj.io/sync-options: Prune=false`. Values must be strings.
+    # On key conflict, these annotations override `graylog.annotations` on Graylog PVCs.
+    # They do not apply to the Fluent Bit aggregator PVCs, which the operator creates.
+    # When `graylog.install` is `false`, the operator deletes the Graylog and MongoDB PVCs whatever the annotations.
+    annotations: {}
+
 # -- logging-operator pprof
 pprof:
   # -- Indicates if logging-operator has pprof enabled.
@@ -1420,9 +1430,12 @@ fluentbit:
       # -- Http port, for example: 9428
       # port: 9428
 
-      # -- Http uri to ingest logs.
-      # @default -- '/insert/jsonline?_stream_fields=stream&_msg_field=short_message&_time_field=time'
-      # uri: '/insert/jsonline?_stream_fields=stream&_msg_field=short_message&_time_field=time'
+      # -- HTTP URI to ingest logs. With the operator-managed default URI,
+      # VictoriaLogs uses the root CRI/Docker `time` field for `_time`. A
+      # colliding payload field is preserved as `parsed_time`. The HTTP output
+      # does not generate an additional timestamp field.
+      # @default -- '/insert/jsonline?_stream_fields=namespace,container&_msg_field=short_message&_time_field=time'
+      # uri: '/insert/jsonline?_stream_fields=namespace,container&_msg_field=short_message&_time_field=time'
 
       # -- Payload compression mechanism for Http output. Allowed values: gzip, snappy, zstd.
       compress: gzip
@@ -1838,9 +1851,12 @@ fluentbit:
         # -- Http port
         # port: 9428
 
-        # -- Uri for Http output.
-        # @default -- '/insert/jsonline?_stream_fields=stream&_msg_field=short_message&_time_field=time'
-        # uri: '/insert/jsonline?_stream_fields=stream&_msg_field=short_message&_time_field=time'
+        # -- URI for HTTP output. With the operator-managed default URI,
+        # VictoriaLogs uses the root CRI/Docker `time` field for `_time`. A
+        # colliding payload field is preserved as `parsed_time`. The HTTP output
+        # does not generate an additional timestamp field.
+        # @default -- '/insert/jsonline?_stream_fields=namespace,container&_msg_field=short_message&_time_field=time'
+        # uri: '/insert/jsonline?_stream_fields=namespace,container&_msg_field=short_message&_time_field=time'
 
         # -- Payload compression mechanism for Http output. Allowed values: gzip, snappy, zstd.
         # compress: gzip

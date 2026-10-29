@@ -36,95 +36,12 @@ func renderConfigData(t *testing.T, fluentbit *loggingService.Fluentbit) map[str
 	return data
 }
 
-func matcherFromConfig(t *testing.T, config string) *regexp.Regexp {
+func assertRawLogFallbackAfterPlaceholder(t *testing.T, normalizedConfig, originalConfig string) {
 	t.Helper()
-	for _, line := range strings.Split(config, "\n") {
-		fields := strings.Fields(line)
-		if len(fields) == 2 && strings.EqualFold(fields[0], "Match_Regex") {
-			matcher, err := regexp.Compile(fields[1])
-			if err != nil {
-				t.Fatalf("compile output matcher %q: %v", fields[1], err)
-			}
-			return matcher
-		}
-	}
-	t.Fatal("output configuration has no Match_Regex")
-	return nil
-}
-
-func TestFluentbitRoutedOutputMatchers(t *testing.T) {
-	output := &loggingService.OutputFluentbit{
-		Loki: &loggingService.LokiFluentbit{Enabled: true},
-		Http: &loggingService.HttpFluentbit{
-			Enabled: true,
-			Routing: &loggingService.FluentbitHTTPRouting{Enabled: true},
-		},
-		Otel: &loggingService.OtelFluentbit{Enabled: true},
-	}
-	data := renderConfigData(t, &loggingService.Fluentbit{GraylogOutput: true, Output: output})
-
-	for _, file := range []string{"output-graylog.conf", "output-loki.conf", "output-opentelemetry.conf"} {
-		t.Run(file, func(t *testing.T) {
-			matcher := matcherFromConfig(t, data[file])
-			for _, tag := range []string{
-				"out_audit", "out_system", "out_pods", "out_nginx", "out_k8s_event", "out_access", "out_int",
-				"audit.var.log", "system.var.log", "pods.var.log", "klog.var.log",
-			} {
-				if !matcher.MatchString(tag) {
-					t.Errorf("matcher does not select %q", tag)
-				}
-			}
-			for _, tag := range []string{"out_default", "out_custom", "out_audit_custom"} {
-				if matcher.MatchString(tag) {
-					t.Errorf("matcher unexpectedly selects custom tag %q", tag)
-				}
-			}
-		})
-	}
-}
-
-func TestFluentbitLokiMatcherSelectsKlogWithoutRouting(t *testing.T) {
-	data := renderConfigData(t, &loggingService.Fluentbit{Output: &loggingService.OutputFluentbit{
-		Loki: &loggingService.LokiFluentbit{Enabled: true},
-	}})
-
-	if !matcherFromConfig(t, data["output-loki.conf"]).MatchString("klog.var.log") {
-		t.Error("Loki matcher does not select klog without routing")
-	}
-}
-
-func TestFluentbitFormatDetectionPrecedesRoutingAndLevelNormalization(t *testing.T) {
-	data := renderConfigData(t, &loggingService.Fluentbit{Output: &loggingService.OutputFluentbit{
-		Http: &loggingService.HttpFluentbit{
-			Enabled: true,
-			Routing: &loggingService.FluentbitHTTPRouting{Enabled: true},
-		},
-	}})
-	mainConfig := data["fluent-bit.conf"]
-	formatDetection := strings.Index(mainConfig, "filter-define-format.conf")
-	routing := strings.Index(mainConfig, "filter-http-routing.conf")
-	normalization := strings.Index(mainConfig, "filter-nonsupported-levels.conf")
-	if formatDetection < 0 || routing < 0 || normalization < 0 ||
-		formatDetection >= routing || routing >= normalization {
-		t.Errorf("format detection, HTTP routing, and level normalization are in the wrong order:\n%s", mainConfig)
-	}
-	if !strings.Contains(data["filter-http-routing.conf"], "Name                   rewrite_tag") {
-		t.Error("HTTP routing configuration has no rewrite_tag filter")
-	}
-	if !strings.Contains(data["filter-define-format.conf"],
-		`Condition          Key_value_matches   level  ^\s*[0-7pafscwnidvtePAFSCWNIDVTE]`) {
-		t.Error("Qubership format detection does not validate the original level")
-	}
-	if strings.Contains(data["output-http.conf"], "rewrite_tag") {
-		t.Error("HTTP output configuration still contains routing that runs after level normalization")
-	}
-
-	script := data["update_level_syslog.lua"]
-	if strings.Contains(script, `record["detected_level"] ~= nil`) {
-		t.Error("detected_level is used as a processing marker")
-	}
-	if strings.Contains(script, "routing_tags") {
-		t.Error("level normalization depends on routing tags")
+	placeholderIndex := strings.Index(normalizedConfig, `Set short_message "<Empty message>"`)
+	copyIndex := strings.Index(normalizedConfig, "Copy log short_message")
+	if placeholderIndex == -1 || copyIndex <= placeholderIndex {
+		t.Errorf("expected the raw-log fallback after the Qubership placeholder, got:\n%s", originalConfig)
 	}
 }
 
@@ -269,5 +186,245 @@ func TestFluentbitConfigDisabledDB(t *testing.T) {
 		if strings.Contains(data[name], "DB") {
 			t.Errorf("expected no database parameters in %s, got:\n%s", name, data[name])
 		}
+	}
+}
+
+func TestGeneralizedQubershipParserAndEmptyMessagePlaceholder(t *testing.T) {
+	data := renderConfigData(t, &loggingService.Fluentbit{ContainerLogging: true})
+
+	genericConfig := data["filter-generic.conf"]
+	if !strings.Contains(genericConfig, "Parser              qubership") {
+		t.Errorf("expected the generalized Qubership parser in the generic filter, got:\n%s", genericConfig)
+	}
+	normalizedGenericConfig := strings.Join(strings.Fields(genericConfig), " ")
+	if !strings.Contains(normalizedGenericConfig,
+		`Match_Regex ^pods(?!.*opensearch-\d{1,2}_).* Key_Name log Parser qubership`) {
+		t.Errorf("expected the generalized Qubership parser to exclude OpenSearch tags, got:\n%s", genericConfig)
+	}
+	if !strings.Contains(genericConfig, "Parser               json") {
+		t.Errorf("expected the generic JSON parser to remain enabled, got:\n%s", genericConfig)
+	}
+	if strings.Contains(genericConfig, "Parser              java") {
+		t.Errorf("unexpected Java parser in the generic filter:\n%s", genericConfig)
+	}
+	parsersConfig := data["parsers.conf"]
+	if strings.Contains(parsersConfig, "\n    Name        java\n") {
+		t.Errorf("unexpected separate Java parser definition:\n%s", parsersConfig)
+	}
+	if !strings.Contains(parsersConfig, `(?<__qubership_candidate>\[)`) {
+		t.Errorf("expected the Qubership parser to emit a match marker, got:\n%s", parsersConfig)
+	}
+	if !strings.Contains(parsersConfig, `(?<short_message>[\s\S]*)`) {
+		t.Errorf("expected the Qubership parser to allow an empty message, got:\n%s", data["parsers.conf"])
+	}
+	if !strings.Contains(parsersConfig, `\]\s*)*(?<short_message>`) {
+		t.Errorf("expected the generalized Qubership parser to allow zero key-value pairs, got:\n%s", parsersConfig)
+	}
+
+	postGenericConfig := data["filter-post-generic.conf"]
+	normalizedPostGenericConfig := strings.Join(strings.Fields(postGenericConfig), " ")
+	for _, configName := range []string{"filter-validate.conf", "filter-post-generic.conf"} {
+		normalizedConfig := strings.Join(strings.Fields(data[configName]), " ")
+		cleanupIndex := strings.Index(normalizedConfig, "Condition Key_exists __qubership_candidate")
+		parseIndex := strings.Index(normalizedConfig, "kv_parse")
+		if cleanupIndex == -1 || parseIndex == -1 || cleanupIndex > parseIndex ||
+			!strings.Contains(normalizedConfig, "Condition Key_value_does_not_match log") ||
+			!strings.Contains(normalizedConfig, `^\[\d{4}-\d{2}-\d{2}[Tt\x20]\d{2}:\d{2}:\d{2}`) ||
+			!strings.Contains(normalizedConfig, "Remove __qubership_candidate") {
+			t.Errorf("expected non-Qubership marker cleanup before key-value parsing in %s, got:\n%s", configName, data[configName])
+		}
+	}
+	for _, expected := range []string{
+		"Match pods* Condition Key_exists __qubership_candidate Set parse_format qubership",
+		"Match pods* Condition Key_value_equals parse_format qubership",
+		"Condition Key_exists __qubership_candidate",
+		"Condition Key_value_equals parse_format qubership",
+		"Condition Key_does_not_exist short_message",
+		`Set short_message "<Empty message>"`,
+		"Copy log short_message",
+		"Remove_key __qubership_candidate",
+	} {
+		if !strings.Contains(normalizedPostGenericConfig, expected) {
+			t.Errorf("expected %q in the post-generic config, got:\n%s", expected, postGenericConfig)
+		}
+	}
+	if strings.Contains(normalizedPostGenericConfig,
+		"Match_regex (pods|klog).* Condition Key_exists __qubership_candidate Set parse_format qubership") {
+		t.Errorf("unexpected Qubership classification for rewritten klog records:\n%s", postGenericConfig)
+	}
+	if strings.Contains(postGenericConfig, "qubership_short_message_missing") {
+		t.Errorf("unexpected missing-message marker in the post-generic config:\n%s", postGenericConfig)
+	}
+	for _, unexpected := range []string{
+		"Set parse_format java",
+		"Condition Key_exists tenant_id",
+		"Condition Key_exists thread",
+		"Condition Key_exists request_id",
+		"Condition Key_exists class",
+	} {
+		if strings.Contains(normalizedPostGenericConfig, unexpected) {
+			t.Errorf("unexpected %q in the post-generic config:\n%s", unexpected, postGenericConfig)
+		}
+	}
+	assertRawLogFallbackAfterPlaceholder(t, normalizedPostGenericConfig, postGenericConfig)
+}
+
+func TestQubershipKeyValueParserGuard(t *testing.T) {
+	data := renderConfigData(t, &loggingService.Fluentbit{ContainerLogging: true})
+	script := data["parse_key_value.lua"]
+
+	if !strings.Contains(script, `if record["__qubership_candidate"] == nil then`) {
+		t.Errorf("expected key-value parsing to require a Qubership parser marker, got:\n%s", script)
+	}
+	headerGuardIndex := strings.Index(script, "if header_end == nil then")
+	pairIndex := strings.Index(script, "string.match(s, regex_kv, header_end + 1)")
+	if headerGuardIndex == -1 || pairIndex == -1 || headerGuardIndex > pairIndex {
+		t.Errorf("expected key-value fields to be read only after the Qubership header, got:\n%s", script)
+	}
+}
+
+func TestFluentbitLevelFilterMatchesRoutingState(t *testing.T) {
+	const routingMatch = "Match_regex  ^(?!out_(audit|k8s_event|nginx|access|int|pods|system|default)$).*"
+
+	tests := []struct {
+		name   string
+		output *loggingService.OutputFluentbit
+		want   string
+		absent string
+	}{
+		{
+			name:   "no HTTP output",
+			want:   "Match        *",
+			absent: "Match_regex",
+		},
+		{
+			name: "HTTP output without routing",
+			output: &loggingService.OutputFluentbit{Http: &loggingService.HttpFluentbit{
+				Enabled: true, Host: "vmauth", Port: 8427, Uri: "/insert/jsonline",
+			}},
+			want:   "Match        *",
+			absent: "Match_regex",
+		},
+		{
+			name: "HTTP output with routing disabled",
+			output: &loggingService.OutputFluentbit{Http: &loggingService.HttpFluentbit{
+				Enabled: true, Host: "vmauth", Port: 8427, Uri: "/insert/jsonline",
+				Routing: &loggingService.FluentbitHTTPRouting{Enabled: false},
+			}},
+			want:   "Match        *",
+			absent: "Match_regex",
+		},
+		{
+			name: "HTTP output with routing enabled",
+			output: &loggingService.OutputFluentbit{Http: &loggingService.HttpFluentbit{
+				Enabled: true, Host: "vmauth", Port: 8427, Uri: "/insert/jsonline",
+				Routing: &loggingService.FluentbitHTTPRouting{Enabled: true},
+			}},
+			want:   routingMatch,
+			absent: "Match        *",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			data := renderConfigData(t, &loggingService.Fluentbit{
+				ContainerLogging: true,
+				Output:           test.output,
+			})
+			filter := data["filter-nonsupported-levels.conf"]
+			if !strings.Contains(filter, test.want) || strings.Contains(filter, test.absent) {
+				t.Errorf("expected %q without %q in the level filter, got:\n%s", test.want, test.absent, filter)
+			}
+		})
+	}
+}
+
+func TestFluentbitLokiMatcherSelectsKlogWithoutRouting(t *testing.T) {
+	data := renderConfigData(t, &loggingService.Fluentbit{Output: &loggingService.OutputFluentbit{
+		Loki: &loggingService.LokiFluentbit{Enabled: true},
+	}})
+
+	if !matcherFromConfig(t, data["output-loki.conf"]).MatchString("klog.var.log") {
+		t.Error("Loki matcher does not select klog without routing")
+	}
+}
+
+func TestFluentbitRoutedOutputMatchers(t *testing.T) {
+	output := &loggingService.OutputFluentbit{
+		Loki: &loggingService.LokiFluentbit{Enabled: true},
+		Http: &loggingService.HttpFluentbit{
+			Enabled: true,
+			Routing: &loggingService.FluentbitHTTPRouting{Enabled: true},
+		},
+		Otel: &loggingService.OtelFluentbit{Enabled: true},
+	}
+	data := renderConfigData(t, &loggingService.Fluentbit{GraylogOutput: true, Output: output})
+
+	for _, file := range []string{"output-graylog.conf", "output-loki.conf", "output-opentelemetry.conf"} {
+		t.Run(file, func(t *testing.T) {
+			matcher := matcherFromConfig(t, data[file])
+			for _, tag := range []string{
+				"out_audit", "out_system", "out_pods", "out_nginx", "out_k8s_event", "out_access", "out_int",
+				"audit.var.log", "system.var.log", "pods.var.log", "klog.var.log",
+			} {
+				if !matcher.MatchString(tag) {
+					t.Errorf("matcher does not select %q", tag)
+				}
+			}
+			for _, tag := range []string{"out_default", "out_custom", "out_audit_custom"} {
+				if matcher.MatchString(tag) {
+					t.Errorf("matcher unexpectedly selects custom tag %q", tag)
+				}
+			}
+		})
+	}
+}
+
+func matcherFromConfig(t *testing.T, config string) *regexp.Regexp {
+	t.Helper()
+	for _, line := range strings.Split(config, "\n") {
+		fields := strings.Fields(line)
+		if len(fields) == 2 && strings.EqualFold(fields[0], "Match_Regex") {
+			matcher, err := regexp.Compile(fields[1])
+			if err != nil {
+				t.Fatalf("compile output matcher %q: %v", fields[1], err)
+			}
+			return matcher
+		}
+	}
+	t.Fatal("output configuration has no Match_Regex")
+	return nil
+}
+
+func TestFluentbitRoutingFollowsLevelNormalizationAndFormatDetection(t *testing.T) {
+	data := renderConfigData(t, &loggingService.Fluentbit{Output: &loggingService.OutputFluentbit{
+		Http: &loggingService.HttpFluentbit{
+			Enabled: true,
+			Routing: &loggingService.FluentbitHTTPRouting{Enabled: true},
+		},
+	}})
+	mainConfig := data["fluent-bit.conf"]
+	formatDetection := strings.Index(mainConfig, "filter-define-format.conf")
+	routing := strings.Index(mainConfig, "filter-http-routing.conf")
+	normalization := strings.Index(mainConfig, "filter-nonsupported-levels.conf")
+	// Routed records re-enter the filter chain with out_* tags. The level filter skips those tags, so
+	// routing must run after normalization, and after format detection, which matches the input tags.
+	if formatDetection < 0 || routing < 0 || normalization < 0 ||
+		normalization >= formatDetection || formatDetection >= routing {
+		t.Errorf("level normalization, format detection, and HTTP routing are in the wrong order:\n%s", mainConfig)
+	}
+	if !strings.Contains(data["filter-http-routing.conf"], "Name                   rewrite_tag") {
+		t.Error("HTTP routing configuration has no rewrite_tag filter")
+	}
+	if strings.Contains(data["output-http.conf"], "rewrite_tag") {
+		t.Error("HTTP output configuration still contains routing filters")
+	}
+
+	script := data["update_level_syslog.lua"]
+	if strings.Contains(script, `record["detected_level"] ~= nil`) {
+		t.Error("detected_level is used as a processing marker")
+	}
+	if strings.Contains(script, "routing_tags") {
+		t.Error("level normalization depends on routing tags")
 	}
 }

@@ -9,9 +9,11 @@ metadata:
     {{- if .Values.graylog.labels }}
     {{- include "logging.extraLabels" (dict "ctx" . "extraLabels" .Values.graylog.labels) | nindent 4 }}
     {{- end }}
-  {{- if .Values.graylog.annotations }}
+  {{- /* On key conflict, pvc.metadata.annotations overrides graylog.annotations. */}}
+  {{- $annotations := mergeOverwrite (deepCopy (.Values.graylog.annotations | default dict)) (deepCopy (((.Values.pvc).metadata).annotations | default dict)) }}
+  {{- with $annotations }}
   annotations:
-    {{- toYaml .Values.graylog.annotations | nindent 4 }}
+    {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
   accessModes:

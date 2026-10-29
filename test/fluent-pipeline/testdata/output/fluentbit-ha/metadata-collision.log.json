@@ -1,0 +1,27 @@
+[
+  {
+    "_test": {
+      "id": "metadata-collision-ha"
+    },
+    "container": "fake-container",
+    "detected_level": "error",
+    "hostname": "fake-fluent",
+    "labels": {
+      "metadata.app": "fluent-pipeline-test",
+      "metadata.app.kubernetes.io/version": "0.1.0"
+    },
+    "level": "err",
+    "message": "metadata collision payload",
+    "namespace": "fake-namespace",
+    "nodename": "fake-node",
+    "parse_field_count": 12,
+    "parse_format": "unknown",
+    "parse_status": "success",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
+    "short_message": "metadata collision payload",
+    "source_level": "error",
+    "stdio_stream": "stdout",
+    "time": "2026-09-03T19:21:00.123456789Z"
+  }
+]

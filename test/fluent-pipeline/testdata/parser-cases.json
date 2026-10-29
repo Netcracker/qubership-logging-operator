@@ -353,7 +353,7 @@
       "expected": {
         "namespace_name": "demo",
         "pod_name": "api-0",
-        "docker_id": "00000000-0000-0000-0000-000000000000",
+        "pod_id": "00000000-0000-0000-0000-000000000000",
         "container_name": "app"
       },
       "absent": [

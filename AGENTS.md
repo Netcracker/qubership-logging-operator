@@ -104,8 +104,9 @@ make docs             # Generate API docs (crd-ref-docs) and copy CRDs to docs/
 - Check changes to `charts/qubership-logging-operator/` with `helm lint charts/qubership-logging-operator -f <file>`
   for the `*-values.yaml` files in `docs/examples/*/`. CI lints the chart with each of those files as values, so a
   values or schema change can break an example.
-- Run the scripts in `scripts/chart-tests/` after changing a chart: `test-monitoring-selectors.sh` covers
-  `charts/qubership-logging-operator/`, and `test-victorialogs-rendering.sh` covers `charts/qubership-victorialogs/`.
+- Run the scripts in `scripts/chart-tests/` after changing a chart: `test-monitoring-selectors.sh` and
+  `test-pvc-annotations.sh` cover `charts/qubership-logging-operator/`, and `test-victorialogs-rendering.sh` covers
+  `charts/qubership-victorialogs/`.
 - Run `make test-fluent-pipeline FLUENT_PIPELINE_SCENARIO=<scenario>` after changing FluentBit or FluentD
   configuration under `controllers/`. Go unit tests do not run the rendered configuration; this target runs it in
   Docker against log fixtures. The default scenario is `fluentbit`; `test/fluent-pipeline/README.md` lists the others.

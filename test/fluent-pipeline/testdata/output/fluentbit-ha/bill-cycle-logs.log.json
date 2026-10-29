@@ -15,11 +15,13 @@
     "level": "info",
     "short_message": "it is example of bill cycle log message",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
-    "parse_field_count": 12,
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
+    "parse_field_count": 14,
     "hostname": "fake-fluent",
     "container": "fake-container",
     "date": "2024-07-20T11:51:31.234",
     "source_level": "INFO",
+    "stdio_stream": "stdout",
     "parse_format": "qubership"
   },
   {
@@ -38,11 +40,13 @@
     "level": "info",
     "short_message": "it is example of bill cycle log message",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
-    "parse_field_count": 12,
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
+    "parse_field_count": 14,
     "hostname": "fake-fluent",
     "container": "fake-container",
     "date": "2024-07-20T11:51:32.234",
     "source_level": "INFO",
+    "stdio_stream": "stdout",
     "parse_format": "qubership"
   },
   {
@@ -61,11 +65,13 @@
     "level": "warning",
     "short_message": "it is example of bill cycle log message",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
-    "parse_field_count": 12,
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
+    "parse_field_count": 14,
     "hostname": "fake-fluent",
     "container": "fake-container",
     "date": "2024-07-20T11:51:33.234",
     "source_level": "WARN",
+    "stdio_stream": "stdout",
     "parse_format": "qubership"
   },
   {
@@ -84,12 +90,14 @@
     "level": "warning",
     "date": "2024-07-20T11:51:34.234",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
-    "parse_field_count": 12,
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
+    "parse_field_count": 14,
     "hostname": "fake-fluent",
     "container": "fake-container",
     "app.kubernetes.io/part-of": "app",
     "nodename": "fake-node",
     "source_level": "WARN",
+    "stdio_stream": "stdout",
     "parse_format": "qubership"
   }
 ]

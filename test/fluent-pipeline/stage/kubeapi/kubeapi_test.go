@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -118,8 +119,8 @@ func TestWriteCredentialsProducesACertificateTheAgentTrusts(t *testing.T) {
 	if _, err := tls.X509KeyPair(pemBytes, mustRead(t, filepath.Join(dir, "tls.key"))); err != nil {
 		t.Errorf("the written certificate and key are not a pair: %v", err)
 	}
-	if token := mustRead(t, filepath.Join(dir, "token")); len(token) == 0 {
-		t.Error("writeCredentials() wrote an empty token")
+	if token := string(mustRead(t, filepath.Join(dir, "token"))); token == "" || strings.ContainsAny(token, "\r\n") {
+		t.Errorf("token must be a nonempty HTTP header value, got %q", token)
 	}
 }
 

@@ -25,9 +25,9 @@ fixture line the pipeline keeps has to be described, and a pipeline that emits a
 { "_test": { "id": "coredns-empty-line", "dropped": true }, "time": "2026-09-03T10:20:40.250007468Z" }
 ```
 
-The fixtures carry no test-only markers. A marker inside a message reaches the pipeline as data: a `[key=value]`
-marker becomes a field, which adds one to `parse_field_count` and can turn `parse_status` from `failed` into
-`success`, so the expected records would describe the marker rather than the log line.
+The fixtures carry no test-only markers. A marker inside a message reaches the pipeline as data. A `[key=value]`
+marker becomes a field of its own, and it also changes which parser path the record takes, because logfmt detection
+skips any line that carries one. The expected records would then describe the marker rather than the log line.
 
 The `fluentbit` and `fluentbit-ha` scenarios also read the Prometheus exporter of the agent that writes the output.
 The `log_to_metrics` filters, which count parse errors and Calico SYN packets, reach no output file: they are

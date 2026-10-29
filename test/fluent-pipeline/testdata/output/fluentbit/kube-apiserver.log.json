@@ -19,7 +19,6 @@
       "metadata.app": "fluent-pipeline-test"
     },
     "parse_status": "success",
-    "parse_field_count": 13,
     "file": "reflector.go:424",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
@@ -46,7 +45,6 @@
       "metadata.app": "fluent-pipeline-test"
     },
     "parse_status": "success",
-    "parse_field_count": 13,
     "file": "controller.go:1213",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",

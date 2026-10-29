@@ -21,7 +21,6 @@
     "short_message": "Client environment:java.library.path=/usr/lib/jvm/java-17-openjdk/lib/server:/usr/lib/jvm/java-17-openjdk/lib:/usr/lib/jvm/java-17-openjdk/../lib:/usr/java/packages/lib:/usr/lib64:/lib64:/lib:/usr/lib",
     "nodename": "fake-node",
     "hostname": "fake-fluent",
-    "parse_field_count": 12,
     "labels": {
       "metadata.app.kubernetes.io/version": "0.1.0",
       "metadata.app": "fluent-pipeline-test"
@@ -56,7 +55,6 @@
     "short_message": "Using org.apache.zookeeper.server.quorum.MultipleAddresses",
     "nodename": "fake-node",
     "hostname": "fake-fluent",
-    "parse_field_count": 12,
     "labels": {
       "metadata.app.kubernetes.io/version": "0.1.0",
       "metadata.app": "fluent-pipeline-test"
@@ -91,7 +89,6 @@
     "short_message": "New config event received: {server.2=zookeeper-2.zookeeper-server.zookeeper:2888:3888:participant;0.0.0.0:2181, server.1=zookeeper-1.zookeeper-server.zookeeper:2888:3888:participant;0.0.0.0:2181, server.3=zookeeper-3.zookeeper-server.zookeeper:2888:3888:participant;0.0.0.0:2181, version=0}",
     "nodename": "fake-node",
     "hostname": "fake-fluent",
-    "parse_field_count": 12,
     "labels": {
       "metadata.app.kubernetes.io/version": "0.1.0",
       "metadata.app": "fluent-pipeline-test"
@@ -126,7 +123,6 @@
     "short_message": "Support for convention-based annotation attribute overrides is deprecated and will be removed in Spring Framework 6.2. Please annotate the following attributes in @org.axonframework.eventhandling.EventHandler with appropriate @AliasFor declarations: [payloadType]",
     "nodename": "fake-node",
     "hostname": "fake-fluent",
-    "parse_field_count": 12,
     "labels": {
       "metadata.app.kubernetes.io/version": "0.1.0",
       "metadata.app": "fluent-pipeline-test"
@@ -161,7 +157,6 @@
     "short_message": "BeanFactory id=00000000-0000-0000-0000-000000000000",
     "nodename": "fake-node",
     "hostname": "fake-fluent",
-    "parse_field_count": 12,
     "labels": {
       "metadata.app.kubernetes.io/version": "0.1.0",
       "metadata.app": "fluent-pipeline-test"
@@ -196,7 +191,6 @@
     "short_message": "***\nAutomatic Recovery was Enabled in the provided connection factory;\nwhile Spring AMQP is generally compatible with this feature, there\nare some corner cases where problems arise. Spring AMQP\nprefers to use its own recovery mechanisms; when this option is true, you may receive\n'AutoRecoverConnectionNotCurrentlyOpenException's until the connection is recovered.\nIt has therefore been disabled; if you really wish to enable it, use\n'getRabbitConnectionFactory().setAutomaticRecoveryEnabled(true)',\nbut this is discouraged.",
     "nodename": "fake-node",
     "hostname": "fake-fluent",
-    "parse_field_count": 12,
     "labels": {
       "metadata.app.kubernetes.io/version": "0.1.0",
       "metadata.app": "fluent-pipeline-test"
@@ -231,7 +225,6 @@
     "short_message": "Will secure any request with [org.qubership.cloud.context.propagation.spring.common.filter.SpringPreAuthnContextProviderFilter@79d49790, org.springframework.security.web.session.DisableEncodeUrlFilter@5b8599c7, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@31e9d94f, org.springframework.security.web.context.SecurityContextHolderFilter@70940cb8, org.springframework.security.web.header.HeaderWriterFilter@205b73d8, org.springframework.security.web.authentication.logout.LogoutFilter@1b868ef0, org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter@6c9b6332, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@3810806c, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@7bd7c4cf, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@69a3944, org.springframework.security.web.session.SessionManagementFilter@1ee52741, org.springframework.security.web.access.ExceptionTranslationFilter@10f192d8, org.qubership.cloud.context.propagation.spring.common.filter.SpringPostAuthnContextProviderFilter@7f2ca6f8, org.springframework.security.web.access.intercept.AuthorizationFilter@17541204] ",
     "nodename": "fake-node",
     "hostname": "fake-fluent",
-    "parse_field_count": 12,
     "labels": {
       "metadata.app.kubernetes.io/version": "0.1.0",
       "metadata.app": "fluent-pipeline-test"
@@ -266,7 +259,6 @@
     "short_message": "DataStax Java driver for Apache Cassandra(R) (com.datastax.oss:java-driver-core) version 4.15.0",
     "nodename": "fake-node",
     "hostname": "fake-fluent",
-    "parse_field_count": 12,
     "labels": {
       "metadata.app.kubernetes.io/version": "0.1.0",
       "metadata.app": "fluent-pipeline-test"
@@ -301,7 +293,6 @@
     "short_message": "[EP-0103] Starting EP Execution",
     "nodename": "fake-node",
     "hostname": "fake-fluent",
-    "parse_field_count": 12,
     "labels": {
       "metadata.app.kubernetes.io/version": "0.1.0",
       "metadata.app": "fluent-pipeline-test"
@@ -336,7 +327,6 @@
     "short_message": "Start GraphQL Query processing",
     "nodename": "fake-node",
     "hostname": "fake-fluent",
-    "parse_field_count": 12,
     "labels": {
       "metadata.app.kubernetes.io/version": "0.1.0",
       "metadata.app": "fluent-pipeline-test"
@@ -371,7 +361,6 @@
     "short_message": "org.qubership.cloud.crm.quotation.engine.app.web.pub.graphql.controller.GraphQLController.graphql()",
     "nodename": "fake-node",
     "hostname": "fake-fluent",
-    "parse_field_count": 12,
     "labels": {
       "metadata.app.kubernetes.io/version": "0.1.0",
       "metadata.app": "fluent-pipeline-test"
@@ -389,7 +378,6 @@
       "id": "qes-12"
     },
     "short_message": "Start GraphQL Query processing",
-    "parse_field_count": 12,
     "version": "v1",
     "date": "2024-06-18T17:28:07.414",
     "time": "2024-06-18T17:28:07.414007468Z",

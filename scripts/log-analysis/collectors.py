@@ -97,7 +97,7 @@ def collect_victorialogs_log_report(backend: VictoriaLogsClient, args: argparse.
         "debug_trace": lambda: backend.execute_set(backend.debug_trace_queries(), dry_run=args.dry_run),
         "log_patterns": lambda: backend.execute_set(backend.log_patterns_queries(), dry_run=args.dry_run),
         "message_size": lambda: backend.execute_set(backend.message_size_queries(), dry_run=args.dry_run),
-        "schema_quality": lambda: backend.execute_set(backend.schema_quality_queries(), dry_run=args.dry_run),
+        "schema_quality": lambda: backend.schema_quality_report(dry_run=args.dry_run),
         "categories": lambda: {
             category: backend.execute_set(
                 backend.category_queries(filters["victorialogs"], category_fields[category]),

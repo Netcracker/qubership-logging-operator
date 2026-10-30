@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
-	"os"
 	"errors"
+	"os"
 
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
 

@@ -9,9 +9,13 @@ import (
 	loggingService "github.com/Netcracker/qubership-logging-operator/api/v1"
 	"github.com/Netcracker/qubership-logging-operator/internal/controllers"
 	"github.com/Netcracker/qubership-logging-operator/internal/utils"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	apiruntime "k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
+	"k8s.io/client-go/rest"
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
@@ -54,9 +58,12 @@ func init() {
 }
 
 func printVersion() {
-	fmt.Fprintf(os.Stdout, "Go Version: %s, Go OS/Arch: %s/%s", runtime.Version(), runtime.GOOS, runtime.GOARCH)
+	logger.Info(fmt.Sprintf("Go Version: %s", runtime.Version()))
+	logger.Info(fmt.Sprintf("Go OS/Arch: %s/%s", runtime.GOOS, runtime.GOARCH))
 }
 
+// RunManager parses the operator flags, starts the controller manager, and blocks
+// until ctx is canceled or the manager fails.
 func RunManager(ctx context.Context) error {
 	if err := managerFlags.Parse(os.Args[1:]); err != nil {
 		return fmt.Errorf("cannot parse provided flags: %w", err)
@@ -65,15 +72,6 @@ func RunManager(ctx context.Context) error {
 	printVersion()
 
 	logf.SetLogger(logger)
-
-	// Use a zap logr.Logger implementation. If none of the zap
-	// flags are configured (or if the zap flag set is not being
-	// used), this defaults to a production zap logger.
-	//
-	// The logger instantiated here can be changed to any logger
-	// implementing the logr.Logger interface. This logger will
-	// be propagated through the whole operator, generating
-	// uniform and structured logs.
 	klog.SetLogger(logger)
 	ctrl.SetLogger(logger)
 
@@ -82,16 +80,17 @@ func RunManager(ctx context.Context) error {
 		namespace = "logging"
 	}
 
-	metricsServerOptions := metricsserver.Options{
-		BindAddress: *metricsAddr,
+	pprofBindAddress := ""
+	if *pprofEnabled {
+		pprofBindAddress = *pprofAddr
 	}
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Logger:                  logger,
 		Scheme:                  scheme,
-		Metrics:                 metricsServerOptions,
+		Metrics:                 metricsserver.Options{BindAddress: *metricsAddr},
 		HealthProbeBindAddress:  *probeAddr,
-		PprofBindAddress:        *pprofAddr,
+		PprofBindAddress:        pprofBindAddress,
 		ReadinessEndpointName:   "/ready",
 		LivenessEndpointName:    "/health",
 		LeaderElection:          *leaderElection,
@@ -104,17 +103,14 @@ func RunManager(ctx context.Context) error {
 		},
 	})
 	if err != nil {
-		logger.Error(err, "unable to start manager")
-		os.Exit(1)
+		return fmt.Errorf("unable to create manager: %w", err)
 	}
 
-	if err := mgr.AddHealthzCheck("health", healthz.Ping); err != nil {
-		logger.Error(err, "unable to set up health check")
-		os.Exit(1)
+	if err = mgr.AddHealthzCheck("health", healthz.Ping); err != nil {
+		return fmt.Errorf("unable to set up health check: %w", err)
 	}
-	if err := mgr.AddReadyzCheck("ready", healthz.Ping); err != nil {
-		logger.Error(err, "unable to set up ready check")
-		os.Exit(1)
+	if err = mgr.AddReadyzCheck("ready", healthz.Ping); err != nil {
+		return fmt.Errorf("unable to set up ready check: %w", err)
 	}
 
 	if err = (&controllers.LoggingServiceReconciler{
@@ -125,14 +121,50 @@ func RunManager(ctx context.Context) error {
 		TimeoutOnFailedReconcile: controllers.InitialTimeoutOnFailedReconcile,
 		DynamicParameters:        utils.DynamicParameters{ContainerRuntimeType: ""},
 	}).SetupWithManager(mgr); err != nil {
-		logger.Error(err, "unable to create controller", "controller", "LoggingService")
-		os.Exit(1)
+		return fmt.Errorf("unable to create the LoggingService controller: %w", err)
 	}
 
+	createMetricsPodMonitor(mgr.GetConfig(), namespace)
+
 	logger.Info("starting manager")
-	if err = mgr.Start(ctrl.SetupSignalHandler()); err != nil {
-		logger.Error(err, "problem running manager")
-		os.Exit(1)
+	if err = mgr.Start(ctx); err != nil {
+		return fmt.Errorf("problem running manager: %w", err)
 	}
 	return nil
+}
+
+// createMetricsPodMonitor creates the PodMonitor that lets Prometheus scrape the
+// operator metrics. Set SKIP_METRICS_SERVICE to "true" to skip it. A failure is logged
+// and does not stop the operator.
+func createMetricsPodMonitor(config *rest.Config, namespace string) {
+	if os.Getenv("SKIP_METRICS_SERVICE") == "true" {
+		logger.Info("Skip a creating Service and PodMonitor which scrape metrics from this operator")
+		return
+	}
+	serviceName := "logging-operator-metrics"
+	labels := utils.MergeLabels(
+		utils.ResourceLabels(serviceName, "logging-operator"),
+		map[string]string{"app.kubernetes.io/instance": utils.GetInstanceLabel(serviceName, namespace)},
+	)
+	service := &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      serviceName,
+			Namespace: namespace,
+			Labels:    labels,
+		},
+		Spec: corev1.ServiceSpec{
+			Ports: []corev1.ServicePort{{
+				Port:       metricsPort,
+				Name:       "http-metrics",
+				Protocol:   corev1.ProtocolTCP,
+				TargetPort: intstr.FromInt32(metricsPort),
+			}},
+			Selector: labels,
+		},
+	}
+	err := utils.CreatePodMonitors(config, namespace, []*corev1.Service{service},
+		os.Getenv("SCRAPE_INTERVAL"), os.Getenv("SCRAPE_TIMEOUT"))
+	if err != nil {
+		logger.Info("Could not create PodMonitor object", "error", err.Error())
+	}
 }

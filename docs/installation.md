@@ -39,6 +39,8 @@ see [Configuration](./graylog-configuration.md).
   * [Post Installation Steps](#post-installation-steps)
     * [Configuring URL whitelist](#configuring-url-whitelist)
   * [Upgrade](#upgrade)
+    * [Graylog 5 and MongoDB 5.0 migration](#graylog-5-and-mongodb-50-migration)
+    * [FluentBit storage profile migration](#fluentbit-storage-profile-migration)
   * [Frequently asked questions](#frequently-asked-questions)
   * [Footnotes](#footnotes)
 
@@ -72,11 +74,11 @@ see the [Release notes](https://docs.redhat.com/en/documentation/openshift_conta
 
 ### Public Cloud Provider Support
 
-| Cloud Provider | Managed OpenSearch  | Graylog Support | Notes                             |
-| -------------- | ------------------- | --------------- | --------------------------------- |
-| AWS            | ✔ Yes               | ✔ Supported     | Requires minimum hardware specs   |
-| Azure          | ✘ No                | N/A             | Only custom marketplace solutions |
-| GCP            | ✘ No                | N/A             | Only custom marketplace solutions |
+| Cloud Provider | Managed OpenSearch | Graylog Support | Notes                             |
+| -------------- | ------------------ | --------------- | --------------------------------- |
+| AWS            | ✔ Yes              | ✔ Supported     | Requires minimum hardware specs   |
+| Azure          | ✘ No               | N/A             | Only custom marketplace solutions |
+| GCP            | ✘ No               | N/A             | Only custom marketplace solutions |
 
 #### Amazon Web Services (AWS)
 
@@ -107,10 +109,10 @@ in the Google marketplace from other vendors.
 
 #### Platform compatibility
 
-| Requirement       | Version/Specification                                | Notes                                                 |
-| ----------------- | ---------------------------------------------------- | ----------------------------------------------------- |
-| Kubernetes        | 1.25.x, 1.26.x, 1.28.x (recommended), 1.29.x, 1.30.x | Tested <1.29, Forward-compatible (API verified) ≥1.29 |
-| OpenShift         | 4.10+                                                | Based on Kubernetes version                           |
+| Requirement | Version/Specification                                | Notes                                                 |
+| ----------- | ---------------------------------------------------- | ----------------------------------------------------- |
+| Kubernetes  | 1.25.x, 1.26.x, 1.28.x (recommended), 1.29.x, 1.30.x | Tested <1.29, Forward-compatible (API verified) ≥1.29 |
+| OpenShift   | 4.10+                                                | Based on Kubernetes version                           |
 
 #### Tools
 
@@ -126,13 +128,11 @@ When deploying Graylog in the cloud, you should use only the OpenSearch or Elast
 <!-- markdownlint-disable line-length -->
 | Graylog version | Elasticsearch versions    | OpenSearch versions     |
 | --------------- | ------------------------- | ----------------------- |
-| Graylog 4.x     | `6.8.x`, `7.7.x - 7.10.x` | `1.x *`                 |
-| Graylog 5.x     | `6.8.x`, `7.10.2`         | `1.x`, `2.0.x-2.5.x **` |
+| Graylog 5.x     | `6.8.x`, `7.10.2`         | `1.x`, `2.0.x-2.5.x *`  |
 <!-- markdownlint-enable line-length -->
 where:
 
-* `*` - for Graylog 4.x OpenSearch 1.x must be deployed and run **with** compatibility mode
-* `**` - for Graylog 5.x OpenSearch 2.x must be deployed and run **without** compatibility mode
+* `*` - for Graylog 5.x OpenSearch 2.x must be deployed and run **without** compatibility mode
 
 **Note:** Graylog may not work properly with OpenSearch/Elasticsearch versions other than specified in the table above.
 
@@ -418,7 +418,7 @@ Installation consists of the following steps:
    fluentbit:
      install: true
      configmapReload:
-       dockerImage: ghcr.io/jimmidyson/configmap-reload:v0.13.1
+       dockerImage: ghcr.io/jimmidyson/configmap-reload:v0.15.0
      graylogHost: <graylog_host>
      graylogPort: 12201
    fluentd:
@@ -479,6 +479,9 @@ Installation consists of the following steps:
 
 ## Configuration parameters
 
+VictoriaLogs is installed from a separate Helm chart. See the
+[Qubership VictoriaLogs chart values](./victorialogs-chart-parameters.md) for its complete parameter reference.
+
 <!-- markdownlint-disable line-length -->
 | Level                     | Description                                                                                                 | Detailed parameters link                                                          |
 | ------------------------- | ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
@@ -526,6 +529,56 @@ considered to be whitelisted. Graylog uses the Java Pattern class to evaluate re
 [Back to TOC](#table-of-contents)
 
 ## Upgrade
+
+### Graylog 5 and MongoDB 5.0 migration
+
+The operator supports Graylog 5 only and no longer upgrades MongoDB step by step. Release 14.33.0 is the last release
+that migrates a Graylog 3 or 4 installation and its MongoDB data to Graylog 5 and MongoDB 5.0. MongoDB 5.0 does not
+start on data from MongoDB 4.2 or earlier, so if you upgrade an installation that is not migrated, Graylog becomes
+unavailable.
+
+Before you upgrade, check the feature compatibility version of the MongoDB data in the Graylog pod:
+
+```bash
+kubectl exec -n <namespace> graylog-0 -c mongo -- mongo --quiet --eval \
+  'db.adminCommand({getParameter: 1, featureCompatibilityVersion: 1}).featureCompatibilityVersion.version'
+```
+
+If the command prints `5.0` and the `graylog` container runs a Graylog 5 image, the installation is migrated and you
+can upgrade. Otherwise, complete the migration with release 14.33.0 first:
+
+1. Upgrade to release 14.33.0 with `graylog.mongoUpgrade: true`. Use the default Graylog and MongoDB images, or set
+   images with a Graylog 5 and a MongoDB 5.0 version in the tag. The operator runs the migration only when the Graylog
+   image tag contains a `5.x.y` version.
+2. The operator scales down Graylog and runs the Jobs `mongo-upgrade-job-40`, `mongo-upgrade-job-42`,
+   `mongo-upgrade-job-44`, and `mongo-upgrade-job-50` in this order. Wait until the last Job completes:
+
+   ```bash
+   kubectl wait -n <namespace> --for=condition=complete --timeout=30m job/mongo-upgrade-job-50
+   ```
+
+3. Check that the command above prints `5.0` and that the `graylog` StatefulSet is ready. If a Job fails, the operator
+   still starts Graylog, and it does not run a failed Job again while the Job exists. Find the cause in the logs of the
+   failed Job, delete the Job, and let the operator run the migration again.
+4. Set `graylog.mongoUpgrade: false` and upgrade release 14.33.0 again. While the parameter is `true`, release 14.33.0
+   scales down Graylog on every reconciliation. With `false`, the operator also deletes the upgrade Jobs.
+5. Upgrade to the current release.
+
+### FluentBit storage profile migration
+
+The default FluentBit storage profile changes to `memory-only`. An upgrade changes the active offset database path
+from `/var/log` to `/fluent-bit/state`, which is backed by memory for this profile. FluentBit does not migrate existing
+offsets, so inputs configured to read from the beginning may resend records during the first rollout.
+
+Set `fluentbit.storageProfile: persistent-offsets` before upgrading if new offsets must survive later Pod replacement
+on the same node. Set `fluentbit.storageProfile: node-persistent` if buffered records must also survive Pod replacement
+and output outages. Both profiles write to the node filesystem under `/var/lib/fluent-bit`; neither profile migrates
+the old offset databases during the first rollout.
+
+The upgrade does not remove legacy offset databases under `/var/log` or buffered records under
+`/var/log/flb-storage`. Remove old offset databases only after the new Pods are healthy. The legacy storage directory
+may contain undelivered records, so deleting it can lose logs. See
+[FluentBit storage profiles](./examples/fluentbit.md#storage-profiles) for the profile trade-offs and cleanup details.
 
 ## Frequently asked questions
 

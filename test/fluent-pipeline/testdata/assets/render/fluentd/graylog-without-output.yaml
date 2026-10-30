@@ -1,0 +1,18 @@
+# expect-failure: filter-add-stream.conf reads .Values.Fluentd.Output.Http while Output is nil
+# expect-stage: render
+# expect-diagnostic: filter-add-stream\.conf.*nil pointer evaluating \*v1\.OutputFluentd\.Http
+# The Graylog output alone, without an output block. The custom resource is valid, but the
+# template dereferences the absent block; the chart hides this by always rendering output.loki.
+apiVersion: logging.netcracker.com/v1
+kind: LoggingService
+metadata:
+  name: logging-service
+spec:
+  containerRuntimeType: containerd
+  fluentd:
+    containerLogging: true
+    mockKubeData: true
+    graylogOutput: true
+    graylogHost: graylog.logging.svc
+    graylogPort: 12201
+    graylogProtocol: tcp

@@ -106,7 +106,7 @@ the config map has been changed.
 
 Official documentation:
 
-* ConfigMap-reload [https://github.com/jimmidyson/configmap-reload/pkgs/container/configmap-reload](https://github.com/jimmidyson/configmap-reload/pkgs/container/configmap-reload)
+* ConfigMap-reload [https://github.com/jimmidyson/configmap-reload](https://github.com/jimmidyson/configmap-reload)
 
 ## Cloud Events Reader
 

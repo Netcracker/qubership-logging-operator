@@ -1,0 +1,28 @@
+[
+  {
+    "_test": {
+      "id": "cloud-events-reader"
+    },
+    "parse_status": "success",
+    "stdio_stream": "stdout",
+    "time": "2024-06-11T07:40:20.272007468Z",
+    "involvedObjectName": "rabbitmq-operator-59d457d796-xh27k",
+    "involvedObjectUid": "00000000-0000-0000-0000-000000000000",
+    "involvedObjectApiVersion": "v1",
+    "type": "Normal",
+    "reason": "BackOff",
+    "kind": "KubernetesEvent",
+    "nodename": "fake-node",
+    "namespace": "fake-namespace",
+    "involvedObjectKind": "Pod",
+    "parse_level_unknown": "true",
+    "level": "info",
+    "detected_level": "info",
+    "involvedObjectNamespace": "rabbitmq",
+    "hostname": "fake-fluent",
+    "short_message": "Back-off pulling image \"ghcr.io/netcracker/qubership-disaster-recovery-daemon:v0.4.5\"",
+    "involvedObjectResourceVersion": "105845519",
+    "parse_format": "json",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d"
+  }
+]

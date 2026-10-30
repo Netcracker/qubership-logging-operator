@@ -1,7 +1,7 @@
 {{- if .Values.createClusterAdminEntities }}
 {{- if .Values.cloudEventsReader.install }}
-kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
 metadata:
   name: {{ .Release.Namespace }}-cloud-events-reader
   {{- if .Values.cloudEventsReader.annotations }}
@@ -13,9 +13,35 @@ metadata:
     {{- if .Values.cloudEventsReader.labels }}
     {{- include "logging.extraLabels" (dict "ctx" . "extraLabels" .Values.cloudEventsReader.labels) | nindent 4 }}
     {{- end }}
+rules:
+  - apiGroups:
+      - ""
+      - events.k8s.io
+    resources:
+      - events
+    verbs:
+      - get
+      - list
+      - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  # Use a distinct name to avoid changing the immutable roleRef of installations
+  # that used the built-in view ClusterRole.
+  name: {{ .Release.Namespace }}-cloud-events-reader-events-only
+  {{- if .Values.cloudEventsReader.annotations }}
+  annotations:
+    {{- toYaml .Values.cloudEventsReader.annotations | nindent 4 }}
+  {{- end }}
+  labels:
+    {{- include "logging.labels" (dict "ctx" . "name" (printf "%s-cloud-events-reader-events-only" .Release.Namespace) "component" "events-reader") | nindent 4 }}
+    {{- if .Values.cloudEventsReader.labels }}
+    {{- include "logging.extraLabels" (dict "ctx" . "extraLabels" .Values.cloudEventsReader.labels) | nindent 4 }}
+    {{- end }}
 roleRef:
   kind: ClusterRole
-  name: view
+  name: {{ .Release.Namespace }}-cloud-events-reader
   apiGroup: rbac.authorization.k8s.io
 subjects:
   - kind: ServiceAccount

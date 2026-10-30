@@ -17,7 +17,9 @@ spec:
   openshiftDeploy: {{ .Capabilities.APIVersions.Has "security.openshift.io/v1" }}
   osKind: {{ default "centos" .Values.osKind }}
   ipv6: {{ default false .Values.ipv6 }}
+  {{- if .Values.containerRuntimeType }}
   containerRuntimeType: {{ .Values.containerRuntimeType }}
+  {{- end }}
   {{- if .Values.graylog.install }}
   graylog:
     dockerImage: {{ template "graylog.image" . }}
@@ -283,12 +285,6 @@ spec:
         secretName: {{ .Values.graylog.authProxy.key.secretName }}
       {{- end }}
     {{- end }}
-    {{- if and .Values.graylog.mongoUpgrade (include "graylog.isMajorVersion5" . ) }}
-    mongoDBUpgrade:
-      mongoDBImage40: {{ template "mongodb40.image" . }}
-      mongoDBImage42: {{ template "mongodb42.image" . }}
-      mongoDBImage44: {{ template "mongodb44.image" . }}
-    {{- end }}
     pathRepo: {{ default "/ush/share/opensearch/snapshots/graylog/" .Values.graylog.pathRepo }}
     s3Archive: {{ default false .Values.graylog.s3Archive }}
   {{- end }}
@@ -545,8 +541,9 @@ spec:
     {{- if .Values.fluentbit.logLevel }}
     logLevel: {{ .Values.fluentbit.logLevel }}
     {{- end }}
+    selfLogging: {{ .Values.fluentbit.selfLogging | default false }}
     {{- if .Values.fluentbit.excludePath }}
-    excludePath: {{ .Values.fluentbit.excludePath }}
+    excludePath: {{ .Values.fluentbit.excludePath | quote }}
     {{- end }}
     systemLogging: {{ .Values.fluentbit.systemLogging }}
     {{- if .Values.fluentbit.systemLogType }}
@@ -624,6 +621,30 @@ spec:
     {{- if .Values.fluentbit.memBufLimit }}
     memBufLimit: {{ .Values.fluentbit.memBufLimit }}
     {{- end }}
+    {{- if .Values.fluentbit.flush }}
+    flush: {{ .Values.fluentbit.flush }}
+    {{- end }}
+    {{- if .Values.fluentbit.storageProfile }}
+    storageProfile: {{ .Values.fluentbit.storageProfile }}
+    {{- end }}
+    {{- if .Values.fluentbit.memoryOnlyStateSizeLimit }}
+    memoryOnlyStateSizeLimit: {{ .Values.fluentbit.memoryOnlyStateSizeLimit }}
+    {{- end }}
+    {{- if .Values.fluentbit.db }}
+    db:
+      {{- if not (kindIs "invalid" .Values.fluentbit.db.enabled) }}
+      enabled: {{ .Values.fluentbit.db.enabled }}
+      {{- end }}
+      {{- if .Values.fluentbit.db.journalMode }}
+      journalMode: {{ .Values.fluentbit.db.journalMode }}
+      {{- end }}
+      {{- if .Values.fluentbit.db.sync }}
+      sync: {{ .Values.fluentbit.db.sync | quote }}
+      {{- end }}
+      {{- if not (kindIs "invalid" .Values.fluentbit.db.locking) }}
+      locking: {{ .Values.fluentbit.db.locking }}
+      {{- end }}
+    {{- end }}
     {{- if .Values.fluentbit.totalLimitSize }}
     totalLimitSize: {{ .Values.fluentbit.totalLimitSize }}
     {{- end }}
@@ -662,7 +683,7 @@ spec:
       {{- toYaml .Values.fluentbit.additionalVolumeMounts | nindent 6 }}
     {{- end }}
     multilineFirstLineRegexp: {{ default "/^(\\[\\d{4}\\-\\d{2}\\-\\d{2}).*/" .Values.fluentbit.multilineFirstLineRegexp }}
-    multilineOtherLinesRegexp: {{ default "/^(?!\\[\\d{4}\\-\\d{2}\\-\\d{2}).*/" .Values.fluentbit.multilineOtherLinesRegexp }}
+    multilineOtherLinesRegexp: {{ default "/^(?!\\[\\d{4}\\-\\d{2}\\-\\d{2}|\\s*\\{).*/" .Values.fluentbit.multilineOtherLinesRegexp }}
     {{- if .Values.fluentbit.extraFields }}
     extraFields:
       {{- toYaml .Values.fluentbit.extraFields | nindent 6 }}
@@ -845,6 +866,7 @@ spec:
       {{- if .Values.fluentbit.aggregator.totalLimitSize }}
       totalLimitSize: {{ .Values.fluentbit.aggregator.totalLimitSize }}
       {{- end }}
+      storageSizeLimit: {{ default "2Gi" .Values.fluentbit.aggregator.storageSizeLimit }}
       customFilterConf: |-
         {{ default "" .Values.fluentbit.aggregator.customFilterConf | nindent 8 }}
       customOutputConf: |-
@@ -877,7 +899,7 @@ spec:
         storageSize: {{ default "2Gi" .Values.fluentbit.aggregator.volume.storageSize }}
       {{- end }}
       multilineFirstLineRegexp: {{ default "/^(\\[\\d{4}\\-\\d{2}\\-\\d{2}).*/" .Values.fluentbit.aggregator.multilineFirstLineRegexp }}
-      multilineOtherLinesRegexp: {{ default "/^(?!\\[\\d{4}\\-\\d{2}\\-\\d{2}).*/" .Values.fluentbit.aggregator.multilineOtherLinesRegexp }}
+      multilineOtherLinesRegexp: {{ default "/^(?!\\[\\d{4}\\-\\d{2}\\-\\d{2}|\\s*\\{).*/" .Values.fluentbit.aggregator.multilineOtherLinesRegexp }}
       {{- if .Values.fluentbit.aggregator.extraFields }}
       extraFields:
         {{- toYaml .Values.fluentbit.aggregator.extraFields | nindent 8 }}

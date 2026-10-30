@@ -1,4 +1,11 @@
 paths:
+  .github/workflows/integration-tests.yaml:
+    ignore:
+    - 'shellcheck reported issue in this script: SC2046:warning.+'
+    - 'shellcheck reported issue in this script: SC2086:info.+'
+    - 'shellcheck reported issue in this script: SC2129:style.+'
+    - 'shellcheck reported issue in this script: SC2143:style.+'
+    - 'shellcheck reported issue in this script: SC2162:info.+'
   .github/workflows/**/*.{yml,yaml}:
     ignore:
     - 'shellcheck reported issue in this script: SC2086:info.+'

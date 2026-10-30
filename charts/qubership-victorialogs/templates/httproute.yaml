@@ -1,0 +1,38 @@
+{{- if and .Values.victorialogs.install .Values.victorialogs.httpRoute.install }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ include "victorialogs.vmauthFullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "victorialogs.vmauthLabels" . | nindent 4 }}
+    {{- with .Values.victorialogs.httpRoute.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.victorialogs.httpRoute.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- with .Values.victorialogs.httpRoute.parentRefs }}
+  parentRefs:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  hostnames:
+  {{- with .Values.victorialogs.httpRoute.hostnames }}
+    {{- toYaml . | nindent 4 }}
+  {{- else }}
+    - {{ include "victorialogs.externalHost" . | quote }}
+  {{- end }}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - group: ""
+          kind: Service
+          name: {{ include "victorialogs.vmauthFullname" . }}
+          port: {{ .Values.victorialogs.vmauth.service.port }}
+          weight: 1
+{{- end }}

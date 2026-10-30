@@ -1,0 +1,23 @@
+{{- if and .Values.victorialogs.install .Values.victorialogs.dashboard.install }}
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: {{ include "victorialogs.fullname" . }}-single-node
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "victorialogs.labels" . | nindent 4 }}
+    app.kubernetes.io/processed-by-operator: grafana-operator
+    {{- with .Values.victorialogs.dashboard.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.victorialogs.dashboard.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  allowCrossNamespaceImport: {{ .Values.victorialogs.dashboard.allowCrossNamespaceImport }}
+  instanceSelector:
+    {{- required "victorialogs.dashboard.instanceSelector is required" .Values.victorialogs.dashboard.instanceSelector | toYaml | nindent 4 }}
+  json: |
+{{ .Files.Get "monitoring/victorialogs-single-node.json" | indent 4 }}
+{{- end }}

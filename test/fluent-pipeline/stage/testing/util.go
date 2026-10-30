@@ -1,0 +1,283 @@
+package testing
+
+import (
+	"encoding/json"
+	"fmt"
+	"reflect"
+	"sort"
+	"strings"
+)
+
+const testMetadataKey = "_test"
+
+// defaultMatchOn identifies a record by the timestamp that the container runtime wrote and the
+// pipeline keeps. Every fixture record has a unique one, so it selects a single output record.
+var defaultMatchOn = []string{"time"}
+
+// testMetadata is the only way an expected record is identified. ID names the record in the
+// report, MatchOn lists the expected fields whose values select the output record, Partial
+// compares the listed fields alone, which the generated parser contracts rely on, and Dropped
+// turns the record into a probe: the pipeline must produce no record the match fields select.
+type testMetadata struct {
+	ID      string   `json:"id"`
+	MatchOn []string `json:"matchOn"`
+	Partial bool     `json:"partial"`
+	Absent  []string `json:"absent"`
+	Dropped bool     `json:"dropped"`
+}
+
+func getTestMetadata(expected map[string]interface{}) (testMetadata, bool) {
+	raw, ok := expected[testMetadataKey]
+	if !ok {
+		return testMetadata{}, false
+	}
+	encoded, err := json.Marshal(raw)
+	if err != nil {
+		return testMetadata{}, false
+	}
+	var metadata testMetadata
+	if err := json.Unmarshal(encoded, &metadata); err != nil {
+		return testMetadata{}, false
+	}
+	return metadata, true
+}
+
+func (m testMetadata) matchFields() []string {
+	if len(m.MatchOn) == 0 {
+		return defaultMatchOn
+	}
+	return m.MatchOn
+}
+
+// selectorValues returns the values that identify the record, read from the expected record
+// itself. It also returns the first match field the expected record does not define, because such
+// a record selects nothing.
+func selectorValues(expected map[string]interface{}, metadata testMetadata) (map[string]interface{}, string) {
+	fields := metadata.matchFields()
+	values := make(map[string]interface{}, len(fields))
+	for _, field := range fields {
+		value, exists := lookupField(expected, field)
+		if !exists {
+			return nil, field
+		}
+		values[field] = value
+	}
+	return values, ""
+}
+
+// findActualRecords returns the positions of the output records that carry the selector values.
+// An expected record wants exactly one; a dropped probe wants none.
+func findActualRecords(actualRecords []map[string]interface{}, values map[string]interface{}) []int {
+	var found []int
+	for index, actual := range actualRecords {
+		if carriesValues(actual, values) {
+			found = append(found, index)
+		}
+	}
+	return found
+}
+
+func carriesValues(actual, values map[string]interface{}) bool {
+	for field, value := range values {
+		actualValue, exists := lookupField(actual, field)
+		if !exists || !reflect.DeepEqual(actualValue, value) {
+			return false
+		}
+	}
+	return true
+}
+
+func compareRecord(expected, actual map[string]interface{}, metadata testMetadata) bool {
+	expectedFields := make(map[string]interface{}, len(expected))
+	for key, value := range expected {
+		if key != testMetadataKey {
+			expectedFields[key] = value
+		}
+	}
+	if !metadata.Partial {
+		return reflect.DeepEqual(expectedFields, actual)
+	}
+	if !isSubset(expectedFields, actual) {
+		return false
+	}
+	for _, field := range metadata.Absent {
+		if _, exists := lookupField(actual, field); exists {
+			return false
+		}
+	}
+	return true
+}
+
+func isSubset(expected, actual map[string]interface{}) bool {
+	for key, expectedValue := range expected {
+		actualValue, ok := actual[key]
+		if !ok {
+			return false
+		}
+		expectedMap, nested := expectedValue.(map[string]interface{})
+		if nested {
+			actualMap, ok := actualValue.(map[string]interface{})
+			if !ok || !isSubset(expectedMap, actualMap) {
+				return false
+			}
+			continue
+		}
+		if !reflect.DeepEqual(expectedValue, actualValue) {
+			return false
+		}
+	}
+	return true
+}
+
+func lookupField(record map[string]interface{}, path string) (interface{}, bool) {
+	var current interface{} = record
+	for _, part := range strings.Split(path, ".") {
+		object, ok := current.(map[string]interface{})
+		if !ok {
+			return nil, false
+		}
+		current, ok = object[part]
+		if !ok {
+			return nil, false
+		}
+	}
+	return current, true
+}
+
+type RecordModifyFunc func(expected, actual map[string]interface{}, file string) error
+
+func ignoreFluentdTimeFunc(ignoreFluentdTimeFiles string) RecordModifyFunc {
+	ignoreFiles := strings.Split(ignoreFluentdTimeFiles, ",")
+	return func(expected, actual map[string]interface{}, file string) error {
+		if contains(ignoreFiles, file) {
+			expected["fluentd_time"] = actual["fluentd_time"]
+		}
+		return nil
+	}
+}
+
+func GetModificationFuncs(agent, ignoreFluentdTimeFiles string) (rmFuncs []RecordModifyFunc) {
+	if strings.EqualFold(agent, "fluentd") && len(ignoreFluentdTimeFiles) > 0 {
+		rmFuncs = append(rmFuncs, ignoreFluentdTimeFunc(ignoreFluentdTimeFiles))
+	}
+	return
+}
+
+func applyModificationFuncs(record map[string]interface{}, actualRecord map[string]interface{}, file string, modificationFuncs []RecordModifyFunc) error {
+	for _, applyFunc := range modificationFuncs {
+		if err := applyFunc(record, actualRecord, file); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func contains(slc []string, el string) bool {
+	for i := range slc {
+		if el == slc[i] {
+			return true
+		}
+	}
+	return false
+}
+
+// describeRecord summarizes an output record in one line for the report: the fields that identify
+// it and the start of its message.
+func describeRecord(record map[string]interface{}) string {
+	var parts []string
+	for _, field := range []string{"time", "log_time", "tag", "pod"} {
+		if value, exists := record[field]; exists {
+			parts = append(parts, fmt.Sprintf("%s=%v", field, value))
+		}
+	}
+	for _, field := range []string{"short_message", "log", "message"} {
+		if value, exists := record[field]; exists {
+			text := fmt.Sprintf("%v", value)
+			if len(text) > 80 {
+				text = text[:80] + "..."
+			}
+			parts = append(parts, fmt.Sprintf("%s=%q", field, text))
+			break
+		}
+	}
+	return strings.Join(parts, " ")
+}
+
+// recordDifferences returns one line per field that does not hold what the expected record asks
+// for. Nested values are named by the path that leads to them, so a reader sees the field that
+// moved instead of two records to compare by eye.
+func recordDifferences(expected, actual map[string]interface{}, metadata testMetadata) []string {
+	stated := make(map[string]interface{}, len(expected))
+	for key, value := range expected {
+		if key != testMetadataKey {
+			stated[key] = value
+		}
+	}
+	expectedFields := flattenRecord(stated)
+	actualFields := flattenRecord(actual)
+
+	paths := make([]string, 0, len(expectedFields)+len(actualFields))
+	for path := range expectedFields {
+		paths = append(paths, path)
+	}
+	for path := range actualFields {
+		if _, expectedHere := expectedFields[path]; !expectedHere && !metadata.Partial {
+			paths = append(paths, path)
+		}
+	}
+	sort.Strings(paths)
+
+	var differences []string
+	for _, path := range paths {
+		want, asked := expectedFields[path]
+		got, produced := actualFields[path]
+		if asked && produced && reflect.DeepEqual(want, got) {
+			continue
+		}
+		differences = append(differences, fmt.Sprintf("%s: %s -> %s", path, describeValue(want, asked), describeValue(got, produced)))
+	}
+	for _, field := range metadata.Absent {
+		if value, exists := lookupField(actual, field); exists {
+			differences = append(differences, fmt.Sprintf("%s: (must be absent) -> %s", field, describeValue(value, true)))
+		}
+	}
+	return differences
+}
+
+// flattenRecord names every value of a record by its path, so that a change deep inside a nested
+// object reads as one line rather than as the whole object.
+func flattenRecord(record map[string]interface{}) map[string]interface{} {
+	flat := make(map[string]interface{}, len(record))
+	var walk func(prefix string, value map[string]interface{})
+	walk = func(prefix string, value map[string]interface{}) {
+		for key, nested := range value {
+			path := key
+			if prefix != "" {
+				path = prefix + "." + key
+			}
+			if object, isObject := nested.(map[string]interface{}); isObject && len(object) > 0 {
+				walk(path, object)
+				continue
+			}
+			flat[path] = nested
+		}
+	}
+	walk("", record)
+	return flat
+}
+
+const describedValueLimit = 120
+
+func describeValue(value interface{}, present bool) string {
+	if !present {
+		return "(no field)"
+	}
+	encoded, err := json.Marshal(value)
+	if err != nil {
+		return fmt.Sprintf("%v", value)
+	}
+	if len(encoded) > describedValueLimit {
+		return string(encoded[:describedValueLimit]) + "…"
+	}
+	return string(encoded)
+}

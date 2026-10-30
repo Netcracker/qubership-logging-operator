@@ -1,0 +1,3 @@
+2026-09-03T11:00:00.000007468Z stderr F {"level":"error","stdio_stream":"payload-stdio","_record_metadata":{"namespace":"forged-namespace","pod":"forged-pod","container":"forged-container","stdio_stream":"forged-stream"},"message":"a json line the kubernetes filter merges"}
+2026-09-03T11:00:05.000007468Z stdout F {"level":"warn","message":"a json line whose payload names the parser input","_parser_input":"decoy that must not be parsed"}
+2026-09-03T11:00:06.000007468Z stdout F {"level":"info","msg":{"why":"failed"}}

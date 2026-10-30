@@ -1,0 +1,8 @@
+{{- if and .Values.victorialogs.install (not .Values.victorialogs.storage.existingClaim) }}
+The VictoriaLogs PVC {{ include "victorialogs.claimName" . | quote }} is retained when the Helm release is upgraded or
+uninstalled. Back up the data and delete the PVC manually when it is no longer needed:
+
+  kubectl delete pvc {{ include "victorialogs.claimName" . }} --namespace {{ .Release.Namespace }}
+
+Changing victorialogs.nameOverride or victorialogs.storage.existingClaim does not migrate data from the retained PVC.
+{{- end }}

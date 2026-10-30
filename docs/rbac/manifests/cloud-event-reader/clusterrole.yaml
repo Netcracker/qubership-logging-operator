@@ -1,0 +1,20 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ .Release.Namespace }}-cloud-events-reader
+  labels:
+    name: {{ .Release.Namespace }}-cloud-events-reader
+    app.kubernetes.io/name: {{ .Release.Namespace }}-cloud-events-reader
+    app.kubernetes.io/component: events-reader
+    app.kubernetes.io/part-of: logging
+    app.kubernetes.io/managed-by: manually
+rules:
+  - apiGroups:
+      - ""
+      - events.k8s.io
+    resources:
+      - events
+    verbs:
+      - get
+      - list
+      - watch

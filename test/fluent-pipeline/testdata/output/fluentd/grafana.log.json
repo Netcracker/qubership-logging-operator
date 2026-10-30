@@ -1,0 +1,38 @@
+[
+  {
+    "_test": {
+      "id": "grafana-login"
+    },
+    "container": "fake-container",
+    "fluentd_time": "2026-09-03T10:20:50.000Z",
+    "hostname": "fake-fluent",
+    "kubernetes_host": "fake-node",
+    "labels": "{\"app\" : \"fluent-pipeline-test\", \"app.kubernetes.io_version\" : \"0.1.0\"}",
+    "level": "info",
+    "log": "logger=authn.service t=2026-09-03T10:20:50.123+0000 level=info msg=\"Successful Login\" user=admin@localhost",
+    "namespace": "fake-namespace",
+    "nc_audit_label": "false",
+    "parse_level_unknown": "true",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "source_level": null,
+    "time": "2026-09-03T10:20:50.000007468Z"
+  },
+  {
+    "_test": {
+      "id": "grafana-request"
+    },
+    "container": "fake-container",
+    "fluentd_time": "2026-09-03T10:20:51.000Z",
+    "hostname": "fake-fluent",
+    "kubernetes_host": "fake-node",
+    "labels": "{\"app\" : \"fluent-pipeline-test\", \"app.kubernetes.io_version\" : \"0.1.0\"}",
+    "level": "info",
+    "log": "logger=http.server t=2026-09-03T10:20:51.123+0000 level=info msg=\"Request Completed\" method=GET path=/api/health status=200",
+    "namespace": "fake-namespace",
+    "nc_audit_label": "false",
+    "parse_level_unknown": "true",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "source_level": null,
+    "time": "2026-09-03T10:20:51.000007468Z"
+  }
+]

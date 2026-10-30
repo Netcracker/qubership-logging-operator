@@ -17,7 +17,7 @@ metadata:
     {{- toYaml .Values.graylog.annotations | nindent 4 }}
   {{- end }}
 allowPrivilegedContainer: false
-allowHostDirVolumePlugin: true
+allowHostDirVolumePlugin: false
 runAsUser:
   type: RunAsAny
 seLinuxContext:
@@ -30,14 +30,14 @@ users:
   - system:serviceaccount:{{ .Release.Namespace }}:logging-graylog
 defaultAddCapabilities: []
 requiredDropCapabilities: []
-allowedCapabilities: []
+allowedCapabilities:
+  - NET_BIND_SERVICE
 seccompProfiles:
   - runtime/default
 volumes:
   - configMap
   - downwardAPI
   - emptyDir
-  - hostPath
   - persistentVolumeClaim
   - projected
   - secret
@@ -45,6 +45,7 @@ allowHostNetwork: false
 allowHostPorts: false
 allowHostPID: false
 allowHostIPC: false
+# The setup init container must prepare an existing persistent volume as root.
 readOnlyRootFilesystem: false
 {{- end }}
 {{- end }}

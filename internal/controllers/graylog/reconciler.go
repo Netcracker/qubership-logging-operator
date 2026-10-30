@@ -2,13 +2,11 @@ package graylog
 
 import (
 	"context"
-	"errors"
+	"fmt"
 
 	loggingService "github.com/Netcracker/qubership-logging-operator/api/v1"
 	"github.com/Netcracker/qubership-logging-operator/controllers/graylog/utils"
 	util "github.com/Netcracker/qubership-logging-operator/controllers/utils"
-	"github.com/Netcracker/qubership-logging-operator/internal/reconciler/config"
-	graylogfactory "github.com/Netcracker/qubership-logging-operator/internal/reconciler/factory/build/graylog"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -19,83 +17,76 @@ import (
 
 type GraylogReconciler struct {
 	*util.ComponentReconciler
-	Cfg *config.Defaults
 }
 
-func NewGraylogReconciler(c client.Client, scheme *runtime.Scheme, updater util.StatusUpdater, cfg *config.Defaults) GraylogReconciler {
+const graylogSecretMissingValueError = "can not find %s for Graylog in the secret %s in the namespace %s"
+
+func NewGraylogReconciler(client client.Client, scheme *runtime.Scheme, updater util.StatusUpdater) GraylogReconciler {
 	return GraylogReconciler{
 		ComponentReconciler: &util.ComponentReconciler{
-			Client:        c,
+			Client:        client,
 			Scheme:        scheme,
 			Log:           util.Logger("graylog"),
 			StatusUpdater: updater,
 		},
-		Cfg: cfg,
 	}
 }
 
-// Run reconciles Graylog. ServiceAccount + StatefulSet + Service are built by the Go
-// factory; the ConfigMap and MongoDB upgrade orchestration stay in the controller.
+// Run reconciles Graylog custom resource.
+// Creates new Statefulset, Service, ServiceAccount, ConfigMap if its don't exist.
 func (r *GraylogReconciler) Run(ctx context.Context, cr *loggingService.LoggingService, clientSet kubernetes.Interface) error {
 	if !r.StatusUpdater.IsStatusFailed(util.GraylogStatus) {
 		r.StatusUpdater.UpdateStatus(util.GraylogStatus, util.InProgress, false, "Start reconcile of Graylog")
 	}
 	r.Log.Info("Start Graylog reconciliation")
 
-	if cr.Spec.Graylog == nil || !cr.Spec.Graylog.IsInstall() {
-		r.Log.Info("Uninstalling component if exists")
-		r.uninstall(cr)
-		r.StatusUpdater.RemoveStatus(util.GraylogStatus)
-		return nil
-	}
-
-	connector, err := utils.CreateConnector(ctx, cr, configs, clientSet)
-	if err != nil {
-		return err
-	}
-	if err = r.handleConfigMap(cr); err != nil {
-		return err
-	}
-	if err = r.deleteDeployment(cr); err != nil {
-		r.Log.Error(err, "Can not delete Deployment")
-	}
-	if cr.Spec.Graylog.MongoDBUpgrade != nil && r.checkGraylog5(cr) {
-		if err = r.mongoUpgrade(cr); err != nil {
-			r.Log.Error(err, "MongoDB upgrade failed. Try to continue the reconciliation anyway")
+	if cr.Spec.Graylog != nil && cr.Spec.Graylog.IsInstall() {
+		if err := r.setCredentials(cr); err != nil {
+			return err
 		}
-	} else {
+		connector, err := utils.CreateConnector(ctx, cr, configs, clientSet)
+		if err != nil {
+			return err
+		}
+
+		if err = r.handleServiceAccount(cr); err != nil {
+			return err
+		}
+		if err = r.handleConfigMap(cr); err != nil {
+			return err
+		}
+		if err = r.deleteDeployment(cr); err != nil {
+			r.Log.Error(err, "Can not delete Deployment")
+		}
 		if err = r.deleteUpgradeJobs(cr); err != nil {
 			r.Log.Error(err, "Can not delete MongoDB upgrade jobs")
 		}
-	}
-	_, err = util.ReconcileAndTrackStatus(ctx, r.Client, cr, &r.StatusUpdater, util.GraylogStatus, func() (ctrl.Result, error) {
-		return ctrl.Result{}, graylogfactory.CreateOrUpdate(ctx, r.Client, r.Scheme, cr, r.Cfg)
-	})
-	if err != nil {
-		return err
-	}
-	if err = r.waitForGraylogReady(cr); err != nil {
-		return err
-	}
-	if err = r.waitForServiceReachable(cr); err != nil {
-		return err
-	}
-
-	if cr.Spec.Graylog.ContentDeployPolicy != "skip" {
-		if err = r.configureGraylog(ctx, connector, cr, clientSet); err != nil {
+		if err = r.handleStatefulset(cr); err != nil {
 			return err
 		}
-	}
-	if err = r.watchSecret(cr); err != nil {
-		r.Log.Error(err, "Error occurred while starting watch Secret")
-	}
+		if err = r.handleService(cr); err != nil {
+			return err
+		}
 
+		if cr.Spec.Graylog.ContentDeployPolicy != "skip" {
+			if err = r.configureGraylog(ctx, connector, cr, clientSet); err != nil {
+				return err
+			}
+		}
+		if err = r.watchSecret(cr); err != nil {
+			r.Log.Error(err, "Error occurred while starting watch Secret")
+		}
+
+	} else {
+		r.Log.Info("Uninstalling component if exists")
+		r.uninstall(cr)
+	}
 	r.Log.Info("Component reconciled")
 	r.StatusUpdater.RemoveStatus(util.GraylogStatus)
 	return nil
 }
 
-// uninstall deletes all resources related to the component.
+// uninstall deletes all resources related to the component
 func (r *GraylogReconciler) uninstall(cr *loggingService.LoggingService) {
 	if err := r.deletePVC(util.GraylogClaimName, cr); err != nil {
 		r.Log.Error(err, "Can not delete graylog PVC")
@@ -126,55 +117,71 @@ func (r *GraylogReconciler) configureGraylog(ctx context.Context, connector *uti
 			return err
 		}
 	}
+
 	if err := connector.ManageGrokPatterns(cr); err != nil {
 		return err
 	}
+
 	if err := connector.ManageIndexSets(cr); err != nil {
 		return err
 	}
+
 	if err := connector.ManageInputs(cr); err != nil {
 		return err
 	}
-	if err := connector.ManageExtractors(cr, r.checkGraylog5(cr)); err != nil {
+
+	if err := connector.ManageExtractors(cr); err != nil {
 		return err
 	}
+
 	if err := connector.ManageStreams(cr); err != nil {
 		return err
 	}
+
 	if err := connector.ManageProcessingRules(cr); err != nil {
 		return err
 	}
+
 	if err := connector.ManagePipelines(cr); err != nil {
 		return err
 	}
+
 	if err := connector.ManageDashboards(cr); err != nil {
 		return err
 	}
+
 	if cr.Spec.Graylog.ContentPackPaths != "" {
 		if err := connector.ManageContentPacks(cr); err != nil {
 			return err
 		}
+
 		if err := connector.ManageOpensearchConfigs(cr); err != nil {
 			return err
 		}
 	}
+
 	if cr.Spec.Graylog.ContentPacks != nil {
 		if err := connector.ManageContentPackTLS(ctx, cr, clientSet); err != nil {
 			return err
 		}
+
 		if err := connector.ManageOpensearchConfigs(cr); err != nil {
 			return err
 		}
 	}
+
 	if err := connector.ManageArchivesDirectory(cr); err != nil {
 		return err
 	}
+
 	if err := connector.ManageSavedSearches(cr); err != nil {
 		return err
 	}
-	if err := connector.ManageUserAccounts(cr, r.checkGraylog5(cr)); err != nil {
+
+	if err := connector.ManageUserAccounts(cr); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -186,25 +193,42 @@ func (r *GraylogReconciler) setCredentials(cr *loggingService.LoggingService) er
 		return err
 	}
 
-	if secret.Data != nil && len(secret.Data["user"]) > 0 {
-		cr.Spec.Graylog.User = string(secret.Data["user"])
+	var usr string
+	if secret.Data != nil && secret.Data["user"] != nil && len(secret.Data["user"]) > 0 {
+		usr = string(secret.Data["user"])
 	} else {
-		return errors.New("can not find user for Graylog in the secret " + cr.Spec.Graylog.GraylogSecretName + " in the namespace " + cr.GetNamespace())
+		return fmt.Errorf(graylogSecretMissingValueError, "user", cr.Spec.Graylog.GraylogSecretName, cr.GetNamespace())
 	}
-	if secret.Data != nil && len(secret.Data["password"]) > 0 {
-		cr.Spec.Graylog.Password = string(secret.Data["password"])
+	cr.Spec.Graylog.User = usr
+
+	var pwd string
+	if secret.Data != nil && secret.Data["password"] != nil && len(secret.Data["password"]) > 0 {
+		pwd = string(secret.Data["password"])
 	} else {
-		return errors.New("can not find password for Graylog in the secret " + cr.Spec.Graylog.GraylogSecretName + " in the namespace " + cr.GetNamespace())
+		return fmt.Errorf(graylogSecretMissingValueError, "password", cr.Spec.Graylog.GraylogSecretName, cr.GetNamespace())
+	}
+	cr.Spec.Graylog.Password = pwd
+
+	if secret.Data != nil && len(secret.Data["elasticsearchHost"]) > 0 {
+		cr.Spec.Graylog.ElasticsearchHost = string(secret.Data["elasticsearchHost"])
+	} else if cr.Spec.Graylog.OpenSearch == nil || cr.Spec.Graylog.OpenSearch.Host == "" {
+		return fmt.Errorf(graylogSecretMissingValueError, "elasticsearchHost", cr.Spec.Graylog.GraylogSecretName, cr.GetNamespace())
+	}
+
+	if utils.EnsureSecretRootPasswordSHA2(secret, pwd) {
+		if err := r.Client.Update(context.TODO(), secret); err != nil {
+			return err
+		}
 	}
 	return nil
 }
 
 func (r *GraylogReconciler) watchSecret(cr *loggingService.LoggingService) error {
-	cfg, err := ctrl.GetConfig()
+	config, err := ctrl.GetConfig()
 	if err != nil {
 		return err
 	}
-	k8sClient, err := kubernetes.NewForConfig(cfg)
+	k8sClient, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		return err
 	}
@@ -216,18 +240,7 @@ func (r *GraylogReconciler) watchSecret(cr *loggingService.LoggingService) error
 	return nil
 }
 
-func (r *GraylogReconciler) mongoUpgrade(cr *loggingService.LoggingService) error {
-	if err := r.scaleDownStatefulset(cr); err != nil {
-		return err
-	}
-	for _, jobName := range util.GraylogMongoUpgradeOrderedJobs {
-		if err := r.handleMongoUpgradeJob(cr, graylogfactory.UpgradeJobName(jobName)); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
+// deleteUpgradeJobs deletes the Jobs that the removed MongoDB step-by-step upgrade left in the namespace.
 func (r *GraylogReconciler) deleteUpgradeJobs(cr *loggingService.LoggingService) error {
 	for _, jobName := range util.GraylogMongoUpgradeOrderedJobs {
 		if err := r.deleteJob(cr, jobName); err != nil {
@@ -235,10 +248,4 @@ func (r *GraylogReconciler) deleteUpgradeJobs(cr *loggingService.LoggingService)
 		}
 	}
 	return nil
-}
-
-// checkGraylog5 delegates to the factory's version detector so the controller and
-// factory share one implementation. Tested by TestCheckGraylog5.
-func (r *GraylogReconciler) checkGraylog5(cr *loggingService.LoggingService) bool {
-	return graylogfactory.IsV5(cr.Spec.Graylog.DockerImage)
 }

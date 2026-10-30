@@ -22,6 +22,7 @@ import (
 	"crypto/x509"
 	"errors"
 	"fmt"
+	"strings"
 
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -83,9 +84,10 @@ type LoggingServiceList struct {
 
 // Graylog contains Graylog-specific configuration
 type Graylog struct {
-	GraylogResources                         *v1.ResourceRequirements     `json:"graylogResources,omitempty"`
-	MongoResources                           *v1.ResourceRequirements     `json:"mongoResources,omitempty"`
-	InitResources                            *v1.ResourceRequirements     `json:"initResources,omitempty"`
+	GraylogResources *v1.ResourceRequirements `json:"graylogResources,omitempty"`
+	MongoResources   *v1.ResourceRequirements `json:"mongoResources,omitempty"`
+	InitResources    *v1.ResourceRequirements `json:"initResources,omitempty"`
+	// Deprecated: the operator ignores this field. It will be removed in a future release.
 	MongoDBUpgrade                           *MongoDBUpgrade              `json:"mongoDBUpgrade,omitempty"`
 	AuthProxy                                *AuthProxy                   `json:"authProxy,omitempty"`
 	TLS                                      *GraylogTLS                  `json:"tls,omitempty"`
@@ -107,6 +109,7 @@ type Graylog struct {
 	InitSetupImage                           string                       `json:"initSetupImage"`
 	User                                     string                       `json:"-"`
 	Password                                 string                       `json:"-"`
+	ElasticsearchHost                        string                       `json:"-"`
 	NodeSelectorKey                          string                       `json:"nodeSelectorKey,omitempty"`
 	InitContainerDockerImage                 string                       `json:"initContainerDockerImage,omitempty"`
 	GraylogSecretName                        string                       `json:"graylogSecretName"`
@@ -256,7 +259,94 @@ type Fluentbit struct {
 	KubeApiserverAuditLogging bool                     `json:"kubeApiserverAuditLogging,omitempty"`
 	ContainerLogging          bool                     `json:"containerLogging,omitempty"`
 	ExcludePath               string                   `json:"excludePath,omitempty"`
-	Output                    *OutputFluentbit         `json:"output,omitempty"`
+	// SelfLogging enables the collection of logs from the FluentBit collector pods. It is disabled by default to
+	// prevent feedback loops.
+	SelfLogging bool             `json:"selfLogging,omitempty"`
+	Output      *OutputFluentbit `json:"output,omitempty"`
+
+	// Flush is an interval in seconds to flush records to the outputs.
+	// Increasing the interval reduces the amount of produced chunks and, as a result, the disk load.
+	// +kubebuilder:validation:Minimum=1
+	Flush int `json:"flush,omitempty"`
+	// StorageProfile selects where Fluentbit keeps input read offsets and buffered logs.
+	// The default "memory-only" profile avoids writes to the node filesystem. The "persistent-offsets"
+	// profile stores read offsets on the node and buffers logs in memory. The "node-persistent" profile
+	// stores both read offsets and buffered logs on the node.
+	// +kubebuilder:validation:Enum=memory-only;persistent-offsets;node-persistent
+	StorageProfile string `json:"storageProfile,omitempty"`
+	// MemoryOnlyStateSizeLimit limits the memory-backed volume that stores read offset databases for the
+	// "memory-only" profile. The default is "32Mi".
+	MemoryOnlyStateSizeLimit string `json:"memoryOnlyStateSizeLimit,omitempty"`
+	// DB contains settings of the SQLite database which the input plugins use to keep the read offsets
+	DB FluentbitDB `json:"db,omitempty"`
+}
+
+// FluentbitDB contains settings of the SQLite database which the Fluentbit input plugins
+// use to keep the position of the read files.
+// Details https://docs.fluentbit.io/manual/pipeline/inputs/tail
+type FluentbitDB struct {
+	// Enabled defines whether the input plugins keep the read offsets in the database file.
+	// Disabling it removes all the database writes to the storage, but Fluentbit loses the read offsets
+	// on the restart. Every input then starts from the position set by its own Read_from_Head
+	// or Read_from_Tail option: the container log inputs re-read the existing records, and the system
+	// and audit log inputs skip the records written while Fluentbit was down. Enabled by default.
+	Enabled *bool `json:"enabled,omitempty"`
+	// JournalMode sets the journal mode of the database. Allowed values are
+	// "wal", "delete", "truncate", "persist", "memory" and "off" in the lower or the upper case.
+	// +kubebuilder:validation:Enum=wal;delete;truncate;persist;memory;off;WAL;DELETE;TRUNCATE;PERSIST;MEMORY;OFF
+	JournalMode string `json:"journalMode,omitempty"`
+	// Sync sets the synchronization mode of the database. Allowed values are
+	// "off", "normal", "full" and "extra" in the lower or the upper case.
+	// +kubebuilder:validation:Enum=off;normal;full;extra;OFF;NORMAL;FULL;EXTRA
+	Sync string `json:"sync,omitempty"`
+	// Locking sets the exclusive access mode to the database file. Enabled by default.
+	Locking *bool `json:"locking,omitempty"`
+}
+
+// IsEnabled reports whether the input plugins must keep the read offsets in the database file.
+// The database is used unless it is explicitly disabled.
+func (in FluentbitDB) IsEnabled() bool {
+	return in.Enabled == nil || *in.Enabled
+}
+
+// IsLocking reports whether Fluentbit must acquire the exclusive access to the database file.
+// The exclusive access is used unless it is explicitly disabled.
+func (in FluentbitDB) IsLocking() bool {
+	return in.Locking == nil || *in.Locking
+}
+
+const (
+	FluentbitStorageProfileMemoryOnly          = "memory-only"
+	FluentbitStorageProfilePersistentOffsets   = "persistent-offsets"
+	FluentbitStorageProfileNodePersistent      = "node-persistent"
+	FluentbitDefaultMemoryOnlyStateSizeLimit   = "32Mi"
+	FluentbitAggregatorDefaultStorageSizeLimit = "2Gi"
+)
+
+// EffectiveStorageProfile returns the configured storage profile and applies compatibility defaults.
+func (in Fluentbit) EffectiveStorageProfile() string {
+	if in.StorageProfile != "" {
+		return in.StorageProfile
+	}
+	return FluentbitStorageProfileMemoryOnly
+}
+
+// UsesPersistentOffsets reports whether the read offset database must survive Pod replacement on the same node.
+func (in Fluentbit) UsesPersistentOffsets() bool {
+	return in.EffectiveStorageProfile() != FluentbitStorageProfileMemoryOnly
+}
+
+// UsesFilesystemBuffer reports whether input plugins buffer records on the node filesystem.
+func (in Fluentbit) UsesFilesystemBuffer() bool {
+	return in.EffectiveStorageProfile() == FluentbitStorageProfileNodePersistent
+}
+
+// EffectiveMemoryOnlyStateSizeLimit returns the configured memory-backed state volume limit.
+func (in Fluentbit) EffectiveMemoryOnlyStateSizeLimit() string {
+	if in.MemoryOnlyStateSizeLimit != "" {
+		return in.MemoryOnlyStateSizeLimit
+	}
+	return FluentbitDefaultMemoryOnlyStateSizeLimit
 }
 
 // FluentbitAggregator contains Fluentbit-aggregator-specific configuration
@@ -277,6 +367,7 @@ type FluentbitAggregator struct {
 	NodeSelectorKey           string                   `json:"nodeSelectorKey,omitempty"`
 	PriorityClassName         string                   `json:"priorityClassName,omitempty"`
 	TotalLimitSize            string                   `json:"totalLimitSize,omitempty"`
+	StorageSizeLimit          string                   `json:"storageSizeLimit,omitempty"`
 	CustomFilterConf          string                   `json:"customFilterConf"`
 	CustomOutputConf          string                   `json:"customOutputConf"`
 	CustomLuaScriptConf       map[string]string        `json:"customLuaScriptConf,omitempty"`
@@ -290,6 +381,14 @@ type FluentbitAggregator struct {
 	SecurityContextPrivileged bool                     `json:"securityContextPrivileged,omitempty"`
 	GraylogOutput             bool                     `json:"graylogOutput,omitempty"`
 	Output                    *OutputFluentbit         `json:"output,omitempty"`
+}
+
+// EffectiveStorageSizeLimit returns the configured aggregator ephemeral storage limit.
+func (in FluentbitAggregator) EffectiveStorageSizeLimit() string {
+	if in.StorageSizeLimit != "" {
+		return in.StorageSizeLimit
+	}
+	return FluentbitAggregatorDefaultStorageSizeLimit
 }
 
 // CloudEventsReader contains EventsReader-specific configuration
@@ -449,7 +548,10 @@ type GenerateCerts struct {
 	Enabled    bool   `json:"enabled"`
 }
 
-// MongoDBUpgrade is used for the sequential MongoDB upgrading from 3.6 to 5.0
+// MongoDBUpgrade held the images for the step-by-step MongoDB upgrade from 3.6 to 5.0.
+//
+// Deprecated: the operator no longer runs the upgrade and ignores these fields.
+// The type will be removed in a future release.
 type MongoDBUpgrade struct {
 	MongoDBImage40 string `json:"mongoDBImage40"`
 	MongoDBImage42 string `json:"mongoDBImage42"`
@@ -566,7 +668,7 @@ func (in *LoggingService) ToParams() LoggingServiceParameters {
 }
 
 func init() {
-	SchemeBuilder.Register(&LoggingService{}, &LoggingServiceList{})
+	objectTypes = append(objectTypes, &LoggingService{}, &LoggingServiceList{})
 }
 
 func (in *Graylog) IsForceUpdate() bool {
@@ -683,20 +785,17 @@ func (graylogTLS *HTTPGraylogTLS) GetCertificates(ctx context.Context, clientSet
 
 					caCertPool := x509.NewCertPool()
 					if secret.Type == v1.SecretTypeTLS {
-						for key, cert := range secret.Data {
-							if key == v1.ServiceAccountRootCAKey {
-								ok := caCertPool.AppendCertsFromPEM(cert)
-								if !ok {
-									err = errors.New("can't parse Certificate Authority")
-									return
-								}
+						if ca, ok := secret.Data[v1.ServiceAccountRootCAKey]; ok {
+							if !caCertPool.AppendCertsFromPEM(ca) {
+								err = errors.New("can't parse Certificate Authority")
+								return
 							}
-							if key == v1.TLSCertKey {
-								certValue = string(cert)
-							}
-							if key == v1.TLSPrivateKeyKey {
-								pkey = string(cert)
-							}
+						}
+						if cert, ok := secret.Data[v1.TLSCertKey]; ok {
+							certValue = string(cert)
+						}
+						if pk, ok := secret.Data[v1.TLSPrivateKeyKey]; ok {
+							pkey = string(pk)
 						}
 					}
 
@@ -849,4 +948,28 @@ func (tlsConfig *TLSConfig) GetCertificates(ctx context.Context, clientSet kuber
 	}
 
 	return
+}
+
+// ContainerLogExcludePath combines user exclusions with the collector log paths.
+func (in *Fluentbit) ContainerLogExcludePath(namespace, runtime string) string {
+	if in.SelfLogging {
+		return in.ExcludePath
+	}
+	names := []string{"logging-fluentbit"}
+	if in.Aggregator != nil && in.Aggregator.Install {
+		names = []string{"logging-fluentbit-forwarder", "logging-fluentbit-aggregator"}
+	}
+	paths := []string{}
+	if in.ExcludePath != "" {
+		paths = append(paths, in.ExcludePath)
+	}
+	for _, name := range names {
+		switch runtime {
+		case "containerd", "cri-o":
+			paths = append(paths, fmt.Sprintf("/var/log/pods/%s_%s-*_*/%s/*.log", namespace, name, name))
+		case "docker":
+			paths = append(paths, fmt.Sprintf("/var/log/containers/%s-*_%s_%s-*.log", name, namespace, name))
+		}
+	}
+	return strings.Join(paths, ",")
 }

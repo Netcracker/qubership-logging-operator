@@ -16,6 +16,10 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "description": "Schema for Logging Service values configuration",
     "properties": {
+        "CLOUD_PUBLIC_HOST": {
+            "description": "Public DNS suffix used to generate component hosts when an explicit host is not set.",
+            "type": "string"
+        },
         "affinity": {
             "description": "Pod's scheduling constraints. More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#affinity-v1-core",
             "type": "object"
@@ -501,8 +505,8 @@
                                             "type": "object"
                                         },
                                         "uri": {
-                                            "default": "/insert/jsonline?_stream_fields=stream&_msg_field=short_message&_time_field=time",
-                                            "description": "Http uri to ingest logs.",
+                                            "default": "/insert/jsonline?_stream_fields=namespace,container&_msg_field=short_message&_time_field=time",
+                                            "description": "HTTP URI to ingest logs. With the operator-managed default, VictoriaLogs uses the root CRI/Docker time field for _time, a colliding payload time is preserved as parsed_time, and the HTTP output does not generate an additional timestamp field.",
                                             "type": "string"
                                         }
                                     },
@@ -1059,6 +1063,11 @@
                             "description": "The size limitation of output buffer",
                             "type": "string"
                         },
+                        "storageSizeLimit": {
+                            "default": "2Gi",
+                            "description": "Maximum size of the ephemeral aggregator buffer volume when PVC storage is disabled.",
+                            "type": "string"
+                        },
                         "volume": {
                             "properties": {
                                 "bind": {
@@ -1170,6 +1179,56 @@
                     "description": "FluentBit custom output configuration.",
                     "type": "string"
                 },
+                "db": {
+                    "description": "Settings of the SQLite database which the input plugins use to keep the position of the read files.",
+                    "properties": {
+                        "enabled": {
+                            "default": true,
+                            "description": "Defines whether the input plugins keep the read offsets in the database file. Disabling it removes all the database writes to the storage, but FluentBit loses the read offsets on the restart. Every input then starts from the position set by its own Read_from_Head or Read_from_Tail option: the container log inputs re-read the existing records, and the system and audit log inputs skip the records written while FluentBit was down.",
+                            "type": "boolean"
+                        },
+                        "journalMode": {
+                            "default": "memory",
+                            "description": "The journal mode of the database. Not applicable to the systemd input.",
+                            "enum": [
+                                "wal",
+                                "delete",
+                                "truncate",
+                                "persist",
+                                "memory",
+                                "off",
+                                "WAL",
+                                "DELETE",
+                                "TRUNCATE",
+                                "PERSIST",
+                                "MEMORY",
+                                "OFF"
+                            ],
+                            "type": "string"
+                        },
+                        "locking": {
+                            "default": true,
+                            "description": "Defines whether FluentBit acquires the exclusive access to the database file. Not applicable to the systemd input.",
+                            "type": "boolean"
+                        },
+                        "sync": {
+                            "default": "off",
+                            "description": "The synchronization mode of the database.",
+                            "enum": [
+                                "off",
+                                "normal",
+                                "full",
+                                "extra",
+                                "OFF",
+                                "NORMAL",
+                                "FULL",
+                                "EXTRA"
+                            ],
+                            "type": "string"
+                        }
+                    },
+                    "type": "object"
+                },
                 "dockerImage": {
                     "description": "A docker image to use for FluentBit daemon set.",
                     "type": "string"
@@ -1178,9 +1237,20 @@
                     "description": "Allow to exclude some logs of pods/containers",
                     "type": "string"
                 },
+                "selfLogging": {
+                    "default": false,
+                    "description": "Collect logs from FluentBit collector pods. Enable only when you need their logs in the output pipeline.",
+                    "type": "boolean"
+                },
                 "extraFields": {
                     "description": "Adds additional custom fields/labels to every log message by using filter based on record_modifier plugin.",
                     "type": "object"
+                },
+                "flush": {
+                    "default": 5,
+                    "description": "The interval in seconds to flush records to the outputs.",
+                    "minimum": 1,
+                    "type": "integer"
                 },
                 "graylogHost": {
                     "description": "Graylog host.",
@@ -1414,8 +1484,8 @@
                                     "type": "object"
                                 },
                                 "uri": {
-                                    "default": "/insert/jsonline?_stream_fields=stream&_msg_field=short_message&_time_field=time",
-                                    "description": "Http uri to ingest logs.",
+                                    "default": "/insert/jsonline?_stream_fields=namespace,container&_msg_field=short_message&_time_field=time",
+                                    "description": "HTTP URI to ingest logs. With the operator-managed default, VictoriaLogs uses the root CRI/Docker time field for _time, a colliding payload time is preserved as parsed_time, and the HTTP output does not generate an additional timestamp field.",
                                     "type": "string"
                                 }
                             },
@@ -1841,6 +1911,21 @@
                         }
                     },
                     "type": "object"
+                },
+                "storageProfile": {
+                    "default": "memory-only",
+                    "description": "Selects where FluentBit stores read offsets and buffered logs.",
+                    "enum": [
+                        "memory-only",
+                        "persistent-offsets",
+                        "node-persistent"
+                    ],
+                    "type": "string"
+                },
+                "memoryOnlyStateSizeLimit": {
+                    "default": "32Mi",
+                    "description": "Sets the maximum size of the memory-backed volume that stores read offset databases for the memory-only profile. The volume consumes memory from the FluentBit container limit.",
+                    "type": "string"
                 },
                 "systemAuditLogging": {
                     "default": true,
@@ -3386,7 +3471,8 @@
                     "type": "string"
                 },
                 "mongoUpgrade": {
-                    "description": "Activates automatic step-by-step upgrade of the MongoDB database.",
+                    "deprecated": true,
+                    "description": "Deprecated and ignored. The automatic step-by-step upgrade of the MongoDB database was removed.",
                     "type": "boolean"
                 },
                 "mongodbImage": {
@@ -3815,6 +3901,16 @@
                     "description": "Allow disabling create Integration Tests Pod during deploy",
                     "type": "boolean"
                 },
+                "operationRetryCount": {
+                    "default": "60x",
+                    "description": "Maximum number of retries in Robot Framework wait keywords.",
+                    "type": "string"
+                },
+                "operationRetryInterval": {
+                    "default": "5s",
+                    "description": "Interval between retries in Robot Framework wait keywords.",
+                    "type": "string"
+                },
                 "priorityClassName": {
                     "description": "PriorityClassName assigned to the Pods to prevent them from evicting.",
                     "type": "string"
@@ -3884,7 +3980,7 @@
                     "type": "object"
                 },
                 "sshKey": {
-                    "description": "The parameter specifies the ssh key for login to VM.",
+                    "description": "The SSH key for login to the external Graylog VM. Used only by archiving-plugin integration tests.",
                     "type": "string"
                 },
                 "statusWriting": {
@@ -3922,7 +4018,7 @@
                     "description": "VictoriaLogs connection settings",
                     "properties": {
                         "auth": {
-                            "description": "Authentication for VictoriaLogs.",
+                            "description": "Authentication for VictoriaLogs. The referenced Kubernetes Secret is mounted as files in the test container.",
                             "properties": {
                                 "password": {
                                     "properties": {
@@ -3977,7 +4073,7 @@
                     "type": "object"
                 },
                 "vmUser": {
-                    "description": "The parameter specifies the user for ssh login to VM. Example: ubuntu",
+                    "description": "The user for SSH login to the external Graylog VM. Used only by archiving-plugin integration tests. Example: ubuntu",
                     "type": "string"
                 }
             },
@@ -4060,6 +4156,24 @@
                             "default": "ClusterIP",
                             "description": "Type of pprof service",
                             "type": "string"
+                        }
+                    },
+                    "type": "object"
+                }
+            },
+            "type": "object"
+        },
+        "pvc": {
+            "description": "Settings shared by all PVCs that the chart creates.",
+            "properties": {
+                "metadata": {
+                    "properties": {
+                        "annotations": {
+                            "additionalProperties": {
+                                "type": "string"
+                            },
+                            "description": "Annotations added to every PVC that the chart creates. Values must be strings.",
+                            "type": "object"
                         }
                     },
                     "type": "object"

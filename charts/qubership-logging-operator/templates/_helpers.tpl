@@ -31,25 +31,6 @@ Create chart name and version as used by the chart label.
   {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
-{{/*
-Add Authorization header if Bearer Token authorization enabled for http output in fluentd.
-*/}}
-{{- define "fluentd.output.http.headers" -}}
-{{- $http := .Values.fluentd.output.http -}}
-{{- $headers := dict }}
-{{- if $http.headers }}
-  {{- $headers = $http.headers }}
-{{- else }}
-  {{- $headers := dict "VL-Msg-Field" "log" "VL-Time-Field" "time" "VL-Stream-Fields" "stream" }}
-{{- end }}
-{{- if and $http.auth $http.auth.token $http.auth.token.name $http.auth.token.key }}
-  {{- $_ := set $headers "Authorization" "Bearer #{ENV['HTTP_TOKEN']}" }}
-{{- else if and $http.auth $http.auth.credentials $http.auth.credentials.token }}
-  {{- $_ := set $headers "Authorization" "Bearer #{ENV['HTTP_TOKEN']}" }}
-{{- end }}
-{{- toYaml $headers }}
-{{- end -}}
-
 {{/* Base resource labels: pass full chart context as ., or dict with "ctx" and optional "name" / "component". */}}
 {{- define "logging.labels" -}}
 {{- $ctx := index . "ctx" | default . -}}
@@ -81,15 +62,6 @@ Create the name of the service account to use
     {{ default (include "helm-chart.fullname" .) .Values.serviceAccount.name }}
   {{- else -}}
     {{ default "default" .Values.serviceAccount.name }}
-  {{- end -}}
-{{- end -}}
-
-{{/*
-Check the major version of Graylog and return 'true' if it equal 5
-*/}}
-{{- define "graylog.isMajorVersion5" -}}
-  {{- if regexMatch "^*:5\\.[0-9]+\\.[0-9]+$" (include "graylog.image" . ) -}}
-true
   {{- end -}}
 {{- end -}}
 
@@ -306,7 +278,7 @@ Image can be found from:
     {{- printf "%s" .Values.graylog.dockerImage -}}
   {{- else -}}
     {{- /* # renovate: datasource=docker depName=graylog/graylog */ -}}
-    {{- print "docker.io/graylog/graylog:5.2.12" -}}
+    {{- print "docker.io/graylog/graylog:5.2.12@sha256:3f4aa0885cd3e30442e5f7e1b2361f57773831bb84515386eb5dfa6f426fc1d7" -}}
   {{- end -}}
 {{- end -}}
 
@@ -321,7 +293,7 @@ Image can be found from:
     {{- printf "%s" .Values.fluentd.dockerImage -}}
   {{- else -}}
     {{- /* # renovate: datasource=github-releases depName=Netcracker/qubership-fluentd versioning=loose */ -}}
-    {{- print "ghcr.io/netcracker/qubership-fluentd:1.19.2-1" -}}
+    {{- print "ghcr.io/netcracker/qubership-fluentd:1.19.3-2" -}}
   {{- end -}}
 {{- end -}}
 
@@ -351,7 +323,7 @@ Image can be found from:
     {{- printf "%s" .Values.fluentbit.dockerImage -}}
   {{- else -}}
     {{- /* # renovate: datasource=docker depName=fluent/fluent-bit */ -}}
-    {{- print "docker.io/fluent/fluent-bit:4.2.4" -}}
+    {{- print "docker.io/fluent/fluent-bit:5.1.5" -}}
   {{- end -}}
 {{- end -}}
 
@@ -381,7 +353,7 @@ Image can be found from:
     {{- printf "%s" .Values.cloudEventsReader.dockerImage -}}
   {{- else -}}
     {{- /* # renovate: datasource=github-releases depName=Netcracker/qubership-kube-events-reader versioning=semver */ -}}
-    {{- print "ghcr.io/netcracker/qubership-kube-events-reader:2.8.0" -}}
+    {{- print "ghcr.io/netcracker/qubership-kube-events-reader:2.10.0" -}}
   {{- end -}}
 {{- end -}}
 
@@ -410,7 +382,7 @@ Image can be found from:
     {{- printf "%s" .Values.graylog.initContainerDockerImage -}}
   {{- else -}}
     {{- /* # renovate: datasource=github-releases depName=Netcracker/qubership-graylog-plugins-init versioning=semver */ -}}
-    {{- print "ghcr.io/netcracker/qubership-graylog-plugins-init:0.1.0" -}}
+    {{- print "ghcr.io/netcracker/qubership-graylog-plugins-init:0.2.0" -}}
   {{- end -}}
 {{- end -}}
 
@@ -425,7 +397,7 @@ Image can be found from:
     {{- printf "%s" .Values.graylog.mongodbImage -}}
   {{- else -}}
     {{- /* # renovate: datasource=docker depName=mongo */ -}}
-    {{- print "docker.io/mongo:5.0.32" -}}
+    {{- print "docker.io/mongo:5.0.33@sha256:41108d183e972dcbf98d09ed83f6cfc89a471a3f15d06f9d64a95e45d9db8dd2" -}}
   {{- end -}}
 {{- end -}}
 
@@ -455,49 +427,7 @@ Image can be found from:
     {{- printf "%s" .Values.graylog.initSetupImage -}}
   {{- else -}}
     {{- /* # renovate: datasource=docker depName=alpine */ -}}
-    {{- print "docker.io/alpine:3.23.4" -}}
-  {{- end -}}
-{{- end -}}
-
-{{/*
-MongoDB images for sequential upgrades.
-Upgrade path:
-3.6.23 -> 4.0.28 -> 4.2.22 -> 4.4.17 -> 5.0.19
-*/}}
-
-{{/*
-MongoDB 4.0 image.
-*/}}
-{{- define "mongodb40.image" -}}
-  {{- if .Values.graylog.mongodb40Image -}}
-    {{- printf "%s" .Values.graylog.mongodb40Image -}}
-  {{- else -}}
-    {{- /* # renovate: datasource=docker depName=mongo */ -}}
-    {{- print "docker.io/mongo:4.0.28" -}}
-  {{- end -}}
-{{- end -}}
-
-{{/*
-MongoDB 4.2 image.
-*/}}
-{{- define "mongodb42.image" -}}
-  {{- if .Values.graylog.mongodb42Image -}}
-    {{- printf "%s" .Values.graylog.mongodb42Image -}}
-  {{- else -}}
-    {{- /* # renovate: datasource=docker depName=mongo */ -}}
-    {{- print "docker.io/mongo:4.2.24" -}}
-  {{- end -}}
-{{- end -}}
-
-{{/*
-MongoDB 4.4 image.
-*/}}
-{{- define "mongodb44.image" -}}
-  {{- if .Values.graylog.mongodb44Image -}}
-    {{- printf "%s" .Values.graylog.mongodb44Image -}}
-  {{- else -}}
-    {{- /* # renovate: datasource=docker depName=mongo */ -}}
-    {{- print "docker.io/mongo:4.4.30" -}}
+    {{- print "docker.io/alpine:3.24.3" -}}
   {{- end -}}
 {{- end -}}
 

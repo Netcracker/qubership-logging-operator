@@ -1,0 +1,88 @@
+# Every output the templates offer, with TLS, credentials, HTTP stream routing, the state database,
+# and the filesystem buffer.
+apiVersion: logging.netcracker.com/v1
+kind: LoggingService
+metadata:
+  name: logging-service
+spec:
+  containerRuntimeType: containerd
+  fluentbit:
+    multilineFirstLineRegexp: "/^(\\[\\d{4}\\-\\d{2}\\-\\d{2}).*/"
+    multilineOtherLinesRegexp: "/^(?!\\[\\d{4}\\-\\d{2}\\-\\d{2}).*/"
+    containerLogging: true
+    systemLogging: true
+    systemLogType: varlogsyslog
+    systemAuditLogging: true
+    kubeAuditLogging: true
+    kubeApiserverAuditLogging: true
+    mockKubeData: true
+    graylogOutput: true
+    graylogHost: graylog.logging.svc
+    graylogPort: 12201
+    graylogProtocol: tcp
+    tls:
+      enabled: true
+      verify: true
+      keyPasswd: render-test
+      generateCerts:
+        enabled: true
+    db:
+      enabled: true
+    storageProfile: node-persistent
+    output:
+      loki:
+        enabled: true
+        host: https://loki.logging.svc:3100
+        tenant: render-test
+        staticLabels: cluster=render-test
+        auth:
+          user:
+            name: loki-credentials
+            key: username
+          password:
+            name: loki-credentials
+            key: password
+        tls:
+          enabled: true
+          verify: true
+          ca:
+            secretName: loki-tls
+            secretKey: ca.crt
+      http:
+        enabled: true
+        host: victorialogs.logging.svc
+        port: 9428
+        routing:
+          enabled: true
+        auth:
+          token:
+            name: victorialogs-credentials
+            key: token
+        tls:
+          enabled: true
+          verify: false
+      otel:
+        enabled: true
+        host: otel-collector.logging.svc
+        port: 4318
+        target: victorialogs
+        logSuppressInterval: 60
+        auth:
+          user:
+            name: otel-credentials
+            key: username
+          password:
+            name: otel-credentials
+            key: password
+        tls:
+          enabled: true
+          verify: true
+          cert:
+            secretName: otel-tls
+            secretKey: tls.crt
+          key:
+            secretName: otel-tls
+            secretKey: tls.key
+          ca:
+            secretName: otel-tls
+            secretKey: ca.crt

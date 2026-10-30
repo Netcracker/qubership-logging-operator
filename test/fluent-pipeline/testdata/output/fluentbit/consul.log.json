@@ -1,0 +1,48 @@
+[
+  {
+    "_test": {
+      "id": "consul-warn"
+    },
+    "container": "fake-container",
+    "detected_level": "warn",
+    "hostname": "fake-fluent",
+    "labels": {
+      "metadata.app.kubernetes.io/version": "0.1.0",
+      "metadata.app": "fluent-pipeline-test"
+    },
+    "level": "warning",
+    "namespace": "fake-namespace",
+    "nodename": "fake-node",
+    "parse_format": "consul",
+    "parse_status": "success",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
+    "short_message": "raft: heartbeat timeout",
+    "source_level": "WARN",
+    "stdio_stream": "stdout",
+    "time": "2026-09-03T10:20:43.000007468Z"
+  },
+  {
+    "_test": {
+      "id": "consul-banner"
+    },
+    "container": "fake-container",
+    "detected_level": "info",
+    "hostname": "fake-fluent",
+    "labels": {
+      "metadata.app.kubernetes.io/version": "0.1.0",
+      "metadata.app": "fluent-pipeline-test"
+    },
+    "level": "info",
+    "namespace": "fake-namespace",
+    "nodename": "fake-node",
+    "parse_format": "unknown",
+    "parse_level_unknown": "true",
+    "parse_status": "failed",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
+    "short_message": "==> Starting Consul agent...",
+    "stdio_stream": "stdout",
+    "time": "2026-09-03T10:20:43.500007468Z"
+  }
+]

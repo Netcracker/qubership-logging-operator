@@ -1,22 +1,39 @@
 name: Go test with Sonar
 on:
-  push: {}
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+    paths:
+      - .github/workflows/go-test.yaml
+      - .github/config/build-config.yaml
+      - api/**
+      - cmd/**
+      - controllers/**
+      - go.*
+      - Makefile
+      - test/envtests/**
   pull_request:
     types: [ opened, synchronize, reopened ]
 
-permissions:
-  contents: read
 jobs:
   prepare:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
       sonar-project-key: ${{ steps.config.outputs.sonar-project-key }}
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Resolve sonar project key based on restricted actors
         id: config
         env:
           ACTOR: ${{ github.actor }}
+          EVENT_NAME: ${{ github.event_name }}
+          REF: ${{ github.ref }}
         run: |
           restricted=$(python3 -c "
           import yaml, os
@@ -27,6 +44,8 @@ jobs:
           ")
           if [ "$restricted" = "true" ]; then
             echo "sonar-project-key=" >> "$GITHUB_OUTPUT"
+          elif [ "$EVENT_NAME" = "push" ] && [ "$REF" != "refs/heads/main" ]; then
+            echo "sonar-project-key=" >> "$GITHUB_OUTPUT"
           else
             echo "sonar-project-key=${{ vars.SONAR_PROJECT_KEY }}" >> "$GITHUB_OUTPUT"
           fi
@@ -34,14 +53,27 @@ jobs:
   test:
     needs: prepare
     name: Build and test with coverage
-    uses: Netcracker/qubership-core-infra/.github/workflows/generic-go-build.yaml@bc2a0bd082147e23b4091616c608a21cc2957728 # v2.4.1
+    uses: netcracker/qubership-core-infra/.github/workflows/generic-go-build.yaml@91f0316488bc6ab88d060261caa1ebddd6706094 # v2.7.0
     with:
       go-module-dir: '.'
       sonar-project-key: ${{ needs.prepare.outputs.sonar-project-key }}
-      cover-packages: './controllers'
+      cover-packages: './controllers/...'
       skip-docker: true
-    secrets: inherit
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     permissions:
       contents: read
       pull-requests: write
       packages: write
+
+  ci-gate:
+    name: CI Gate
+    needs: [prepare, test]
+    # Runs even when a dependency fails, so the check resolves instead of being skipped.
+    if: always()
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Require successful CI jobs
+        if: needs.prepare.result != 'success' || needs.test.result != 'success'
+        run: exit 1

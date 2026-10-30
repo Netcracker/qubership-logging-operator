@@ -1,40 +1,55 @@
 ---
-name: Link Checker
+name: "Lint: Check links in documentation"
 
 on:
-  push: null
-  repository_dispatch: null
-  workflow_dispatch: null
+  workflow_dispatch: {}
   pull_request:
-    branches: [main]
+    branches:
+      - main
     types:
-      [opened, reopened, synchronize]
+      - opened
+      - reopened
+      - synchronize
+    paths:
+      - 'docs/**'
+      - '*.md'
+      - '.github/workflows/link-checker.yaml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/**'
+      - '*.md'
+      - '.github/workflows/link-checker.yaml'
+
 permissions:
   contents: read
+
+concurrency:
+  group: link-checker-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   linkChecker:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6.0.2
-
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Restore lychee cache
-        uses: actions/cache@v5
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         id: restore-cache
         with:
           path: .lycheecache
-          key: cache-lychee-${{ github.run_id }}
-          restore-keys: cache-lychee-
-          save-always: true
-
+          key: cache-lychee-${{ runner.os }}-${{ hashFiles('**/*.md') }}
+          restore-keys: cache-lychee-${{ runner.os }}-
       - name: Link Checker
         id: lychee
-        uses: lycheeverse/lychee-action@v2
+        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2
         with:
           args: >-
             './**/*.md'
             --verbose
             --no-progress
-            --user-agent 'Mozilla/5.0 (X11; Linux x86_64) Chrome/134.0.0.0'
+            --user-agent 'curl/8.5.0'
             --retry-wait-time 60
             --max-retries 8
             --accept 100..=103,200..=299,302,429
@@ -46,3 +61,9 @@ jobs:
             --max-cache-age 1d
           format: markdown
           fail: true
+      - name: Save lychee cache
+        if: ${{ always() && steps.restore-cache.outputs.cache-hit != 'true' && hashFiles('.lycheecache/**') != '' }}
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: .lycheecache
+          key: cache-lychee-${{ github.run_id }}

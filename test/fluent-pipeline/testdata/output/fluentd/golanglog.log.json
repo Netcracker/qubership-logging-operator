@@ -1,0 +1,20 @@
+[
+  {
+    "_test": {
+      "id": "golanglog"
+    },
+    "time": "2023-12-20T12:51:32.270507468Z",
+    "log": "[2023-12-20T12:51:32.270] [TRACE] Hello test log",
+    "hostname": "fake-fluent",
+    "level": "debug",
+    "source_level": "TRACE",
+    "parse_level_unknown": "false",
+    "namespace": "fake-namespace",
+    "container": "fake-container",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "labels": "{\"app\" : \"fluent-pipeline-test\", \"app.kubernetes.io_version\" : \"0.1.0\"}",
+    "kubernetes_host": "fake-node",
+    "nc_audit_label": "false",
+    "fluentd_time": "2023-12-20T12:51:32.270Z"
+  }
+]

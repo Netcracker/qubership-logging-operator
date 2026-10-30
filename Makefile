@@ -17,7 +17,7 @@ ARTIFACT_NAME=qubership-logging-operator
 
 # Helm charts directory
 HELM_FOLDER=charts/qubership-logging-operator
-CRDS_HELM_CRDS_FOLDER=charts/qubership-logging-crds
+CRDS_HELM_CRDS_FOLDER=charts/qubership-logging-crds/crds
 
 # Directories and files
 BUILD_DIR=build
@@ -27,16 +27,20 @@ HELM_DIR=$(BUILD_DIR)/_helm
 
 # Documents folders
 PUBLIC_DOC_FOLDER := docs
+DOC_FOLDER := docs
+SITE_FOLDER := site
 CRD_FOLDER=$(HELM_FOLDER)/crds
 CRD_PUBLIC_DOC_FOLDER=$(PUBLIC_DOC_FOLDER)/crds
 
 # Directories to generate API documentation
 TYPES_V1_TARGET=api/v1/loggingservice_types.go
-API_DOC_GEN_BINARY_DIR?=$(shell pwd)/api
 
 # Tools
 CONTROLLER_GEN_PACKAGE=sigs.k8s.io/controller-tools/cmd/controller-gen@v0.20.1
-GEN_CRD_API_PACKAGE=github.com/ahmetb/gen-crd-api-reference-docs@v0.3.0
+CRD_REF_DOCS_PACKAGE=github.com/elastic/crd-ref-docs@v0.3.0
+# The default depth of 10 is too shallow for the nested Fluent Bit output types: crd-ref-docs skips them and
+# leaves their field tables out of docs/api.md
+CRD_REF_DOCS_MAX_DEPTH?=20
 HELM_DOCS_PACKAGE=github.com/norwoodj/helm-docs/cmd/helm-docs@v1.14.2
 
 # Detect the build environment, local or Jenkins builder
@@ -76,10 +80,15 @@ TEST_RUN_ARGS=-vet=off --shuffle=on
 # List of packages, exclude integration tests that require "envtest"
 pkgs = $(shell go list ./... | grep -v /e2e-tests)
 
+# The api module is a separate Go module, so its packages need a separate test run
+api_pkgs = $(shell cd api && go list ./...)
+
 # Container name
 CONTAINER_CLI?=docker
 CONTAINER_NAME="qubership-logging-operator"
 DOCKERFILE=Dockerfile
+FLUENT_PIPELINE_SCENARIO?=fluentbit
+FLUENT_PIPELINE_TEST_IMAGE?=qubership-fluent-pipeline-tests:local
 
 ###########
 # Generic #
@@ -116,6 +125,15 @@ generate: controller-gen
 					output:artifacts:config=charts/qubership-logging-operator/crds/
 	chmod +x ./scripts/build/append-operator-version.sh
 	VERSION=$(VERSION) ./scripts/build/append-operator-version.sh
+	if [[ "$$OSTYPE" == "darwin"* ]]; then \
+		SED_CMD="sed -i '' -e"; \
+	else \
+		SED_CMD="sed -i"; \
+	fi; \
+	find charts/qubership-logging-operator/crds -name '*.yaml' | while read f; do \
+		$$SED_CMD "/^    controller-gen.kubebuilder.io.version.*/a\\    helm.sh/hook-weight: \"-5\"" "$$f"; \
+		$$SED_CMD "/^    controller-gen.kubebuilder.io.version.*/a\\    helm.sh/hook: crd-install" "$$f"; \
+	done
 
 # Find or download controller-gen, download controller-gen if necessary
 controller-gen:
@@ -176,13 +194,26 @@ image:
 ###########
 
 .PHONY: test
-test: unit-test
+test: unit-test python-test
+
+.PHONY: test-fluent-pipeline
+test-fluent-pipeline:
+	docker build -t $(FLUENT_PIPELINE_TEST_IMAGE) -f test/fluent-pipeline/Dockerfile .
+	FLUENT_PIPELINE_TEST_IMAGE=$(FLUENT_PIPELINE_TEST_IMAGE) \
+		test/fluent-pipeline/run.sh $(FLUENT_PIPELINE_SCENARIO)
 
 # Run unit tests in all packages
 .PHONY: unit-test
 unit-test:
 	echo "=> Run Golang unit-tests ..."
 	go test -race -cover $(TEST_RUN_ARGS) $(pkgs) -count=1 -v
+	echo "=> Run Golang unit-tests for the api module ..."
+	cd api && go test -race -cover $(TEST_RUN_ARGS) $(api_pkgs) -count=1 -v
+
+.PHONY: python-test
+python-test:
+	echo "=> Run Python unit-tests ..."
+	python3 -m unittest discover -s scripts/log-analysis/tests
 
 #################
 # Documentation #
@@ -213,43 +244,67 @@ else
 HELM_DOCS=$(shell which helm-docs)
 endif
 
-# Run gen-crd-api-reference-docs to generate API documents by operator API
-docs/api.md: docs/api/gen $(TYPES_V1_TARGET)
-	cd $(API_DOC_GEN_BINARY_DIR) \
-	&& $(API_DOC_GEN_BINARY) -api-dir "./v1/" \
-							-config "../scripts/docs/config.json" \
-							-template-dir "../scripts/docs/templates" \
-							-out-file "../docs/api.md" \
-	&& rm -rf $(API_DOC_GEN_BINARY)
+# Run crd-ref-docs to generate API documents by operator API
+docs/api.md: crd-ref-docs $(TYPES_V1_TARGET)
+	$(CRD_REF_DOCS) --source-path "./api/v1" \
+					--config "./scripts/docs/config.yaml" \
+					--renderer markdown \
+					--max-depth $(CRD_REF_DOCS_MAX_DEPTH) \
+					--output-path "./docs/api.md"
 	chmod +x ./scripts/build/append-markdown-linter-comments.sh
 	./scripts/build/append-markdown-linter-comments.sh
 
-# Find or download gen-crd-api-reference-docs, download gen-crd-api-reference-docs if necessary
-docs/api/gen:
-ifeq (, $(shell which ./gen-crd-api-reference-docs))
+# Find or download crd-ref-docs, download crd-ref-docs if necessary
+.PHONY: crd-ref-docs
+crd-ref-docs:
+ifeq (, $(shell which crd-ref-docs))
 	@{ \
 		set -e ;\
-		GOBIN=$(API_DOC_GEN_BINARY_DIR) go install $(GEN_CRD_API_PACKAGE) ;\
+		go install $(CRD_REF_DOCS_PACKAGE) ;\
 	}
-API_DOC_GEN_BINARY=./gen-crd-api-reference-docs
+CRD_REF_DOCS=$(GOBIN)/crd-ref-docs
 else
-API_DOC_GEN_BINARY=$(shell which gen-crd-api-reference-docs)
+CRD_REF_DOCS=$(shell which crd-ref-docs)
 endif
 
-# Copy CRDs from the Helm chart to documentation directory
+# Copy CRDs from qubership-logging-operator Helm chart to documentation directory
 docs/crds:
 	rm -rf $(CRD_PUBLIC_DOC_FOLDER)/*.yaml
 	cp $(CRD_FOLDER)/* $(CRD_PUBLIC_DOC_FOLDER)/
+
+#################
+# Building docs #
+#################
+
+# Install the dependencies
+.PHONY: install-site-dependencies
+install-site-dependencies:
+	echo "=> Install site dependencies ..."
+	pip install -r $(SITE_FOLDER)/requirements.txt
+
+# Prepare the docs directory
+.PHONY: prepare-site-directory
+prepare-site-directory:
+	echo "=> Prepare site directory ..."
+	rm -rf $(SITE_FOLDER)/docs
+	mkdir -p $(SITE_FOLDER)
+	cp -rL $(DOC_FOLDER) $(SITE_FOLDER)/
+
+# Build the docs
+.PHONY: build-site
+build-site: prepare-site-directory install-site-dependencies
+	echo "=> Build site ..."
+	mkdocs build --config-file $(SITE_FOLDER)/mkdocs.yml --strict
 
 ##########################
 # Update CRDs Helm chart #
 ##########################
 
-# Copy CRDs from documentation to the qubership-monitoring-crds Helm chart
+# Copy CRDs from qubership-logging-operator to qubership-logging-crds Helm chart
 .PHONY: update-crds
 update-crds:
 	echo "=> Update CRDs in dedicated Helm chart ..."
-	find $(CRD_FOLDER) \( -name "*.yaml" -o -name "*.yml" \) -exec cp {} ${CRDS_HELM_CRDS_FOLDER}/crds/ \;
+	find $(CRD_FOLDER) \( -name "*.yaml" -o -name "*.yml" \) -exec cp {} ${CRDS_HELM_CRDS_FOLDER}/ \;
 
 ###################
 # Running locally #

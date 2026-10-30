@@ -1,0 +1,25 @@
+{{- if eq (include "victorialogs.vmauthEnabled" .) "true" }}
+{{- $requiredLabels := include "victorialogs.vmauthLabels" . | fromYaml }}
+{{- $_ := set $requiredLabels "app.kubernetes.io/service-role" "auth-proxy" }}
+{{- $serviceLabels := deepCopy (.Values.victorialogs.vmauth.service.labels | default dict) }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "victorialogs.vmauthFullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- mergeOverwrite $serviceLabels $requiredLabels | toYaml | nindent 4 }}
+  {{- with .Values.victorialogs.vmauth.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: {{ .Values.victorialogs.vmauth.service.port }}
+      protocol: TCP
+      targetPort: http
+  selector:
+    {{- include "victorialogs.vmauthSelectorLabels" . | nindent 4 }}
+{{- end }}

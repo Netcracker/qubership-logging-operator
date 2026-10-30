@@ -11,6 +11,9 @@ createClusterAdminEntities: true
 # -- Cloud address. Openshift cloud may require to set the current host address.
 cloudURL: "https://kubernetes.default.svc"
 
+# -- Public DNS suffix used to generate component hosts when an explicit host is not set.
+CLOUD_PUBLIC_HOST: ""
+
 # -- Operating system kind on cloud nodes: centos/rhel/oracle/ubuntu
 osKind: centos
 
@@ -45,6 +48,16 @@ annotations: {}
 # Ref: https://kubernetes.io/docs/user-guide/labels
 labels: {}
 
+# PVC settings shared by all PVCs that the chart creates.
+pvc:
+  metadata:
+    # -- Annotations added to every PVC that the chart creates, for example
+    # `argocd.argoproj.io/sync-options: Prune=false`. Values must be strings.
+    # On key conflict, these annotations override `graylog.annotations` on Graylog PVCs.
+    # They do not apply to the Fluent Bit aggregator PVCs, which the operator creates.
+    # When `graylog.install` is `false`, the operator deletes the Graylog and MongoDB PVCs whatever the annotations.
+    annotations: {}
+
 # -- logging-operator pprof
 pprof:
   # -- Indicates if logging-operator has pprof enabled.
@@ -77,6 +90,7 @@ resources:
   limits:
     cpu: 150m
     memory: 100Mi
+    ephemeral-storage: 200Mi
 
 # -- Pod monitor for logging-operator
 podMonitor:
@@ -121,7 +135,7 @@ graylog:
   replicas: 1
 
   # -- A docker image of MongoDB to use for graylog deployment.
-  # mongodbImage: mongo:5.0.19
+  # mongodbImage: mongo:5.0.33
 
   # -- A docker image to initialize plugins for Graylog
   # initContainerDockerImage: ghcr.io/netcracker/graylog-plugins-init-container:main
@@ -186,7 +200,7 @@ graylog:
 
   # -- Allow creating security resources as PodSecurityPolicy, SecurityContextConstraints
   securityResources:
-    install: false
+    install: true
     name: logging-graylog
 
   # -- PriorityClassName assigned to the Pods to prevent them from evicting.
@@ -245,10 +259,10 @@ graylog:
       #   namespace: gateway-infra
       #   sectionName: http
 
-  ############################################# Graylog 4 -> 5  migration ##############################################
+  ################################################ Deprecated parameters ###############################################
 
-  # -- Activates automatic step-by-step upgrade of the MongoDB database.
-  # Can be used only for migration from Graylog 4 to 5.
+  # -- Deprecated and ignored. The automatic step-by-step upgrade of the MongoDB database was removed.
+  # The parameter will be removed in a future release.
   mongoUpgrade: false
 
   ############################################ Service monitor configuration ###########################################
@@ -662,7 +676,7 @@ fluentd:
 
   # -- A docker image to use for fluent daemon set.
   # renovate: datasource=github-releases depName=Netcracker/qubership-fluentd versioning=loose
-  # dockerImage: ghcr.io/netcracker/qubership-fluentd:1.19.2-1
+  # dockerImage: ghcr.io/netcracker/qubership-fluentd:1.19.3-2
 
   # -- If specified, the pod's scheduling constraints. Ref: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core
   affinity: {}
@@ -707,7 +721,7 @@ fluentd:
 
   # -- Allow creating security resources as PodSecurityPolicy, SecurityContextConstraints
   securityResources:
-    install: false
+    install: true
     name: logging-fluentd
 
   # -- PriorityClassName assigned to the Pods to prevent them from evicting.
@@ -791,7 +805,7 @@ fluentd:
 
   configmapReload:
     # -- A docker image for configmap-reload.
-    # dockerImage: ghcr.io/jimmidyson/configmap-reload:v0.13.1
+    # dockerImage: ghcr.io/jimmidyson/configmap-reload:v0.15.0
 
     # The resources describe to compute resource requests and limits for single Pods. Ref: https://kubernetes.io/docs/user-guide/compute-resources/
     resources:
@@ -1060,11 +1074,11 @@ fluentbit:
   install: false
 
   # -- A docker image to use for FluentBit daemon set.
-  # dockerImage: fluent/fluent-bit:3.0.6
+  # dockerImage: fluent/fluent-bit:5.1.0
 
   configmapReload:
     # -- A docker image to use for ConfigMap Reload daemon set.
-    # dockerImage: ghcr.io/jimmidyson/configmap-reload:v0.13.1
+    # dockerImage: ghcr.io/jimmidyson/configmap-reload:v0.15.0
 
     # The resources describe to compute resource requests and limits for single Pods.
     # Ref: https://kubernetes.io/docs/user-guide/compute-resources/
@@ -1108,6 +1122,9 @@ fluentbit:
   # -- Allow to exclude some logs of pods/containers
   excludePath: ""
 
+  # -- Collect logs from FluentBit collector pods. Enable only when you need their logs in the output pipeline.
+  selfLogging: false
+
   # -- Volumes specified will be appended to other volumes that are generated as a result of StorageSpec objects.
   # Ref: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#volume-v1-core
   # @default -- not set
@@ -1125,6 +1142,40 @@ fluentbit:
   # -- The size limitation of backlog data
   # See storage.backlog.mem_limit in https://docs.fluentbit.io/manual/administration/buffering-and-storage#service-section-configuration
   memBufLimit: 5M
+
+  # -- The interval in seconds to flush records to the outputs.
+  # Increasing the interval reduces the amount of produced chunks and, as a result, the disk load.
+  # See Flush in https://docs.fluentbit.io/manual/administration/configuring-fluent-bit/classic-mode/configuration-file#config_section
+  flush: 5
+
+  # -- Selects where FluentBit stores read offsets and buffered logs.
+  # Allowed values are `memory-only`, `persistent-offsets`, and `node-persistent`.
+  # See the FluentBit storage profiles in docs/examples/fluentbit.md.
+  storageProfile: memory-only
+
+  # -- Sets the maximum size of the memory-backed volume that stores read offset databases for the `memory-only`
+  # profile. The volume consumes memory from the FluentBit container limit.
+  memoryOnlyStateSizeLimit: 32Mi
+
+  # -- Settings of the SQLite database which the input plugins use to keep the position of the read files
+  db:
+    # -- Defines whether the input plugins keep the read offsets in the database file.
+    # Disabling it removes all the database writes to the storage, but FluentBit loses the read offsets
+    # on the restart. Every input then starts from the position set by its own `Read_from_Head`
+    # or `Read_from_Tail` option: the container log inputs re-read the existing records,
+    # and the system and audit log inputs skip the records written while FluentBit was down.
+    enabled: true
+    # -- The journal mode of the database, one of `WAL`, `DELETE`, `TRUNCATE`, `PERSIST`, `MEMORY` or `OFF`.
+    # The `MEMORY` mode does not produce `.db-wal` files.
+    # Not applicable to the `systemd` input.
+    journalMode: memory
+    # -- The synchronization mode of the database, one of `off`, `normal`, `full` or `extra`.
+    # The `off` mode does not force the data to be flushed to the disk on every transaction.
+    sync: "off"
+    # -- Defines whether FluentBit acquires the exclusive access to the database file.
+    # The exclusive access reduces the amount of the produced writes.
+    # Not applicable to the `systemd` input.
+    locking: true
 
   # -- Adds additional custom fields/labels to every log message by using filter based on record_modifier plugin.
   # This filter works after all other filters except the custom filter.
@@ -1198,8 +1249,8 @@ fluentbit:
 
   # -- Allow creating security resources as PodSecurityPolicy, SecurityContextConstraints
   securityResources:
+    install: true
     name: logging-fluentbit
-    install: false
 
   # -- Pod monitor for FluentBit
   podMonitor:
@@ -1382,9 +1433,12 @@ fluentbit:
       # -- Http port, for example: 9428
       # port: 9428
 
-      # -- Http uri to ingest logs.
-      # @default -- '/insert/jsonline?_stream_fields=stream&_msg_field=short_message&_time_field=time'
-      # uri: '/insert/jsonline?_stream_fields=stream&_msg_field=short_message&_time_field=time'
+      # -- HTTP URI to ingest logs. With the operator-managed default URI,
+      # VictoriaLogs uses the root CRI/Docker `time` field for `_time`. A
+      # colliding payload field is preserved as `parsed_time`. The HTTP output
+      # does not generate an additional timestamp field.
+      # @default -- '/insert/jsonline?_stream_fields=namespace,container&_msg_field=short_message&_time_field=time'
+      # uri: '/insert/jsonline?_stream_fields=namespace,container&_msg_field=short_message&_time_field=time'
 
       # -- Payload compression mechanism for Http output. Allowed values: gzip, snappy, zstd.
       compress: gzip
@@ -1441,7 +1495,8 @@ fluentbit:
         # keyPasswd: secret
 
       routing:
-        # -- Enables streams routing filters for Http output.
+        # -- Enables streams routing filters for Http output. The exact tags `out_audit`, `out_system`,
+        # `out_pods`, `out_nginx`, `out_k8s_event`, `out_access`, `out_int`, and `out_default` are reserved.
         enabled: false
 
         # -- Header which is used by vmauth in routing rules to different vlsingle instances.
@@ -1530,11 +1585,11 @@ fluentbit:
     install: false
 
     # -- A docker image to use for FluentBit aggregator deployment.
-    # dockerImage: fluent/fluent-bit:3.0.6
+    # dockerImage: fluent/fluent-bit:5.1.0
 
     configmapReload:
       # -- A docker image to use for FluentBit aggregator configmap reload sidecar.
-      # dockerImage: ghcr.io/jimmidyson/configmap-reload:v0.13.1
+      # dockerImage: ghcr.io/jimmidyson/configmap-reload:v0.15.0
 
       # -- The resources describe to compute resource requests and limits for single Pods.
       # Ref: https://kubernetes.io/docs/user-guide/compute-resources/
@@ -1566,7 +1621,7 @@ fluentbit:
 
     # -- Allow creating security resources as PodSecurityPolicy, SecurityContextConstraints
     securityResources:
-      install: false
+      install: true
       name: logging-fluentbit-aggregator
 
     # -- The amount of time the operator waits for Aggregator pod(s) to start, in minutes
@@ -1585,6 +1640,10 @@ fluentbit:
       # -- Storage size limit of PVC, e.g. '400Mi'
       # @default -- 2Gi
       # storageSize: 2Gi
+
+    # -- Maximum size of the ephemeral aggregator buffer volume when PVC storage is disabled.
+    # Keep it above the combined enabled output buffer limits plus filesystem overhead.
+    storageSizeLimit: 2Gi
 
     # -- The resources describe to compute resource requests and limits for single Pods.
     # Ref: https://kubernetes.io/docs/user-guide/compute-resources/
@@ -1795,9 +1854,12 @@ fluentbit:
         # -- Http port
         # port: 9428
 
-        # -- Uri for Http output.
-        # @default -- '/insert/jsonline?_stream_fields=stream&_msg_field=short_message&_time_field=time'
-        # uri: '/insert/jsonline?_stream_fields=stream&_msg_field=short_message&_time_field=time'
+        # -- URI for HTTP output. With the operator-managed default URI,
+        # VictoriaLogs uses the root CRI/Docker `time` field for `_time`. A
+        # colliding payload field is preserved as `parsed_time`. The HTTP output
+        # does not generate an additional timestamp field.
+        # @default -- '/insert/jsonline?_stream_fields=namespace,container&_msg_field=short_message&_time_field=time'
+        # uri: '/insert/jsonline?_stream_fields=namespace,container&_msg_field=short_message&_time_field=time'
 
         # -- Payload compression mechanism for Http output. Allowed values: gzip, snappy, zstd.
         # compress: gzip
@@ -1855,7 +1917,8 @@ fluentbit:
 
         routing:
 
-          # -- Enables streams routing filters for Http output.
+          # -- Enables streams routing filters for Http output. The exact tags `out_audit`, `out_system`,
+          # `out_pods`, `out_nginx`, `out_k8s_event`, `out_access`, `out_int`, and `out_default` are reserved.
           enabled: false
 
           # -- Header which is used by vmauth in routing rules to different vlsingle instances.
@@ -2000,6 +2063,12 @@ integrationTests:
   # -- The parameter specifies the timeout before the start of integration tests.
   timeoutBeforeStart: 100
 
+  # -- Robot Framework retry count for integration test operations (e.g. 60x).
+  operationRetryCount: 60x
+
+  # -- Robot Framework retry interval for integration test operations (e.g. 5s).
+  operationRetryInterval: 5s
+
   # -- Flag for specify kind of Graylog (internal in cloud or external on VM).
   externalGraylogServer: "true"
 
@@ -2031,10 +2100,10 @@ integrationTests:
   # -- PriorityClassName assigned to the Pods to prevent them from evicting.
   # priorityClassName: "priorityClassName"
 
-  # -- The parameter specifies the user for ssh login to VM. Example: ubuntu
+  # -- The user for SSH login to the external Graylog VM. Used only by archiving-plugin integration tests.
   vmUser: ""
 
-  # -- The parameter specifies the ssh key for login to VM.
+  # -- The SSH key for login to the external Graylog VM. Used only by archiving-plugin integration tests.
   sshKey: ""
 
   # -- VictoriaLogs connection settings
@@ -2042,7 +2111,7 @@ integrationTests:
     # -- The parameter specifies the url for VictoriaLogs. Example : https://vlsingle-example.victorialogs:9428
     url: ""
 
-    # -- Authentication for VictoriaLogs.
+    # -- Authentication for VictoriaLogs. The referenced Kubernetes Secret is mounted as files in the test container.
     auth: {}
       # user:
       #   secretName: ""

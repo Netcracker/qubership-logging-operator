@@ -37,6 +37,11 @@ func TestGetTagFromImage(t *testing.T) {
 		expected string
 	}{
 		{"standard image", "registry.example.com/image:v1.2.3", "v1.2.3"},
+		{
+			"image pinned by digest",
+			"registry.example.com/image:v1.2.3@sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+			"v1.2.3",
+		},
 		{"image with port in registry", "registry:5000/image:latest", "latest"},
 		{"no tag (no colon)", "myimage", "myimage"},
 		{"empty string", "", ""},

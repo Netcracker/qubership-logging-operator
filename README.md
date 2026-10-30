@@ -1,7 +1,7 @@
 # Qubership Logging Operator
 
 [![Go](https://img.shields.io/github/go-mod/go-version/Netcracker/qubership-logging-operator)](https://golang.org/)
-[![Kubernetes](https://img.shields.io/badge/kubernetes-1.25%2B-blue)](https://kubernetes.io/)
+[![Kubernetes](https://img.shields.io/badge/kubernetes-1.21%2B-blue)](https://kubernetes.io/)
 [![Helm](https://img.shields.io/badge/helm-3.0%2B-blue)](https://helm.sh/)
 [![Documentation](https://img.shields.io/badge/docs-read%20online-blue)](https://netcracker.github.io/qubership-logging-operator)
 
@@ -26,8 +26,8 @@ and K8S Events Reader.
   * [Architecture](#architecture)
     * [System Overview](#system-overview)
   * [Testing](#testing)
-    * [Integration Tests](#integration-tests)
-    * [Robot Framework Tests](#robot-framework-tests)
+    * [Fluent pipeline tests](#fluent-pipeline-tests)
+    * [Robot Framework tests](#robot-framework-tests)
   * [Contributing](#contributing)
   * [License](#license)
 
@@ -49,10 +49,10 @@ The main features are as follows:
 
 ### Common Prerequisites
 
-* **Kubernetes**: 1.25+ or OpenShift 4.10+
-* **Command-line Tools**: kubectl 1.25+ or oc 4.10+
+* **Kubernetes**: 1.21+ or OpenShift 4.10+
+* **Command-line Tools**: kubectl 1.21+ or oc 4.10+
 * **Package Manager**: Helm 3.0+
-* **Go**: 1.25+ (for development)
+* **Go**: 1.24+ (for development)
 
 ### Storage Requirements
 
@@ -123,44 +123,43 @@ flowchart TB
             LO[Logging Operator<br/>Controller]
             CR[LoggingService<br/>Custom Resource]
         end
-
+        
         subgraph "Log Collection"
             FB[FluentBit<br/>DaemonSet]
             FD[FluentD<br/>DaemonSet]
             ER[Events Reader<br/>Deployment]
         end
-
+        
         subgraph "Log Processing & Storage"
             GL[Graylog<br/>StatefulSet]
             MG[(MongoDB)]
             ES[(OpenSearch/<br/>Elasticsearch)]
         end
-
+        
         subgraph "Applications"
-            APP1[App Pods]
-            APP2[App Pods]
+            APP[App Pods]
             K8S[Kubernetes API]
         end
     end
-
+    
     subgraph "External"
         EXT[External Systems<br/>AWS CloudWatch, Kafka, Splunk]
     end
-
+    
     CR --> LO
     LO --> FB
     LO --> FD
     LO --> GL
     LO --> ER
-
-    APP1 --> FB
-    APP2 --> FB
+    
+    APP --> FB
+    APP --> FD
     K8S --> ER
-
-    FB --> FD
+    
+    FB --> GL
     FD --> GL
     ER --> GL
-
+    
     GL --> MG
     GL --> ES
     GL --> EXT
@@ -173,14 +172,21 @@ For detailed architecture information, see the [Architecture Guide](https://netc
 
 The project includes comprehensive testing:
 
-### Integration Tests
+### Fluent pipeline tests
 
 ```bash
-# Run integration tests
-make test-integration
+# Run a Fluent Bit pipeline test
+make test-fluent-pipeline
+
+# Select another scenario: fluentbit, fluentbit-ha, or fluentd
+make test-fluent-pipeline FLUENT_PIPELINE_SCENARIO=fluentbit-ha
 ```
 
-### Robot Framework Tests
+The runtime tests render the configuration from the current checkout, process representative logs with a real logging
+agent, and compare the results with checked-in JSON records. See the
+[fluent pipeline test documentation](test/fluent-pipeline/README.md).
+
+### Robot Framework tests
 
 ```bash
 # Run robot tests
@@ -192,6 +198,7 @@ robot src/tests/
 For more testing information, see the test directories:
 
 * `test/envtests/` - Environment tests
+* `test/fluent-pipeline/` - Fluent Bit and Fluentd runtime pipeline tests
 * `test/robot-tests/` - Robot framework tests
 
 ## Contributing

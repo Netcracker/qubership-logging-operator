@@ -2,30 +2,130 @@ package fluentbit
 
 import (
 	"fmt"
+	"maps"
 
 	loggingService "github.com/Netcracker/qubership-logging-operator/api/v1"
 	util "github.com/Netcracker/qubership-logging-operator/controllers/utils"
-	"github.com/google/go-cmp/cmp"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// handleConfigMap reconciles the FluentBit ConfigMap (the DaemonSet/Service path was
-// moved to internal/reconciler/factory/build/fluentbit in Stage 2).
-func (r *FluentbitReconciler) handleConfigMap(cr *loggingService.LoggingService) error {
-	cm, err := fluentbitConfigMap(cr, r.DynamicParameters)
+func (r *FluentbitReconciler) handleDaemonSet(cr *loggingService.LoggingService) error {
+	m, err := fluentbitDaemonSet(cr, r.DynamicParameters)
 	if err != nil {
-		r.Log.Error(err, "Failed creating ConfigMap manifest")
+		r.Log.Error(err, "Failed creating DaemonSet manifest")
 		return err
 	}
-	_, err = r.CreateOrUpdate(cr, cm)
-	if err != nil {
-		r.Log.Error(err, fmt.Sprintf("Cannot create or update config map %s", cm.Name))
+
+	err = r.CreateResource(cr, m)
+	if err == nil {
+		return nil
+	}
+	if !errors.IsAlreadyExists(err) {
 		return err
+	}
+
+	return r.updateDaemonSet(m)
+}
+
+func (r *FluentbitReconciler) updateDaemonSet(desired *appsv1.DaemonSet) error {
+	existing := &appsv1.DaemonSet{ObjectMeta: desired.ObjectMeta}
+	if err := r.GetResource(existing); err != nil {
+		return err
+	}
+
+	if existing.Labels == nil && desired.Labels != nil {
+		existing.SetLabels(desired.Labels)
+	} else {
+		maps.Copy(existing.Labels, desired.Labels)
+	}
+	existing.Spec.Template.SetLabels(desired.Spec.Template.GetLabels())
+	existing.Spec.Template.Spec = desired.Spec.Template.Spec
+
+	return r.UpdateResource(existing)
+}
+
+func (r *FluentbitReconciler) handleService(cr *loggingService.LoggingService) error {
+	m, err := fluentbitService(cr, r.DynamicParameters)
+	if err != nil {
+		r.Log.Error(err, "Failed creating Service manifest")
+		return err
+	}
+
+	if err = r.CreateResource(cr, m); err != nil {
+		if errors.IsAlreadyExists(err) {
+			e := &corev1.Service{ObjectMeta: m.ObjectMeta}
+			if err = r.GetResource(e); err != nil {
+				return err
+			}
+
+			//Set parameters
+			e.SetLabels(m.GetLabels())
+			e.Spec.Ports = m.Spec.Ports
+			e.Spec.Selector = m.Spec.Selector
+
+			if err = r.UpdateResource(e); err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
 	}
 	return nil
+}
+
+func (r *FluentbitReconciler) handleConfigSecret(cr *loggingService.LoggingService) error {
+	credentials, err := r.resolveOutputCredentials(cr)
+	if err != nil {
+		r.Log.Error(err, "Failed to resolve Fluentbit output credentials")
+		return err
+	}
+
+	secret, err := fluentbitConfigSecret(cr, r.DynamicParameters, credentials)
+	if err != nil {
+		r.Log.Error(err, "Failed creating Secret manifest")
+		return err
+	}
+
+	_, err = r.CreateOrUpdateConfigSecret(cr, secret)
+	if err != nil {
+		r.Log.Error(err, fmt.Sprintf("Cannot create or update config secret %s", secret.Name))
+		return err
+	}
+
+	if err = r.DeleteLegacyConfigMap(cr.GetNamespace(), util.FluentbitComponentName); err != nil {
+		r.Log.Error(err, fmt.Sprintf("Cannot delete the legacy config map %s", util.FluentbitComponentName))
+		return err
+	}
+
+	return nil
+}
+
+// resolveOutputCredentials reads the Secrets referenced by the enabled outputs and
+// returns their values so that they can be inlined into the configuration Secret
+// instead of being exposed as environment variables or persisted on the CR.
+func (r *FluentbitReconciler) resolveOutputCredentials(cr *loggingService.LoggingService) (outputCredentials, error) {
+	credentials := outputCredentials{}
+	if cr.Spec.Fluentbit == nil || cr.Spec.Fluentbit.Output == nil {
+		return credentials, nil
+	}
+	output := cr.Spec.Fluentbit.Output
+	outputs := make([]util.OutputAuth, 0, 3)
+	if output.Loki != nil {
+		outputs = append(outputs, util.OutputAuth{Values: &credentials.Loki, Enabled: output.Loki.Enabled, Auth: output.Loki.Auth})
+	}
+	if output.Http != nil {
+		outputs = append(outputs, util.OutputAuth{Values: &credentials.Http, Enabled: output.Http.Enabled, Auth: output.Http.Auth})
+	}
+	if output.Otel != nil {
+		outputs = append(outputs, util.OutputAuth{Values: &credentials.Otel, Enabled: output.Otel.Enabled, Auth: output.Otel.Auth})
+	}
+	if err := r.ResolveFluentbitOutputAuth(cr.GetNamespace(), outputs...); err != nil {
+		return outputCredentials{}, err
+	}
+	return credentials, nil
 }
 
 func (r *FluentbitReconciler) deleteDaemonSet(cr *loggingService.LoggingService) error {
@@ -41,11 +141,14 @@ func (r *FluentbitReconciler) deleteDaemonSet(cr *loggingService.LoggingService)
 		}
 		return err
 	}
-	return r.DeleteResource(e)
+	if err := r.DeleteResource(e); err != nil {
+		return err
+	}
+	return nil
 }
 
-func (r *FluentbitReconciler) deleteConfigMap(cr *loggingService.LoggingService) error {
-	e := &corev1.ConfigMap{
+func (r *FluentbitReconciler) deleteConfigSecret(cr *loggingService.LoggingService) error {
+	e := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      util.FluentbitComponentName,
 			Namespace: cr.GetNamespace(),
@@ -57,7 +160,10 @@ func (r *FluentbitReconciler) deleteConfigMap(cr *loggingService.LoggingService)
 		}
 		return err
 	}
-	return r.DeleteResource(e)
+	if err := r.DeleteResource(e); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (r *FluentbitReconciler) deleteService(cr *loggingService.LoggingService) error {
@@ -73,34 +179,8 @@ func (r *FluentbitReconciler) deleteService(cr *loggingService.LoggingService) e
 		}
 		return err
 	}
-	return r.DeleteResource(e)
-}
-
-// Equal returns true if both ConfigMaps carry the same Data and BinaryData. Labels are
-// ignored intentionally (covered by TestFluentbitEqual in handler_test.go).
-func (r *FluentbitReconciler) Equal(source *corev1.ConfigMap, target *corev1.ConfigMap) bool {
-	return cmp.Equal(source.Data, target.Data) && cmp.Equal(source.BinaryData, target.BinaryData)
-}
-
-// CreateOrUpdate creates the ConfigMap, or updates it when the live copy's Data /
-// BinaryData differ from the desired state. Returns true on actual write.
-func (r *FluentbitReconciler) CreateOrUpdate(cr *loggingService.LoggingService, configMap *corev1.ConfigMap) (created bool, err error) {
-	if err = r.CreateResource(cr, configMap); err != nil {
-		if errors.IsAlreadyExists(err) {
-			existedConfigMap := &corev1.ConfigMap{ObjectMeta: configMap.ObjectMeta}
-			if err = r.GetResource(existedConfigMap); err != nil {
-				return false, err
-			}
-			if !r.Equal(existedConfigMap, configMap) {
-				if err = r.UpdateResource(configMap); err != nil {
-					return false, err
-				}
-				return true, nil
-			}
-			r.Log.Info("The config map is not changed")
-			return false, nil
-		}
-		return false, err
+	if err := r.DeleteResource(e); err != nil {
+		return err
 	}
-	return true, nil
+	return nil
 }

@@ -1,0 +1,44 @@
+# Loki and HTTP outputs with TLS and stream routing on OpenShift with CRI-O.
+apiVersion: logging.netcracker.com/v1
+kind: LoggingService
+metadata:
+  name: logging-service
+spec:
+  containerRuntimeType: cri-o
+  openshiftDeploy: true
+  fluentd:
+    multilineFirstLineRegexp: "/(^\\[\\d{4}\\-\\d{2}\\-\\d{2})|(^\\{\")|(^*0m\\d{2}\\:\\d{2}\\:\\d{2})/"
+    containerLogging: true
+    systemLogging: true
+    systemLogType: varlogmessages
+    systemAuditLogging: true
+    kubeAuditLogging: true
+    kubeApiserverAuditLogging: true
+    mockKubeData: true
+    graylogOutput: true
+    graylogHost: graylog.logging.svc
+    graylogPort: 12201
+    graylogProtocol: tcp
+    tls:
+      enabled: true
+      generateCerts:
+        enabled: true
+    output:
+      loki:
+        enabled: true
+        host: https://loki.logging.svc:3100
+        tenant: render-test
+        tls:
+          enabled: true
+          ca:
+            secretName: loki-tls
+            secretKey: ca.crt
+      http:
+        enabled: true
+        host: https://victorialogs.logging.svc:9428
+        path: /insert/jsonline
+        routing:
+          enabled: true
+        tls:
+          enabled: true
+          verify: false

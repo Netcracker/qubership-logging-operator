@@ -2,6 +2,9 @@
 
 The configurable parameters for installation are described below.
 
+VictoriaLogs uses a separate Helm chart. See the
+[Qubership VictoriaLogs chart values](./victorialogs-chart-parameters.md) for its parameter reference.
+
 ## Table of Contents
 
 - [Installation parameters](#installation-parameters)
@@ -16,6 +19,7 @@ The configurable parameters for installation are described below.
       - [Graylog Auth Proxy LDAP](#graylog-auth-proxy-ldap)
       - [Graylog Auth Proxy OAuth](#graylog-auth-proxy-oauth)
   - [FluentBit](#fluentbit)
+    - [VictoriaLogs timestamp handling](#victorialogs-timestamp-handling)
     - [FluentBit Aggregator](#fluentbit-aggregator)
     - [FluentBit TLS](#fluentbit-tls)
   - [FluentD](#fluentd)
@@ -52,6 +56,7 @@ containerRuntimeType: containerd
 | `affinity`                   | [core/v1.Affinity](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#podaffinityterm-v1-core) | no        | `-`                              | Specifies the pod\'s scheduling constraints                                                                                                                 |
 | `annotations`                | map                                                                                                              | no        | `{}`                             | Allows to specify additional annotations                                                                                                                    |
 | `labels`                     | map                                                                                                              | no        | `{}`                             | Allows to specify additional labels                                                                                                                         |
+| `pvc.metadata.annotations`   | map                                                                                                              | no        | `{}`                             | Annotations added to every PVC that the chart creates. Values must be strings. On key conflict, these annotations override `graylog.annotations`            |
 | `pprof.install`              | boolean                                                                                                          | no        | `true`                           | Enables pprof for collecting profiling data.                                                                                                                |
 | `pprof.containerPort`        | int                                                                                                              | no        | `9180`                           | prot for pprof container.                                                                                                                                   |
 | `pprof.service.type`         | string                                                                                                           | no        | `ClusterIP`                      | pprof service type.                                                                                                                                         |
@@ -93,6 +98,10 @@ nodeSelectorKey: kubernetes.io/os
 nodeSelectorValue: linux
 ```
 
+The operator container runs as UID `2001` and GID `1000` on Kubernetes. On OpenShift, its Security Context Constraint
+assigns an arbitrary UID, while the pod explicitly retains GID `1000` to avoid running in the root group. The root
+filesystem is read-only; a size-limited `emptyDir` provides writable `/tmp` storage.
+
 [Back to TOC](#table-of-contents)
 
 ## Graylog
@@ -117,10 +126,7 @@ graylog:
 | `initResources`                            | [core/v1.Resources](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#resourcerequirements-v1-core) | no        | `{requests: {cpu: 50m, memory: 128Mi}, limits: {cpu: 100m, memory: 256Mi}}`     | The resources for init container; describes compute resources requests and limits                                                                                                                     |
 | `replicas`                                 | integer                                                                                                                | no        | `1`                                                                             | Number of Graylog pods                                                                                                                                                                                |
 | `mongoDBImage`                             | string                                                                                                                 | no        | `-`                                                                             | Image of MongoDB to be used for Graylog deployment                                                                                                                                                    |
-| `mongoUpgrade`                             | string                                                                                                                 | no        | `false`                                                                         | Activates automatic, step-by-step MongoDB database upgrade. Intended for migration from Graylog 4 to 5  only                                                                                          |
-| `mongoDBUpgrade.mongoDBImage40`            | string                                                                                                                 | no        | `-`                                                                             | Image of MongoDB 4.0 to use for Graylog deployment. Used for migration from MongoDB 3.6 to 5.x                                                                                                        |
-| `mongoDBUpgrade.mongoDBImage42`            | string                                                                                                                 | no        | `-`                                                                             | Image of MongoDB 4.2 to use for Graylog deployment. Used for migration from MongoDB 3.6 to 5.x                                                                                                        |
-| `mongoDBUpgrade.mongoDBImage44`            | string                                                                                                                 | no        | `-`                                                                             | Image of MongoDB 4.0 to use for Graylog deployment. Used for migration from MongoDB 3.6 to 5.x                                                                                                        |
+| `mongoUpgrade`                             | boolean                                                                                                                | no        | `false`                                                                         | Deprecated and ignored. The automatic step-by-step MongoDB upgrade was removed                                                                                                                        |
 | `mongoPersistentVolume`                    | string                                                                                                                 | no        | `-`                                                                             | MongoDB Persistent Volume (PV) name. Used to claim an existing PVs                                                                                                                                    |
 | `mongoStorageClassName`                    | string                                                                                                                 | no        | `-`                                                                             | MongoDB Persistent Volume Claim (PVC) storage class name. Used in case of dynamic storage provisioning                                                                                                |
 | `mongoResources`                           | [core/v1.Resources](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#resourcerequirements-v1-core) | no        | `{requests: {cpu: 500m, memory: 256Mi}, limits: {cpu: 500m, memory: 256Mi}}`    | Describes compute resources requests and limits MongoDB container                                                                                                                                     |
@@ -198,12 +204,7 @@ graylog:
       memory: 256Mi
 
   # MongoDB sidecar settings
-  mongoDBImage: mongo:5.0.31
-  mongoUpgrade: true
-  mongoDBUpgrade:
-    mongoDBImage40: mongo:4.0.28
-    mongoDBImage42: mongo:4.2.22
-    mongoDBImage44: mongo:4.4.17
+  mongoDBImage: mongo:5.0.33
   mongoPersistentVolume: pv-mongodb
   mongoStorageClassName: cinder
   mongoResources:
@@ -820,7 +821,7 @@ fluentbit:
 | `customLuaScriptConf`             | map[string]string                                                                                                                 | no        | `-`                                                                                             | Set of custom Lua scripts                                                                                                                                                                |
 | `customOutputConf`                | string                                                                                                                            | no        | `-`                                                                                             | Custom output configuration                                                                                                                                                              |
 | `multilineFirstLineRegexp`        | string                                                                                                                            | no        | `/^(\\[\\d{4}\\-\\d{2}\\-\\d{2}).*/`                                                            | Custom regular expression for the first line of multiline filter                                                                                                                         |
-| `multilineOtherLinesRegexp`       | string                                                                                                                            | no        | `/^(?!\\[\\d{4}\\-\\d{2}\\-\\d{2}).*/`                                                          | Custom regular expression for the other lines of multiline filter                                                                                                                        |
+| `multilineOtherLinesRegexp`       | string                                                                                                                            | no        | `/^(?!\\[\\d{4}\\-\\d{2}\\-\\d{2}\|\\s*\\{).*/`                                                 | Custom regular expression for the other lines of multiline filter                                                                                                                        |
 | `billCycleConf`                   | boolean                                                                                                                           | no        | `false`                                                                                         | Filter for bil-cycle-logs stream                                                                                                                                                         |
 | `securityContextPrivileged`       | boolean                                                                                                                           | no        | `false`                                                                                         | Specifies securityContext.privileged for fluentbit container                                                                                                                             |
 | `systemLogging`                   | boolean                                                                                                                           | no        | `false`                                                                                         | Enables collecting of system logs                                                                                                                                                        |
@@ -831,6 +832,13 @@ fluentbit:
 | `containerLogging`                | boolean                                                                                                                           | no        | `true`                                                                                          | Enables input for container logs from `/var/logs/containers` for Docker or `/var/log/pods` for other engines.                                                                            |
 | `totalLimitSize`                  | string                                                                                                                            | no        | `1024M`                                                                                         | The size limitation of output buffer                                                                                                                                                     |
 | `memBufLimit`                     | string                                                                                                                            | no        | `1024M`                                                                                         | Limit of allowed storage for chucks of logs before sending                                                                                                                               |
+| `flush`                           | integer                                                                                                                           | no        | `5`                                                                                             | The interval in seconds to flush records to the outputs. Increasing the interval reduces the amount of produced chunks and, as a result, the disk load.                                  |
+| `storageProfile`                  | string                                                                                                                            | no        | `memory-only`                                                                                   | Selects where FluentBit stores read offsets and buffered logs. Possible values: `memory-only`, `persistent-offsets`, `node-persistent`.                                                  |
+| `memoryOnlyStateSizeLimit`        | string                                                                                                                            | no        | `32Mi`                                                                                          | Sets the maximum size of the memory-backed volume that stores read offset databases for the `memory-only` profile. The volume consumes memory from the FluentBit container limit.        |
+| `db.enabled`                      | boolean                                                                                                                           | no        | `true`                                                                                          | Enables the SQLite database that stores the input read offsets. Without it FluentBit loses them on restart and each input starts at its `Read_from_Head` or `Read_from_Tail` position.   |
+| `db.journalMode`                  | string                                                                                                                            | no        | `memory`                                                                                        | The journal mode of the database. Possible values: `WAL`, `DELETE`, `TRUNCATE`, `PERSIST`, `MEMORY`, `OFF`. Not applicable to the `systemd` input.                                       |
+| `db.sync`                         | string                                                                                                                            | no        | `off`                                                                                           | The synchronization mode of the database. Possible values: `off`, `normal`, `full`, `extra`.                                                                                             |
+| `db.locking`                      | boolean                                                                                                                           | no        | `true`                                                                                          | Enables the exclusive access of FluentBit to the database file. Not applicable to the `systemd` input.                                                                                   |
 | `additionalVolumes`               | [core/v1.PersistentVolumeSpec](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#persistentvolumespec-v1-core) | no        | `{}`                                                                                            | Additional volumes for FluentBit                                                                                                                                                         |
 | `additionalVolumeMounts`          | [core/v1.VolumeMount](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#volumemount-v1-core)                   | no        | `{}`                                                                                            | Allows volume-mounts for FluentBit                                                                                                                                                       |
 | `securityResources.install`       | boolean                                                                                                                           | no        | `false`                                                                                         | Enables creating security resources as `PodSecurityPolicy`, `SecurityContextConstraints`                                                                                                 |
@@ -841,6 +849,7 @@ fluentbit:
 | `annotations`                     | map                                                                                                                               | no        | `{}`                                                                                            | Specifies the list of additional annotations                                                                                                                                             |
 | `labels`                          | map                                                                                                                               | no        | `{}`                                                                                            | Specifies the list of additional labels                                                                                                                                                  |
 | `priorityClassName`               | string                                                                                                                            | no        | `-`                                                                                             | Pod priority. Indicates the importance of a Pod relative to other Pods and prevents it from evicting.                                                                                    |
+| `selfLogging`                     | boolean                                                                                                                           | no        | `false`                                                                                         | Collects FluentBit collector logs. User exclusions still apply when enabled.                                                                                                             |
 | `excludePath`                     | string                                                                                                                            | no        | `-`                                                                                             | One or more shell patterns, separated by commas, to exclude files matching specific criteria, e.g: *.gz,*.zip.                                                                           |
 | `output.loki.enabled`             | boolean                                                                                                                           | no        | `false`                                                                                         | Enables Loki output                                                                                                                                                                      |
 | `output.loki.host`                | string                                                                                                                            | no        | `-`                                                                                             | Loki host                                                                                                                                                                                |
@@ -866,7 +875,7 @@ fluentbit:
 | `output.http.enabled`             | boolean                                                                                                                           | no        | `false`                                                                                         | Enables `http` output.                                                                                                                                                                   |
 | `output.http.host`                | string                                                                                                                            | no        | `-`                                                                                             | Http host. Example: vlsingle-k8s.victorialogs                                                                                                                                            |
 | `output.http.port`                | integer                                                                                                                           | no        | `9428`                                                                                          | Http server port                                                                                                                                                                         |
-| `output.http.uri`                 | string                                                                                                                            | no        | `/insert/jsonline?_stream_fields=namespace,container&_msg_field=short_message&_time_field=time` | HTTP URI for the target web server                                                                                                                                                       |
+| `output.http.uri`                 | string                                                                                                                            | no        | `/insert/jsonline?_stream_fields=namespace,container&_msg_field=short_message&_time_field=time` | See [VictoriaLogs timestamp handling](#victorialogs-timestamp-handling).                                                                                                                 |
 | `output.http.routing.enabled`     | boolean                                                                                                                           | no        | `false`                                                                                         | Enables logs routing based on their tags through HTTP output.                                                                                                                            |
 | `output.http.routing.headerTag`   | string                                                                                                                            | no        | `X-Log-Type`                                                                                    | Header used to propagate logs tag.                                                                                                                                                       |
 | `output.http.auth.token.name`     | string                                                                                                                            | no        | `-`                                                                                             | Authentication for http with token. Name of the secret where token is stored                                                                                                             |
@@ -913,6 +922,35 @@ fluentbit:
 | `output.otel.tls.verify`          | boolean                                                                                                                           | no        | `true`                                                                                          | Force certificate validation                                                                                                                                                             |
 <!-- markdownlint-enable line-length -->
 
+### VictoriaLogs timestamp handling
+
+The operator-managed default HTTP URI uses the root timestamp from the container log
+envelope. This behavior applies to both standalone FluentBit and the FluentBit aggregator.
+
+<!-- markdownlint-disable line-length -->
+| Field         | Source and purpose                                                                                                                                                                                        |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `time`        | Timestamp from the CRI/Docker container log envelope. The default VictoriaLogs URI uses it to populate `_time`. It remains in the FluentBit record unless a format-specific filter explicitly renames it. |
+| `parsed_time` | Application-provided `time` extracted from the log payload. It is created only when payload `time` collides with the authoritative root `time`, and is stored as a regular VictoriaLogs field.            |
+| `_time`       | Canonical VictoriaLogs timestamp populated from the root `time` field during ingestion.                                                                                                                   |
+<!-- markdownlint-enable line-length -->
+
+The default URI contains `_time_field=time`. The HTTP output also sets
+`json_date_key false`, because the record already has the timestamp required by
+VictoriaLogs and no additional generated timestamp field is needed. The collision handling
+keeps an application-provided `time` as `parsed_time`, so it cannot replace the container
+timestamp. When `output.http.uri` is overridden, timestamp selection is controlled by the
+custom URI and custom HTTP output parameters.
+
+Fluent Bit output authentication values are read from the referenced Kubernetes Secrets and written only to the
+generated Fluent Bit configuration Secret. The operator watches these credential Secrets and regenerates the
+configuration after their data changes.
+
+Each credential is rendered into a single configuration directive, so a value must not contain a line break, a NUL
+byte, or the `${` sequence that Fluent Bit expands as an environment variable reference. The operator rejects such a
+value and reports the offending Secret and key instead of writing a broken configuration. Watch for the trailing
+newline that `kubectl create secret --from-file` adds; use `--from-literal` or `printf` without a trailing newline.
+
 Examples:
 
 **Note:** This is only an example of the parameters format, not a recommended value.
@@ -920,7 +958,7 @@ Examples:
 ```yaml
 fluentbit:
   install: true
-  dockerImage: fluent/fluent-bit:4.0.0
+  dockerImage: fluent/fluent-bit:5.1.0
 
   graylogOutput: true
   graylogHost: graylog.logging.svc
@@ -960,7 +998,7 @@ fluentbit:
       end
 
   multilineFirstLineRegexp: "/^(\\[\\d{4}\\-\\d{2}\\-\\d{2}).*/"
-  multilineOtherLinesRegexp: "/^(?!\\[\\d{4}\\-\\d{2}\\-\\d{2}).*/"
+  multilineOtherLinesRegexp: "/^(?!\\[\\d{4}\\-\\d{2}\\-\\d{2}|\\s*\\{).*/"
   billCycleConf: true
 
   securityContextPrivileged: false
@@ -976,6 +1014,14 @@ fluentbit:
 
   totalLimitSize: 1024M
   memBufLimit: 1024M
+  flush: 5
+  storageProfile: memory-only
+  memoryOnlyStateSizeLimit: 32Mi
+  db:
+    enabled: true
+    journalMode: memory
+    sync: "off"
+    locking: true
 
   # FluentBit additional volumes
   additionalVolumes:
@@ -998,7 +1044,7 @@ Example of FluentBit configuration with Loki output enabled:
 ```yaml
 fluentbit:
   install: true
-  dockerImage: fluent/fluent-bit:4.0.0
+  dockerImage: fluent/fluent-bit:5.1.0
 
   graylogOutput: false
 
@@ -1059,7 +1105,7 @@ Example of FluentBit configuration with HTTP output enabled:
 ```yaml
 fluentbit:
   install: true
-  dockerImage: fluent/fluent-bit:4.0.0
+  dockerImage: fluent/fluent-bit:5.1.0
 
   graylogOutput: false
 
@@ -1103,7 +1149,7 @@ Example of FluentBit configuration with Opentelemetry output enabled:
 ```yaml
 fluentbit:
   install: true
-  dockerImage: fluent/fluent-bit:4.0.0
+  dockerImage: fluent/fluent-bit:5.1.0
 
   graylogOutput: false
 
@@ -1147,6 +1193,16 @@ fluentbit:
 
 [Back to TOC](#table-of-contents)
 
+### FluentBit collector logs
+
+FluentBit excludes its own container logs by default to prevent output errors from feeding back into the pipeline.
+In forwarder/aggregator mode, the forwarder excludes both forwarder and aggregator container logs.
+The operator adds these exclusions to `fluentbit.excludePath` for containerd, CRI-O, and Docker.
+This behavior also applies when you create a `LoggingService` directly.
+
+Set `fluentbit.selfLogging: true` to collect these logs. Your `excludePath` patterns still apply.
+Custom inputs in `customInputConf` must define their own exclusions.
+
 ### FluentBit Aggregator
 
 The `fluentbit.aggregator` section contains parameters to enable and configure the FluentBit aggregator.
@@ -1180,8 +1236,9 @@ fluentbit:
 | `customOutputConf`                | string                                                                                                                 | no        | `-`                                                                                             | Custom output configuration. The parameter is used if aggregator is enabled                                                                                                                                                       |
 | `customLuaScriptConf`             | map[string]string                                                                                                      | no        | `-`                                                                                             | Set of custom Lua scripts                                                                                                                                                                                                         |
 | `multilineFirstLineRegexp`        | string                                                                                                                 | no        | `/^(\\[\\d{4}\\-\\d{2}\\-\\d{2}).*/`                                                            | Custom regular expression for the first line of multiline filter                                                                                                                                                                  |
-| `multilineOtherLinesRegexp`       | string                                                                                                                 | no        | `/^(?!\\[\\d{4}\\-\\d{2}\\-\\d{2}).*/`                                                          | Custom regular expression for the other lines of multiline filter                                                                                                                                                                 |
+| `multilineOtherLinesRegexp`       | string                                                                                                                 | no        | `/^(?!\\[\\d{4}\\-\\d{2}\\-\\d{2}\|\\s*\\{).*/`                                                 | Custom regular expression for the other lines of multiline filter                                                                                                                                                                 |
 | `totalLimitSize`                  | string                                                                                                                 | no        | `1024M`                                                                                         | The size limitation of output buffer                                                                                                                                                                                              |
+| `storageSizeLimit`                | string                                                                                                                 | no        | `2Gi`                                                                                           | Maximum size of the ephemeral aggregator buffer volume when PVC storage is disabled                                                                                                                                               |
 | `memBufLimit`                     | string                                                                                                                 | no        | `5M`                                                                                            | Limit of allowed storage for chucks of logs before sending.                                                                                                                                                                       |
 | `startupTimeout`                  | integer                                                                                                                | no        | `8`                                                                                             | Time the operator waits for Aggregator pod(s) to start, in minutes                                                                                                                                                                |
 | `tolerations`                     | [core/v1.Toleration](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#toleration-v1-core)          | no        | `[]`                                                                                            | List of tolerations applied to FluentBit Pods                                                                                                                                                                                     |
@@ -1220,7 +1277,7 @@ fluentbit:
 | `output.http.enabled`             | boolean                                                                                                                | no        | `false`                                                                                         | Enables `http` output.                                                                                                                                                                                                            |
 | `output.http.host`                | string                                                                                                                 | no        | `-`                                                                                             | Http host. Example: vlsingle-k8s.victorialogs                                                                                                                                                                                     |
 | `output.http.port`                | integer                                                                                                                | no        | `9428`                                                                                          | Http server port                                                                                                                                                                                                                  |
-| `output.http.uri`                 | string                                                                                                                 | no        | `/insert/jsonline?_stream_fields=namespace,container&_msg_field=short_message&_time_field=time` | HTTP URI for the target web server                                                                                                                                                                                                |
+| `output.http.uri`                 | string                                                                                                                 | no        | `/insert/jsonline?_stream_fields=namespace,container&_msg_field=short_message&_time_field=time` | See [VictoriaLogs timestamp handling](#victorialogs-timestamp-handling).                                                                                                                                                          |
 | `output.http.routing.enabled`     | boolean                                                                                                                | no        | `false`                                                                                         | Enables logs routing based on their tag through HTTP output.                                                                                                                                                                      |
 | `output.http.routing.headerTag`   | string                                                                                                                 | no        | `X-Log-Type`                                                                                    | Defines a header which is used for log type propagation and further routing.                                                                                                                                                      |
 | `output.http.auth.token.name`     | string                                                                                                                 | no        | `-`                                                                                             | Authentication for http with token. Name of the secret where token is stored                                                                                                                                                      |
@@ -1267,6 +1324,12 @@ fluentbit:
 | `output.otel.tls.verify`          | boolean                                                                                                                | no        | `true`                                                                                          | Force certificate validation                                                                                                                                                                                                      |
 <!-- markdownlint-enable line-length -->
 
+Fluent Bit aggregator output authentication values are read from the referenced Kubernetes Secrets and written
+only to the generated Fluent Bit aggregator configuration Secret. The operator watches these credential Secrets
+and regenerates the configuration after their data changes.
+
+The credential value restrictions of the Fluent Bit outputs apply to the aggregator outputs as well.
+
 Examples:
 
 **Note:** This is only an example of the parameters format, not a recommended value.
@@ -1275,7 +1338,7 @@ Examples:
 fluentbit:
   aggregator:
     install: true
-    dockerImage: fluent/fluent-bit:4.0.0
+    dockerImage: fluent/fluent-bit:5.1.0
     replicas: 2
 
     tolerations:
@@ -1314,7 +1377,7 @@ fluentbit:
         end
 
     multilineFirstLineRegexp: "/^(\\[\\d{4}\\-\\d{2}\\-\\d{2}).*/"
-    multilineOtherLinesRegexp: "/^(?!\\[\\d{4}\\-\\d{2}\\-\\d{2}).*/"
+    multilineOtherLinesRegexp: "/^(?!\\[\\d{4}\\-\\d{2}\\-\\d{2}|\\s*\\{).*/"
     totalLimitSize: 1024M
     memBufLimit: 5M
 
@@ -1329,11 +1392,11 @@ Example of FluentBit HA configuration with Loki output enabled:
 ```yaml
 fluentbit:
   install: true
-  dockerImage: fluent/fluent-bit:4.0.0
+  dockerImage: fluent/fluent-bit:5.1.0
 
   aggregator:
     install: true
-    dockerImage: fluent/fluent-bit:4.0.0
+    dockerImage: fluent/fluent-bit:5.1.0
     replicas: 2
     graylogOutput: false
     output:
@@ -1393,11 +1456,11 @@ Example of FluentBit HA configuration with HTTP output enabled:
 ```yaml
 fluentbit:
   install: true
-  dockerImage: fluent/fluent-bit:4.0.0
+  dockerImage: fluent/fluent-bit:5.1.0
 
   aggregator:
     install: true
-    dockerImage: fluent/fluent-bit:4.0.0
+    dockerImage: fluent/fluent-bit:5.1.0
     replicas: 2
     graylogOutput: false
     output:
@@ -1405,7 +1468,7 @@ fluentbit:
         enabled: true
         host: vlsingle-k8s.victorialogs
         port: 9428
-        uri: /insert/jsonline?_stream_fields=stream&_msg_field=short_message&_time_field=time
+        uri: /insert/jsonline?_stream_fields=namespace,container&_msg_field=short_message&_time_field=time
         auth:
           token:
             name: http-secret
@@ -1441,11 +1504,11 @@ Example of FluentBit HA configuration with Opentelemetry output enabled:
 ```yaml
 fluentbit:
   install: true
-  dockerImage: fluent/fluent-bit:4.0.0
+  dockerImage: fluent/fluent-bit:5.1.0
 
   aggregator:
     install: true
-    dockerImage: fluent/fluent-bit:4.0.0
+    dockerImage: fluent/fluent-bit:5.1.0
     replicas: 2
     graylogOutput: false
     output:
@@ -1678,6 +1741,15 @@ fluentd:
 | `output.http.extraParams`               | string                                                                                                                            | no        | `-`                                                                              | Additional configuration parameters for Http output. Buffer can be configured here and other available parameters of FluentD Http output plugin. See all the parameters in [Fluentd Http Output Plugin](https://docs.fluentd.org/output/http)                                                          |
 
 <!-- markdownlint-enable line-length -->
+
+FluentD output authentication values are read from the referenced Kubernetes Secrets and written only to the generated
+FluentD configuration Secret. The operator watches these credential Secrets and regenerates the configuration after
+their data changes.
+
+Each credential is rendered into a single configuration directive, so a value must not contain a line break or a NUL
+byte. The operator rejects such a value and reports the offending Secret and key instead of writing a broken
+configuration. Watch for the trailing newline that `kubectl create secret --from-file` adds; use `--from-literal` or
+`printf` without a trailing newline.
 
 Examples:
 
@@ -2010,6 +2082,8 @@ integrationTests:
 | `graylogProtocol`                       | string                                                                                                                 | no        | `-`                                                                          | Graylog protocol                                                                                                                                                                                                      |
 | `graylogHost`                           | string                                                                                                                 | no        | `-`                                                                          | The hostname of Graylog                                                                                                                                                                                               |
 | `graylogPort`                           | integer                                                                                                                | no        | `80`                                                                         | The Graylog HTTP port                                                                                                                                                                                                 |
+| `operationRetryInterval`                | string                                                                                                                 | no        | `5s`                                                                         | Interval between retries in Robot Framework wait keywords                                                                                                                                                             |
+| `operationRetryCount`                   | string                                                                                                                 | no        | `60x`                                                                        | Maximum number of retries in Robot Framework wait keywords                                                                                                                                                            |
 | `affinity`                              | [core/v1.Affinity](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#podaffinityterm-v1-core)       | no        | `-`                                                                          | Specifies the pod\'s scheduling constraints                                                                                                                                                                           |
 | `resources`                             | [core/v1.Resources](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#resourcerequirements-v1-core) | no        | `{requests: {cpu: 100m, memory: 128Mi}, limits: {cpu: 200m, memory: 256Mi}}` | Describes compute resources requests and limits for Integration Tests container                                                                                                                                       |
 | `statusWriting.enabled`                 | boolean                                                                                                                | no        | false                                                                        | Enable Store tests status to `LoggingService` custom resource                                                                                                                                                         |
@@ -2019,8 +2093,8 @@ integrationTests:
 | `annotations`                           | map                                                                                                                    | no        | `{}`                                                                         | Allows to specify list of additional annotations                                                                                                                                                                      |
 | `labels`                                | map                                                                                                                    | no        | `{}`                                                                         | Allows to specify list of additional labels                                                                                                                                                                           |
 | `priorityClassName`                     | string                                                                                                                 | no        | `-`                                                                          | Pod priority. Indicates the importance of a Pod relative to other Pods and prevents it from being evicted.                                                                                                            |
-| `vmUser`                                | string                                                                                                                 | no        | `-`                                                                          | User for SSH login to VM.                                                                                                                                                                                             |
-| `sshKey`                                | string                                                                                                                 | no        | `-`                                                                          | SSH key for SSH login to VM.                                                                                                                                                                                          |
+| `vmUser`                                | string                                                                                                                 | no        | `-`                                                                          | User for SSH login to the external Graylog VM. Used only by `archiving-plugin` integration tests.                                                                                                                     |
+| `sshKey`                                | string                                                                                                                 | no        | `-`                                                                          | SSH key for SSH login to the external Graylog VM. Used only by `archiving-plugin` integration tests.                                                                                                                  |
 | `victorialogs.url`                      | string                                                                                                                 | no        | `-`                                                                          | Victorialogs URL. Example: http:/<victorialogs_host>:<victorialogs_port>                                                                                                                                              |
 | `victorialogs.auth.token.secretName`    | string                                                                                                                 | no        | `-`                                                                          | Name of the secret with token for authorization in Victorialogs                                                                                                                                                       |
 | `victorialogs.auth.token.key`           | string                                                                                                                 | no        | `-`                                                                          | The key in the secret with token for authorization in Victorialogs                                                                                                                                                    |
@@ -2030,6 +2104,21 @@ integrationTests:
 | `victorialogs.auth.password.key`        | string                                                                                                                 | no        | `-`                                                                          | The key in the secret with password for authorization in Victorialogs                                                                                                                                                 |
 
 <!-- markdownlint-enable line-length -->
+
+The runner uses a read-only root filesystem. Size-limited `emptyDir` volumes provide writable `/tmp` and
+`/opt/robot/output` directories; test reports are ephemeral and disappear when the Pod is replaced.
+
+On Kubernetes, the runner uses UID and GID `1000`. The runner image removes the `robot` user from supplementary group
+`0`. The container runs with all capabilities dropped and privilege escalation disabled. On OpenShift, the Security
+Context Constraint assigns an arbitrary UID, while the pod explicitly retains GID `1000`. The namespace supplemental
+group can still be added by OpenShift for mounted-volume access; it is not the root group.
+
+Integration test credentials are stored in a Kubernetes Secret and mounted to the test container as files. The Secret
+must contain the `graylog-user`, `graylog-password`, `vm-user`, and `ssh-key` keys. `vm-user` and `ssh-key` are required
+only when the `archiving-plugin` tests run against an external Graylog VM.
+
+The chart creates the integration test Secret from the values above. If `graylog.password` is not set, the chart uses
+the default Graylog password from `values.yaml`.
 
 Examples:
 

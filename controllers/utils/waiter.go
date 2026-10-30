@@ -31,7 +31,7 @@ func (manager *PodManager) WaitForStatefulsetUpdated(serviceName string, timeout
 		}
 
 		if isAvailable {
-			manager.log.Info(fmt.Sprintf("Service %s sucessfully updated in %s",
+			manager.log.Info(fmt.Sprintf("Service %s successfully updated in %s",
 				serviceName, time.Since(initialTime)))
 			return true, err
 		}

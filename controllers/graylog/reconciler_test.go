@@ -9,6 +9,7 @@ import (
 	loggingService "github.com/Netcracker/qubership-logging-operator/api/v1"
 	util "github.com/Netcracker/qubership-logging-operator/controllers/utils"
 	appsv1 "k8s.io/api/apps/v1"
+	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -149,7 +150,8 @@ func TestGraylogStatefulsetIgnoresDeprecatedMongoDBUpgrade(t *testing.T) {
 	if err != nil {
 		t.Fatalf("render Graylog StatefulSet: %v", err)
 	}
-	cr.Spec.Graylog.MongoDBUpgrade = &loggingService.MongoDBUpgrade{
+	// Existing custom resources can still set the deprecated field; the test checks that it has no effect.
+	cr.Spec.Graylog.MongoDBUpgrade = &loggingService.MongoDBUpgrade{ //nolint:staticcheck // SA1019: intentional use
 		MongoDBImage40: "docker.io/mongo:4.0.28",
 		MongoDBImage42: "docker.io/mongo:4.2.22",
 		MongoDBImage44: "docker.io/mongo:4.4.17",
@@ -336,6 +338,34 @@ func assertBoundedEmptyDirs(t *testing.T, volumes []corev1.Volume) {
 	}
 }
 
+func TestDeleteUpgradeJobsRemovesLeftoverMongoDBUpgradeJobs(t *testing.T) {
+	job := func(name string) *batchv1.Job {
+		return &batchv1.Job{ObjectMeta: metav1.ObjectMeta{Name: name, Namespace: "logging"}}
+	}
+	// An earlier upgrade may have left only some of the Jobs.
+	r, cr := newGraylogTestReconciler(t,
+		job("mongo-upgrade-job-40"),
+		job("mongo-upgrade-job-50"),
+		job("unrelated-job"),
+	)
+
+	if err := r.deleteUpgradeJobs(cr); err != nil {
+		t.Fatalf("delete upgrade Jobs: %v", err)
+	}
+
+	jobs := &batchv1.JobList{}
+	if err := r.Client.List(context.Background(), jobs, client.InNamespace("logging")); err != nil {
+		t.Fatalf("list Jobs: %v", err)
+	}
+	var names []string
+	for _, j := range jobs.Items {
+		names = append(names, j.Name)
+	}
+	if !reflect.DeepEqual(names, []string{"unrelated-job"}) {
+		t.Fatalf("Jobs after cleanup = %v, want only unrelated-job", names)
+	}
+}
+
 func newGraylogTestReconciler(t *testing.T, objects ...client.Object) (*GraylogReconciler, *loggingService.LoggingService) {
 	t.Helper()
 
@@ -345,6 +375,9 @@ func newGraylogTestReconciler(t *testing.T, objects ...client.Object) (*GraylogR
 	}
 	if err := corev1.AddToScheme(testScheme); err != nil {
 		t.Fatalf("add core scheme: %v", err)
+	}
+	if err := batchv1.AddToScheme(testScheme); err != nil {
+		t.Fatalf("add batch scheme: %v", err)
 	}
 
 	cr := &loggingService.LoggingService{

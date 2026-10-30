@@ -266,6 +266,7 @@ _Appears in:_
 | `flush` _integer_ | Flush is an interval in seconds to flush records to the outputs.<br />Increasing the interval reduces the amount of produced chunks and, as a result, the disk load. |  | Minimum: 1 <br /> |
 | `storageProfile` _string_ | StorageProfile selects where Fluentbit keeps input read offsets and buffered logs.<br />The default "memory-only" profile avoids writes to the node filesystem. The "persistent-offsets"<br />profile stores read offsets on the node and buffers logs in memory. The "node-persistent" profile<br />stores both read offsets and buffered logs on the node. |  | Enum: [memory-only persistent-offsets node-persistent] <br /> |
 | `memoryOnlyStateSizeLimit` _string_ | MemoryOnlyStateSizeLimit limits the memory-backed volume that stores read offset databases for the<br />"memory-only" profile. The default is "32Mi". |  |  |
+| `inputMemBufLimit` _string_ | InputMemBufLimit is the amount of memory that a single input plugin can hold for records that are not<br />flushed to the outputs yet. The input pauses reading when it reaches the limit. Size it so that the sum<br />over the enabled inputs, the emitter buffers of the multiline filters, and the base footprint of<br />Fluentbit fit into the container memory limit. The default is "10M".<br />See Mem_Buf_Limit in https://docs.fluentbit.io/manual/pipeline/inputs/tail |  |  |
 | `db` _[FluentbitDB](#fluentbitdb)_ | DB contains settings of the SQLite database which the input plugins use to keep the read offsets |  |  |
 
 
@@ -312,6 +313,7 @@ _Appears in:_
 | `securityContextPrivileged` _boolean_ |  |  |  |
 | `graylogOutput` _boolean_ |  |  |  |
 | `output` _[OutputFluentbit](#outputfluentbit)_ |  |  |  |
+| `inputMemBufLimit` _string_ | InputMemBufLimit is the amount of memory that the forward input can hold for records that are not<br />flushed to the outputs yet. The input stops accepting data from the forwarders when it reaches the<br />limit, and the forwarders keep the records in their own buffers. The default is "200M".<br />See Mem_Buf_Limit in https://docs.fluentbit.io/manual/pipeline/inputs/forward |  |  |
 
 
 #### FluentbitDB

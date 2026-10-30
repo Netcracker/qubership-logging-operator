@@ -277,6 +277,12 @@ type Fluentbit struct {
 	// MemoryOnlyStateSizeLimit limits the memory-backed volume that stores read offset databases for the
 	// "memory-only" profile. The default is "32Mi".
 	MemoryOnlyStateSizeLimit string `json:"memoryOnlyStateSizeLimit,omitempty"`
+	// InputMemBufLimit is the amount of memory that a single input plugin can hold for records that are not
+	// flushed to the outputs yet. The input pauses reading when it reaches the limit. Size it so that the sum
+	// over the enabled inputs, the emitter buffers of the multiline filters, and the base footprint of
+	// Fluentbit fit into the container memory limit. The default is "10M".
+	// See Mem_Buf_Limit in https://docs.fluentbit.io/manual/pipeline/inputs/tail
+	InputMemBufLimit string `json:"inputMemBufLimit,omitempty"`
 	// DB contains settings of the SQLite database which the input plugins use to keep the read offsets
 	DB FluentbitDB `json:"db,omitempty"`
 }
@@ -381,6 +387,11 @@ type FluentbitAggregator struct {
 	SecurityContextPrivileged bool                     `json:"securityContextPrivileged,omitempty"`
 	GraylogOutput             bool                     `json:"graylogOutput,omitempty"`
 	Output                    *OutputFluentbit         `json:"output,omitempty"`
+	// InputMemBufLimit is the amount of memory that the forward input can hold for records that are not
+	// flushed to the outputs yet. The input stops accepting data from the forwarders when it reaches the
+	// limit, and the forwarders keep the records in their own buffers. The default is "200M".
+	// See Mem_Buf_Limit in https://docs.fluentbit.io/manual/pipeline/inputs/forward
+	InputMemBufLimit string `json:"inputMemBufLimit,omitempty"`
 }
 
 // EffectiveStorageSizeLimit returns the configured aggregator ephemeral storage limit.

@@ -4,7 +4,7 @@
 
 
 
-![Version: 2.5.0](https://img.shields.io/badge/Version-2.5.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 14.31.0](https://img.shields.io/badge/AppVersion-14.31.0-informational?style=flat-square)
+![Version: 2.5.1](https://img.shields.io/badge/Version-2.5.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 14.31.0](https://img.shields.io/badge/AppVersion-14.31.0-informational?style=flat-square) 
 
 A Helm chart for qubership-logging-operator
 
@@ -259,6 +259,15 @@ true
 			<td>Graylog protocol: tcp/udp/etc</td>
 		</tr>
 		<tr>
+			<td>fluentbit.aggregator.inputMemBufLimit</td>
+			<td>string</td>
+			<td><pre lang="json">
+"200M"
+</pre>
+</td>
+			<td>The amount of memory that the forward input can hold for records that are not flushed to the outputs yet. The input stops accepting data from the forwarders when it reaches the limit, and the forwarders keep the records in their own buffers. Keep it well below `resources.limits.memory`. See Mem_Buf_Limit in https://docs.fluentbit.io/manual/pipeline/inputs/forward</td>
+		</tr>
+		<tr>
 			<td>fluentbit.aggregator.install</td>
 			<td>bool</td>
 			<td><pre lang="json">
@@ -361,7 +370,7 @@ null
 {}
 </pre>
 </td>
-			<td>Authentication for Http. Secret name and key in the secret storing the parameter should be provided. Username/password or token can be stored in different secrets. </td>
+			<td>Authentication for Http. Inline credentials can be specified via `credentials` (chart creates the Secret automatically). Alternatively, reference pre-created secrets via `token`, `user`, `password`. If both are specified, secret references take priority.</td>
 		</tr>
 		<tr>
 			<td>fluentbit.aggregator.output.http.enabled</td>
@@ -379,7 +388,7 @@ false
 false
 </pre>
 </td>
-			<td>Enables streams routing filters for Http output.</td>
+			<td>Enables streams routing filters for Http output. The exact tags `out_audit`, `out_system`, `out_pods`, `out_nginx`, `out_k8s_event`, `out_access`, `out_int`, and `out_default` are reserved.</td>
 		</tr>
 		<tr>
 			<td>fluentbit.aggregator.output.http.tls</td>
@@ -436,7 +445,7 @@ true
 {}
 </pre>
 </td>
-			<td>Authentication for Loki.</td>
+			<td>Authentication for Loki. Inline credentials can be specified via `credentials` (chart creates the Secret automatically). Alternatively, reference pre-created secrets via `token`, `user`, `password`. If both are specified, secret references take priority.</td>
 		</tr>
 		<tr>
 			<td>fluentbit.aggregator.output.loki.enabled</td>
@@ -519,7 +528,7 @@ false
 {}
 </pre>
 </td>
-			<td>Authentication for Otel. Secret name and key in the secret storing the parameter should be provided. Username/password or token can be stored in different secrets.</td>
+			<td>Authentication for Otel. Inline credentials can be specified via `credentials` (chart creates the Secret automatically). Alternatively, reference pre-created secrets via `token`, `user`, `password`. If both are specified, secret references take priority.</td>
 		</tr>
 		<tr>
 			<td>fluentbit.aggregator.output.otel.compress</td>
@@ -609,7 +618,7 @@ false
 			<td>object</td>
 			<td><pre lang="json">
 {
-  "install": false,
+  "install": true,
   "name": "logging-fluentbit-aggregator"
 }
 </pre>
@@ -624,6 +633,15 @@ false
 </pre>
 </td>
 			<td>The amount of time the operator waits for Aggregator pod(s) to start, in minutes</td>
+		</tr>
+		<tr>
+			<td>fluentbit.aggregator.storageSizeLimit</td>
+			<td>string</td>
+			<td><pre lang="json">
+"2Gi"
+</pre>
+</td>
+			<td>Maximum size of the ephemeral aggregator buffer volume when PVC storage is disabled. Keep it above the combined enabled output buffer limits plus filesystem overhead.</td>
 		</tr>
 		<tr>
 			<td>fluentbit.aggregator.tls</td>
@@ -672,15 +690,6 @@ false
 </pre>
 </td>
 			<td>The size limitation of output buffer</td>
-		</tr>
-		<tr>
-			<td>fluentbit.aggregator.storageSizeLimit</td>
-			<td>string</td>
-			<td><pre lang="json">
-"2Gi"
-</pre>
-</td>
-			<td>Maximum size of the ephemeral aggregator buffer volume when PVC storage is disabled.</td>
 		</tr>
 		<tr>
 			<td>fluentbit.aggregator.volume</td>
@@ -861,6 +870,15 @@ true
 			<td>Graylog protocol: tcp/udp/etc</td>
 		</tr>
 		<tr>
+			<td>fluentbit.inputMemBufLimit</td>
+			<td>string</td>
+			<td><pre lang="json">
+"10M"
+</pre>
+</td>
+			<td>The amount of memory that a single input plugin can hold for records that are not flushed to the outputs yet. The input pauses reading when it reaches the limit. Size it so that the sum over the enabled inputs, the emitter buffers of the multiline filters, and the base footprint of FluentBit fit into `resources.limits.memory`. The HA mode forwarders use the same value. See Mem_Buf_Limit in https://docs.fluentbit.io/manual/pipeline/inputs/tail</td>
+		</tr>
+		<tr>
 			<td>fluentbit.install</td>
 			<td>bool</td>
 			<td><pre lang="json">
@@ -894,7 +912,7 @@ true
 "5M"
 </pre>
 </td>
-			<td>The size limitation of backlog data See storage.backlog.mem_limit in https://docs.fluentbit.io/manual/administration/buffering-and-storage#service-section-configuration</td>
+			<td>The size limitation of backlog data. It applies to the chunks that the previous run left on the disk, so it takes effect only with `storageProfile: node-persistent`. It does not limit the input plugins; use `inputMemBufLimit` for that. See storage.backlog.mem_limit in https://docs.fluentbit.io/manual/administration/buffering-and-storage#service-section-configuration</td>
 		</tr>
 		<tr>
 			<td>fluentbit.memoryOnlyStateSizeLimit</td>
@@ -993,7 +1011,7 @@ null
 {}
 </pre>
 </td>
-			<td>Authentication for Http.</td>
+			<td>Authentication for Http. Inline credentials can be specified via `credentials` (chart creates the Secret automatically). Alternatively, reference pre-created secrets via `token`, `user`, `password`. If both are specified, secret references take priority.</td>
 		</tr>
 		<tr>
 			<td>fluentbit.output.http.compress</td>
@@ -1029,7 +1047,7 @@ false
 false
 </pre>
 </td>
-			<td>Enables streams routing filters for Http output.</td>
+			<td>Enables streams routing filters for Http output. The exact tags `out_audit`, `out_system`, `out_pods`, `out_nginx`, `out_k8s_event`, `out_access`, `out_int`, and `out_default` are reserved.</td>
 		</tr>
 		<tr>
 			<td>fluentbit.output.http.tls</td>
@@ -1077,7 +1095,7 @@ false
 {}
 </pre>
 </td>
-			<td>Authentication for Loki.</td>
+			<td>Authentication for Loki. Inline credentials can be specified via `credentials` (chart creates the Secret automatically). Alternatively, reference pre-created secrets via `token`, `user`, `password`. If both are specified, secret references take priority.</td>
 		</tr>
 		<tr>
 			<td>fluentbit.output.loki.enabled</td>
@@ -1170,7 +1188,7 @@ true
 {}
 </pre>
 </td>
-			<td>Authentication for Otel. Secret name and key in the secret storing the parameter should be provided. Username/password or token can be stored in different secrets.</td>
+			<td>Authentication for Otel. Inline credentials can be specified via `credentials` (chart creates the Secret automatically). Alternatively, reference pre-created secrets via `token`, `user`, `password`. If both are specified, secret references take priority.</td>
 		</tr>
 		<tr>
 			<td>fluentbit.output.otel.compress</td>
@@ -1309,7 +1327,7 @@ false
   },
   "requests": {
     "cpu": "50m",
-    "memory": "128Mi"
+    "memory": "256Mi"
   }
 }
 </pre>
@@ -1330,7 +1348,7 @@ false
 			<td>object</td>
 			<td><pre lang="json">
 {
-  "install": false,
+  "install": true,
   "name": "logging-fluentbit"
 }
 </pre>
@@ -1638,7 +1656,7 @@ true
 {}
 </pre>
 </td>
-			<td>Authentication for HTTP output. Secret name and key in the secret storing the parameter should be provided. Username/password or token can be stored in different secrets.</td>
+			<td>Authentication for HTTP output. Inline credentials can be specified via `credentials` (chart creates the Secret automatically). Alternatively, reference pre-created secrets via `token`, `user`, `password`. If both are specified, secret references take priority.</td>
 		</tr>
 		<tr>
 			<td>fluentd.output.http.compress</td>
@@ -1722,7 +1740,7 @@ false
 {}
 </pre>
 </td>
-			<td>Authentication for Loki.</td>
+			<td>Authentication for Loki. Inline credentials can be specified via `credentials` (chart creates the Secret automatically). Alternatively, reference pre-created secrets via `token`, `user`, `password`. If both are specified, secret references take priority.</td>
 		</tr>
 		<tr>
 			<td>fluentd.output.loki.enabled</td>
@@ -1853,7 +1871,7 @@ false
 			<td>object</td>
 			<td><pre lang="json">
 {
-  "install": false,
+  "install": true,
   "name": "logging-fluentd"
 }
 </pre>
@@ -1984,10 +2002,10 @@ false
 			<td>fluentd.totalLimitSize</td>
 			<td>string</td>
 			<td><pre lang="json">
-"512MB"
+""
 </pre>
 </td>
-			<td>The size limitation of output buffer</td>
+			<td>The size limitation of the Graylog output buffer. When empty, it is `128MB` with the memory buffer and `512MB` with `fileStorage: true`. The memory buffer counts against `resources.limits.memory`, so keep it well below the limit.</td>
 		</tr>
 		<tr>
 			<td>graylog</td>
@@ -2672,7 +2690,7 @@ false
 			<td>object</td>
 			<td><pre lang="json">
 {
-  "install": false,
+  "install": true,
   "name": "logging-graylog"
 }
 </pre>
@@ -2822,6 +2840,8 @@ false
   "externalGraylogServer": "true",
   "graylogProtocol": "http",
   "install": false,
+  "operationRetryCount": "60x",
+  "operationRetryInterval": "5s",
   "resources": {
     "limits": {
       "cpu": "200m",
@@ -2880,6 +2900,24 @@ false
 </pre>
 </td>
 			<td>Allow disabling create Integration Tests Pod during deploy</td>
+		</tr>
+		<tr>
+			<td>integrationTests.operationRetryCount</td>
+			<td>string</td>
+			<td><pre lang="json">
+"60x"
+</pre>
+</td>
+			<td>Robot Framework retry count for integration test operations (e.g. 60x).</td>
+		</tr>
+		<tr>
+			<td>integrationTests.operationRetryInterval</td>
+			<td>string</td>
+			<td><pre lang="json">
+"5s"
+</pre>
+</td>
+			<td>Robot Framework retry interval for integration test operations (e.g. 5s).</td>
 		</tr>
 		<tr>
 			<td>integrationTests.resources</td>
@@ -2974,7 +3012,7 @@ false
 ""
 </pre>
 </td>
-			<td>The user for SSH login to the external Graylog VM. Used only by archiving-plugin integration tests. Example: ubuntu</td>
+			<td>The user for SSH login to the external Graylog VM. Used only by archiving-plugin integration tests.</td>
 		</tr>
 		<tr>
 			<td>ipv6</td>
@@ -3200,6 +3238,7 @@ true
 {
   "limits": {
     "cpu": "150m",
+    "ephemeral-storage": "200Mi",
     "memory": "100Mi"
   },
   "requests": {

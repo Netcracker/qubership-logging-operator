@@ -7,7 +7,7 @@
 // YAML assets to Go factories. Initial values mirror today's
 // charts/qubership-logging-operator/values.yaml + values.schema.json so existing
 // deployments are behavior-preserving.
-package config
+package defaults
 
 // Defaults aggregates per-component defaults. Returned by Get() and threaded through
 // reconcilers and factories.

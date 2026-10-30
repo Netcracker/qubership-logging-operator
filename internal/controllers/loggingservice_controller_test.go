@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	loggingService "github.com/Netcracker/qubership-logging-operator/api/v1"
-	util "github.com/Netcracker/qubership-logging-operator/controllers/utils"
+	util "github.com/Netcracker/qubership-logging-operator/internal/utils"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"

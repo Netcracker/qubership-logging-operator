@@ -5,8 +5,9 @@ import (
 	"fmt"
 
 	loggingService "github.com/Netcracker/qubership-logging-operator/api/v1"
-	"github.com/Netcracker/qubership-logging-operator/controllers/graylog/utils"
-	util "github.com/Netcracker/qubership-logging-operator/controllers/utils"
+	"github.com/Netcracker/qubership-logging-operator/internal/controllers/graylog/utils"
+	"github.com/Netcracker/qubership-logging-operator/internal/defaults"
+	util "github.com/Netcracker/qubership-logging-operator/internal/utils"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -17,11 +18,13 @@ import (
 
 type GraylogReconciler struct {
 	*util.ComponentReconciler
+	Defaults *defaults.Defaults
 }
 
 const graylogSecretMissingValueError = "can not find %s for Graylog in the secret %s in the namespace %s"
 
-func NewGraylogReconciler(client client.Client, scheme *runtime.Scheme, updater util.StatusUpdater) GraylogReconciler {
+func NewGraylogReconciler(client client.Client, scheme *runtime.Scheme, updater util.StatusUpdater,
+	cfg *defaults.Defaults) GraylogReconciler {
 	return GraylogReconciler{
 		ComponentReconciler: &util.ComponentReconciler{
 			Client:        client,
@@ -29,6 +32,7 @@ func NewGraylogReconciler(client client.Client, scheme *runtime.Scheme, updater 
 			Log:           util.Logger("graylog"),
 			StatusUpdater: updater,
 		},
+		Defaults: cfg,
 	}
 }
 
@@ -49,7 +53,7 @@ func (r *GraylogReconciler) Run(ctx context.Context, cr *loggingService.LoggingS
 			return err
 		}
 
-		if err = r.handleServiceAccount(cr); err != nil {
+		if err = r.handleServiceAccount(ctx, cr); err != nil {
 			return err
 		}
 		if err = r.handleConfigMap(cr); err != nil {
@@ -61,10 +65,10 @@ func (r *GraylogReconciler) Run(ctx context.Context, cr *loggingService.LoggingS
 		if err = r.deleteUpgradeJobs(cr); err != nil {
 			r.Log.Error(err, "Can not delete MongoDB upgrade jobs")
 		}
-		if err = r.handleStatefulset(cr); err != nil {
+		if err = r.handleStatefulset(ctx, cr); err != nil {
 			return err
 		}
-		if err = r.handleService(cr); err != nil {
+		if err = r.handleService(ctx, cr); err != nil {
 			return err
 		}
 

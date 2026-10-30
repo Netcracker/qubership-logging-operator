@@ -69,7 +69,7 @@ type shippedConfiguration struct {
 func shippedConfigurations(t *testing.T) []shippedConfiguration {
 	t.Helper()
 
-	controllers := filepath.Join("..", "..", "..", "..", "controllers")
+	controllers := filepath.Join("..", "..", "..", "..", "internal", "controllers")
 	sources := []struct {
 		name string
 		path string

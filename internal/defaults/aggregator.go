@@ -1,126 +1,48 @@
-package config
+package defaults
 
 import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
-	intstr "k8s.io/apimachinery/pkg/util/intstr"
 )
 
-// FluentbitAggregatorDefaults holds defaults for the FluentBit HA pair (forwarder
-// DaemonSet + aggregator StatefulSet). Values mirror
-// charts/qubership-logging-operator/values.yaml and the legacy YAML assets at
-// controllers/fluentbit-forwarder-aggregator/assets/.
+// FluentbitAggregatorDefaults holds the fallback values for the FluentBit HA mode: the
+// forwarder DaemonSet and the aggregator StatefulSet. The values mirror the fluentbit
+// and fluentbit.aggregator sections of charts/qubership-logging-operator/values.yaml.
 type FluentbitAggregatorDefaults struct {
-	// Forwarder-specific defaults.
-	ForwarderLivenessProbe  *corev1.Probe
-	ForwarderReadinessProbe *corev1.Probe
-	ForwarderMaxUnavailable intstr.IntOrString
-	ForwarderMinReadyS      int32
-	ForwarderTGracePeriodS  int64
-
-	// Aggregator-specific defaults.
-	AggregatorReplicas            int32
-	AggregatorResources           corev1.ResourceRequirements
-	AggregatorConfigmapReloadRes  corev1.ResourceRequirements
-	AggregatorLivenessProbe       *corev1.Probe
-	AggregatorReadinessProbe      *corev1.Probe
-	AggregatorTGracePeriodS       int64
-	AggregatorRevisionHistory     int32
-	AggregatorPodSecurityContext  *corev1.PodSecurityContext
-	AggregatorContainerSecCtx     *corev1.SecurityContext
-	AggregatorPVCStorageSize      string
-
-	// Shared ports between forwarder and aggregator main containers.
-	HTTPPort            int32
-	LogToMetricsPort    int32
-	ForwardPort         int32
-	ConfigmapReloadPort int32
-
-	// Shared sidecar argv.
-	ConfigmapReloadArgs []string
+	// ForwarderResources applies when fluentbit.resources is not set.
+	ForwarderResources corev1.ResourceRequirements
+	// AggregatorResources applies when fluentbit.aggregator.resources is not set.
+	AggregatorResources corev1.ResourceRequirements
+	// ConfigmapReloadResources applies to the configmap-reload sidecar of both workloads
+	// when its resources are not set.
+	ConfigmapReloadResources corev1.ResourceRequirements
+	// AggregatorReplicas applies when fluentbit.aggregator.replicas is not set.
+	AggregatorReplicas int32
+	// AggregatorVolumeSize applies when fluentbit.aggregator.volume.bind is set without
+	// a storage size.
+	AggregatorVolumeSize resource.Quantity
 }
 
 func defaultAggregator() FluentbitAggregatorDefaults {
-	httpPort := int32(2020)
-	logToMetricsPort := int32(2021)
-	forwardPort := int32(24224)
-	reloadPort := int32(9533)
-
-	probe := func(path string, failure int32) *corev1.Probe {
-		return &corev1.Probe{
-			ProbeHandler: corev1.ProbeHandler{
-				HTTPGet: &corev1.HTTPGetAction{
-					Path:   path,
-					Port:   intstr.FromInt32(httpPort),
-					Scheme: corev1.URISchemeHTTP,
-				},
-			},
-			InitialDelaySeconds: 5,
-			TimeoutSeconds:      10,
-			PeriodSeconds:       10,
-			SuccessThreshold:    1,
-			FailureThreshold:    failure,
-		}
-	}
-
-	runAsUser := int64(0)
-	runAsNonRoot := false
-	fsGroup := int64(1001)
-	fsGroupPolicy := corev1.FSGroupChangeOnRootMismatch
-	revisionHistory := int32(10)
-
 	return FluentbitAggregatorDefaults{
-		ForwarderLivenessProbe:  probe("/", 3),
-		ForwarderReadinessProbe: probe("/api/v1/health", 5),
-		ForwarderMaxUnavailable: intstr.FromInt32(1),
-		ForwarderMinReadyS:      60,
-		ForwarderTGracePeriodS:  30,
+		ForwarderResources:       haResources("50m", "128Mi", "200m", "512Mi"),
+		AggregatorResources:      haResources("500m", "512Mi", "2", "2Gi"),
+		ConfigmapReloadResources: haResources("10m", "10Mi", "50m", "50Mi"),
+		AggregatorReplicas:       2,
+		AggregatorVolumeSize:     resource.MustParse("2Gi"),
+	}
+}
 
-		AggregatorReplicas: 2,
-		AggregatorResources: corev1.ResourceRequirements{
-			Requests: corev1.ResourceList{
-				corev1.ResourceCPU:    resource.MustParse("500m"),
-				corev1.ResourceMemory: resource.MustParse("512Mi"),
-			},
-			Limits: corev1.ResourceList{
-				corev1.ResourceCPU:    resource.MustParse("2"),
-				corev1.ResourceMemory: resource.MustParse("2Gi"),
-			},
+// haResources returns CPU and memory requests and limits parsed from the given quantities.
+func haResources(requestCPU, requestMemory, limitCPU, limitMemory string) corev1.ResourceRequirements {
+	return corev1.ResourceRequirements{
+		Requests: corev1.ResourceList{
+			corev1.ResourceCPU:    resource.MustParse(requestCPU),
+			corev1.ResourceMemory: resource.MustParse(requestMemory),
 		},
-		AggregatorConfigmapReloadRes: corev1.ResourceRequirements{
-			Requests: corev1.ResourceList{
-				corev1.ResourceCPU:    resource.MustParse("10m"),
-				corev1.ResourceMemory: resource.MustParse("10Mi"),
-			},
-			Limits: corev1.ResourceList{
-				corev1.ResourceCPU:    resource.MustParse("50m"),
-				corev1.ResourceMemory: resource.MustParse("50Mi"),
-			},
-		},
-		AggregatorLivenessProbe:  probe("/", 5),
-		AggregatorReadinessProbe: probe("/api/v1/health", 5),
-		AggregatorTGracePeriodS:  30,
-		AggregatorRevisionHistory: revisionHistory,
-		AggregatorPodSecurityContext: &corev1.PodSecurityContext{
-			RunAsUser:           &runAsUser,
-			RunAsNonRoot:        &runAsNonRoot,
-			FSGroup:             &fsGroup,
-			FSGroupChangePolicy: &fsGroupPolicy,
-		},
-		AggregatorContainerSecCtx: &corev1.SecurityContext{
-			RunAsUser:    &runAsUser,
-			RunAsNonRoot: &runAsNonRoot,
-		},
-		AggregatorPVCStorageSize: "2Gi",
-
-		HTTPPort:            httpPort,
-		LogToMetricsPort:    logToMetricsPort,
-		ForwardPort:         forwardPort,
-		ConfigmapReloadPort: reloadPort,
-		ConfigmapReloadArgs: []string{
-			"--volume-dir=/fluent-bit/etc",
-			"--webhook-url=http://localhost:2020/api/v2/reload",
-			"--webhook-retries=5",
+		Limits: corev1.ResourceList{
+			corev1.ResourceCPU:    resource.MustParse(limitCPU),
+			corev1.ResourceMemory: resource.MustParse(limitMemory),
 		},
 	}
 }

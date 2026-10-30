@@ -105,7 +105,7 @@ jobs:
       uses: super-linter/super-linter/slim@2da136927bd4a73596db63044b504547c62cb854 # v9.0.0
       env:
         VALIDATE_ALL_CODEBASE: ${{ inputs.full_scan || false }}
-        FILTER_REGEX_EXCLUDE: ^controllers/graylog/config/indexes/.+\.json$
+        FILTER_REGEX_EXCLUDE: ^internal/controllers/graylog/config/indexes/.+\.json$
         # To report GitHub Actions status checks
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         DEFAULT_BRANCH: ${{ github.event.pull_request.base.ref || github.event.push.ref }}

@@ -1,79 +1,34 @@
 package fluentbit
 
 import (
+	"context"
 	"fmt"
-	"maps"
 
 	loggingService "github.com/Netcracker/qubership-logging-operator/api/v1"
-	util "github.com/Netcracker/qubership-logging-operator/controllers/utils"
+	fbbuilder "github.com/Netcracker/qubership-logging-operator/internal/builder/fluentbit"
+	"github.com/Netcracker/qubership-logging-operator/internal/reconcilers"
+	util "github.com/Netcracker/qubership-logging-operator/internal/utils"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (r *FluentbitReconciler) handleDaemonSet(cr *loggingService.LoggingService) error {
-	m, err := fluentbitDaemonSet(cr, r.DynamicParameters)
-	if err != nil {
-		r.Log.Error(err, "Failed creating DaemonSet manifest")
-		return err
+// handleDaemonSet creates or updates the DaemonSet. The builder reads the container
+// runtime from the custom resource, so the detected runtime is set on it first.
+func (r *FluentbitReconciler) handleDaemonSet(ctx context.Context, cr *loggingService.LoggingService) error {
+	if cr.Spec.Fluentbit == nil {
+		return fmt.Errorf("fluentbit configuration in Logging Service %s is nil in the namespace %s", cr.GetName(), cr.GetNamespace())
 	}
-
-	err = r.CreateResource(cr, m)
-	if err == nil {
-		return nil
-	}
-	if !errors.IsAlreadyExists(err) {
-		return err
-	}
-
-	return r.updateDaemonSet(m)
+	cr.Spec.ContainerRuntimeType = r.DynamicParameters.ContainerRuntimeType
+	return reconcilers.DaemonSet(ctx, r.Client, r.Scheme, cr, fbbuilder.DaemonSet(cr, r.Defaults))
 }
 
-func (r *FluentbitReconciler) updateDaemonSet(desired *appsv1.DaemonSet) error {
-	existing := &appsv1.DaemonSet{ObjectMeta: desired.ObjectMeta}
-	if err := r.GetResource(existing); err != nil {
-		return err
+func (r *FluentbitReconciler) handleService(ctx context.Context, cr *loggingService.LoggingService) error {
+	if cr.Spec.Fluentbit == nil {
+		return fmt.Errorf("fluentbit configuration in Logging Service %s is nil in the namespace %s", cr.GetName(), cr.GetNamespace())
 	}
-
-	if existing.Labels == nil && desired.Labels != nil {
-		existing.SetLabels(desired.Labels)
-	} else {
-		maps.Copy(existing.Labels, desired.Labels)
-	}
-	existing.Spec.Template.SetLabels(desired.Spec.Template.GetLabels())
-	existing.Spec.Template.Spec = desired.Spec.Template.Spec
-
-	return r.UpdateResource(existing)
-}
-
-func (r *FluentbitReconciler) handleService(cr *loggingService.LoggingService) error {
-	m, err := fluentbitService(cr, r.DynamicParameters)
-	if err != nil {
-		r.Log.Error(err, "Failed creating Service manifest")
-		return err
-	}
-
-	if err = r.CreateResource(cr, m); err != nil {
-		if errors.IsAlreadyExists(err) {
-			e := &corev1.Service{ObjectMeta: m.ObjectMeta}
-			if err = r.GetResource(e); err != nil {
-				return err
-			}
-
-			//Set parameters
-			e.SetLabels(m.GetLabels())
-			e.Spec.Ports = m.Spec.Ports
-			e.Spec.Selector = m.Spec.Selector
-
-			if err = r.UpdateResource(e); err != nil {
-				return err
-			}
-		} else {
-			return err
-		}
-	}
-	return nil
+	return reconcilers.Service(ctx, r.Client, r.Scheme, cr, fbbuilder.Service(cr, r.Defaults))
 }
 
 func (r *FluentbitReconciler) handleConfigSecret(cr *loggingService.LoggingService) error {

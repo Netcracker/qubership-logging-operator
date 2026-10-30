@@ -1,61 +1,47 @@
-package config
+package defaults
 
 import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
-	intstr "k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-// FluentbitDefaults holds default values for the FluentBit DaemonSet + Service.
-// Values mirror charts/qubership-logging-operator/values.yaml and the historical YAML
-// asset at controllers/fluentbit/assets/daemon-set.yaml so existing deployments render
-// identical Kubernetes objects after the migration.
+// FluentbitDefaults holds the fallback values for the FluentBit DaemonSet and Service.
+// The resources and tolerations mirror charts/qubership-logging-operator/values.yaml.
 type FluentbitDefaults struct {
-	Resources                     corev1.ResourceRequirements
-	ConfigmapReloadResources      corev1.ResourceRequirements
-	Tolerations                   []corev1.Toleration
-	MinReadySeconds               int32
-	TerminationGracePeriodSeconds int64
-	MaxUnavailable                intstr.IntOrString
-	HTTPPort                      int32
-	LogToMetricsPort              int32
-	ConfigmapReloadPort           int32
-	LivenessProbe                 *corev1.Probe
-	ReadinessProbe                *corev1.Probe
-	ConfigmapReloadArgs           []string
+	Resources                corev1.ResourceRequirements
+	ConfigmapReloadResources corev1.ResourceRequirements
+	Tolerations              []corev1.Toleration
+	ConfigmapReloadArgs      []string
+	HTTPPort                 int32
+	LogToMetricsPort         int32
+	ConfigmapReloadPort      int32
+	ReloaderID               int64
+	TmpVolumeSize            resource.Quantity
+	MinReadySeconds          int32
+	TerminationGracePeriod   int64
+	MaxUnavailable           intstr.IntOrString
+	LivenessProbe            corev1.Probe
+	ReadinessProbe           corev1.Probe
 }
 
 func defaultFluentbit() FluentbitDefaults {
-	httpPort := int32(2020)
-	logToMetricsPort := int32(2021)
-	configmapReloadPort := int32(9533)
-	liveness := &corev1.Probe{
-		ProbeHandler: corev1.ProbeHandler{
-			HTTPGet: &corev1.HTTPGetAction{
-				Path:   "/",
-				Port:   intstr.FromInt32(httpPort),
-				Scheme: corev1.URISchemeHTTP,
+	const httpPort = 2020
+	probe := func(path string) corev1.Probe {
+		return corev1.Probe{
+			ProbeHandler: corev1.ProbeHandler{
+				HTTPGet: &corev1.HTTPGetAction{
+					Path:   path,
+					Port:   intstr.FromInt32(httpPort),
+					Scheme: corev1.URISchemeHTTP,
+				},
 			},
-		},
-		InitialDelaySeconds: 5,
-		TimeoutSeconds:      10,
-		PeriodSeconds:       10,
-		SuccessThreshold:    1,
-		FailureThreshold:    5,
-	}
-	readiness := &corev1.Probe{
-		ProbeHandler: corev1.ProbeHandler{
-			HTTPGet: &corev1.HTTPGetAction{
-				Path:   "/api/v1/health",
-				Port:   intstr.FromInt32(httpPort),
-				Scheme: corev1.URISchemeHTTP,
-			},
-		},
-		InitialDelaySeconds: 5,
-		TimeoutSeconds:      10,
-		PeriodSeconds:       10,
-		SuccessThreshold:    1,
-		FailureThreshold:    5,
+			InitialDelaySeconds: 5,
+			TimeoutSeconds:      10,
+			PeriodSeconds:       10,
+			SuccessThreshold:    1,
+			FailureThreshold:    5,
+		}
 	}
 	return FluentbitDefaults{
 		Resources: corev1.ResourceRequirements{
@@ -79,22 +65,24 @@ func defaultFluentbit() FluentbitDefaults {
 			},
 		},
 		Tolerations: []corev1.Toleration{
-			{Key: "node-role.kubernetes.io/master", Operator: corev1.TolerationOpExists},
+			{Key: "node-role.kubernetes.io/master", Operator: corev1.TolerationOpExists, Effect: corev1.TaintEffectNoSchedule},
 			{Operator: corev1.TolerationOpExists, Effect: corev1.TaintEffectNoExecute},
 			{Operator: corev1.TolerationOpExists, Effect: corev1.TaintEffectNoSchedule},
 		},
-		MinReadySeconds:               60,
-		TerminationGracePeriodSeconds: 30,
-		MaxUnavailable:                intstr.FromInt32(1),
-		HTTPPort:                      httpPort,
-		LogToMetricsPort:              logToMetricsPort,
-		ConfigmapReloadPort:           configmapReloadPort,
-		LivenessProbe:                 liveness,
-		ReadinessProbe:                readiness,
 		ConfigmapReloadArgs: []string{
 			"--volume-dir=/fluent-bit/etc",
 			"--webhook-url=http://localhost:2020/api/v2/reload",
 			"--webhook-retries=5",
 		},
+		HTTPPort:               httpPort,
+		LogToMetricsPort:       2021,
+		ConfigmapReloadPort:    9533,
+		ReloaderID:             1001,
+		TmpVolumeSize:          resource.MustParse("100Mi"),
+		MinReadySeconds:        60,
+		TerminationGracePeriod: 30,
+		MaxUnavailable:         intstr.FromInt32(1),
+		LivenessProbe:          probe("/"),
+		ReadinessProbe:         probe("/api/v1/health"),
 	}
 }

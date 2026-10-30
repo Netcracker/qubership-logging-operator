@@ -5,7 +5,7 @@ import (
 	"encoding/hex"
 	"strings"
 
-	util "github.com/Netcracker/qubership-logging-operator/controllers/utils"
+	util "github.com/Netcracker/qubership-logging-operator/internal/utils"
 	corev1 "k8s.io/api/core/v1"
 )
 

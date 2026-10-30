@@ -8,13 +8,13 @@ import (
 	"time"
 
 	loggingService "github.com/Netcracker/qubership-logging-operator/api/v1"
-	events_reader "github.com/Netcracker/qubership-logging-operator/controllers/events-reader"
-	"github.com/Netcracker/qubership-logging-operator/controllers/fluentbit"
-	fluentbit_forwarder_aggregator "github.com/Netcracker/qubership-logging-operator/controllers/fluentbit-forwarder-aggregator"
-	"github.com/Netcracker/qubership-logging-operator/controllers/fluentd"
-	"github.com/Netcracker/qubership-logging-operator/controllers/graylog"
-	util "github.com/Netcracker/qubership-logging-operator/controllers/utils"
-	"github.com/Netcracker/qubership-logging-operator/internal/reconciler/config"
+	events_reader "github.com/Netcracker/qubership-logging-operator/internal/controllers/events-reader"
+	"github.com/Netcracker/qubership-logging-operator/internal/controllers/fluentbit"
+	fluentbit_forwarder_aggregator "github.com/Netcracker/qubership-logging-operator/internal/controllers/fluentbit-forwarder-aggregator"
+	"github.com/Netcracker/qubership-logging-operator/internal/controllers/fluentd"
+	"github.com/Netcracker/qubership-logging-operator/internal/controllers/graylog"
+	util "github.com/Netcracker/qubership-logging-operator/internal/utils"
+	"github.com/Netcracker/qubership-logging-operator/internal/defaults"
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -104,7 +104,7 @@ func (r *LoggingServiceReconciler) ReconcileLoggingServiceCluster(ctx context.Co
 
 	r.updateDynamicParameters(customResourceInstance)
 
-	cfg := config.Get()
+	cfg := defaults.Get()
 	var isDeployServiceSuccess = true
 	var pendingComponents []util.Component
 

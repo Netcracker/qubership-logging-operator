@@ -1,8 +1,11 @@
 package fluentd
 
 import (
+	"context"
+
 	loggingService "github.com/Netcracker/qubership-logging-operator/api/v1"
-	util "github.com/Netcracker/qubership-logging-operator/controllers/utils"
+	"github.com/Netcracker/qubership-logging-operator/internal/defaults"
+	util "github.com/Netcracker/qubership-logging-operator/internal/utils"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -11,9 +14,11 @@ type FluentdReconciler struct {
 	*util.ComponentReconciler
 	ComponentList     *[]util.Component
 	DynamicParameters util.DynamicParameters
+	Defaults          *defaults.Defaults
 }
 
-func NewFluentdReconciler(client client.Client, scheme *runtime.Scheme, updater util.StatusUpdater, pendingComponents *[]util.Component, dynamicParameters util.DynamicParameters) FluentdReconciler {
+func NewFluentdReconciler(client client.Client, scheme *runtime.Scheme, updater util.StatusUpdater,
+	pendingComponents *[]util.Component, dynamicParameters util.DynamicParameters, cfg *defaults.Defaults) FluentdReconciler {
 	return FluentdReconciler{
 		ComponentReconciler: &util.ComponentReconciler{
 			Client:        client,
@@ -23,12 +28,13 @@ func NewFluentdReconciler(client client.Client, scheme *runtime.Scheme, updater 
 		},
 		ComponentList:     pendingComponents,
 		DynamicParameters: dynamicParameters,
+		Defaults:          cfg,
 	}
 }
 
 // Run reconciles fluentd custom resource.
 // Creates a DaemonSet, configuration Secret, and Service if they do not exist.
-func (r *FluentdReconciler) Run(cr *loggingService.LoggingService) error {
+func (r *FluentdReconciler) Run(ctx context.Context, cr *loggingService.LoggingService) error {
 	if !r.StatusUpdater.IsStatusFailed(util.FluentdStatus) {
 		r.StatusUpdater.UpdateStatus(util.FluentdStatus, util.InProgress, false, "Start reconcile of Fluentd")
 	}
@@ -38,10 +44,10 @@ func (r *FluentdReconciler) Run(cr *loggingService.LoggingService) error {
 		if err := r.handleConfigSecret(cr); err != nil {
 			return err
 		}
-		if err := r.handleDaemonSet(cr); err != nil {
+		if err := r.handleDaemonSet(ctx, cr); err != nil {
 			return err
 		}
-		if err := r.handleService(cr); err != nil {
+		if err := r.handleService(ctx, cr); err != nil {
 			return err
 		}
 		*r.ComponentList = append(

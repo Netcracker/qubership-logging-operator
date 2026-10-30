@@ -18,22 +18,31 @@ module directory separately.
 
 ### Entry Point
 
-`cmd/operator/main.go` — sets up controller-runtime manager, scoped to `WATCH_NAMESPACE` env var (defaults to `"logging"`). Exposes metrics on `:8383` and optional pprof on `:9180`.
+`cmd/operator/main.go` calls `internal/manager`, which sets up the controller-runtime manager, scoped to the
+`WATCH_NAMESPACE` env var (defaults to `"logging"`). It exposes metrics on `:8080` and optional pprof on `:9180`.
 
 ### Controller Hierarchy
 
-`LoggingServiceReconciler` (`controllers/loggingservice_controller.go`) orchestrates component-specific reconcilers:
+`LoggingServiceReconciler` (`internal/controllers/loggingservice_controller.go`) orchestrates component-specific
+reconcilers:
 
 | Package | Component | K8s Resource |
 |---|---|---|
-| `controllers/graylog/` | Graylog + MongoDB sidecar | StatefulSet |
-| `controllers/fluentd/` | FluentD | DaemonSet |
-| `controllers/fluentbit/` | FluentBit (standard mode) | DaemonSet |
-| `controllers/fluentbit-forwarder-aggregator/` | FluentBit HA mode (forwarder + aggregator) | DaemonSet + StatefulSet |
-| `controllers/events-reader/` | CloudEventsReader | Deployment |
-| `controllers/utils/` | Shared utilities (labels, status, pod management) | — |
+| `internal/controllers/graylog/` | Graylog + MongoDB sidecar | StatefulSet |
+| `internal/controllers/fluentd/` | FluentD | DaemonSet |
+| `internal/controllers/fluentbit/` | FluentBit (standard mode) | DaemonSet |
+| `internal/controllers/fluentbit-forwarder-aggregator/` | FluentBit HA mode (forwarder + aggregator) | DaemonSet + StatefulSet |
+| `internal/controllers/events-reader/` | CloudEventsReader | Deployment |
+| `internal/utils/` | Shared utilities (labels, status, pod management) | — |
 
-Each component reconciler uses embedded YAML templates (`go:embed`) for manifest generation and ConfigMap-based configuration.
+The component reconcilers build their workloads, Services, and ServiceAccounts in Go:
+
+- `internal/builder/<component>/` turns the `LoggingService` into Kubernetes objects. The functions are pure: no client
+  calls.
+- `internal/defaults/` holds the fallback values a builder uses when the custom resource leaves a field empty.
+- `internal/reconcilers/` creates each object or updates the fields the operator owns.
+
+The agent and Graylog configuration still comes from files embedded in the component controller packages.
 
 ### Reconciliation Pattern
 
@@ -82,7 +91,7 @@ make test                              # Alias for unit-test
 make unit-test                         # go test -race with shuffle, excludes e2e-tests
 make test-fluent-pipeline              # Run the Fluent Bit pipeline test
 make test-fluent-pipeline FLUENT_PIPELINE_SCENARIO=fluentbit-ha  # Run another pipeline scenario
-go test -race -run TestName ./controllers/...  # Run a single test
+go test -race -run TestName ./internal/...  # Run a single test
 ```
 
 Fluent pipeline tests support the `fluentbit`, `fluentbit-ha`, `fluentd`, `kube-metadata`, and `render` scenarios.
@@ -108,8 +117,9 @@ make docs             # Generate API docs (crd-ref-docs) and copy CRDs to docs/
   `test-pvc-annotations.sh` cover `charts/qubership-logging-operator/`, and `test-victorialogs-rendering.sh` covers
   `charts/qubership-victorialogs/`.
 - Run `make test-fluent-pipeline FLUENT_PIPELINE_SCENARIO=<scenario>` after changing FluentBit or FluentD
-  configuration under `controllers/`. Go unit tests do not run the rendered configuration; this target runs it in
-  Docker against log fixtures. The default scenario is `fluentbit`; `test/fluent-pipeline/README.md` lists the others.
+  configuration under `internal/controllers/`. Go unit tests do not run the rendered configuration; this target runs
+  it in Docker against log fixtures. The default scenario is `fluentbit`; `test/fluent-pipeline/README.md` lists the
+  others.
 
 ## Non-obvious invariants
 
@@ -126,19 +136,21 @@ make docs             # Generate API docs (crd-ref-docs) and copy CRDs to docs/
 - Do not edit `charts/qubership-logging-operator/README.md` or `docs/api.md`; both are generated. Change the `# --`
   comments in `values.yaml` or `README.md.gotmpl` and run `make docs/helm`, or change the Go doc comments in
   `api/v1/` and run `make docs/api.md`.
-- The operator creates the Graylog, FluentD, FluentBit, and events reader workloads and their configuration from
-  templates embedded in `controllers/<component>/` (`assets/`, `*.configmap/`, `config/`). The component directories
-  in `charts/qubership-logging-operator/templates/` hold supporting resources such as RBAC, certificates, and
-  monitoring. The exception is the Graylog auth proxy configuration, which lives in the chart under
+- The operator builds the Graylog, FluentD, FluentBit, and events reader workloads in `internal/builder/<component>/`
+  and renders their configuration from files embedded in `internal/controllers/<component>/` (`*.configmap/`,
+  `config/`). A value a builder falls back to must match the default in
+  `charts/qubership-logging-operator/values.yaml`; a value set in the custom resource always wins. The component
+  directories in `charts/qubership-logging-operator/templates/` hold supporting resources such as RBAC, certificates,
+  and monitoring. The exception is the Graylog auth proxy configuration, which lives in the chart under
   `templates/graylog/auth-proxy/`.
-- FluentBit configuration exists separately for each mode: `controllers/fluentbit/fluentbit.configmap/` for the
-  standard mode, and `forwarder.configmap/` and `aggregator.configmap/` under
-  `controllers/fluentbit-forwarder-aggregator/` for the HA mode. The copies have diverged, so check each one when
-  you change a parser, filter, output, or Lua script, and apply the change wherever the same logic exists.
+- FluentBit configuration exists separately for each mode: `internal/controllers/fluentbit/fluentbit.configmap/` for
+  the standard mode, and `forwarder.configmap/` and `aggregator.configmap/` under
+  `internal/controllers/fluentbit-forwarder-aggregator/` for the HA mode. The copies have diverged, so check each one
+  when you change a parser, filter, output, or Lua script, and apply the change wherever the same logic exists.
 - A change to a parser, a filter, or the emitted fields must update the expected results in
   `test/fluent-pipeline/testdata/` (`output/<scenario>/` and `parser-cases.json`) in the same change. Remove the
   cases of a parser you delete.
-- `Dockerfile` copies only `api/`, `controllers/`, `cmd/operator/main.go`, and `go.*` into the build stage. Add a
+- `Dockerfile` copies only `api/`, `internal/`, `cmd/operator/main.go`, and `go.*` into the build stage. Add a
   `COPY` line when you add another top-level Go package directory or a second file in `cmd/operator/`; otherwise
   local builds pass and the image build fails.
 - `docs/troubleshooting.md` is a symlink to

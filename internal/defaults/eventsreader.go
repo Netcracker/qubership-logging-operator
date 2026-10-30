@@ -1,32 +1,28 @@
-package config
+package defaults
 
 import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
-	intstr "k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-// EventsReaderDefaults holds default values for the CloudEventsReader component.
-// Values mirror charts/qubership-logging-operator/values.yaml so deployments using
-// only Helm-supplied defaults render identical Kubernetes objects after the migration.
+// EventsReaderDefaults holds the fallback values for the CloudEventsReader Deployment
+// and Service. The resources mirror charts/qubership-logging-operator/values.yaml.
 type EventsReaderDefaults struct {
-	Image           string
-	ImagePullPolicy corev1.PullPolicy
-	Command         []string
-	Resources       corev1.ResourceRequirements
-	Port            int32
-	HealthPath      string
-	LivenessProbe   *corev1.Probe
-	ReadinessProbe  *corev1.Probe
-	SecurityContext *corev1.SecurityContext
-	StrategyType    string
-	MaxSurge        intstr.IntOrString
-	MaxUnavailable  intstr.IntOrString
+	Command               []string
+	Resources             corev1.ResourceRequirements
+	Port                  int32
+	RunAsID               int64
+	TmpVolumeSize         resource.Quantity
+	LivenessProbe         corev1.Probe
+	ReadinessProbe        corev1.Probe
+	RollingMaxSurge       intstr.IntOrString
+	RollingMaxUnavailable intstr.IntOrString
 }
 
 func defaultEventsReader() EventsReaderDefaults {
-	port := int32(8080)
-	healthProbe := &corev1.Probe{
+	const port = 8080
+	healthProbe := corev1.Probe{
 		ProbeHandler: corev1.ProbeHandler{
 			HTTPGet: &corev1.HTTPGetAction{
 				Path:   "/health",
@@ -40,11 +36,8 @@ func defaultEventsReader() EventsReaderDefaults {
 		SuccessThreshold:    1,
 		FailureThreshold:    1,
 	}
-	runAsNonRoot := true
-	runAsUser := int64(1000)
 	return EventsReaderDefaults{
-		ImagePullPolicy: corev1.PullIfNotPresent,
-		Command:         []string{"/events-reader/eventsreader"},
+		Command: []string{"/events-reader/eventsreader"},
 		Resources: corev1.ResourceRequirements{
 			Requests: corev1.ResourceList{
 				corev1.ResourceCPU:    resource.MustParse("100m"),
@@ -55,16 +48,12 @@ func defaultEventsReader() EventsReaderDefaults {
 				corev1.ResourceMemory: resource.MustParse("128Mi"),
 			},
 		},
-		Port:           port,
-		HealthPath:     "/health",
-		LivenessProbe:  healthProbe.DeepCopy(),
-		ReadinessProbe: healthProbe.DeepCopy(),
-		SecurityContext: &corev1.SecurityContext{
-			RunAsNonRoot: &runAsNonRoot,
-			RunAsUser:    &runAsUser,
-		},
-		StrategyType:   "RollingUpdate",
-		MaxSurge:       intstr.FromInt32(25),
-		MaxUnavailable: intstr.FromInt32(25),
+		Port:                  port,
+		RunAsID:               1000,
+		TmpVolumeSize:         resource.MustParse("100Mi"),
+		LivenessProbe:         healthProbe,
+		ReadinessProbe:        healthProbe,
+		RollingMaxSurge:       intstr.FromInt32(25),
+		RollingMaxUnavailable: intstr.FromInt32(25),
 	}
 }

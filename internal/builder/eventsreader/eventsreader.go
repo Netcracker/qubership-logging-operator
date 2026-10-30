@@ -1,140 +1,137 @@
-// Package eventsreader builds the Deployment and Service for the CloudEventsReader
-// component from the LoggingService CR plus code-level defaults. It replaces the
-// embedded YAML template at controllers/events-reader/assets/.
+// Package eventsreader builds the CloudEventsReader Deployment and Service from the
+// LoggingService custom resource.
 package eventsreader
 
 import (
-	"context"
+	"strings"
 
 	loggingService "github.com/Netcracker/qubership-logging-operator/api/v1"
-	util "github.com/Netcracker/qubership-logging-operator/controllers/utils"
-	"github.com/Netcracker/qubership-logging-operator/internal/reconciler/config"
-	"github.com/Netcracker/qubership-logging-operator/internal/reconciler/factory/build"
-	"github.com/Netcracker/qubership-logging-operator/internal/reconciler/factory/reconcile"
+	"github.com/Netcracker/qubership-logging-operator/internal/builder"
+	"github.com/Netcracker/qubership-logging-operator/internal/defaults"
+	util "github.com/Netcracker/qubership-logging-operator/internal/utils"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	intstr "k8s.io/apimachinery/pkg/util/intstr"
-	"sigs.k8s.io/controller-runtime/pkg/client"
+	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/utils/ptr"
 )
 
 const (
-	// ComponentName is the value used for app.kubernetes.io/component and as the
-	// Deployment / Service / container name. Matches util.EventsReaderComponentName.
-	ComponentName = "events-reader"
-	// Technology is set on the pod-template app.kubernetes.io/technology label.
-	Technology = "go"
-	// EnvCloudURL is the env var the events-reader binary reads to learn the cluster URL.
-	EnvCloudURL = "OPENSHIFT_URL"
+	name       = "events-reader"
+	technology = "go"
+	tmpVolume  = "tmp"
 )
 
-// CreateOrUpdate reconciles the events-reader Deployment and Service against the
-// cluster. Caller is responsible for gating on cr.Spec.CloudEventsReader.IsInstall().
-func CreateOrUpdate(ctx context.Context, c client.Client, scheme *runtime.Scheme, cr *loggingService.LoggingService, cfg *config.Defaults) error {
-	def := cfg.EventsReader
-	deploy := buildDeployment(cr, def)
-	if err := reconcile.Deployment(ctx, c, scheme, cr, deploy); err != nil {
-		return err
-	}
-	return reconcile.Service(ctx, c, scheme, cr, buildService(cr))
-}
-
-// selector is the label selector linking Service → pods and Deployment → pods. Matches
-// the original YAML asset (selector.matchLabels.name=events-reader).
+// selector links the Service and the Deployment to the events reader pods.
 func selector() map[string]string {
-	return map[string]string{"name": ComponentName}
+	return map[string]string{"name": name}
 }
 
-func buildDeployment(cr *loggingService.LoggingService, def config.EventsReaderDefaults) *appsv1.Deployment {
+// Deployment returns the CloudEventsReader Deployment. The caller checks that
+// cr.Spec.CloudEventsReader is set.
+func Deployment(cr *loggingService.LoggingService, cfg *defaults.Defaults) *appsv1.Deployment {
 	spec := cr.Spec.CloudEventsReader
-	image := build.FirstString(spec.DockerImage, def.Image)
-	resources := spec.Resources
-	if resources == nil {
-		r := def.Resources.DeepCopy()
-		resources = r
-	}
+	def := cfg.EventsReader
 
-	container := build.NewContainer(ComponentName, build.ContainerOpts{
-		Image:           image,
-		ImagePullPolicy: def.ImagePullPolicy,
+	args := spec.Args
+	if args == nil {
+		args = []string{}
+	}
+	container := builder.NewContainer(name, builder.ContainerOpts{
+		Image:           spec.DockerImage,
+		ImagePullPolicy: corev1.PullIfNotPresent,
 		Command:         def.Command,
-		Args:            spec.Args,
-		Env:             []corev1.EnvVar{{Name: EnvCloudURL, Value: cr.Spec.CloudURL}},
+		Args:            args,
+		Env:             []corev1.EnvVar{{Name: "OPENSHIFT_URL", Value: cr.Spec.CloudURL}},
 		Ports:           []corev1.ContainerPort{{ContainerPort: def.Port, Protocol: corev1.ProtocolTCP}},
-		Resources:       *resources,
+		Resources:       *builder.FirstNonNil(spec.Resources, &def.Resources).DeepCopy(),
+		VolumeMounts:    []corev1.VolumeMount{{Name: tmpVolume, MountPath: "/tmp"}},
 		LivenessProbe:   def.LivenessProbe.DeepCopy(),
 		ReadinessProbe:  def.ReadinessProbe.DeepCopy(),
-		SecurityContext: containerSecurityContext(cr, def),
+		SecurityContext: containerSecurityContext(cr.Spec.OpenshiftDeploy, def.RunAsID),
 	})
 
-	pod := corev1.PodSpec{
-		ServiceAccountName: ComponentName,
-		Containers:         []corev1.Container{container},
-		NodeSelector:       nodeSelector(spec.NodeSelectorKey, spec.NodeSelectorValue),
-		Affinity:           spec.Affinity,
-		PriorityClassName:  spec.PriorityClassName,
+	podSpec := corev1.PodSpec{
+		ServiceAccountName: name,
+		NodeSelector:       builder.NodeSelector(spec.NodeSelectorKey, spec.NodeSelectorValue),
+		SecurityContext:    podSecurityContext(cr.Spec.OpenshiftDeploy, def.RunAsID),
+		Volumes: []corev1.Volume{{
+			Name:         tmpVolume,
+			VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{SizeLimit: &def.TmpVolumeSize}},
+		}},
+		Containers: []corev1.Container{container},
+		Affinity:   spec.Affinity,
+	}
+	if strings.TrimSpace(spec.PriorityClassName) != "" {
+		podSpec.PriorityClassName = spec.PriorityClassName
 	}
 
-	maxSurge := def.MaxSurge
-	maxUnavailable := def.MaxUnavailable
-	deploy := build.NewDeployment(ComponentName, cr.GetNamespace(), ComponentName, build.DeploymentOpts{
+	maxSurge, maxUnavailable := def.RollingMaxSurge, def.RollingMaxUnavailable
+	deployment := builder.NewDeployment(name, cr.GetNamespace(), builder.DeploymentOpts{
 		Selector: selector(),
 		Strategy: appsv1.DeploymentStrategy{
-			Type: appsv1.RollingUpdateDeploymentStrategyType,
-			RollingUpdate: &appsv1.RollingUpdateDeployment{
-				MaxSurge:       &maxSurge,
-				MaxUnavailable: &maxUnavailable,
-			},
+			Type:          appsv1.RollingUpdateDeploymentStrategyType,
+			RollingUpdate: &appsv1.RollingUpdateDeployment{MaxSurge: &maxSurge, MaxUnavailable: &maxUnavailable},
 		},
-		PodSpec:        pod,
-		PodAnnotations: spec.Annotations,
+		PodSpec:        podSpec,
 		Annotations:    spec.Annotations,
+		PodAnnotations: spec.Annotations,
 	})
-
-	util.SetLabelsForWorkload(deploy, &deploy.Spec.Template.Labels, util.LabelInput{
-		Name:            ComponentName,
-		Component:       ComponentName,
-		Instance:        util.GetInstanceLabel(ComponentName, cr.GetNamespace()),
-		Version:         util.GetTagFromImage(image),
-		Technology:      Technology,
+	util.SetLabelsForWorkload(deployment, &deployment.Spec.Template.Labels, util.LabelInput{
+		Name:            name,
+		Component:       util.ComponentBackend,
+		Instance:        util.GetInstanceLabel(name, cr.GetNamespace()),
+		Version:         util.GetTagFromImage(spec.DockerImage),
+		Technology:      technology,
 		ComponentLabels: spec.Labels,
 	})
-	return deploy
+	return deployment
 }
 
-func buildService(cr *loggingService.LoggingService) *corev1.Service {
-	spec := cr.Spec.CloudEventsReader
-	port := int32(8080)
-	svc := build.NewService(ComponentName, cr.GetNamespace(), ComponentName, build.ServiceOpts{
-		Type:     corev1.ServiceTypeClusterIP,
-		Ports:    []corev1.ServicePort{{Name: ComponentName, Port: port, TargetPort: intstr.FromInt32(port), Protocol: corev1.ProtocolTCP}},
+// Service returns the CloudEventsReader Service. The caller checks that
+// cr.Spec.CloudEventsReader is set.
+func Service(cr *loggingService.LoggingService, cfg *defaults.Defaults) *corev1.Service {
+	port := cfg.EventsReader.Port
+	service := builder.NewService(name, cr.GetNamespace(), builder.ServiceOpts{
 		Selector: selector(),
+		Ports: []corev1.ServicePort{{
+			Name:       name,
+			Port:       port,
+			Protocol:   corev1.ProtocolTCP,
+			TargetPort: intstr.FromInt32(port),
+		}},
 	})
-	util.SetLabelsForResource(svc, util.LabelInput{
-		Name:            ComponentName,
-		Component:       ComponentName,
-		ComponentLabels: spec.Labels,
+	util.SetLabelsForResource(service, util.LabelInput{
+		Name:            name,
+		Component:       util.ComponentBackend,
+		ComponentLabels: cr.Spec.CloudEventsReader.Labels,
 	}, nil)
-	return svc
+	return service
 }
 
-func nodeSelector(key, value string) map[string]string {
-	if key == "" || value == "" {
-		return nil
+// podSecurityContext leaves runAsUser unset on OpenShift, where the security context
+// constraint assigns the user.
+func podSecurityContext(openshift bool, id int64) *corev1.PodSecurityContext {
+	sc := &corev1.PodSecurityContext{
+		RunAsNonRoot:   ptr.To(true),
+		RunAsGroup:     ptr.To(id),
+		SeccompProfile: &corev1.SeccompProfile{Type: corev1.SeccompProfileTypeRuntimeDefault},
 	}
-	return map[string]string{key: value}
+	if !openshift {
+		sc.RunAsUser = ptr.To(id)
+	}
+	return sc
 }
 
-// containerSecurityContext mirrors the original YAML conditional: when the cluster is
-// not OpenShift, run the container as non-root user 1000; on OpenShift the SCC handles
-// it, so leave the security context empty.
-func containerSecurityContext(cr *loggingService.LoggingService, def config.EventsReaderDefaults) *corev1.SecurityContext {
-	if cr.Spec.OpenshiftDeploy {
-		return nil
+func containerSecurityContext(openshift bool, id int64) *corev1.SecurityContext {
+	sc := &corev1.SecurityContext{
+		AllowPrivilegeEscalation: ptr.To(false),
+		ReadOnlyRootFilesystem:   ptr.To(true),
+		RunAsNonRoot:             ptr.To(true),
+		Capabilities:             &corev1.Capabilities{Drop: []corev1.Capability{"ALL"}},
+		RunAsGroup:               ptr.To(id),
 	}
-	if def.SecurityContext == nil {
-		return nil
+	if !openshift {
+		sc.RunAsUser = ptr.To(id)
 	}
-	sc := *def.SecurityContext
-	return &sc
+	return sc
 }

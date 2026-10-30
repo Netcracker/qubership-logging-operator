@@ -1,14 +1,8 @@
-// Package build holds plain constructors for Kubernetes objects (Container, Service,
-// ServiceAccount, Deployment, DaemonSet, StatefulSet, Job) used by per-component
-// factories under build/<component>/. These are not fluent builders — each takes an
-// option struct and returns the typed object so callers can mutate further if needed.
-//
-// Coalesce helpers in this file implement the user/CR-wins-over-defaults precedence:
-// First(spec.X, cfg.X) returns spec.X when it is non-zero, otherwise cfg.X.
-package build
+package builder
 
-// First returns a if it is non-zero, otherwise b. Use to coalesce a CR-supplied value
-// over a code-level default (b).
+import corev1 "k8s.io/api/core/v1"
+
+// First returns a when it is not the zero value, and b otherwise.
 func First[T comparable](a, b T) T {
 	var zero T
 	if a != zero {
@@ -17,16 +11,15 @@ func First[T comparable](a, b T) T {
 	return b
 }
 
-// FirstPtr returns *a if a is non-nil, otherwise b. The pointer indirection lets
-// callers express "field unset" distinctly from the zero value.
-func FirstPtr[T any](a *T, b T) T {
+// FirstNonNil returns a when it is not nil, and b otherwise.
+func FirstNonNil[T any](a, b *T) *T {
 	if a != nil {
-		return *a
+		return a
 	}
 	return b
 }
 
-// FirstSlice returns a if it is non-empty, otherwise b.
+// FirstSlice returns a when it is not empty, and b otherwise.
 func FirstSlice[T any](a, b []T) []T {
 	if len(a) > 0 {
 		return a
@@ -34,7 +27,7 @@ func FirstSlice[T any](a, b []T) []T {
 	return b
 }
 
-// FirstMap returns a if it is non-empty, otherwise b.
+// FirstMap returns a when it is not empty, and b otherwise.
 func FirstMap[K comparable, V any](a, b map[K]V) map[K]V {
 	if len(a) > 0 {
 		return a
@@ -42,5 +35,12 @@ func FirstMap[K comparable, V any](a, b map[K]V) map[K]V {
 	return b
 }
 
-// FirstString returns a if it is non-empty, otherwise b. Equivalent to First[string].
-func FirstString(a, b string) string { return First(a, b) }
+// Resources returns a copy of the resources set in the custom resource, or of fallback
+// when the custom resource sets none. A partial set is used as written: the builder does
+// not mix it with fallback values.
+func Resources(fromCR *corev1.ResourceRequirements, fallback corev1.ResourceRequirements) corev1.ResourceRequirements {
+	if fromCR != nil {
+		return *fromCR.DeepCopy()
+	}
+	return *fallback.DeepCopy()
+}

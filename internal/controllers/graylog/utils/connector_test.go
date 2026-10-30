@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	loggingService "github.com/Netcracker/qubership-logging-operator/api/v1"
-	util "github.com/Netcracker/qubership-logging-operator/controllers/utils"
+	util "github.com/Netcracker/qubership-logging-operator/internal/utils"
 	"k8s.io/client-go/kubernetes/fake"
 )
 

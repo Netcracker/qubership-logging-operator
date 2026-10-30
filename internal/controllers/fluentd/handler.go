@@ -1,100 +1,100 @@
 package fluentd
 
 import (
+	"context"
 	"fmt"
 
 	loggingService "github.com/Netcracker/qubership-logging-operator/api/v1"
-	util "github.com/Netcracker/qubership-logging-operator/controllers/utils"
-	"github.com/google/go-cmp/cmp"
+	"github.com/Netcracker/qubership-logging-operator/internal/builder/fluentd"
+	"github.com/Netcracker/qubership-logging-operator/internal/reconcilers"
+	util "github.com/Netcracker/qubership-logging-operator/internal/utils"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// handleConfigMap reconciles the FluentD ConfigMap (DaemonSet+Service moved to the Go
-// factory in Stage 3).
-func (r *FluentdReconciler) handleConfigMap(cr *loggingService.LoggingService) error {
-	m, err := fluentdConfigMap(cr, r.DynamicParameters)
+func (r *FluentdReconciler) handleConfigSecret(cr *loggingService.LoggingService) error {
+	credentials, err := r.resolveOutputCredentials(cr)
 	if err != nil {
-		r.Log.Error(err, "Failed creating ConfigMap manifest")
+		r.Log.Error(err, "Failed to resolve Fluentd output credentials")
 		return err
 	}
-	_, err = r.updateConfigMap(cr, m)
+
+	secret, err := fluentdConfigSecret(cr, r.DynamicParameters, credentials)
 	if err != nil {
-		r.Log.Error(err, fmt.Sprintf("Cannot create or update config map %s", m.Name))
+		r.Log.Error(err, "Failed creating Secret manifest")
 		return err
 	}
+
+	_, err = r.CreateOrUpdateConfigSecret(cr, secret)
+	if err != nil {
+		r.Log.Error(err, fmt.Sprintf("Cannot create or update config secret %s", secret.Name))
+		return err
+	}
+
+	if err = r.DeleteLegacyConfigMap(cr.GetNamespace(), util.FluentdComponentName); err != nil {
+		r.Log.Error(err, fmt.Sprintf("Cannot delete the legacy config map %s", util.FluentdComponentName))
+		return err
+	}
+
 	return nil
 }
 
-func (r *FluentdReconciler) deleteDaemonSet(cr *loggingService.LoggingService) error {
-	e := &appsv1.DaemonSet{
-		ObjectMeta: metav1.ObjectMeta{Name: util.FluentdComponentName, Namespace: cr.GetNamespace()},
+func (r *FluentdReconciler) resolveOutputCredentials(cr *loggingService.LoggingService) (outputCredentials, error) {
+	credentials := outputCredentials{}
+	if cr.Spec.Fluentd == nil || cr.Spec.Fluentd.Output == nil {
+		return credentials, nil
 	}
-	if err := r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			return nil
-		}
-		return err
+	output := cr.Spec.Fluentd.Output
+	outputs := make([]util.OutputAuth, 0, 2)
+	if output.Loki != nil {
+		outputs = append(outputs, util.OutputAuth{Values: &credentials.Loki, Enabled: output.Loki.Enabled, Auth: output.Loki.Auth})
 	}
-	return r.DeleteResource(e)
+	if output.Http != nil {
+		outputs = append(outputs, util.OutputAuth{Values: &credentials.Http, Enabled: output.Http.Enabled, Auth: output.Http.Auth})
+	}
+	if err := r.ResolveFluentdOutputAuth(cr.GetNamespace(), outputs...); err != nil {
+		return outputCredentials{}, err
+	}
+	return credentials, nil
 }
 
-func (r *FluentdReconciler) deleteConfigMap(cr *loggingService.LoggingService) error {
-	e := &corev1.ConfigMap{
-		ObjectMeta: metav1.ObjectMeta{Name: util.FluentdComponentName, Namespace: cr.GetNamespace()},
-	}
-	if err := r.GetResource(e); err != nil {
-		if errors.IsNotFound(err) {
-			return nil
-		}
+// handleDaemonSet creates or updates the FluentD DaemonSet for the detected container runtime.
+func (r *FluentdReconciler) handleDaemonSet(ctx context.Context, cr *loggingService.LoggingService) error {
+	cr.Spec.ContainerRuntimeType = r.DynamicParameters.ContainerRuntimeType
+	return reconcilers.DaemonSet(ctx, r.Client, r.Scheme, cr, fluentd.DaemonSet(cr, r.Defaults))
+}
+
+func (r *FluentdReconciler) handleService(ctx context.Context, cr *loggingService.LoggingService) error {
+	return reconcilers.Service(ctx, r.Client, r.Scheme, cr, fluentd.Service(cr, r.Defaults))
+}
+
+func (r *FluentdReconciler) deleteDaemonSet(cr *loggingService.LoggingService) error {
+	return r.deleteIfExists(&appsv1.DaemonSet{ObjectMeta: componentMeta(cr)})
+}
+
+func (r *FluentdReconciler) deleteConfigSecret(cr *loggingService.LoggingService) error {
+	if err := r.deleteIfExists(&corev1.Secret{ObjectMeta: componentMeta(cr)}); err != nil {
 		return err
 	}
-	return r.DeleteResource(e)
+	return r.DeleteLegacyConfigMap(cr.GetNamespace(), util.FluentdComponentName)
 }
 
 func (r *FluentdReconciler) deleteService(cr *loggingService.LoggingService) error {
-	e := &corev1.Service{
-		ObjectMeta: metav1.ObjectMeta{Name: util.FluentdComponentName, Namespace: cr.GetNamespace()},
-	}
-	if err := r.GetResource(e); err != nil {
+	return r.deleteIfExists(&corev1.Service{ObjectMeta: componentMeta(cr)})
+}
+
+func componentMeta(cr *loggingService.LoggingService) metav1.ObjectMeta {
+	return metav1.ObjectMeta{Name: util.FluentdComponentName, Namespace: cr.GetNamespace()}
+}
+
+func (r *FluentdReconciler) deleteIfExists(obj util.K8sResource) error {
+	if err := r.GetResource(obj); err != nil {
 		if errors.IsNotFound(err) {
 			return nil
 		}
 		return err
 	}
-	return r.DeleteResource(e)
-}
-
-// Equal returns true when source and target ConfigMaps carry the same Data,
-// BinaryData, and Labels. Unlike fluentbit, fluentd intentionally checks labels —
-// covered by TestFluentdEqual.
-func (r *FluentdReconciler) Equal(source *corev1.ConfigMap, target *corev1.ConfigMap) bool {
-	return cmp.Equal(source.Data, target.Data) &&
-		cmp.Equal(source.BinaryData, target.BinaryData) &&
-		cmp.Equal(source.GetLabels(), target.GetLabels())
-}
-
-// updateConfigMap creates the ConfigMap, or updates it when the live copy's Data /
-// BinaryData / Labels differ from the desired state. Returns true on actual write.
-func (r *FluentdReconciler) updateConfigMap(cr *loggingService.LoggingService, configMap *corev1.ConfigMap) (updated bool, err error) {
-	if err = r.CreateResource(cr, configMap); err != nil {
-		if errors.IsAlreadyExists(err) {
-			existedConfigMap := &corev1.ConfigMap{ObjectMeta: configMap.ObjectMeta}
-			if err = r.GetResource(existedConfigMap); err != nil {
-				return false, err
-			}
-			if !r.Equal(existedConfigMap, configMap) {
-				if err = r.UpdateResource(configMap); err != nil {
-					return false, err
-				}
-				return true, nil
-			}
-			r.Log.Info("The config map is not changed")
-			return false, nil
-		}
-		return false, err
-	}
-	return true, nil
+	return r.DeleteResource(obj)
 }

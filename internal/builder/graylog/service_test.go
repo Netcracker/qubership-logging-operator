@@ -4,7 +4,8 @@ import (
 	"testing"
 
 	loggingService "github.com/Netcracker/qubership-logging-operator/api/v1"
-	util "github.com/Netcracker/qubership-logging-operator/controllers/utils"
+	"github.com/Netcracker/qubership-logging-operator/internal/defaults"
+	util "github.com/Netcracker/qubership-logging-operator/internal/utils"
 )
 
 // TestGraylogServiceCarriesNameLabel guards the label the ServiceMonitor "graylog-service-monitor"
@@ -14,10 +15,7 @@ func TestGraylogServiceCarriesNameLabel(t *testing.T) {
 		Graylog: &loggingService.Graylog{AuthProxy: &loggingService.AuthProxy{}},
 	}}
 
-	service, err := graylogService(cr)
-	if err != nil {
-		t.Fatalf("cannot build the Service: %v", err)
-	}
+	service := Service(cr, defaults.Get())
 
 	if got := service.Labels["app.kubernetes.io/name"]; got != util.GraylogComponentName {
 		t.Errorf("expected the service label app.kubernetes.io/name=%s, got %q", util.GraylogComponentName, got)

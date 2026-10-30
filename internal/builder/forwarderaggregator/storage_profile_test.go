@@ -1,10 +1,10 @@
-package fluentbit_forwarder_aggregator
+package forwarderaggregator
 
 import (
 	"testing"
 
 	loggingService "github.com/Netcracker/qubership-logging-operator/api/v1"
-	util "github.com/Netcracker/qubership-logging-operator/controllers/utils"
+	"github.com/Netcracker/qubership-logging-operator/internal/defaults"
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -52,10 +52,8 @@ func TestForwarderDaemonSetStorageProfiles(t *testing.T) {
 				},
 			}}
 
-			daemonSet, err := forwarderDaemonSet(cr, util.DynamicParameters{ContainerRuntimeType: "containerd"})
-			if err != nil {
-				t.Fatalf("render Fluent Bit forwarder DaemonSet: %v", err)
-			}
+			cr.Spec.ContainerRuntimeType = "containerd"
+			daemonSet := ForwarderDaemonSet(cr, defaults.Get())
 			assertForwarderStorageProfile(t, daemonSet.Spec.Template.Spec, test.expectedStateSizeLimit,
 				test.persistentOffsets, test.persistentInputBuffer)
 		})
@@ -70,17 +68,12 @@ func TestForwarderDaemonSetSecurityContext(t *testing.T) {
 		},
 	}}
 
-	daemonSet, err := forwarderDaemonSet(cr, util.DynamicParameters{ContainerRuntimeType: "containerd"})
-	if err != nil {
-		t.Fatalf("render Fluent Bit forwarder DaemonSet: %v", err)
-	}
+	cr.Spec.ContainerRuntimeType = "containerd"
+	daemonSet := ForwarderDaemonSet(cr, defaults.Get())
 	assertForwarderPodSecurity(t, daemonSet.Spec.Template.Spec)
 
 	cr.Spec.OpenshiftDeploy = true
-	openShiftDaemonSet, err := forwarderDaemonSet(cr, util.DynamicParameters{ContainerRuntimeType: "containerd"})
-	if err != nil {
-		t.Fatalf("render OpenShift Fluent Bit forwarder DaemonSet: %v", err)
-	}
+	openShiftDaemonSet := ForwarderDaemonSet(cr, defaults.Get())
 	context := openShiftDaemonSet.Spec.Template.Spec.SecurityContext
 	if context == nil || context.SELinuxOptions == nil || context.SELinuxOptions.Type != "spc_t" {
 		t.Error("OpenShift forwarder pod must use spc_t to access host logs and persistent storage")

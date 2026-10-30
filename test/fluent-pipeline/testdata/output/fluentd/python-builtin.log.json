@@ -1,0 +1,200 @@
+[
+  {
+    "_test": {
+      "id": "builtin-python-trace"
+    },
+    "container": "fake-container",
+    "fluentd_time": "2026-09-03T10:22:30.000Z",
+    "hostname": "fake-fluent",
+    "kubernetes_host": "fake-node",
+    "labels": "{\"app\" : \"fluent-pipeline-test\", \"app.kubernetes.io_version\" : \"0.1.0\"}",
+    "level": "info",
+    "log": "Traceback (most recent call last):\n  File \"/app/worker.py\", line 12, in run\n    raise ValueError(\"invalid task\")\nValueError: invalid task",
+    "namespace": "fake-namespace",
+    "nc_audit_label": "false",
+    "parse_level_unknown": "true",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "source_level": null,
+    "time": "2026-09-03T10:22:30.000007468Z"
+  },
+  {
+    "_test": {
+      "id": "builtin-python-colon-next-line"
+    },
+    "container": "fake-container",
+    "fluentd_time": "2026-09-03T10:22:31.000Z",
+    "hostname": "fake-fluent",
+    "kubernetes_host": "fake-node",
+    "labels": "{\"app\" : \"fluent-pipeline-test\", \"app.kubernetes.io_version\" : \"0.1.0\"}",
+    "level": "info",
+    "log": "INFO: worker continues",
+    "namespace": "fake-namespace",
+    "nc_audit_label": "false",
+    "parse_level_unknown": "true",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "source_level": null,
+    "time": "2026-09-03T10:22:31.000007468Z"
+  },
+  {
+    "_test": {
+      "id": "builtin-python-next-line"
+    },
+    "container": "fake-container",
+    "fluentd_time": "2026-09-03T10:22:32.000Z",
+    "hostname": "fake-fluent",
+    "kubernetes_host": "fake-node",
+    "labels": "{\"app\" : \"fluent-pipeline-test\", \"app.kubernetes.io_version\" : \"0.1.0\"}",
+    "level": "info",
+    "log": "worker continues",
+    "namespace": "fake-namespace",
+    "nc_audit_label": "false",
+    "parse_level_unknown": "true",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "source_level": null,
+    "time": "2026-09-03T10:22:32.000007468Z"
+  },
+  {
+    "_test": {
+      "id": "builtin-python-trace-two-frames-without-source"
+    },
+    "container": "fake-container",
+    "fluentd_time": "2026-09-03T10:22:33.000Z",
+    "hostname": "fake-fluent",
+    "kubernetes_host": "fake-node",
+    "labels": "{\"app\" : \"fluent-pipeline-test\", \"app.kubernetes.io_version\" : \"0.1.0\"}",
+    "level": "info",
+    "log": "Traceback (most recent call last):\n  File \"<generated>\", line 3, in dispatch\n  File \"<generated>\", line 7, in run\nValueError: invalid generated task",
+    "namespace": "fake-namespace",
+    "nc_audit_label": "false",
+    "parse_level_unknown": "true",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "source_level": null,
+    "time": "2026-09-03T10:22:33.000007468Z"
+  },
+  {
+    "_test": {
+      "id": "builtin-python-colon-after-two-frames-without-source"
+    },
+    "container": "fake-container",
+    "fluentd_time": "2026-09-03T10:22:34.000Z",
+    "hostname": "fake-fluent",
+    "kubernetes_host": "fake-node",
+    "labels": "{\"app\" : \"fluent-pipeline-test\", \"app.kubernetes.io_version\" : \"0.1.0\"}",
+    "level": "info",
+    "log": "INFO: worker continues after generated code",
+    "namespace": "fake-namespace",
+    "nc_audit_label": "false",
+    "parse_level_unknown": "true",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "source_level": null,
+    "time": "2026-09-03T10:22:34.000007468Z"
+  },
+  {
+    "_test": {
+      "id": "builtin-python-trace-without-source"
+    },
+    "container": "fake-container",
+    "fluentd_time": "2026-09-03T10:22:35.000Z",
+    "hostname": "fake-fluent",
+    "kubernetes_host": "fake-node",
+    "labels": "{\"app\" : \"fluent-pipeline-test\", \"app.kubernetes.io_version\" : \"0.1.0\"}",
+    "level": "info",
+    "log": "Traceback (most recent call last):\n  File \"<compiled>\", line 12, in run\nKeyError: 'compiled task'\nINFO: worker continues after compiled code",
+    "namespace": "fake-namespace",
+    "nc_audit_label": "false",
+    "parse_level_unknown": "true",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "source_level": null,
+    "time": "2026-09-03T10:22:35.000007468Z"
+  },
+  {
+    "_test": {
+      "id": "builtin-python-next-after-no-source"
+    },
+    "container": "fake-container",
+    "fluentd_time": "2026-09-03T10:22:37.000Z",
+    "hostname": "fake-fluent",
+    "kubernetes_host": "fake-node",
+    "labels": "{\"app\" : \"fluent-pipeline-test\", \"app.kubernetes.io_version\" : \"0.1.0\"}",
+    "level": "info",
+    "log": "worker continues after compiled code",
+    "namespace": "fake-namespace",
+    "nc_audit_label": "false",
+    "parse_level_unknown": "true",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "source_level": null,
+    "time": "2026-09-03T10:22:37.000007468Z"
+  },
+  {
+    "_test": {
+      "id": "builtin-python-trace-with-caret"
+    },
+    "container": "fake-container",
+    "fluentd_time": "2026-09-03T10:22:38.000Z",
+    "hostname": "fake-fluent",
+    "kubernetes_host": "fake-node",
+    "labels": "{\"app\" : \"fluent-pipeline-test\", \"app.kubernetes.io_version\" : \"0.1.0\"}",
+    "level": "info",
+    "log": "Traceback (most recent call last):\n  File \"/app/worker.py\", line 18, in dispatch\n    return handlers[name](task)",
+    "namespace": "fake-namespace",
+    "nc_audit_label": "false",
+    "parse_level_unknown": "true",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "source_level": null,
+    "time": "2026-09-03T10:22:38.000007468Z"
+  },
+  {
+    "_test": {
+      "id": "builtin-python-caret-line"
+    },
+    "container": "fake-container",
+    "fluentd_time": "2026-09-03T10:22:38.300Z",
+    "hostname": "fake-fluent",
+    "kubernetes_host": "fake-node",
+    "labels": "{\"app\" : \"fluent-pipeline-test\", \"app.kubernetes.io_version\" : \"0.1.0\"}",
+    "level": "info",
+    "log": "           ~~~~~~~~^^^^^^",
+    "namespace": "fake-namespace",
+    "nc_audit_label": "false",
+    "parse_level_unknown": "true",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "source_level": null,
+    "time": "2026-09-03T10:22:38.300007468Z"
+  },
+  {
+    "_test": {
+      "id": "builtin-python-caret-exception"
+    },
+    "container": "fake-container",
+    "fluentd_time": "2026-09-03T10:22:38.400Z",
+    "hostname": "fake-fluent",
+    "kubernetes_host": "fake-node",
+    "labels": "{\"app\" : \"fluent-pipeline-test\", \"app.kubernetes.io_version\" : \"0.1.0\"}",
+    "level": "info",
+    "log": "KeyError: 'missing handler'",
+    "namespace": "fake-namespace",
+    "nc_audit_label": "false",
+    "parse_level_unknown": "true",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "source_level": null,
+    "time": "2026-09-03T10:22:38.400007468Z"
+  },
+  {
+    "_test": {
+      "id": "builtin-python-colon-after-caret"
+    },
+    "container": "fake-container",
+    "fluentd_time": "2026-09-03T10:22:39.000Z",
+    "hostname": "fake-fluent",
+    "kubernetes_host": "fake-node",
+    "labels": "{\"app\" : \"fluent-pipeline-test\", \"app.kubernetes.io_version\" : \"0.1.0\"}",
+    "level": "info",
+    "log": "INFO: worker continues after a caret line",
+    "namespace": "fake-namespace",
+    "nc_audit_label": "false",
+    "parse_level_unknown": "true",
+    "pod": "fake-fluent-577d48c6cb-4gfmp",
+    "source_level": null,
+    "time": "2026-09-03T10:22:39.000007468Z"
+  }
+]

@@ -737,8 +737,10 @@ fluentd:
   # -- (Deprecated) Max length of buffers queue
   # queueLimitLength:
 
-  # -- The size limitation of output buffer
-  totalLimitSize: 512MB
+  # -- The size limitation of the Graylog output buffer. When empty, it is `128MB` with the memory buffer
+  # and `512MB` with `fileStorage: true`. The memory buffer counts against `resources.limits.memory`,
+  # so keep it well below the limit.
+  totalLimitSize: ""
 
   # -- Adds additional custom fields/labels to every log message by using filter based on record_transformer plugin.
   # extraFields:
@@ -1114,7 +1116,7 @@ fluentbit:
   resources:
     requests:
       cpu: 50m
-      memory: 128Mi
+      memory: 256Mi
     limits:
       cpu: 200m
       memory: 512Mi
@@ -1139,9 +1141,18 @@ fluentbit:
   # -- The size limitation of output buffer
   totalLimitSize: 1024M
 
-  # -- The size limitation of backlog data
+  # -- The size limitation of backlog data.
+  # It applies to the chunks that the previous run left on the disk, so it takes effect only with
+  # `storageProfile: node-persistent`. It does not limit the input plugins; use `inputMemBufLimit` for that.
   # See storage.backlog.mem_limit in https://docs.fluentbit.io/manual/administration/buffering-and-storage#service-section-configuration
   memBufLimit: 5M
+
+  # -- The amount of memory that a single input plugin can hold for records that are not flushed
+  # to the outputs yet. The input pauses reading when it reaches the limit. Size it so that the sum
+  # over the enabled inputs, the emitter buffers of the multiline filters, and the base footprint
+  # of FluentBit fit into `resources.limits.memory`. The HA mode forwarders use the same value.
+  # See Mem_Buf_Limit in https://docs.fluentbit.io/manual/pipeline/inputs/tail
+  inputMemBufLimit: 10M
 
   # -- The interval in seconds to flush records to the outputs.
   # Increasing the interval reduces the amount of produced chunks and, as a result, the disk load.
@@ -1661,6 +1672,12 @@ fluentbit:
     # -- The size limitation of backlog data
     # See storage.backlog.mem_limit in https://docs.fluentbit.io/manual/administration/buffering-and-storage#service-section-configuration
     memBufLimit: 5M
+
+    # -- The amount of memory that the forward input can hold for records that are not flushed to the
+    # outputs yet. The input stops accepting data from the forwarders when it reaches the limit, and the
+    # forwarders keep the records in their own buffers. Keep it well below `resources.limits.memory`.
+    # See Mem_Buf_Limit in https://docs.fluentbit.io/manual/pipeline/inputs/forward
+    inputMemBufLimit: 200M
 
     # -- Adds additional custom fields/labels to every log message by using filter based on record_modifier plugin.
     # This filter works after all other filters except the custom filter.

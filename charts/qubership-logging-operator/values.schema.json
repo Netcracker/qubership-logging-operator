@@ -287,6 +287,11 @@
                             "description": "Graylog protocol: tcp/udp etc",
                             "type": "string"
                         },
+                        "inputMemBufLimit": {
+                            "default": "200M",
+                            "description": "The amount of memory that the forward input of the aggregator can hold for records that are not flushed to the outputs yet. The input stops accepting data from the forwarders when it reaches the limit.",
+                            "type": "string"
+                        },
                         "install": {
                             "description": "Allow disabling create FluentBit aggregator deployment during deploy",
                             "type": "boolean"
@@ -1270,6 +1275,11 @@
                     "description": "Graylog protocol: tcp/udp/etc",
                     "type": "string"
                 },
+                "inputMemBufLimit": {
+                    "default": "10M",
+                    "description": "The amount of memory that a single input plugin can hold for records that are not flushed to the outputs yet. The input pauses reading when it reaches the limit.",
+                    "type": "string"
+                },
                 "install": {
                     "description": "Allow disabling create FluentBit during deploy",
                     "type": "boolean"
@@ -1286,7 +1296,7 @@
                 },
                 "memBufLimit": {
                     "default": "5M",
-                    "description": "The size limitation of backlog data",
+                    "description": "The size limitation of backlog data. It applies to the chunks that the previous run left on the disk, so it takes effect only with storageProfile: node-persistent.",
                     "type": "string"
                 },
                 "multilineFirstLineRegexp": {
@@ -2826,8 +2836,7 @@
                     "type": "array"
                 },
                 "totalLimitSize": {
-                    "default": "512MB",
-                    "description": "The size limitation of output buffer",
+                    "description": "The size limitation of the Graylog output buffer. The default is 128MB with the memory buffer and 512MB with fileStorage: true.",
                     "type": "string"
                 },
                 "watchKubernetesMetadata": {

@@ -78,6 +78,21 @@ func TestFluentbitConfigStorageDefaults(t *testing.T) {
 		}
 	})
 
+	t.Run("multiline emitters bound the memory buffer", func(t *testing.T) {
+		if got := strings.Count(data["filter-concat.conf"], "emitter_mem_buf_limit  32MB"); got != 2 {
+			t.Errorf("expected 2 emitters limited to 32MB, got %d:\n%s", got, data["filter-concat.conf"])
+		}
+	})
+
+	t.Run("calico metric has no IP address labels", func(t *testing.T) {
+		conf := data["filter-unparsed-log-counter.conf"]
+		for _, unexpected := range []string{"label_field          src_ip", "label_field          dst_ip"} {
+			if strings.Contains(conf, unexpected) {
+				t.Errorf("unexpected %q in the calico metric filter, got:\n%s", unexpected, conf)
+			}
+		}
+	})
+
 	t.Run("tail input keeps the database without disk sync", func(t *testing.T) {
 		conf := data["input-containerd.conf"]
 		for _, expected := range []string{
@@ -157,6 +172,7 @@ func TestFluentbitConfigStorageOverrides(t *testing.T) {
 		ContainerLogging: true,
 		Flush:            10,
 		StorageProfile:   loggingService.FluentbitStorageProfileNodePersistent,
+		InputMemBufLimit: "25M",
 		DB: loggingService.FluentbitDB{
 			JournalMode: "WAL",
 			Sync:        "normal",
@@ -168,9 +184,14 @@ func TestFluentbitConfigStorageOverrides(t *testing.T) {
 		t.Errorf("expected the flush interval from the CR, got:\n%s", data["fluent-bit.conf"])
 	}
 
+	if !strings.Contains(data["fluent-bit.conf"], "storage.max_chunks_up                64") {
+		t.Errorf("expected 64 chunks up for the filesystem buffer, got:\n%s", data["fluent-bit.conf"])
+	}
+
 	conf := data["input-containerd.conf"]
 	for _, expected := range []string{
 		"storage.type       filesystem",
+		"Mem_Buf_Limit      25M",
 		"DB.journal_mode    WAL",
 		"DB.sync            normal",
 		"DB.locking         false",

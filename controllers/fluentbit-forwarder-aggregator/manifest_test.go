@@ -260,6 +260,86 @@ func TestForwarderConfigMapUsesLanguageMultilineParsers(t *testing.T) {
 	}
 }
 
+func TestForwarderConfigMapMemoryLimits(t *testing.T) {
+	tests := []struct {
+		name             string
+		inputMemBufLimit string
+		wantMemBufLimit  string
+	}{
+		{name: "default", wantMemBufLimit: "10M"},
+		{name: "custom", inputMemBufLimit: "25M", wantMemBufLimit: "25M"},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			cr := &loggingService.LoggingService{Spec: loggingService.LoggingServiceSpec{
+				Fluentbit: &loggingService.Fluentbit{
+					ContainerLogging:   true,
+					SystemAuditLogging: true,
+					InputMemBufLimit:   test.inputMemBufLimit,
+					StorageProfile:     loggingService.FluentbitStorageProfileNodePersistent,
+					Aggregator:         &loggingService.FluentbitAggregator{},
+				},
+			}}
+			configMap, err := forwarderConfigMap(cr, util.DynamicParameters{ContainerRuntimeType: "containerd"})
+			if err != nil {
+				t.Fatalf("render Fluent Bit forwarder ConfigMap: %v", err)
+			}
+
+			for _, name := range []string{"input-containerd.conf", "input-audit.conf"} {
+				if !strings.Contains(configMap.Data[name], "Mem_Buf_Limit      "+test.wantMemBufLimit) {
+					t.Errorf("expected the memory buffer limit %s in %s, got:\n%s",
+						test.wantMemBufLimit, name, configMap.Data[name])
+				}
+			}
+			if got := strings.Count(configMap.Data["filter-concat.conf"], "emitter_mem_buf_limit  32MB"); got != 2 {
+				t.Errorf("expected 2 emitters limited to 32MB, got %d:\n%s", got, configMap.Data["filter-concat.conf"])
+			}
+			if !strings.Contains(configMap.Data["fluent-bit.conf"], "storage.max_chunks_up                64") {
+				t.Errorf("expected 64 chunks up for the filesystem buffer, got:\n%s", configMap.Data["fluent-bit.conf"])
+			}
+		})
+	}
+}
+
+func TestAggregatorConfigMemoryLimits(t *testing.T) {
+	tests := []struct {
+		name             string
+		inputMemBufLimit string
+		wantMemBufLimit  string
+	}{
+		{name: "default", wantMemBufLimit: "200M"},
+		{name: "custom", inputMemBufLimit: "300M", wantMemBufLimit: "300M"},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			data := renderAggregatorConfigData(t, &loggingService.FluentbitAggregator{
+				InputMemBufLimit: test.inputMemBufLimit,
+			})
+
+			input := data["input-forward.conf"]
+			for _, expected := range []string{
+				"mem_buf_limit     " + test.wantMemBufLimit,
+				"Buffer_Chunk_Size 1M",
+			} {
+				if !strings.Contains(input, expected) {
+					t.Errorf("expected %q in the forward input, got:\n%s", expected, input)
+				}
+			}
+			if !strings.Contains(data["fluent-bit.conf"], "storage.max_chunks_up                256") {
+				t.Errorf("expected 256 chunks up, got:\n%s", data["fluent-bit.conf"])
+			}
+			for _, unexpected := range []string{"label_field          src_ip", "label_field          dst_ip"} {
+				if strings.Contains(data["filter-unparsed-log-counter.conf"], unexpected) {
+					t.Errorf("unexpected %q in the calico metric filter, got:\n%s", unexpected,
+						data["filter-unparsed-log-counter.conf"])
+				}
+			}
+		})
+	}
+}
+
 func renderAggregatorConfigData(t *testing.T, aggregator *loggingService.FluentbitAggregator) map[string]string {
 	t.Helper()
 	cr := &loggingService.LoggingService{Spec: loggingService.LoggingServiceSpec{

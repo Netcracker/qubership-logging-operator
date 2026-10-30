@@ -630,6 +630,9 @@ spec:
     {{- if .Values.fluentbit.memoryOnlyStateSizeLimit }}
     memoryOnlyStateSizeLimit: {{ .Values.fluentbit.memoryOnlyStateSizeLimit }}
     {{- end }}
+    {{- if .Values.fluentbit.inputMemBufLimit }}
+    inputMemBufLimit: {{ .Values.fluentbit.inputMemBufLimit }}
+    {{- end }}
     {{- if .Values.fluentbit.db }}
     db:
       {{- if not (kindIs "invalid" .Values.fluentbit.db.enabled) }}
@@ -862,6 +865,9 @@ spec:
       {{- end }}
       {{- if .Values.fluentbit.aggregator.memBufLimit }}
       memBufLimit: {{ .Values.fluentbit.aggregator.memBufLimit }}
+      {{- end }}
+      {{- if .Values.fluentbit.aggregator.inputMemBufLimit }}
+      inputMemBufLimit: {{ .Values.fluentbit.aggregator.inputMemBufLimit }}
       {{- end }}
       {{- if .Values.fluentbit.aggregator.totalLimitSize }}
       totalLimitSize: {{ .Values.fluentbit.aggregator.totalLimitSize }}

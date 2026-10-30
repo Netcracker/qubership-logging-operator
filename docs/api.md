@@ -660,7 +660,7 @@ _Appears in:_
 | `graylogResources` _[ResourceRequirements](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#resourcerequirements-v1-core)_ |  |  |  |
 | `mongoResources` _[ResourceRequirements](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#resourcerequirements-v1-core)_ |  |  |  |
 | `initResources` _[ResourceRequirements](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#resourcerequirements-v1-core)_ |  |  |  |
-| `mongoDBUpgrade` _[MongoDBUpgrade](#mongodbupgrade)_ |  |  |  |
+| `mongoDBUpgrade` _[MongoDBUpgrade](#mongodbupgrade)_ | Deprecated: the operator ignores this field. It will be removed in a future release. |  |  |
 | `authProxy` _[AuthProxy](#authproxy)_ |  |  |  |
 | `tls` _[GraylogTLS](#graylogtls)_ |  |  |  |
 | `openSearch` _[OpenSearch](#opensearch)_ |  |  |  |
@@ -993,7 +993,10 @@ _Appears in:_
 
 
 
-MongoDBUpgrade is used for the sequential MongoDB upgrading from 3.6 to 5.0
+MongoDBUpgrade held the images for the step-by-step MongoDB upgrade from 3.6 to 5.0.
+
+Deprecated: the operator no longer runs the upgrade and ignores these fields.
+The type will be removed in a future release.
 
 
 

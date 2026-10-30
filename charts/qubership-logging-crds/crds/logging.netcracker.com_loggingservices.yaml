@@ -11105,8 +11105,8 @@ spec:
                   mongoDBImage:
                     type: string
                   mongoDBUpgrade:
-                    description: MongoDBUpgrade is used for the sequential MongoDB
-                      upgrading from 3.6 to 5.0
+                    description: 'Deprecated: the operator ignores this field. It
+                      will be removed in a future release.'
                     properties:
                       mongoDBImage40:
                         type: string

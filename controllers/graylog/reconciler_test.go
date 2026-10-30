@@ -9,6 +9,7 @@ import (
 	loggingService "github.com/Netcracker/qubership-logging-operator/api/v1"
 	util "github.com/Netcracker/qubership-logging-operator/controllers/utils"
 	appsv1 "k8s.io/api/apps/v1"
+	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -17,49 +18,6 @@ import (
 )
 
 const adminSHA256 = "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918"
-
-func TestCheckGraylog5(t *testing.T) {
-	r := &GraylogReconciler{
-		ComponentReconciler: &util.ComponentReconciler{
-			Log: util.Logger("test-graylog"),
-		},
-	}
-
-	tests := []struct {
-		name     string
-		image    string
-		expected bool
-	}{
-		{"graylog 5.2.1", "graylog/graylog:5.2.1", true},
-		{"graylog 4.3.0", "graylog/graylog:4.3.0", false},
-		{"graylog 6.0.0", "graylog/graylog:6.0.0", false},
-		{"registry with port", "registry:5000/graylog:5.0.0-rc1", true},
-		{"latest tag no semver", "graylog/graylog:latest", false},
-		{"no tag at all", "graylog", false},
-		{"version 5.0.0.1 extra segments", "graylog:5.0.0.1", true},
-		{"empty image", "", false},
-		{"just version 5.0.0", "5.0.0", true},
-		// Note: regex matches first semver in the entire string, not just the tag.
-		// This is acceptable since real Docker images don't have semver in the path.
-		{"version in path picks first semver", "5.0.0/graylog:4.0.0", true},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			cr := &loggingService.LoggingService{
-				Spec: loggingService.LoggingServiceSpec{
-					Graylog: &loggingService.Graylog{
-						DockerImage: tt.image,
-					},
-				},
-			}
-			result := r.checkGraylog5(cr)
-			if result != tt.expected {
-				t.Errorf("checkGraylog5(%q) = %v, want %v", tt.image, result, tt.expected)
-			}
-		})
-	}
-}
 
 func TestSetCredentialsLoadsSecretValues(t *testing.T) {
 	r, cr := newGraylogTestReconciler(t, &corev1.Secret{
@@ -176,16 +134,62 @@ func TestGraylogWorkloadsUseHardenedApplicationContainers(t *testing.T) {
 	cr.Spec.Graylog.MongoDBImage = "docker.io/mongo:5.0.33"
 	cr.Spec.Graylog.InitSetupImage = "docker.io/alpine:3.23.4"
 	cr.Spec.Graylog.InitContainerDockerImage = "docker.io/alpine:3.23.4"
-	cr.Spec.Graylog.MongoDBUpgrade = &loggingService.MongoDBUpgrade{
-		MongoDBImage40: "docker.io/mongo:4.0.28",
-		MongoDBImage42: "docker.io/mongo:4.2.22",
-		MongoDBImage44: "docker.io/mongo:4.4.17",
-	}
 
 	assertGraylogKubernetesWorkload(t, cr)
 	cr.Spec.OpenshiftDeploy = true
 	assertGraylogOpenShiftWorkload(t, cr)
-	assertMongoUpgradeJobs(t, cr)
+}
+
+func TestGraylogStatefulsetIgnoresDeprecatedMongoDBUpgrade(t *testing.T) {
+	_, cr := newGraylogTestReconciler(t)
+	cr.Spec.Graylog.DockerImage = "docker.io/graylog/graylog:5.2.12"
+	cr.Spec.Graylog.MongoDBImage = "docker.io/mongo:5.0.33"
+	cr.Spec.Graylog.InitSetupImage = "docker.io/alpine:3.23.4"
+
+	want, err := graylogStatefulset(cr)
+	if err != nil {
+		t.Fatalf("render Graylog StatefulSet: %v", err)
+	}
+	// Existing custom resources can still set the deprecated field; the test checks that it has no effect.
+	cr.Spec.Graylog.MongoDBUpgrade = &loggingService.MongoDBUpgrade{ //nolint:staticcheck // SA1019: intentional use
+		MongoDBImage40: "docker.io/mongo:4.0.28",
+		MongoDBImage42: "docker.io/mongo:4.2.22",
+		MongoDBImage44: "docker.io/mongo:4.4.17",
+	}
+	got, err := graylogStatefulset(cr)
+	if err != nil {
+		t.Fatalf("render Graylog StatefulSet with mongoDBUpgrade: %v", err)
+	}
+	if !reflect.DeepEqual(want, got) {
+		t.Fatal("mongoDBUpgrade must not change the Graylog StatefulSet")
+	}
+}
+
+func TestGraylogDownloadPluginsTargetsGraylog5ForAnyImage(t *testing.T) {
+	for _, image := range []string{"docker.io/graylog/graylog:5.2.12", "registry.example.com/graylog:custom"} {
+		t.Run(image, func(t *testing.T) {
+			_, cr := newGraylogTestReconciler(t)
+			cr.Spec.Graylog.DockerImage = image
+			cr.Spec.Graylog.MongoDBImage = "docker.io/mongo:5.0.33"
+			cr.Spec.Graylog.InitSetupImage = "docker.io/alpine:3.23.4"
+			cr.Spec.Graylog.InitContainerDockerImage = "docker.io/alpine:3.23.4"
+
+			statefulSet, err := graylogStatefulset(cr)
+			if err != nil {
+				t.Fatalf("render Graylog StatefulSet: %v", err)
+			}
+			downloadPlugins := statefulSet.Spec.Template.Spec.InitContainers[1]
+			for _, env := range downloadPlugins.Env {
+				if env.Name == "GRAYLOG_VERSION" {
+					if env.Value != "5" {
+						t.Fatalf("GRAYLOG_VERSION = %q, want 5", env.Value)
+					}
+					return
+				}
+			}
+			t.Fatal("download-plugins must set GRAYLOG_VERSION")
+		})
+	}
 }
 
 func assertGraylogKubernetesWorkload(t *testing.T, cr *loggingService.LoggingService) {
@@ -227,44 +231,6 @@ func assertGraylogOpenShiftWorkload(t *testing.T, cr *loggingService.LoggingServ
 	assertRunAsGroup(t, openShiftMongo, 1001)
 	assertRunAsGroup(t, openShiftGraylog, 1100)
 	assertGraylogDataPermissions(t, openShiftStatefulSet, true)
-}
-
-func assertMongoUpgradeJobs(t *testing.T, cr *loggingService.LoggingService) {
-	t.Helper()
-	for name, assetPath := range util.GraylogMongoUpgradeAssets {
-		t.Run(name, func(t *testing.T) {
-			assertMongoUpgradeJob(t, cr, assetPath)
-		})
-	}
-}
-
-func assertMongoUpgradeJob(t *testing.T, cr *loggingService.LoggingService, assetPath string) {
-	t.Helper()
-	job, err := graylogMongoUpgradeJob(cr, assetPath)
-	if err != nil {
-		t.Fatalf("render MongoDB upgrade Job: %v", err)
-	}
-	podSpec := job.Spec.Template.Spec
-	if podSpec.SecurityContext == nil || podSpec.SecurityContext.SeccompProfile == nil ||
-		podSpec.SecurityContext.SeccompProfile.Type != corev1.SeccompProfileTypeRuntimeDefault {
-		t.Fatal("MongoDB upgrade pod must use the RuntimeDefault seccomp profile")
-	}
-	assertHardenedContainer(t, podSpec.Containers[0], nil)
-	assertRunAsUser(t, podSpec.Containers[0], 1001)
-	assertRunAsGroup(t, podSpec.Containers[0], 1001)
-	assertPodUserAndGroup(t, podSpec.SecurityContext, 1001)
-	assertBoundedEmptyDirs(t, podSpec.Volumes)
-}
-
-func assertPodUserAndGroup(t *testing.T, context *corev1.PodSecurityContext, expected int64) {
-	t.Helper()
-	if context == nil {
-		t.Fatal("pod security context is missing")
-	}
-	if context.RunAsUser == nil || *context.RunAsUser != expected || context.RunAsGroup == nil ||
-		*context.RunAsGroup != expected {
-		t.Fatalf("pod must use UID/GID %d: %#v", expected, context)
-	}
 }
 
 func TestGraylogDoesNotMountHTTPSecretsWhenTLSIsDisabled(t *testing.T) {
@@ -372,6 +338,34 @@ func assertBoundedEmptyDirs(t *testing.T, volumes []corev1.Volume) {
 	}
 }
 
+func TestDeleteUpgradeJobsRemovesLeftoverMongoDBUpgradeJobs(t *testing.T) {
+	job := func(name string) *batchv1.Job {
+		return &batchv1.Job{ObjectMeta: metav1.ObjectMeta{Name: name, Namespace: "logging"}}
+	}
+	// An earlier upgrade may have left only some of the Jobs.
+	r, cr := newGraylogTestReconciler(t,
+		job("mongo-upgrade-job-40"),
+		job("mongo-upgrade-job-50"),
+		job("unrelated-job"),
+	)
+
+	if err := r.deleteUpgradeJobs(cr); err != nil {
+		t.Fatalf("delete upgrade Jobs: %v", err)
+	}
+
+	jobs := &batchv1.JobList{}
+	if err := r.Client.List(context.Background(), jobs, client.InNamespace("logging")); err != nil {
+		t.Fatalf("list Jobs: %v", err)
+	}
+	var names []string
+	for _, j := range jobs.Items {
+		names = append(names, j.Name)
+	}
+	if !reflect.DeepEqual(names, []string{"unrelated-job"}) {
+		t.Fatalf("Jobs after cleanup = %v, want only unrelated-job", names)
+	}
+}
+
 func newGraylogTestReconciler(t *testing.T, objects ...client.Object) (*GraylogReconciler, *loggingService.LoggingService) {
 	t.Helper()
 
@@ -381,6 +375,9 @@ func newGraylogTestReconciler(t *testing.T, objects ...client.Object) (*GraylogR
 	}
 	if err := corev1.AddToScheme(testScheme); err != nil {
 		t.Fatalf("add core scheme: %v", err)
+	}
+	if err := batchv1.AddToScheme(testScheme); err != nil {
+		t.Fatalf("add batch scheme: %v", err)
 	}
 
 	cr := &loggingService.LoggingService{

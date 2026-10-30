@@ -2629,7 +2629,7 @@ false
 false
 </pre>
 </td>
-			<td>Activates automatic step-by-step upgrade of the MongoDB database. Can be used only for migration from Graylog 4 to 5.</td>
+			<td>Deprecated and ignored. The automatic step-by-step upgrade of the MongoDB database was removed. The parameter will be removed in a future release.</td>
 		</tr>
 		<tr>
 			<td>graylog.password</td>

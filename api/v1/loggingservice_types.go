@@ -84,9 +84,10 @@ type LoggingServiceList struct {
 
 // Graylog contains Graylog-specific configuration
 type Graylog struct {
-	GraylogResources                         *v1.ResourceRequirements     `json:"graylogResources,omitempty"`
-	MongoResources                           *v1.ResourceRequirements     `json:"mongoResources,omitempty"`
-	InitResources                            *v1.ResourceRequirements     `json:"initResources,omitempty"`
+	GraylogResources *v1.ResourceRequirements `json:"graylogResources,omitempty"`
+	MongoResources   *v1.ResourceRequirements `json:"mongoResources,omitempty"`
+	InitResources    *v1.ResourceRequirements `json:"initResources,omitempty"`
+	// Deprecated: the operator ignores this field. It will be removed in a future release.
 	MongoDBUpgrade                           *MongoDBUpgrade              `json:"mongoDBUpgrade,omitempty"`
 	AuthProxy                                *AuthProxy                   `json:"authProxy,omitempty"`
 	TLS                                      *GraylogTLS                  `json:"tls,omitempty"`
@@ -547,7 +548,10 @@ type GenerateCerts struct {
 	Enabled    bool   `json:"enabled"`
 }
 
-// MongoDBUpgrade is used for the sequential MongoDB upgrading from 3.6 to 5.0
+// MongoDBUpgrade held the images for the step-by-step MongoDB upgrade from 3.6 to 5.0.
+//
+// Deprecated: the operator no longer runs the upgrade and ignores these fields.
+// The type will be removed in a future release.
 type MongoDBUpgrade struct {
 	MongoDBImage40 string `json:"mongoDBImage40"`
 	MongoDBImage42 string `json:"mongoDBImage42"`

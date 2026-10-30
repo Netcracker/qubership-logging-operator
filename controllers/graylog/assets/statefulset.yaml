@@ -250,6 +250,8 @@ spec:
               {{- else }}
               value: ""
               {{- end }}
+            - name: GRAYLOG_VERSION
+              value: "5"
           securityContext:
             runAsNonRoot: true
             runAsUser: 1001

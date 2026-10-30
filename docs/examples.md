@@ -41,7 +41,6 @@ Graylog server configuration examples for different deployment patterns:
 
 - Custom labels and annotations - Graylog with custom Kubernetes metadata
 - Dynamic provisioning - Storage provisioning and scaling
-- Migration to v5 - Upgrade procedures and compatibility
 - Simple deployment - Basic Graylog server setup
 - Static volume - Persistent storage configuration
 

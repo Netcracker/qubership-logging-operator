@@ -39,6 +39,8 @@ see [Configuration](./graylog-configuration.md).
   * [Post Installation Steps](#post-installation-steps)
     * [Configuring URL whitelist](#configuring-url-whitelist)
   * [Upgrade](#upgrade)
+    * [Graylog 5 and MongoDB 5.0 migration](#graylog-5-and-mongodb-50-migration)
+    * [FluentBit storage profile migration](#fluentbit-storage-profile-migration)
   * [Frequently asked questions](#frequently-asked-questions)
   * [Footnotes](#footnotes)
 
@@ -126,13 +128,11 @@ When deploying Graylog in the cloud, you should use only the OpenSearch or Elast
 <!-- markdownlint-disable line-length -->
 | Graylog version | Elasticsearch versions    | OpenSearch versions     |
 | --------------- | ------------------------- | ----------------------- |
-| Graylog 4.x     | `6.8.x`, `7.7.x - 7.10.x` | `1.x *`                 |
-| Graylog 5.x     | `6.8.x`, `7.10.2`         | `1.x`, `2.0.x-2.5.x **` |
+| Graylog 5.x     | `6.8.x`, `7.10.2`         | `1.x`, `2.0.x-2.5.x *`  |
 <!-- markdownlint-enable line-length -->
 where:
 
-* `*` - for Graylog 4.x OpenSearch 1.x must be deployed and run **with** compatibility mode
-* `**` - for Graylog 5.x OpenSearch 2.x must be deployed and run **without** compatibility mode
+* `*` - for Graylog 5.x OpenSearch 2.x must be deployed and run **without** compatibility mode
 
 **Note:** Graylog may not work properly with OpenSearch/Elasticsearch versions other than specified in the table above.
 
@@ -529,6 +529,40 @@ considered to be whitelisted. Graylog uses the Java Pattern class to evaluate re
 [Back to TOC](#table-of-contents)
 
 ## Upgrade
+
+### Graylog 5 and MongoDB 5.0 migration
+
+The operator supports Graylog 5 only and no longer upgrades MongoDB step by step. Release 14.33.0 is the last release
+that migrates a Graylog 3 or 4 installation and its MongoDB data to Graylog 5 and MongoDB 5.0. MongoDB 5.0 does not
+start on data from MongoDB 4.2 or earlier, so if you upgrade an installation that is not migrated, Graylog becomes
+unavailable.
+
+Before you upgrade, check the feature compatibility version of the MongoDB data in the Graylog pod:
+
+```bash
+kubectl exec -n <namespace> graylog-0 -c mongo -- mongo --quiet --eval \
+  'db.adminCommand({getParameter: 1, featureCompatibilityVersion: 1}).featureCompatibilityVersion.version'
+```
+
+If the command prints `5.0` and the `graylog` container runs a Graylog 5 image, the installation is migrated and you
+can upgrade. Otherwise, complete the migration with release 14.33.0 first:
+
+1. Upgrade to release 14.33.0 with `graylog.mongoUpgrade: true`. Use the default Graylog and MongoDB images, or set
+   images with a Graylog 5 and a MongoDB 5.0 version in the tag. The operator runs the migration only when the Graylog
+   image tag contains a `5.x.y` version.
+2. The operator scales down Graylog and runs the Jobs `mongo-upgrade-job-40`, `mongo-upgrade-job-42`,
+   `mongo-upgrade-job-44`, and `mongo-upgrade-job-50` in this order. Wait until the last Job completes:
+
+   ```bash
+   kubectl wait -n <namespace> --for=condition=complete --timeout=30m job/mongo-upgrade-job-50
+   ```
+
+3. Check that the command above prints `5.0` and that the `graylog` StatefulSet is ready. If a Job fails, the operator
+   still starts Graylog, and it does not run a failed Job again while the Job exists. Find the cause in the logs of the
+   failed Job, delete the Job, and let the operator run the migration again.
+4. Set `graylog.mongoUpgrade: false` and upgrade release 14.33.0 again. While the parameter is `true`, release 14.33.0
+   scales down Graylog on every reconciliation. With `false`, the operator also deletes the upgrade Jobs.
+5. Upgrade to the current release.
 
 ### FluentBit storage profile migration
 

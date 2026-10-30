@@ -66,15 +66,6 @@ Create the name of the service account to use
 {{- end -}}
 
 {{/*
-Check the major version of Graylog and return 'true' if it equal 5
-*/}}
-{{- define "graylog.isMajorVersion5" -}}
-  {{- if regexMatch "^*:5\\.[0-9]+\\.[0-9]+(@sha256:[a-f0-9]{64})?$" (include "graylog.image" . ) -}}
-true
-  {{- end -}}
-{{- end -}}
-
-{{/*
 Return true if generateCerts in TLS is enabled for Graylog HTTP.
 */}}
 {{- define "graylog.http.generateCerts.enabled" -}}
@@ -437,48 +428,6 @@ Image can be found from:
   {{- else -}}
     {{- /* # renovate: datasource=docker depName=alpine */ -}}
     {{- print "docker.io/alpine:3.24.3" -}}
-  {{- end -}}
-{{- end -}}
-
-{{/*
-MongoDB images for sequential upgrades.
-Upgrade path:
-3.6.23 -> 4.0.28 -> 4.2.22 -> 4.4.17 -> 5.0.19
-*/}}
-
-{{/*
-MongoDB 4.0 image.
-*/}}
-{{- define "mongodb40.image" -}}
-  {{- if .Values.graylog.mongodb40Image -}}
-    {{- printf "%s" .Values.graylog.mongodb40Image -}}
-  {{- else -}}
-    {{- /* # renovate: datasource=docker depName=mongo */ -}}
-    {{- print "docker.io/mongo:4.0.28@sha256:4ca81c89ad08f4cfa9906005126112bffe8fb363800466ef5e50f6238f6f6af1" -}}
-  {{- end -}}
-{{- end -}}
-
-{{/*
-MongoDB 4.2 image.
-*/}}
-{{- define "mongodb42.image" -}}
-  {{- if .Values.graylog.mongodb42Image -}}
-    {{- printf "%s" .Values.graylog.mongodb42Image -}}
-  {{- else -}}
-    {{- /* # renovate: datasource=docker depName=mongo */ -}}
-    {{- print "docker.io/mongo:4.2.24@sha256:699d652ed67423d689258bad7b316cf005dfbb82b334118ec306f049042f3717" -}}
-  {{- end -}}
-{{- end -}}
-
-{{/*
-MongoDB 4.4 image.
-*/}}
-{{- define "mongodb44.image" -}}
-  {{- if .Values.graylog.mongodb44Image -}}
-    {{- printf "%s" .Values.graylog.mongodb44Image -}}
-  {{- else -}}
-    {{- /* # renovate: datasource=docker depName=mongo */ -}}
-    {{- print "docker.io/mongo:4.4.30@sha256:4be76f674fc4b27859816811b8baa3c51830eb1dbf4ca81a51e26b79edd662ef" -}}
   {{- end -}}
 {{- end -}}
 

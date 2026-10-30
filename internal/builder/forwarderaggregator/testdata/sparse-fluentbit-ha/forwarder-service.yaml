@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/managed-by: operator
+    app.kubernetes.io/managed-by-operator: logging-operator
+    app.kubernetes.io/name: logging-fluentbit-forwarder
+    app.kubernetes.io/part-of: logging-service
+    component: logging-fluentbit-forwarder
+    name: logging-fluentbit-forwarder
+    provider: kubernetes
+  name: logging-fluentbit-forwarder
+  namespace: logging
+spec:
+  ports:
+  - name: logging-fluentbit-forwarder
+    port: 2020
+    protocol: TCP
+    targetPort: 2020
+  selector:
+    name: logging-fluentbit-forwarder
+    provider: kubernetes
+  type: ClusterIP
+status:
+  loadBalancer: {}

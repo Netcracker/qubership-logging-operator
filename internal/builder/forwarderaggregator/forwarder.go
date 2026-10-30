@@ -135,18 +135,18 @@ func forwarderStorage(cr *loggingService.LoggingService) ([]corev1.Volume, []cor
 
 	// The read offsets survive a pod restart only with a persistent storage profile.
 	if spec.UsesPersistentOffsets() {
-		volumes = append(volumes, hostPathVolume("fluentbit-state", "/var/lib/fluent-bit/state", corev1.HostPathDirectoryOrCreate))
+		volumes = append(volumes, hostPathVolume(stateVolume, "/var/lib/fluent-bit/state", corev1.HostPathDirectoryOrCreate))
 	} else {
 		size := resource.MustParse(spec.EffectiveMemoryOnlyStateSizeLimit())
 		volumes = append(volumes, corev1.Volume{
-			Name: "fluentbit-state",
+			Name: stateVolume,
 			VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{
 				Medium:    corev1.StorageMediumMemory,
 				SizeLimit: &size,
 			}},
 		})
 	}
-	mounts = append(mounts, corev1.VolumeMount{Name: "fluentbit-state", MountPath: "/fluent-bit/state"})
+	mounts = append(mounts, corev1.VolumeMount{Name: stateVolume, MountPath: "/fluent-bit/state"})
 
 	if spec.UsesFilesystemBuffer() {
 		volumes = append(volumes, hostPathVolume("fluentbit-storage", "/var/lib/fluent-bit/storage", corev1.HostPathDirectoryOrCreate))

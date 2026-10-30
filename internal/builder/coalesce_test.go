@@ -18,12 +18,12 @@ func TestFirst(t *testing.T) {
 }
 
 func TestFirstNonNil(t *testing.T) {
-	a, b := 1, 2
-	if got := FirstNonNil(&a, &b); got != &a {
-		t.Errorf("FirstNonNil(&a, &b) did not return &a")
+	a, b := new(int), new(int)
+	if FirstNonNil(a, b) != a {
+		t.Error("FirstNonNil(a, b) did not return a")
 	}
-	if got := FirstNonNil(nil, &b); got != &b {
-		t.Errorf("FirstNonNil(nil, &b) did not return &b")
+	if FirstNonNil(nil, b) != b {
+		t.Error("FirstNonNil(nil, b) did not return b")
 	}
 }
 

@@ -1,0 +1,226 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  labels:
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/instance: logging-fluentd-logging
+    app.kubernetes.io/managed-by: operator
+    app.kubernetes.io/managed-by-operator: logging-operator
+    app.kubernetes.io/name: logging-fluentd
+    app.kubernetes.io/part-of: logging-service
+    app.kubernetes.io/technology: ruby
+    app.kubernetes.io/version: 1.19.3-2
+    component: logging-fluentd
+    name: logging-fluentd
+    provider: kubernetes
+  name: logging-fluentd
+  namespace: logging
+spec:
+  minReadySeconds: 60
+  selector:
+    matchLabels:
+      component: logging-fluentd
+      provider: kubernetes
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: backend
+        app.kubernetes.io/instance: logging-fluentd-logging
+        app.kubernetes.io/managed-by: operator
+        app.kubernetes.io/managed-by-operator: logging-operator
+        app.kubernetes.io/name: logging-fluentd
+        app.kubernetes.io/part-of: logging-service
+        app.kubernetes.io/technology: ruby
+        app.kubernetes.io/version: 1.19.3-2
+        component: logging-fluentd
+        name: logging-fluentd
+        provider: kubernetes
+      name: logging-fluentd
+    spec:
+      containers:
+      - args:
+        - --volume-dir=/fluentd/etc
+        - --webhook-url=http://localhost:24444/api/config.reload
+        image: ghcr.io/jimmidyson/configmap-reload:v0.15.0
+        name: configmap-reload
+        ports:
+        - containerPort: 9533
+          name: metrics
+        resources:
+          limits:
+            cpu: 50m
+            memory: 50Mi
+          requests:
+            cpu: 10m
+            memory: 10Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          runAsGroup: 1001
+          runAsNonRoot: true
+          runAsUser: 1001
+        volumeMounts:
+        - mountPath: /fluentd/etc
+          name: config
+          readOnly: true
+        - mountPath: /tmp
+          name: tmp
+      - command:
+        - /bin/sh
+        - -c
+        - |
+          mkdir -p -m 0700 /tmp/fluentd-work
+          export TMPDIR=/tmp/fluentd-work
+          exec tini -- /bin/entrypoint.sh /fluentd/entrypoint.sh
+        env:
+        - name: K8S_NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: GRAYLOG_HOST
+          value: <graylog_dns_or_ip>
+        - name: GRAYLOG_PORT
+          value: "12201"
+        - name: GRAYLOG_PROTOCOL
+          value: tcp
+        - name: QUEUE_LIMIT_LENGTH
+          value: "5000"
+        - name: WATCH_KUBERNETES_METADATA
+          value: "true"
+        - name: MA_HOST
+          value: 0.0.0.0
+        - name: RUBY_GC_HEAP_OLDOBJECT_LIMIT_FACTOR
+          value: "1.2"
+        - name: RUBY_GC_MALLOC_LIMIT
+          value: "4194304"
+        - name: RUBY_GC_MALLOC_LIMIT_MAX
+          value: "16777216"
+        - name: RUBY_GC_OLDMALLOC_LIMIT
+          value: "16777216"
+        - name: RUBY_GC_OLDMALLOC_LIMIT_MAX
+          value: "16777216"
+        image: ghcr.io/netcracker/qubership-fluentd:1.19.3-2
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /api/plugins.json
+            port: 24220
+            scheme: HTTP
+          initialDelaySeconds: 90
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 10
+        name: logging-fluentd
+        ports:
+        - containerPort: 24220
+          name: http
+          protocol: TCP
+        - containerPort: 24232
+          name: metrics
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 5
+          httpGet:
+            path: /api/plugins.json
+            port: 24220
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 10
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          privileged: false
+          readOnlyRootFilesystem: true
+          runAsGroup: 0
+          runAsNonRoot: false
+          runAsUser: 0
+        volumeMounts:
+        - mountPath: /etc/sysconfig/docker
+          name: sysconfigdocker
+          readOnly: true
+        - mountPath: /etc/docker/daemon.json
+          name: dockerdaemon
+          readOnly: true
+        - mountPath: /etc/docker-hostname
+          name: dockerhostname
+          readOnly: true
+        - mountPath: /var/lib/docker/containers
+          name: varlibdockercontainers
+          readOnly: true
+        - mountPath: /var/log
+          name: varlog
+        - mountPath: /fluentd/etc
+          name: config
+          readOnly: true
+        - mountPath: /tmp
+          name: tmp
+      nodeSelector:
+        kubernetes.io/os: linux
+      securityContext:
+        fsGroup: 1000
+        runAsGroup: 0
+        runAsNonRoot: false
+        runAsUser: 0
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: logging-fluentd
+      terminationGracePeriodSeconds: 30
+      tolerations:
+      - key: node-role.kubernetes.io/master
+        operator: Exists
+      - effect: NoExecute
+        operator: Exists
+      - effect: NoSchedule
+        operator: Exists
+      volumes:
+      - hostPath:
+          path: /etc/sysconfig/docker
+          type: FileOrCreate
+        name: sysconfigdocker
+      - hostPath:
+          path: /etc/docker/daemon.json
+          type: FileOrCreate
+        name: dockerdaemon
+      - hostPath:
+          path: /etc/hostname
+          type: FileOrCreate
+        name: dockerhostname
+      - hostPath:
+          path: /var/lib/docker/containers
+          type: ""
+        name: varlibdockercontainers
+      - hostPath:
+          path: /var/log
+          type: ""
+        name: varlog
+      - name: config
+        secret:
+          defaultMode: 420
+          secretName: logging-fluentd
+      - emptyDir:
+          sizeLimit: 100Mi
+        name: tmp
+  updateStrategy:
+    rollingUpdate:
+      maxUnavailable: 1
+    type: RollingUpdate
+status:
+  currentNumberScheduled: 0
+  desiredNumberScheduled: 0
+  numberMisscheduled: 0
+  numberReady: 0

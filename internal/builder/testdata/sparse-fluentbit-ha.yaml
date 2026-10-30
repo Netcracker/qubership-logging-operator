@@ -1,0 +1,37 @@
+# LoggingService for the builder golden-file tests.
+apiVersion: logging.netcracker.com/v1
+kind: LoggingService
+metadata:
+  name: logging-service
+  namespace: logging
+spec:
+  openshiftDeploy: false
+  containerRuntimeType: containerd
+  cloudEventsReader:
+    install: true
+  fluentbit:
+    logLevel: info
+    flush: 1
+    systemLogging: true
+    systemLogType: varlogsyslog
+    containerLogging: true
+    systemAuditLogging: true
+    kubeAuditLogging: true
+    kubeApiserverAuditLogging: true
+    billCycleConf: false
+    watchKubernetesMetadata: true
+    mockKubeData: true
+    db:
+      enabled: false
+    customInputConf: "[INPUT]\n    Name     dummy\n    Tag      pods.metadata-collision\n    Dummy    {\"log\":\"metadata collision payload\",\"stream\":\"stdout\",\"time\":\"2026-09-03T19:21:00.123456789Z\"\
+      ,\"log_parsed\":{\"level\":\"error\",\"message\":\"metadata collision payload\",\"_record_metadata\":{\"namespace\":\"forged-namespace\",\"pod\":\"forged-pod\",\"container\":\"forged-container\",\"\
+      stdio_stream\":\"forged-stream\"}}}\n    Samples  1"
+    customFilterConf: "[FILTER]\n    Name          record_modifier\n    Match_Regex   pods.*coredns.*\n    Record        forwarder_custom_filter true"
+    aggregator:
+      replicas: 2
+      install: true
+      multilineFirstLineRegexp: /^(\[\d{4}\-\d{2}\-\d{2}).*/
+      multilineOtherLinesRegexp: /^(?!\[\d{4}\-\d{2}\-\d{2}).*/
+      graylogOutput: false
+      customFilterConf: "[FILTER]\n    Name          record_modifier\n    Match_Regex   pods.*consul.*\n    Record        aggregator_custom_filter true"
+      customOutputConf: "[OUTPUT]\n    Name    file\n    Match   *\n    Format  plain\n    Path    /fluentbit-output\n    File    output-log"

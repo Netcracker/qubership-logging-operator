@@ -159,26 +159,26 @@ var (
 		GraylogUnsupportedSymbolsRule:     "Processing unsupported symbols (Replace '/' to '_')",
 		GraylogKubernetesEventsRule:       "Route Kubernetes events to the appropriate stream",
 	}
-	GraylogDashboard                = path.Join(GraylogConfig, "dashboard.json")
-	GraylogDashboardInstallation    = path.Join(GraylogConfig, "dashboardInstallation.json")
-	GraylogPipeline                 = path.Join(GraylogConfig, "pipeline.json")
-	GraylogCloudEventsSearch        = path.Join(GraylogConfig, "saved_searches/cloud-events-search.json")
-	GraylogUserSessionHistorySearch = path.Join(GraylogConfig, "saved_searches/user-session-history-search.json")
-	GraylogCloudEventsView          = path.Join(GraylogConfig, "saved_searches/cloud-events-view.json")
-	GraylogUserSessionHistoryView   = path.Join(GraylogConfig, "saved_searches/user-session-history-view.json")
-	GraylogOperatorRole             = path.Join(GraylogConfig, "roles/operator.json")
-	GraylogAuditViewerRole          = path.Join(GraylogConfig, "roles/auditViewer.json")
-	GraylogOperatorUser             = path.Join(GraylogConfig, "user_accounts/operator.json")
-	GraylogAuditViewerUser          = path.Join(GraylogConfig, "user_accounts/auditViewer.json")
-	GraylogAdminWithTrustedHeader   = path.Join(GraylogConfig, "user_accounts/admin_with_trusted_header.json")
-	GraylogStartupTimeout           = time.Minute * 10
-	GraylogLabels                   = map[string]string{"name": "graylog"}
-	GraylogSecretSelector           = "graylog=secret"
+	GraylogDashboard                 = path.Join(GraylogConfig, "dashboard.json")
+	GraylogDashboardInstallation     = path.Join(GraylogConfig, "dashboardInstallation.json")
+	GraylogPipeline                  = path.Join(GraylogConfig, "pipeline.json")
+	GraylogCloudEventsSearch         = path.Join(GraylogConfig, "saved_searches/cloud-events-search.json")
+	GraylogUserSessionHistorySearch  = path.Join(GraylogConfig, "saved_searches/user-session-history-search.json")
+	GraylogCloudEventsView           = path.Join(GraylogConfig, "saved_searches/cloud-events-view.json")
+	GraylogUserSessionHistoryView    = path.Join(GraylogConfig, "saved_searches/user-session-history-view.json")
+	GraylogOperatorRole              = path.Join(GraylogConfig, "roles/operator.json")
+	GraylogAuditViewerRole           = path.Join(GraylogConfig, "roles/auditViewer.json")
+	GraylogOperatorUser              = path.Join(GraylogConfig, "user_accounts/operator.json")
+	GraylogAuditViewerUser           = path.Join(GraylogConfig, "user_accounts/auditViewer.json")
+	GraylogAdminWithTrustedHeader    = path.Join(GraylogConfig, "user_accounts/admin_with_trusted_header.json")
+	GraylogStartupTimeout            = time.Minute * 10
+	GraylogLabels                    = map[string]string{"name": "graylog"}
+	GraylogSecretSelector            = "graylog=secret"
 	GraylogSecretKeyRootPasswordSHA2 = "rootPasswordSha2"
-	GraylogConfigFileName           = "graylog.conf"
-	GraylogPasswordField            = "root_password_sha2"
-	GraylogUserField                = "root_username"
-	GraylogMongoUpgradeOrderedJobs  = []string{
+	GraylogConfigFileName            = "graylog.conf"
+	GraylogPasswordField             = "root_password_sha2"
+	GraylogUserField                 = "root_username"
+	GraylogMongoUpgradeOrderedJobs   = []string{
 		"mongo-upgrade-job-40",
 		"mongo-upgrade-job-42",
 		"mongo-upgrade-job-44",

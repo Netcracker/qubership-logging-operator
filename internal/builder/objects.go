@@ -10,6 +10,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+const appsAPIVersion = "apps/v1"
+
 // ContainerOpts lists the container fields the component builders set.
 type ContainerOpts struct {
 	Image           string
@@ -64,7 +66,7 @@ type DaemonSetOpts struct {
 // NewDaemonSet returns a DaemonSet with the given name, namespace, and fields.
 func NewDaemonSet(name, namespace string, opts DaemonSetOpts) *appsv1.DaemonSet {
 	return &appsv1.DaemonSet{
-		TypeMeta:   metav1.TypeMeta{Kind: "DaemonSet", APIVersion: "apps/v1"},
+		TypeMeta:   metav1.TypeMeta{Kind: "DaemonSet", APIVersion: appsAPIVersion},
 		ObjectMeta: objectMeta(name, namespace, opts.Labels, opts.Annotations),
 		Spec: appsv1.DaemonSetSpec{
 			Selector:        &metav1.LabelSelector{MatchLabels: opts.Selector},
@@ -90,7 +92,7 @@ type DeploymentOpts struct {
 // NewDeployment returns a Deployment with the given name, namespace, and fields.
 func NewDeployment(name, namespace string, opts DeploymentOpts) *appsv1.Deployment {
 	return &appsv1.Deployment{
-		TypeMeta:   metav1.TypeMeta{Kind: "Deployment", APIVersion: "apps/v1"},
+		TypeMeta:   metav1.TypeMeta{Kind: "Deployment", APIVersion: appsAPIVersion},
 		ObjectMeta: objectMeta(name, namespace, opts.Labels, opts.Annotations),
 		Spec: appsv1.DeploymentSpec{
 			Replicas: opts.Replicas,
@@ -119,7 +121,7 @@ type StatefulSetOpts struct {
 // NewStatefulSet returns a StatefulSet with the given name, namespace, and fields.
 func NewStatefulSet(name, namespace string, opts StatefulSetOpts) *appsv1.StatefulSet {
 	return &appsv1.StatefulSet{
-		TypeMeta:   metav1.TypeMeta{Kind: "StatefulSet", APIVersion: "apps/v1"},
+		TypeMeta:   metav1.TypeMeta{Kind: "StatefulSet", APIVersion: appsAPIVersion},
 		ObjectMeta: objectMeta(name, namespace, opts.Labels, opts.Annotations),
 		Spec: appsv1.StatefulSetSpec{
 			Replicas:             opts.Replicas,

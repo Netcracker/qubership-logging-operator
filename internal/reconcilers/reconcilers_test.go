@@ -2,16 +2,20 @@ package reconcilers
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	loggingService "github.com/Netcracker/qubership-logging-operator/api/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+	"sigs.k8s.io/controller-runtime/pkg/client/interceptor"
 )
 
 const restartedAt = "kubectl.kubernetes.io/restartedAt"
@@ -150,4 +154,127 @@ func TestStatefulSetUpdateKeepsImmutableFields(t *testing.T) {
 	if updated.Spec.ServiceName != "aggregator-headless" {
 		t.Errorf("service name = %q, want the immutable value kept", updated.Spec.ServiceName)
 	}
+}
+
+func TestDeploymentUpdateReplacesPodSpecAndSelector(t *testing.T) {
+	existing := &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{Name: "reader", Namespace: "logging"},
+		Spec: appsv1.DeploymentSpec{
+			Selector: &metav1.LabelSelector{MatchLabels: map[string]string{"name": "old"}},
+			Template: corev1.PodTemplateSpec{Spec: corev1.PodSpec{PriorityClassName: "stale"}},
+		},
+	}
+	c, scheme, cr := newClient(t, existing)
+
+	desired := &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{Name: "reader", Namespace: "logging", Labels: map[string]string{"app": "reader"}},
+		Spec: appsv1.DeploymentSpec{
+			Selector: &metav1.LabelSelector{MatchLabels: map[string]string{"name": "reader"}},
+			Template: corev1.PodTemplateSpec{Spec: corev1.PodSpec{PriorityClassName: "critical"}},
+		},
+	}
+	if err := Deployment(context.Background(), c, scheme, cr, desired); err != nil {
+		t.Fatalf("update Deployment: %v", err)
+	}
+
+	updated := &appsv1.Deployment{}
+	if err := c.Get(context.Background(), client.ObjectKey{Namespace: "logging", Name: "reader"}, updated); err != nil {
+		t.Fatalf("get Deployment: %v", err)
+	}
+	if updated.Spec.Template.Spec.PriorityClassName != "critical" {
+		t.Errorf("priority class = %q, want critical", updated.Spec.Template.Spec.PriorityClassName)
+	}
+	if updated.Spec.Selector.MatchLabels["name"] != "reader" || updated.Labels["app"] != "reader" {
+		t.Errorf("selector = %v, labels = %v, want the desired values", updated.Spec.Selector, updated.Labels)
+	}
+}
+
+func TestServiceAccountUpdateSetsLabels(t *testing.T) {
+	existing := &corev1.ServiceAccount{ObjectMeta: metav1.ObjectMeta{Name: "graylog", Namespace: "logging"}}
+	c, scheme, cr := newClient(t, existing)
+
+	desired := &corev1.ServiceAccount{
+		ObjectMeta: metav1.ObjectMeta{Name: "graylog", Namespace: "logging", Labels: map[string]string{"app": "graylog"}},
+	}
+	if err := ServiceAccount(context.Background(), c, scheme, cr, desired); err != nil {
+		t.Fatalf("update ServiceAccount: %v", err)
+	}
+
+	updated := &corev1.ServiceAccount{}
+	if err := c.Get(context.Background(), client.ObjectKey{Namespace: "logging", Name: "graylog"}, updated); err != nil {
+		t.Fatalf("get ServiceAccount: %v", err)
+	}
+	if updated.Labels["app"] != "graylog" {
+		t.Errorf("labels = %v, want app=graylog", updated.Labels)
+	}
+}
+
+func TestCreateOrUpdateReturnsClientErrors(t *testing.T) {
+	createErr := errors.New("create failed")
+	getErr := errors.New("get failed")
+	updateErr := errors.New("update failed")
+	tests := []struct {
+		name  string
+		funcs interceptor.Funcs
+		want  error
+	}{
+		{
+			name: "create",
+			funcs: interceptor.Funcs{Create: func(context.Context, client.WithWatch, client.Object, ...client.CreateOption) error {
+				return createErr
+			}},
+			want: createErr,
+		},
+		{
+			name: "get",
+			funcs: interceptor.Funcs{
+				Create: alreadyExists,
+				Get: func(context.Context, client.WithWatch, client.ObjectKey, client.Object, ...client.GetOption) error {
+					return getErr
+				},
+			},
+			want: getErr,
+		},
+		{
+			name: "update",
+			funcs: interceptor.Funcs{
+				Create: alreadyExists,
+				Update: func(context.Context, client.WithWatch, client.Object, ...client.UpdateOption) error {
+					return updateErr
+				},
+			},
+			want: updateErr,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			existing := &corev1.ServiceAccount{ObjectMeta: metav1.ObjectMeta{Name: "graylog", Namespace: "logging"}}
+			_, scheme, cr := newClient(t)
+			c := fake.NewClientBuilder().WithScheme(scheme).WithObjects(existing, cr).WithInterceptorFuncs(tt.funcs).Build()
+
+			desired := &corev1.ServiceAccount{ObjectMeta: metav1.ObjectMeta{Name: "graylog", Namespace: "logging"}}
+			if err := ServiceAccount(context.Background(), c, scheme, cr, desired); !errors.Is(err, tt.want) {
+				t.Errorf("error = %v, want %v", err, tt.want)
+			}
+		})
+	}
+}
+
+func TestSetOwnerSkipsCrossNamespaceObjects(t *testing.T) {
+	_, scheme, cr := newClient(t)
+	obj := &corev1.ServiceAccount{ObjectMeta: metav1.ObjectMeta{Name: "graylog", Namespace: "other"}}
+	if err := setOwner(cr, obj, scheme); err != nil {
+		t.Fatalf("setOwner: %v", err)
+	}
+	if len(obj.OwnerReferences) != 0 {
+		t.Errorf("owner references = %v, want none across namespaces", obj.OwnerReferences)
+	}
+	sameNamespace := &corev1.ServiceAccount{ObjectMeta: metav1.ObjectMeta{Name: "graylog", Namespace: "logging"}}
+	if err := setOwner(cr, sameNamespace, runtime.NewScheme()); err == nil {
+		t.Error("setOwner with a scheme that lacks the LoggingService type returned no error")
+	}
+}
+
+func alreadyExists(_ context.Context, _ client.WithWatch, obj client.Object, _ ...client.CreateOption) error {
+	return k8serrors.NewAlreadyExists(schema.GroupResource{Resource: "serviceaccounts"}, obj.GetName())
 }

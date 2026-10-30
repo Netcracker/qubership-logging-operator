@@ -1,0 +1,321 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  annotations:
+    fba: "true"
+  labels:
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/instance: logging-fluentbit-logging
+    app.kubernetes.io/managed-by: operator
+    app.kubernetes.io/managed-by-operator: logging-operator
+    app.kubernetes.io/name: logging-fluentbit
+    app.kubernetes.io/part-of: logging-service
+    app.kubernetes.io/technology: c
+    app.kubernetes.io/version: "3.0"
+    component: logging-fluentbit
+    fb: x
+    kubernetes.io/cluster-service: "true"
+    name: logging-fluentbit
+    provider: openshift
+  name: logging-fluentbit
+  namespace: logging
+spec:
+  minReadySeconds: 60
+  selector:
+    matchLabels:
+      component: logging-fluentbit
+      provider: openshift
+  template:
+    metadata:
+      annotations:
+        fba: "true"
+      labels:
+        app.kubernetes.io/component: backend
+        app.kubernetes.io/instance: logging-fluentbit-logging
+        app.kubernetes.io/managed-by: operator
+        app.kubernetes.io/managed-by-operator: logging-operator
+        app.kubernetes.io/name: logging-fluentbit
+        app.kubernetes.io/part-of: logging-service
+        app.kubernetes.io/technology: c
+        app.kubernetes.io/version: "3.0"
+        component: logging-fluentbit
+        kubernetes.io/cluster-service: "true"
+        name: logging-fluentbit
+        provider: openshift
+      name: logging-fluentbit
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: role
+                operator: In
+                values:
+                - logging
+      containers:
+      - args:
+        - --volume-dir=/fluent-bit/etc
+        - --webhook-url=http://localhost:2020/api/v2/reload
+        - --webhook-retries=5
+        image: reload:1.0
+        name: configmap-reload
+        ports:
+        - containerPort: 9533
+          name: reload-metrics
+        resources:
+          limits:
+            cpu: 50m
+            memory: 32Mi
+          requests:
+            cpu: 10m
+            memory: 16Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          runAsGroup: 1001
+          runAsNonRoot: true
+          runAsUser: 1001
+        volumeMounts:
+        - mountPath: /fluent-bit/etc
+          name: config
+          readOnly: true
+        - mountPath: /tmp
+          name: tmp
+      - env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        image: fluent-bit:3.0
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 5
+          httpGet:
+            path: /
+            port: 2020
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 10
+        name: logging-fluentbit
+        ports:
+        - containerPort: 2020
+          name: http
+          protocol: TCP
+        - containerPort: 2021
+          name: log-to-metrics
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 5
+          httpGet:
+            path: /api/v1/health
+            port: 2020
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 10
+        resources:
+          limits:
+            cpu: "1"
+            memory: 1Gi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            add:
+            - DAC_OVERRIDE
+            drop:
+            - ALL
+          privileged: false
+          readOnlyRootFilesystem: true
+          runAsGroup: 0
+          runAsNonRoot: false
+          runAsUser: 0
+        volumeMounts:
+        - mountPath: /etc/docker/daemon.json
+          name: dockerdaemon
+          readOnly: true
+        - mountPath: /etc/docker-hostname
+          name: dockerhostname
+          readOnly: true
+        - mountPath: /var/lib/docker/containers
+          name: varlibdockercontainers
+          readOnly: true
+        - mountPath: /var/log
+          name: varlog
+          readOnly: true
+        - mountPath: /fluent-bit/state
+          name: fluentbit-state
+        - mountPath: /fluent-bit/storage
+          name: fluentbit-storage
+        - mountPath: /fluent-bit/etc
+          name: config
+          readOnly: true
+        - mountPath: /tmp
+          name: tmp
+        - mountPath: /fluent-bit/tls/ca.crt
+          name: tls-ca
+          readOnly: true
+          subPath: ca.crt
+        - mountPath: /fluent-bit/tls/tls.crt
+          name: tls-cert
+          readOnly: true
+          subPath: tls.crt
+        - mountPath: /fluent-bit/tls/tls.key
+          name: tls-key
+          readOnly: true
+          subPath: tls.key
+        - mountPath: /fluent-bit/output/loki/tls/ca.crt
+          name: loki-tls-ca
+          readOnly: true
+          subPath: ca.crt
+        - mountPath: /fluent-bit/output/loki/tls/tls.crt
+          name: loki-tls-cert
+          readOnly: true
+          subPath: tls.crt
+        - mountPath: /fluent-bit/output/loki/tls/tls.key
+          name: loki-tls-key
+          readOnly: true
+          subPath: tls.key
+        - mountPath: /fluent-bit/output/http/tls/ca.crt
+          name: http-tls-ca
+          readOnly: true
+          subPath: ca.crt
+        - mountPath: /fluent-bit/output/http/tls/tls.crt
+          name: http-tls-cert
+          readOnly: true
+          subPath: tls.crt
+        - mountPath: /fluent-bit/output/http/tls/tls.key
+          name: http-tls-key
+          readOnly: true
+          subPath: tls.key
+        - mountPath: /fluent-bit/output/otel/tls/ca.crt
+          name: otel-tls-ca
+          readOnly: true
+          subPath: ca.crt
+        - mountPath: /fluent-bit/output/otel/tls/tls.crt
+          name: otel-tls-cert
+          readOnly: true
+          subPath: tls.crt
+        - mountPath: /fluent-bit/output/otel/tls/tls.key
+          name: otel-tls-key
+          readOnly: true
+          subPath: tls.key
+        - mountPath: /opt/extra
+          name: extra
+          readOnly: true
+      nodeSelector:
+        kubernetes.io/os: linux
+      priorityClassName: fb-prio
+      securityContext:
+        seLinuxOptions:
+          type: spc_t
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: logging-fluentbit
+      terminationGracePeriodSeconds: 30
+      tolerations:
+      - effect: NoSchedule
+        key: dedicated
+        operator: Equal
+        value: logging
+      volumes:
+      - hostPath:
+          path: /etc/docker/daemon.json
+          type: FileOrCreate
+        name: dockerdaemon
+      - hostPath:
+          path: /etc/hostname
+          type: FileOrCreate
+        name: dockerhostname
+      - hostPath:
+          path: /var/lib/docker/containers
+          type: ""
+        name: varlibdockercontainers
+      - hostPath:
+          path: /var/log
+          type: ""
+        name: varlog
+      - hostPath:
+          path: /var/lib/fluent-bit/state
+          type: DirectoryOrCreate
+        name: fluentbit-state
+      - hostPath:
+          path: /var/lib/fluent-bit/storage
+          type: DirectoryOrCreate
+        name: fluentbit-storage
+      - name: config
+        secret:
+          defaultMode: 420
+          secretName: logging-fluentbit
+      - emptyDir:
+          sizeLimit: 100Mi
+        name: tmp
+      - name: tls-ca
+        secret:
+          defaultMode: 420
+          secretName: ca-s
+      - name: tls-cert
+        secret:
+          defaultMode: 420
+          secretName: crt-s
+      - name: tls-key
+        secret:
+          defaultMode: 420
+          secretName: key-s
+      - name: loki-tls-ca
+        secret:
+          defaultMode: 420
+          secretName: ca-s
+      - name: loki-tls-cert
+        secret:
+          defaultMode: 420
+          secretName: crt-s
+      - name: loki-tls-key
+        secret:
+          defaultMode: 420
+          secretName: key-s
+      - name: http-tls-ca
+        secret:
+          defaultMode: 420
+          secretName: ca-s
+      - name: http-tls-cert
+        secret:
+          defaultMode: 420
+          secretName: crt-s
+      - name: http-tls-key
+        secret:
+          defaultMode: 420
+          secretName: key-s
+      - name: otel-tls-ca
+        secret:
+          defaultMode: 420
+          secretName: ca-s
+      - name: otel-tls-cert
+        secret:
+          defaultMode: 420
+          secretName: crt-s
+      - name: otel-tls-key
+        secret:
+          defaultMode: 420
+          secretName: key-s
+      - hostPath:
+          path: /opt/extra
+        name: extra
+  updateStrategy:
+    rollingUpdate:
+      maxUnavailable: 1
+    type: RollingUpdate
+status:
+  currentNumberScheduled: 0
+  desiredNumberScheduled: 0
+  numberMisscheduled: 0
+  numberReady: 0

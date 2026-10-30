@@ -1,0 +1,481 @@
+# LoggingService for the builder golden-file tests.
+apiVersion: logging.netcracker.com/v1
+kind: LoggingService
+metadata:
+  name: logging-service
+  namespace: logging
+spec:
+  cloudURL: https://kubernetes.default.svc
+  openshiftDeploy: false
+  osKind: centos
+  ipv6: false
+  containerRuntimeType: containerd
+  graylog:
+    dockerImage: graylog/graylog:5.2.12
+    initSetupImage: alpine:3.24
+    mongoDBImage: mongo:5.0.33
+    initContainerDockerImage: ghcr.io/plugins-init:0.2.0
+    host: https://graylog.example.org/
+    inputPort: 12201
+    graylogSecretName: graylog-secret
+    contentDeployPolicy: only-create
+    javaOpts: -Xms1g -Xmx1g
+    customPluginsPaths: https://example.org/plugin.jar
+    s3Archive: true
+    pathRepo: /usr/share/opensearch/snapshots
+    priorityClassName: high
+    nodeSelectorKey: role
+    nodeSelectorValue: logging
+    startupTimeout: 15
+    labels:
+      team: obs
+    annotations:
+      anno: one
+    graylogResources:
+      requests:
+        cpu: 500m
+        memory: 1536Mi
+      limits:
+        cpu: '1'
+        memory: 2Gi
+    mongoResources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 256Mi
+    initResources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 100m
+        memory: 128Mi
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key: role
+              operator: In
+              values:
+              - logging
+    authProxy:
+      install: true
+      image: ghcr.io/auth-proxy:1.0
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          cpu: 100m
+          memory: 128Mi
+      bindPasswordSecret:
+        name: bind-pass
+        key: password
+      ca:
+        secretName: ap-ca
+        secretKey: ca.crt
+      cert:
+        secretName: ap-crt
+        secretKey: tls.crt
+      key:
+        secretName: ap-key
+        secretKey: tls.key
+    tls:
+      http:
+        enabled: true
+        cacerts: ca-bundle-secret
+        keyFilePassword: pass
+        generateCerts:
+          enabled: true
+          secretName: graylog-http-tls
+        cert:
+          secretName: gl-crt
+          secretKey: tls.crt
+        key:
+          secretName: gl-key
+          secretKey: tls.key
+      input:
+        enabled: true
+        generateCerts:
+          enabled: true
+          secretName: graylog-input-tls
+        cert:
+          secretName: in-crt
+          secretKey: tls.crt
+        key:
+          secretName: in-key
+          secretKey: tls.key
+  fluentd:
+    dockerImage: fluentd:1.0
+    graylogHost: graylog.logging.svc
+    graylogPort: 12201
+    graylogOutput: true
+    systemLogging: true
+    systemLogType: varlogmessages
+    containerLogging: true
+    watchKubernetesMetadata: true
+    securityContextPrivileged: true
+    priorityClassName: fd-prio
+    nodeSelectorKey: kubernetes.io/os
+    nodeSelectorValue: linux
+    labels:
+      fd: x
+    annotations:
+      fda: y
+    totalLimitSize: 512MB
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: '1'
+        memory: 1Gi
+    configmapReload:
+      dockerImage: reload:1.0
+      resources:
+        requests:
+          cpu: 10m
+          memory: 16Mi
+        limits:
+          cpu: 50m
+          memory: 32Mi
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key: role
+              operator: In
+              values:
+              - logging
+    tolerations:
+    - key: dedicated
+      operator: Equal
+      value: logging
+      effect: NoSchedule
+    additionalVolumes:
+    - name: extra
+      hostPath:
+        path: /opt/extra
+    additionalVolumeMounts:
+    - name: extra
+      mountPath: /opt/extra
+      readOnly: true
+    tls:
+      enabled: true
+      generateCerts:
+        enabled: true
+        secretName: fd-tls
+      ca:
+        secretName: ca-s
+        secretKey: ca.crt
+      cert:
+        secretName: crt-s
+        secretKey: tls.crt
+      key:
+        secretName: key-s
+        secretKey: tls.key
+    output:
+      loki:
+        enabled: true
+        host: http://loki:3100
+        auth:
+          user:
+            name: loki-auth
+            key: user
+          password:
+            name: loki-auth
+            key: pass
+        tls:
+          enabled: true
+          ca: &id001
+            secretName: ca-s
+            secretKey: ca.crt
+          cert: &id002
+            secretName: crt-s
+            secretKey: tls.crt
+          key: &id003
+            secretName: key-s
+            secretKey: tls.key
+      http:
+        enabled: true
+        host: https://http-out
+        auth:
+          token:
+            name: http-auth
+            key: token
+        tls:
+          enabled: true
+          ca: *id001
+          cert: *id002
+          key: *id003
+  fluentbit:
+    dockerImage: fluent-bit:3.0
+    graylogHost: graylog.logging.svc
+    graylogPort: 12201
+    graylogOutput: true
+    systemLogging: true
+    systemLogType: varlogsyslog
+    containerLogging: true
+    securityContextPrivileged: true
+    priorityClassName: fb-prio
+    nodeSelectorKey: kubernetes.io/os
+    nodeSelectorValue: linux
+    labels:
+      fb: x
+    annotations:
+      fba: y
+    storageProfile: persistent-offsets
+    memBufLimit: 10M
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: '1'
+        memory: 1Gi
+    configmapReload:
+      dockerImage: reload:1.0
+      resources:
+        requests:
+          cpu: 10m
+          memory: 16Mi
+        limits:
+          cpu: 50m
+          memory: 32Mi
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key: role
+              operator: In
+              values:
+              - logging
+    tolerations:
+    - key: dedicated
+      operator: Equal
+      value: logging
+      effect: NoSchedule
+    additionalVolumes:
+    - name: extra
+      hostPath:
+        path: /opt/extra
+    additionalVolumeMounts:
+    - name: extra
+      mountPath: /opt/extra
+      readOnly: true
+    tls:
+      enabled: true
+      verify: true
+      generateCerts:
+        enabled: true
+        secretName: fb-tls
+      ca:
+        secretName: ca-s
+        secretKey: ca.crt
+      cert:
+        secretName: crt-s
+        secretKey: tls.crt
+      key:
+        secretName: key-s
+        secretKey: tls.key
+    output:
+      loki:
+        enabled: true
+        host: http://loki:3100
+        auth:
+          user:
+            name: loki-auth
+            key: user
+          password:
+            name: loki-auth
+            key: pass
+        tls:
+          enabled: true
+          ca: &id004
+            secretName: ca-s
+            secretKey: ca.crt
+          cert: &id005
+            secretName: crt-s
+            secretKey: tls.crt
+          key: &id006
+            secretName: key-s
+            secretKey: tls.key
+      http:
+        enabled: true
+        host: http-out
+        port: 443
+        auth:
+          token:
+            name: http-auth
+            key: token
+        tls:
+          enabled: true
+          ca: *id004
+          cert: *id005
+          key: *id006
+      otel:
+        enabled: true
+        host: otel
+        port: 4318
+        auth:
+          user:
+            name: o-auth
+            key: user
+          password:
+            name: o-auth
+            key: pass
+        tls:
+          enabled: true
+          ca: *id004
+          cert: *id005
+          key: *id006
+    aggregator:
+      install: true
+      dockerImage: fluent-bit:3.0
+      replicas: 3
+      graylogOutput: true
+      graylogHost: graylog.logging.svc
+      graylogPort: 12201
+      securityContextPrivileged: true
+      priorityClassName: agg-prio
+      nodeSelectorKey: kubernetes.io/os
+      nodeSelectorValue: linux
+      labels:
+        agg: x
+      annotations:
+        agga: y
+      startupTimeout: 12
+      volume:
+        bind: true
+        storageClassName: fast
+        storageSize: 5Gi
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          cpu: '1'
+          memory: 1Gi
+      configmapReload:
+        dockerImage: reload:1.0
+        resources:
+          requests:
+            cpu: 10m
+            memory: 16Mi
+          limits:
+            cpu: 50m
+            memory: 32Mi
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: role
+                operator: In
+                values:
+                - logging
+      tolerations:
+      - key: dedicated
+        operator: Equal
+        value: logging
+        effect: NoSchedule
+      tls:
+        enabled: true
+        generateCerts:
+          enabled: true
+          secretName: agg-tls
+        ca:
+          secretName: ca-s
+          secretKey: ca.crt
+        cert:
+          secretName: crt-s
+          secretKey: tls.crt
+        key:
+          secretName: key-s
+          secretKey: tls.key
+      output:
+        loki:
+          enabled: true
+          host: http://loki:3100
+          auth:
+            user:
+              name: loki-auth
+              key: user
+            password:
+              name: loki-auth
+              key: pass
+          tls:
+            enabled: true
+            ca:
+              secretName: ca-s
+              secretKey: ca.crt
+            cert:
+              secretName: crt-s
+              secretKey: tls.crt
+            key:
+              secretName: key-s
+              secretKey: tls.key
+        http:
+          enabled: true
+          host: http-out
+          port: 443
+          tls:
+            enabled: true
+            ca:
+              secretName: ca-s
+              secretKey: ca.crt
+            cert:
+              secretName: crt-s
+              secretKey: tls.crt
+            key:
+              secretName: key-s
+              secretKey: tls.key
+        otel:
+          enabled: true
+          host: otel
+          port: 4318
+          tls:
+            enabled: true
+            ca:
+              secretName: ca-s
+              secretKey: ca.crt
+            cert:
+              secretName: crt-s
+              secretKey: tls.crt
+            key:
+              secretName: key-s
+              secretKey: tls.key
+  cloudEventsReader:
+    install: true
+    dockerImage: events-reader:1.0
+    priorityClassName: er-prio
+    nodeSelectorKey: kubernetes.io/os
+    nodeSelectorValue: linux
+    labels:
+      er: x
+    annotations:
+      era: y
+    args:
+    - -workers=2
+    - -format=json
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: '1'
+        memory: 1Gi
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key: role
+              operator: In
+              values:
+              - logging

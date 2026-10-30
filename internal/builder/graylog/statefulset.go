@@ -20,6 +20,22 @@ const (
 	secretFilesPath  = dataPath + "/k8s-graylog-secret"
 	sslPath          = dataPath + "/ssl"
 	trustStoreOption = "-Djavax.net.ssl.trustStore=" + sslPath + "/cacerts.jks"
+	archivesPath     = dataPath + "/archives"
+	directoriesFile  = dataPath + "/config/directories.json"
+	shell            = "/bin/sh"
+
+	// Script fragments repeated in the setup script.
+	mkdir        = "mkdir -p "
+	chownGraylog = "chown -R 1100:1100 "
+
+	// Volume names shared by the volumes and the volume mounts.
+	authProxyConfigVolume = "graylog-auth-proxy-config"
+	caCertsVolume         = "tls-cacerts"
+	httpCertVolume        = "tls-cert-http"
+	httpKeyVolume         = "tls-key-http"
+	certManagerCAVolume   = "tls-cacerts-cert-manager"
+	inputCertVolume       = "tls-cert-input"
+	inputKeyVolume        = "tls-key-input"
 
 	// Graylog runs as 1100; MongoDB, the plugin downloader, and the auth proxy run as 1001.
 	graylogUser = int64(1100)
@@ -88,7 +104,7 @@ func initContainers(cr *loggingService.LoggingService, def defaults.GraylogDefau
 			{Name: "data", MountPath: dataPath},
 			{Name: "mongodb", MountPath: "/data/db"},
 		},
-		Command:         []string{"/bin/sh", "-c", setupScript(cr.Spec.OpenshiftDeploy, httpTLSEnabled(spec))},
+		Command:         []string{shell, "-c", setupScript(cr.Spec.OpenshiftDeploy, httpTLSEnabled(spec))},
 		SecurityContext: &corev1.SecurityContext{RunAsNonRoot: ptr.To(false)},
 		Resources:       resources,
 	}}
@@ -117,31 +133,31 @@ func setupScript(openshift, tls bool) string {
 	sb.WriteString("chown -R 1001:1001 /data/db\nchmod -R u=rwX,g=rwX,o= /data/db\n\n")
 	if openshift {
 		sb.WriteString("chmod -R 0777 " + dataPath + "/\n" +
-			"chown -R 1100:1100 " + dataPath + "\n" +
-			"mkdir -p " + dataPath + "/archives\n" +
-			"chown -R 1100:1100 " + dataPath + "/archives\n" +
-			"mkdir -p " + dataPath + "/config\n" +
-			"touch " + dataPath + "/config/directories.json\n" +
-			"chmod 0666 " + dataPath + "/config/directories.json\n" +
-			"chown 1100:1100 " + dataPath + "/config/directories.json\n" +
-			"printf '{}\\n' > " + dataPath + "/config/directories.json\n")
+			chownGraylog + dataPath + "\n" +
+			mkdir + archivesPath + "\n" +
+			chownGraylog + archivesPath + "\n" +
+			mkdir + dataPath + "/config\n" +
+			"touch " + directoriesFile + "\n" +
+			"chmod 0666 " + directoriesFile + "\n" +
+			"chown 1100:1100 " + directoriesFile + "\n" +
+			"printf '{}\\n' > " + directoriesFile + "\n")
 		if tls {
-			sb.WriteString("\nmkdir -p " + sslPath + "\n" +
+			sb.WriteString("\n" + mkdir + sslPath + "\n" +
 				"chmod -R 0777 " + sslPath + "\n" +
-				"chown -R 1100:1100 " + sslPath + "\n")
+				chownGraylog + sslPath + "\n")
 		}
 		return sb.String()
 	}
-	sb.WriteString("mkdir -p " + dataPath + "/archives\n" +
-		"mkdir -p " + dataPath + "/config\n" +
-		"touch " + dataPath + "/config/directories.json\n")
+	sb.WriteString(mkdir + archivesPath + "\n" +
+		mkdir + dataPath + "/config\n" +
+		"touch " + directoriesFile + "\n")
 	if tls {
-		sb.WriteString("\nmkdir -p " + sslPath + "\n")
+		sb.WriteString("\n" + mkdir + sslPath + "\n")
 	}
-	sb.WriteString("\nchown -R 1100:1100 " + dataPath + "\n" +
+	sb.WriteString("\n" + chownGraylog + dataPath + "\n" +
 		"chmod -R u=rwX,g=rwX,o= " + dataPath + "\n" +
-		"chmod 0660 " + dataPath + "/config/directories.json\n" +
-		"printf '{}\\n' > " + dataPath + "/config/directories.json\n")
+		"chmod 0660 " + directoriesFile + "\n" +
+		"printf '{}\\n' > " + directoriesFile + "\n")
 	return sb.String()
 }
 
@@ -149,7 +165,7 @@ func mongoContainer(spec *loggingService.Graylog, def defaults.GraylogDefaults) 
 	return builder.NewContainer("mongo", builder.ContainerOpts{
 		Image:           spec.MongoDBImage,
 		ImagePullPolicy: corev1.PullIfNotPresent,
-		Command:         []string{"/bin/sh", "-c", "mongod --wiredTigerEngineConfigString=\"cache_size=512M\"\n"},
+		Command:         []string{shell, "-c", "mongod --wiredTigerEngineConfigString=\"cache_size=512M\"\n"},
 		VolumeMounts: []corev1.VolumeMount{
 			{Name: "mongodb", MountPath: "/data/db"},
 			{Name: "tmp", MountPath: "/tmp"},
@@ -205,7 +221,7 @@ func graylogContainer(spec *loggingService.Graylog, def defaults.GraylogDefaults
 	return builder.NewContainer("graylog", builder.ContainerOpts{
 		Image:           spec.DockerImage,
 		ImagePullPolicy: corev1.PullIfNotPresent,
-		Command:         []string{"/bin/sh", "-c", graylogScript(spec)},
+		Command:         []string{shell, "-c", graylogScript(spec)},
 		Env:             env,
 		LivenessProbe:   probe,
 		ReadinessProbe:  probe.DeepCopy(),
@@ -253,31 +269,23 @@ func authProxyContainer(spec *loggingService.Graylog, def defaults.GraylogDefaul
 		htpasswdKey = proxy.BindPasswordSecret.Key
 	}
 	mounts := []corev1.VolumeMount{
-		{Name: "graylog-auth-proxy-config", MountPath: "/usr/src/app/config.yaml", SubPath: "config.yaml", ReadOnly: true},
+		{Name: authProxyConfigVolume, MountPath: "/usr/src/app/config.yaml", SubPath: "config.yaml", ReadOnly: true},
 		{Name: "graylog-auth-proxy-htpasswd", MountPath: "/usr/src/app/.htpasswd", SubPath: htpasswdKey, ReadOnly: true},
 		{Name: "tmp", MountPath: "/tmp"},
 	}
 	if spec.TLS != nil && spec.TLS.HTTP != nil {
 		http := spec.TLS.HTTP
-		mounts = append(mounts, httpCertMounts(http, sslPath+"/http/ca.crt")...)
+		mounts = append(mounts, fileMounts(httpFiles(http, sslPath+"/http/ca.crt"))...)
 		if http.CACerts != "" {
-			mounts = append(mounts, readOnlyMount("tls-cacerts", sslPath+"/http/ca.crt", "ca.crt"))
+			mounts = append(mounts, readOnlyMount(caCertsVolume, sslPath+"/http/ca.crt", "ca.crt"))
 		}
 	}
-	if secretKeySet(proxy.CA.SecretName, proxy.CA.SecretKey) {
-		mounts = append(mounts, readOnlyMount("graylog-auth-proxy-ca-cert", "/usr/share/ssl/auth/ca.crt", proxy.CA.SecretKey))
-	}
-	if secretKeySet(proxy.Cert.SecretName, proxy.Cert.SecretKey) {
-		mounts = append(mounts, readOnlyMount("graylog-auth-proxy-client-cert", "/usr/share/ssl/auth/tls.crt", proxy.Cert.SecretKey))
-	}
-	if secretKeySet(proxy.Key.SecretName, proxy.Key.SecretKey) {
-		mounts = append(mounts, readOnlyMount("graylog-auth-proxy-private-key", "/usr/share/ssl/auth/tls.key", proxy.Key.SecretKey))
-	}
+	mounts = append(mounts, fileMounts(authProxyFiles(proxy))...)
 
 	return builder.NewContainer(authProxyName, builder.ContainerOpts{
 		Image:           proxy.Image,
 		ImagePullPolicy: corev1.PullIfNotPresent,
-		Command:         []string{"/bin/sh", "-c", "python /usr/src/app/graylog_auth_proxy.py --config \"./config.yaml\"\n"},
+		Command:         []string{shell, "-c", "python /usr/src/app/graylog_auth_proxy.py --config \"./config.yaml\"\n"},
 		Env:             []corev1.EnvVar{{Name: "PYTHONDONTWRITEBYTECODE", Value: "1"}},
 		VolumeMounts:    mounts,
 		Ports: []corev1.ContainerPort{
@@ -304,46 +312,12 @@ func graylogVolumeMounts(spec *loggingService.Graylog) []corev1.VolumeMount {
 		return mounts
 	}
 	if http := spec.TLS.HTTP; http != nil {
-		mounts = append(mounts, httpCertMounts(http, sslPath+"/cacerts/cert-manager-ca.crt")...)
+		mounts = append(mounts, fileMounts(httpFiles(http, sslPath+"/cacerts/cert-manager-ca.crt"))...)
 		if http.CACerts != "" {
-			mounts = append(mounts, corev1.VolumeMount{Name: "tls-cacerts", MountPath: sslPath + "/cacerts", ReadOnly: true})
+			mounts = append(mounts, corev1.VolumeMount{Name: caCertsVolume, MountPath: sslPath + "/cacerts", ReadOnly: true})
 		}
 	}
-	if input := spec.TLS.Input; input != nil {
-		if generateCerts(input.GenerateCerts) {
-			mounts = append(mounts,
-				readOnlyMount("tls-cert-input", sslPath+"/input/tls.crt", "tls.crt"),
-				readOnlyMount("tls-key-input", sslPath+"/input/tls.key", "tls.key"))
-		} else {
-			if input.Cert != nil && secretKeySet(input.Cert.SecretName, input.Cert.SecretKey) {
-				mounts = append(mounts, readOnlyMount("tls-cert-input", sslPath+"/input/tls.crt", input.Cert.SecretKey))
-			}
-			if input.Key != nil && secretKeySet(input.Key.SecretName, input.Key.SecretKey) {
-				mounts = append(mounts, readOnlyMount("tls-key-input", sslPath+"/input/tls.key", input.Key.SecretKey))
-			}
-		}
-	}
-	return mounts
-}
-
-// httpCertMounts mounts the HTTPS certificate and key. With generated certificates, it
-// also mounts the cert-manager CA at caPath.
-func httpCertMounts(http *loggingService.HTTPGraylogTLS, caPath string) []corev1.VolumeMount {
-	if generateCerts(http.GenerateCerts) {
-		return []corev1.VolumeMount{
-			readOnlyMount("tls-cert-http", sslPath+"/http/tls.crt", "tls.crt"),
-			readOnlyMount("tls-key-http", sslPath+"/http/tls.key", "tls.key"),
-			readOnlyMount("tls-cacerts-cert-manager", caPath, "ca.crt"),
-		}
-	}
-	var mounts []corev1.VolumeMount
-	if http.Cert != nil && secretKeySet(http.Cert.SecretName, http.Cert.SecretKey) {
-		mounts = append(mounts, readOnlyMount("tls-cert-http", sslPath+"/http/tls.crt", http.Cert.SecretKey))
-	}
-	if http.Key != nil && secretKeySet(http.Key.SecretName, http.Key.SecretKey) {
-		mounts = append(mounts, readOnlyMount("tls-key-http", sslPath+"/http/tls.key", http.Key.SecretKey))
-	}
-	return mounts
+	return append(mounts, fileMounts(inputFiles(spec.TLS.Input))...)
 }
 
 func volumes(spec *loggingService.Graylog, def defaults.GraylogDefaults) []corev1.Volume {
@@ -377,53 +351,100 @@ func volumes(spec *loggingService.Graylog, def defaults.GraylogDefaults) []corev
 			bindPasswordSecret = proxy.BindPasswordSecret.Name
 		}
 		vols = append(vols,
-			configFileVolume("graylog-auth-proxy-config", "graylog-auth-proxy-config", "config.yaml", 0o444),
+			configFileVolume(authProxyConfigVolume, authProxyConfigVolume, "config.yaml", 0o444),
 			secretVolume("graylog-auth-proxy-htpasswd", bindPasswordSecret))
-		if secretKeySet(proxy.CA.SecretName, proxy.CA.SecretKey) {
-			vols = append(vols, secretVolume("graylog-auth-proxy-ca-cert", proxy.CA.SecretName))
-		}
-		if secretKeySet(proxy.Cert.SecretName, proxy.Cert.SecretKey) {
-			vols = append(vols, secretVolume("graylog-auth-proxy-client-cert", proxy.Cert.SecretName))
-		}
-		if secretKeySet(proxy.Key.SecretName, proxy.Key.SecretKey) {
-			vols = append(vols, secretVolume("graylog-auth-proxy-private-key", proxy.Key.SecretName))
-		}
+		vols = append(vols, fileVolumes(authProxyFiles(proxy))...)
 	}
 
 	if spec.TLS == nil {
 		return vols
 	}
 	if http := spec.TLS.HTTP; http != nil {
-		if generateCerts(http.GenerateCerts) {
-			name := http.GenerateCerts.SecretName
-			vols = append(vols,
-				secretVolume("tls-cert-http", name),
-				secretVolume("tls-key-http", name),
-				secretVolume("tls-cacerts-cert-manager", name))
-		} else {
-			if http.Cert != nil && secretKeySet(http.Cert.SecretName, http.Cert.SecretKey) {
-				vols = append(vols, secretVolume("tls-cert-http", http.Cert.SecretName))
-			}
-			if http.Key != nil && secretKeySet(http.Key.SecretName, http.Key.SecretKey) {
-				vols = append(vols, secretVolume("tls-key-http", http.Key.SecretName))
-			}
-		}
+		// The CA path matters only for the mounts.
+		vols = append(vols, fileVolumes(httpFiles(http, ""))...)
 		if http.CACerts != "" {
-			vols = append(vols, secretVolume("tls-cacerts", http.CACerts))
+			vols = append(vols, secretVolume(caCertsVolume, http.CACerts))
 		}
 	}
-	if input := spec.TLS.Input; input != nil {
-		if generateCerts(input.GenerateCerts) {
-			name := input.GenerateCerts.SecretName
-			vols = append(vols, secretVolume("tls-cert-input", name), secretVolume("tls-key-input", name))
-		} else {
-			if input.Cert != nil && secretKeySet(input.Cert.SecretName, input.Cert.SecretKey) {
-				vols = append(vols, secretVolume("tls-cert-input", input.Cert.SecretName))
-			}
-			if input.Key != nil && secretKeySet(input.Key.SecretName, input.Key.SecretKey) {
-				vols = append(vols, secretVolume("tls-key-input", input.Key.SecretName))
-			}
+	return append(vols, fileVolumes(inputFiles(spec.TLS.Input))...)
+}
+
+// secretFile is one file from a Secret, mounted at path through its own volume.
+type secretFile struct {
+	volume, secret, key, path string
+}
+
+// httpFiles lists the HTTPS certificate and key. Generated certificates also bring the
+// cert-manager CA, which is mounted at caPath.
+func httpFiles(http *loggingService.HTTPGraylogTLS, caPath string) []secretFile {
+	if generateCerts(http.GenerateCerts) {
+		name := http.GenerateCerts.SecretName
+		return []secretFile{
+			{httpCertVolume, name, "tls.crt", sslPath + "/http/tls.crt"},
+			{httpKeyVolume, name, "tls.key", sslPath + "/http/tls.key"},
+			{certManagerCAVolume, name, "ca.crt", caPath},
 		}
+	}
+	return userFiles(http.Cert, http.Key, httpCertVolume, httpKeyVolume, sslPath+"/http")
+}
+
+// inputFiles lists the certificate and key of the TLS-enabled GELF input.
+func inputFiles(input *loggingService.InputGraylogTLS) []secretFile {
+	if input == nil {
+		return nil
+	}
+	if generateCerts(input.GenerateCerts) {
+		name := input.GenerateCerts.SecretName
+		return []secretFile{
+			{inputCertVolume, name, "tls.crt", sslPath + "/input/tls.crt"},
+			{inputKeyVolume, name, "tls.key", sslPath + "/input/tls.key"},
+		}
+	}
+	return userFiles(input.Cert, input.Key, inputCertVolume, inputKeyVolume, sslPath+"/input")
+}
+
+// userFiles lists the certificate and key that the user stores in Secrets. A file is
+// skipped when its Secret name or key is empty.
+func userFiles(cert *loggingService.Cert, key *loggingService.Key, certVolume, keyVolume, dir string) []secretFile {
+	var files []secretFile
+	if cert != nil && secretKeySet(cert.SecretName, cert.SecretKey) {
+		files = append(files, secretFile{certVolume, cert.SecretName, cert.SecretKey, dir + "/tls.crt"})
+	}
+	if key != nil && secretKeySet(key.SecretName, key.SecretKey) {
+		files = append(files, secretFile{keyVolume, key.SecretName, key.SecretKey, dir + "/tls.key"})
+	}
+	return files
+}
+
+// authProxyFiles lists the certificates the auth proxy uses to connect to LDAP.
+func authProxyFiles(proxy *loggingService.AuthProxy) []secretFile {
+	const dir = "/usr/share/ssl/auth"
+	candidates := []secretFile{
+		{"graylog-auth-proxy-ca-cert", proxy.CA.SecretName, proxy.CA.SecretKey, dir + "/ca.crt"},
+		{"graylog-auth-proxy-client-cert", proxy.Cert.SecretName, proxy.Cert.SecretKey, dir + "/tls.crt"},
+		{"graylog-auth-proxy-private-key", proxy.Key.SecretName, proxy.Key.SecretKey, dir + "/tls.key"},
+	}
+	var files []secretFile
+	for _, file := range candidates {
+		if secretKeySet(file.secret, file.key) {
+			files = append(files, file)
+		}
+	}
+	return files
+}
+
+func fileMounts(files []secretFile) []corev1.VolumeMount {
+	mounts := make([]corev1.VolumeMount, 0, len(files))
+	for _, file := range files {
+		mounts = append(mounts, readOnlyMount(file.volume, file.path, file.key))
+	}
+	return mounts
+}
+
+func fileVolumes(files []secretFile) []corev1.Volume {
+	vols := make([]corev1.Volume, 0, len(files))
+	for _, file := range files {
+		vols = append(vols, secretVolume(file.volume, file.secret))
 	}
 	return vols
 }

@@ -28,6 +28,7 @@ const (
 
 	configVolume  = "config"
 	tmpVolume     = "tmp"
+	stateVolume   = "fluentbit-state"
 	configDir     = "/fluent-bit/etc"
 	secretMode    = int32(420)
 	nonRootID     = int64(1001)

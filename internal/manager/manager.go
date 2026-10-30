@@ -22,10 +22,10 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
-	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
-	// to ensure that exec-entrypoint and run can make use of them.
 	"runtime"
 
+	// Registers the client auth plugins (Azure, GCP, OIDC, and others) so that the
+	// operator can authenticate with any kubeconfig when it runs outside the cluster.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	ctrl "sigs.k8s.io/controller-runtime"
 	//+kubebuilder:scaffold:imports

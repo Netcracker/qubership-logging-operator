@@ -323,7 +323,7 @@ Image can be found from:
     {{- printf "%s" .Values.fluentbit.dockerImage -}}
   {{- else -}}
     {{- /* # renovate: datasource=docker depName=fluent/fluent-bit */ -}}
-    {{- print "docker.io/fluent/fluent-bit:5.1.3" -}}
+    {{- print "docker.io/fluent/fluent-bit:5.1.5" -}}
   {{- end -}}
 {{- end -}}
 
@@ -353,7 +353,7 @@ Image can be found from:
     {{- printf "%s" .Values.cloudEventsReader.dockerImage -}}
   {{- else -}}
     {{- /* # renovate: datasource=github-releases depName=Netcracker/qubership-kube-events-reader versioning=semver */ -}}
-    {{- print "ghcr.io/netcracker/qubership-kube-events-reader:2.9.4" -}}
+    {{- print "ghcr.io/netcracker/qubership-kube-events-reader:2.10.0" -}}
   {{- end -}}
 {{- end -}}
 
@@ -382,7 +382,7 @@ Image can be found from:
     {{- printf "%s" .Values.graylog.initContainerDockerImage -}}
   {{- else -}}
     {{- /* # renovate: datasource=github-releases depName=Netcracker/qubership-graylog-plugins-init versioning=semver */ -}}
-    {{- print "ghcr.io/netcracker/qubership-graylog-plugins-init:0.1.0" -}}
+    {{- print "ghcr.io/netcracker/qubership-graylog-plugins-init:0.2.0" -}}
   {{- end -}}
 {{- end -}}
 
@@ -427,7 +427,7 @@ Image can be found from:
     {{- printf "%s" .Values.graylog.initSetupImage -}}
   {{- else -}}
     {{- /* # renovate: datasource=docker depName=alpine */ -}}
-    {{- print "docker.io/alpine:3.24.2" -}}
+    {{- print "docker.io/alpine:3.24.3" -}}
   {{- end -}}
 {{- end -}}
 

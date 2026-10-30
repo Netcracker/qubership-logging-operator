@@ -3158,6 +3158,15 @@ true
 			<td>Type of pprof service</td>
 		</tr>
 		<tr>
+			<td>pvc.metadata.annotations</td>
+			<td>object</td>
+			<td><pre lang="json">
+{}
+</pre>
+</td>
+			<td>Annotations added to every PVC that the chart creates, for example `argocd.argoproj.io/sync-options: Prune=false`. Values must be strings. On key conflict, these annotations override `graylog.annotations` on Graylog PVCs. They do not apply to the Fluent Bit aggregator PVCs, which the operator creates. When `graylog.install` is `false`, the operator deletes the Graylog and MongoDB PVCs whatever the annotations.</td>
+		</tr>
+		<tr>
 			<td>readinessProbe</td>
 			<td>object</td>
 			<td><pre lang="json">

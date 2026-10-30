@@ -1,0 +1,5 @@
+2026-09-03T10:22:10.000007468Z stdout F 2026-09-03 10:22:10 ERROR request failed: java.lang.IllegalStateException: unavailable
+2026-09-03T10:22:10.100007468Z stdout F 	at com.example.Service.call(Service.java:42)
+2026-09-03T10:22:10.200007468Z stdout F Caused by: java.io.IOException: connection reset
+2026-09-03T10:22:10.300007468Z stdout F 	at com.example.Client.read(Client.java:18)
+2026-09-03T10:22:11.000007468Z stdout F 2026-09-03 10:22:11 INFO request recovered

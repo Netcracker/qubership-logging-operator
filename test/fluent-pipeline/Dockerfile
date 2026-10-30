@@ -1,5 +1,5 @@
 # Build the pipeline test binary from the same source tree as the operator.
-FROM --platform=$BUILDPLATFORM golang:1.26.6-alpine3.24@sha256:af8d6740070b8906d12eae1c3e3ea0957fb63f492051ea05e354c38ef9fe88df AS builder
+FROM --platform=$BUILDPLATFORM golang:1.27.2-alpine3.24@sha256:f92b6ef800e499660581efdabdf25d9d817a9d124eaf900924f0504e7e27e12d AS builder
 
 ARG TARGETOS
 ARG TARGETARCH
@@ -9,7 +9,7 @@ WORKDIR /workspace
 COPY go.* /workspace/
 COPY api/go.* api/
 
-RUN go work sync && go mod download && go -C api mod download
+RUN go mod download && go -C api mod download
 
 COPY api/ api/
 COPY controllers/ controllers/
@@ -18,7 +18,7 @@ COPY test/fluent-pipeline/ test/fluent-pipeline/
 RUN CGO_ENABLED=0 GOOS="${TARGETOS}" GOARCH="${TARGETARCH}" GO111MODULE=on \
     go build -o fluent-pipeline-test ./test/fluent-pipeline
 
-FROM alpine:3.24.2@sha256:294b683cb724975bec92580e1e685676bd4b50bda910ddb8c51d4cabeaec77e6
+FROM alpine:3.24.3@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a
 
 ENV USER_UID=2001 \
     USER_NAME=fluent-pipeline-test \

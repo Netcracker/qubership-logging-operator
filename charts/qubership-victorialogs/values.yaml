@@ -9,6 +9,15 @@ labels: {}
 # -- Annotations applied to VictoriaLogs and VMAuth workloads.
 annotations: {}
 
+# PVC settings shared by all PVCs that the chart creates.
+pvc:
+  metadata:
+    # -- Annotations added to every PVC that this chart creates, for example
+    # `argocd.argoproj.io/sync-options: Prune=false`. Values must be strings.
+    # They apply to this release only, not to the logging operator chart release.
+    # On key conflict, `victorialogs.storage.annotations` wins. The chart always sets `helm.sh/resource-policy: keep`.
+    annotations: {}
+
 # VictoriaLogs single-node instance.
 victorialogs:
   # -- Deploy VictoriaLogs resources.

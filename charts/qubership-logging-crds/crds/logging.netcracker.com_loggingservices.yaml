@@ -6175,6 +6175,11 @@ spec:
                     type: object
                   securityContextPrivileged:
                     type: boolean
+                  selfLogging:
+                    description: |-
+                      SelfLogging enables the collection of logs from the FluentBit collector pods. It is disabled by default to
+                      prevent feedback loops.
+                    type: boolean
                   storageProfile:
                     description: |-
                       StorageProfile selects where Fluentbit keeps input read offsets and buffered logs.

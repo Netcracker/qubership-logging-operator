@@ -22,6 +22,7 @@ import (
 	"crypto/x509"
 	"errors"
 	"fmt"
+	"strings"
 
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -257,7 +258,10 @@ type Fluentbit struct {
 	KubeApiserverAuditLogging bool                     `json:"kubeApiserverAuditLogging,omitempty"`
 	ContainerLogging          bool                     `json:"containerLogging,omitempty"`
 	ExcludePath               string                   `json:"excludePath,omitempty"`
-	Output                    *OutputFluentbit         `json:"output,omitempty"`
+	// SelfLogging enables the collection of logs from the FluentBit collector pods. It is disabled by default to
+	// prevent feedback loops.
+	SelfLogging bool             `json:"selfLogging,omitempty"`
+	Output      *OutputFluentbit `json:"output,omitempty"`
 
 	// Flush is an interval in seconds to flush records to the outputs.
 	// Increasing the interval reduces the amount of produced chunks and, as a result, the disk load.
@@ -940,4 +944,28 @@ func (tlsConfig *TLSConfig) GetCertificates(ctx context.Context, clientSet kuber
 	}
 
 	return
+}
+
+// ContainerLogExcludePath combines user exclusions with the collector log paths.
+func (in *Fluentbit) ContainerLogExcludePath(namespace, runtime string) string {
+	if in.SelfLogging {
+		return in.ExcludePath
+	}
+	names := []string{"logging-fluentbit"}
+	if in.Aggregator != nil && in.Aggregator.Install {
+		names = []string{"logging-fluentbit-forwarder", "logging-fluentbit-aggregator"}
+	}
+	paths := []string{}
+	if in.ExcludePath != "" {
+		paths = append(paths, in.ExcludePath)
+	}
+	for _, name := range names {
+		switch runtime {
+		case "containerd", "cri-o":
+			paths = append(paths, fmt.Sprintf("/var/log/pods/%s_%s-*_*/%s/*.log", namespace, name, name))
+		case "docker":
+			paths = append(paths, fmt.Sprintf("/var/log/containers/%s-*_%s_%s-*.log", name, namespace, name))
+		}
+	}
+	return strings.Join(paths, ",")
 }

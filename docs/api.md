@@ -261,6 +261,7 @@ _Appears in:_
 | `kubeApiserverAuditLogging` _boolean_ |  |  |  |
 | `containerLogging` _boolean_ |  |  |  |
 | `excludePath` _string_ |  |  |  |
+| `selfLogging` _boolean_ | SelfLogging enables the collection of logs from the FluentBit collector pods. It is disabled by default to<br />prevent feedback loops. |  |  |
 | `output` _[OutputFluentbit](#outputfluentbit)_ |  |  |  |
 | `flush` _integer_ | Flush is an interval in seconds to flush records to the outputs.<br />Increasing the interval reduces the amount of produced chunks and, as a result, the disk load. |  | Minimum: 1 <br /> |
 | `storageProfile` _string_ | StorageProfile selects where Fluentbit keeps input read offsets and buffered logs.<br />The default "memory-only" profile avoids writes to the node filesystem. The "persistent-offsets"<br />profile stores read offsets on the node and buffers logs in memory. The "node-persistent" profile<br />stores both read offsets and buffered logs on the node. |  | Enum: [memory-only persistent-offsets node-persistent] <br /> |

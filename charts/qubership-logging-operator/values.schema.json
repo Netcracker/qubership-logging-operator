@@ -1237,6 +1237,11 @@
                     "description": "Allow to exclude some logs of pods/containers",
                     "type": "string"
                 },
+                "selfLogging": {
+                    "default": false,
+                    "description": "Collect logs from FluentBit collector pods. Enable only when you need their logs in the output pipeline.",
+                    "type": "boolean"
+                },
                 "extraFields": {
                     "description": "Adds additional custom fields/labels to every log message by using filter based on record_modifier plugin.",
                     "type": "object"

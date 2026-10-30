@@ -1338,6 +1338,15 @@ false
 			<td>Allow creating security resources as PodSecurityPolicy, SecurityContextConstraints</td>
 		</tr>
 		<tr>
+			<td>fluentbit.selfLogging</td>
+			<td>bool</td>
+			<td><pre lang="json">
+false
+</pre>
+</td>
+			<td>Collect logs from FluentBit collector pods. Enable only when you need their logs in the output pipeline.</td>
+		</tr>
+		<tr>
 			<td>fluentbit.storageProfile</td>
 			<td>string</td>
 			<td><pre lang="json">

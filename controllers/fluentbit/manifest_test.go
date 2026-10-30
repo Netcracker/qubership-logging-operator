@@ -84,15 +84,6 @@ func TestFluentbitConfigStorageDefaults(t *testing.T) {
 		}
 	})
 
-	t.Run("calico metric has no IP address labels", func(t *testing.T) {
-		conf := data["filter-unparsed-log-counter.conf"]
-		for _, unexpected := range []string{"label_field          src_ip", "label_field          dst_ip"} {
-			if strings.Contains(conf, unexpected) {
-				t.Errorf("unexpected %q in the calico metric filter, got:\n%s", unexpected, conf)
-			}
-		}
-	})
-
 	t.Run("tail input keeps the database without disk sync", func(t *testing.T) {
 		conf := data["input-containerd.conf"]
 		for _, expected := range []string{

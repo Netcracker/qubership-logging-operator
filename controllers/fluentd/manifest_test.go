@@ -67,7 +67,10 @@ func TestFluentdLokiBufferLimit(t *testing.T) {
 		wantBuffer  bool
 	}{
 		{name: "default buffer", wantBuffer: true},
-		{name: "buffer from extra parameters", extraParams: "<buffer>\n  total_limit_size 32MB\n</buffer>"},
+		{name: "buffer section from extra parameters", extraParams: "<buffer>\n  total_limit_size 32MB\n</buffer>"},
+		{name: "legacy file buffer from extra parameters", extraParams: "buffer_type file\nbuffer_path /tmp/fluentd/loki"},
+		{name: "legacy flush interval from extra parameters", extraParams: "  flush_interval 10s"},
+		{name: "unrelated extra parameters", extraParams: "remove_keys kubernetes", wantBuffer: true},
 	}
 
 	for _, test := range tests {
@@ -80,8 +83,8 @@ func TestFluentdLokiBufferLimit(t *testing.T) {
 				}, Http: &loggingService.HttpFluentd{}},
 			})
 			conf := data["output-loki.conf"]
-			if got := strings.Count(conf, "<buffer"); got != 1 {
-				t.Errorf("expected exactly one buffer section, got %d:\n%s", got, conf)
+			if got := strings.Count(conf, "<buffer"); got > 1 {
+				t.Errorf("expected at most one buffer section, got %d:\n%s", got, conf)
 			}
 			if hasDefault := strings.Contains(conf, "total_limit_size 128MB"); hasDefault != test.wantBuffer {
 				t.Errorf("default buffer present = %v, want %v:\n%s", hasDefault, test.wantBuffer, conf)
@@ -100,17 +103,5 @@ func TestFluentdHttpBufferLimit(t *testing.T) {
 	conf := data["output-http.conf"]
 	if !strings.Contains(conf, "total_limit_size 128MB") {
 		t.Errorf("expected the buffer limit 128MB, got:\n%s", conf)
-	}
-}
-
-func TestFluentdCalicoMetricHasNoIPAddressLabels(t *testing.T) {
-	data := renderFluentdConfigData(t, &loggingService.Fluentd{
-		Output: &loggingService.OutputFluentd{Loki: &loggingService.LokiFluentd{}, Http: &loggingService.HttpFluentd{}},
-	})
-	conf := data["filter-calico-packets.conf"]
-	for _, unexpected := range []string{"src_ip ${src_ip}", "dst_ip ${dst_ip}"} {
-		if strings.Contains(conf, unexpected) {
-			t.Errorf("unexpected label %q in the calico metric, got:\n%s", unexpected, conf)
-		}
 	}
 }

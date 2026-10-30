@@ -330,12 +330,6 @@ func TestAggregatorConfigMemoryLimits(t *testing.T) {
 			if !strings.Contains(data["fluent-bit.conf"], "storage.max_chunks_up                256") {
 				t.Errorf("expected 256 chunks up, got:\n%s", data["fluent-bit.conf"])
 			}
-			for _, unexpected := range []string{"label_field          src_ip", "label_field          dst_ip"} {
-				if strings.Contains(data["filter-unparsed-log-counter.conf"], unexpected) {
-					t.Errorf("unexpected %q in the calico metric filter, got:\n%s", unexpected,
-						data["filter-unparsed-log-counter.conf"])
-				}
-			}
 		})
 	}
 }

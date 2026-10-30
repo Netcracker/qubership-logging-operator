@@ -243,10 +243,16 @@ fluentbit:
       Name   <name>
 ```
 
-Do not assign the built-in HTTP routing tags `out_audit`, `out_k8s_event`, `out_nginx`, `out_access`, `out_int`,
-`out_pods`, `out_system`, or `out_default` in `fluentbit.customInputConf` or custom `rewrite_tag` rules. When
-`output.http.routing.enabled` is `true`, records with these exact tags skip level normalization. When HTTP routing is
-disabled, all tags are normalized. Other custom tags that start with `out_` are always normalized.
+With `fluentbit.output.http.routing.enabled` set, the exact tags `out_audit`, `out_system`, `out_pods`, `out_nginx`,
+`out_k8s_event`, `out_access`, `out_int`, and `out_default` are reserved for routing. Do not assign them in
+`fluentbit.customInputConf` or in custom `rewrite_tag` rules: records with these tags skip level normalization. Other
+tags that start with `out_` remain available and are always normalized. When HTTP routing is disabled, every tag is
+normalized.
+
+A custom input reaches the HTTP output and whatever you declare in `fluentbit.customOutputConf`. The built-in GELF, Loki
+and OpenTelemetry outputs select the tags the operator produces, so custom records do not reach them. Sending records
+there also needs a `short_message` field, which the built-in filters add only to container, audit and system records.
+GELF rejects a record without it.
 
 ### FluentBit Filters customization
 

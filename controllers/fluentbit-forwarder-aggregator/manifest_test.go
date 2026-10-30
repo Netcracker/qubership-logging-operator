@@ -1,6 +1,7 @@
 package fluentbit_forwarder_aggregator
 
 import (
+	"regexp"
 	"strings"
 	"testing"
 
@@ -237,5 +238,121 @@ func TestAggregatorLevelFilterMatchesRoutingState(t *testing.T) {
 				t.Errorf("expected %q without %q in the level filter, got:\n%s", test.want, test.absent, filter)
 			}
 		})
+	}
+}
+
+func renderAggregatorConfigData(t *testing.T, aggregator *loggingService.FluentbitAggregator) map[string]string {
+	t.Helper()
+	cr := &loggingService.LoggingService{Spec: loggingService.LoggingServiceSpec{
+		Fluentbit: &loggingService.Fluentbit{
+			GraylogOutput: aggregator.GraylogOutput,
+			Aggregator:    aggregator,
+		},
+	}}
+	secret, err := aggregatorConfigSecret(cr, util.DynamicParameters{}, aggregatorOutputCredentials{})
+	if err != nil {
+		t.Fatalf("render aggregator config Secret: %v", err)
+	}
+	data := make(map[string]string, len(secret.Data))
+	for key, value := range secret.Data {
+		data[key] = string(value)
+	}
+	return data
+}
+
+func TestAggregatorLokiMatcherSelectsKlogWithoutRouting(t *testing.T) {
+	data := renderAggregatorConfigData(t, &loggingService.FluentbitAggregator{
+		Output: &loggingService.OutputFluentbit{
+			Loki: &loggingService.LokiFluentbit{Enabled: true},
+		},
+	})
+
+	if !aggregatorMatcherFromConfig(t, data["output-loki.conf"]).MatchString("klog.var.log") {
+		t.Error("Loki matcher does not select klog without routing")
+	}
+}
+
+func TestAggregatorRoutedOutputMatchers(t *testing.T) {
+	output := &loggingService.OutputFluentbit{
+		Loki: &loggingService.LokiFluentbit{Enabled: true},
+		Http: &loggingService.HttpFluentbit{
+			Enabled: true,
+			Routing: &loggingService.FluentbitHTTPRouting{Enabled: true},
+		},
+		Otel: &loggingService.OtelFluentbit{Enabled: true},
+	}
+	data := renderAggregatorConfigData(t, &loggingService.FluentbitAggregator{
+		GraylogOutput: true,
+		Output:        output,
+	})
+
+	for _, file := range []string{"output-graylog.conf", "output-loki.conf", "output-opentelemetry.conf"} {
+		t.Run(file, func(t *testing.T) {
+			matcher := aggregatorMatcherFromConfig(t, data[file])
+			for _, tag := range []string{
+				"out_audit", "out_system", "out_pods", "out_nginx", "out_k8s_event", "out_access", "out_int",
+				"audit.var.log", "system.var.log", "pods.var.log", "klog.var.log",
+			} {
+				if !matcher.MatchString(tag) {
+					t.Errorf("matcher does not select %q", tag)
+				}
+			}
+			for _, tag := range []string{"out_default", "out_custom", "out_audit_custom"} {
+				if matcher.MatchString(tag) {
+					t.Errorf("matcher unexpectedly selects custom tag %q", tag)
+				}
+			}
+		})
+	}
+}
+
+func aggregatorMatcherFromConfig(t *testing.T, config string) *regexp.Regexp {
+	t.Helper()
+	for _, line := range strings.Split(config, "\n") {
+		fields := strings.Fields(line)
+		if len(fields) == 2 && strings.EqualFold(fields[0], "Match_Regex") {
+			matcher, err := regexp.Compile(fields[1])
+			if err != nil {
+				t.Fatalf("compile output matcher %q: %v", fields[1], err)
+			}
+			return matcher
+		}
+	}
+	t.Fatal("output configuration has no Match_Regex")
+	return nil
+}
+
+func TestAggregatorRoutingFollowsLevelNormalizationAndFormatDetection(t *testing.T) {
+	data := renderAggregatorConfigData(t, &loggingService.FluentbitAggregator{
+		Output: &loggingService.OutputFluentbit{
+			Http: &loggingService.HttpFluentbit{
+				Enabled: true,
+				Routing: &loggingService.FluentbitHTTPRouting{Enabled: true},
+			},
+		},
+	})
+	mainConfig := data["fluent-bit.conf"]
+	formatDetection := strings.Index(mainConfig, "filter-define-format.conf")
+	routing := strings.Index(mainConfig, "filter-http-routing.conf")
+	normalization := strings.Index(mainConfig, "filter-nonsupported-levels.conf")
+	// Routed records re-enter the filter chain with out_* tags. The level filter skips those tags, so
+	// routing must run after normalization, and after format detection, which matches the input tags.
+	if formatDetection < 0 || routing < 0 || normalization < 0 ||
+		normalization >= formatDetection || formatDetection >= routing {
+		t.Errorf("level normalization, format detection, and HTTP routing are in the wrong order:\n%s", mainConfig)
+	}
+	if !strings.Contains(data["filter-http-routing.conf"], "Name                   rewrite_tag") {
+		t.Error("HTTP routing configuration has no rewrite_tag filter")
+	}
+	if strings.Contains(data["output-http.conf"], "rewrite_tag") {
+		t.Error("HTTP output configuration still contains routing filters")
+	}
+
+	script := data["update_level_syslog.lua"]
+	if strings.Contains(script, `record["detected_level"] ~= nil`) {
+		t.Error("detected_level is used as a processing marker")
+	}
+	if strings.Contains(script, "routing_tags") {
+		t.Error("level normalization depends on routing tags")
 	}
 }

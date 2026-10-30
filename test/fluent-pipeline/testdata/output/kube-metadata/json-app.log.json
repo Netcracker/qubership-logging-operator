@@ -36,5 +36,18 @@
     "source_level": "warn",
     "stdio_stream": "stdout",
     "time": "2026-09-03T11:00:05.000007468Z"
+  },
+  {
+    "_test": {
+      "id": "json-app-object-msg",
+      "partial": true
+    },
+    "time": "2026-09-03T11:00:06.000007468Z",
+    "parse_status": "success",
+    "parse_format": "json",
+    "short_message": "{\"level\":\"info\",\"msg\":{\"why\":\"failed\"}}",
+    "msg": {
+      "why": "failed"
+    }
   }
 ]

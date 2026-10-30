@@ -1,0 +1,22 @@
+2026-09-03T10:22:30.000007468Z stderr F Traceback (most recent call last):
+2026-09-03T10:22:30.100007468Z stderr F   File "/app/worker.py", line 12, in run
+2026-09-03T10:22:30.200007468Z stderr F     raise ValueError("invalid task")
+2026-09-03T10:22:30.300007468Z stderr F ValueError: invalid task
+2026-09-03T10:22:31.000007468Z stdout F INFO: worker continues
+2026-09-03T10:22:32.000007468Z stdout F worker continues
+2026-09-03T10:22:33.000007468Z stderr F Traceback (most recent call last):
+2026-09-03T10:22:33.100007468Z stderr F   File "<generated>", line 3, in dispatch
+2026-09-03T10:22:33.200007468Z stderr F   File "<generated>", line 7, in run
+2026-09-03T10:22:33.300007468Z stderr F ValueError: invalid generated task
+2026-09-03T10:22:34.000007468Z stdout F INFO: worker continues after generated code
+2026-09-03T10:22:35.000007468Z stderr F Traceback (most recent call last):
+2026-09-03T10:22:35.100007468Z stderr F   File "<compiled>", line 12, in run
+2026-09-03T10:22:35.200007468Z stderr F KeyError: 'compiled task'
+2026-09-03T10:22:36.000007468Z stdout F INFO: worker continues after compiled code
+2026-09-03T10:22:37.000007468Z stdout F worker continues after compiled code
+2026-09-03T10:22:38.000007468Z stderr F Traceback (most recent call last):
+2026-09-03T10:22:38.100007468Z stderr F   File "/app/worker.py", line 18, in dispatch
+2026-09-03T10:22:38.200007468Z stderr F     return handlers[name](task)
+2026-09-03T10:22:38.300007468Z stderr F            ~~~~~~~~^^^^^^
+2026-09-03T10:22:38.400007468Z stderr F KeyError: 'missing handler'
+2026-09-03T10:22:39.000007468Z stdout F INFO: worker continues after a caret line

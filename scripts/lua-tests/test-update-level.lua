@@ -8,13 +8,14 @@ local configurations = {
     {
         name = "Fluent Bit",
         filter = "controllers/fluentbit/fluentbit.configmap/conf.d/filters/filter-nonsupported-levels.conf",
-        output = "controllers/fluentbit/fluentbit.configmap/conf.d/outputs/output-http.conf",
+        routing = "controllers/fluentbit/fluentbit.configmap/conf.d/filters/filter-http-routing.conf",
     },
     {
         name = "Fluent Bit aggregator",
         filter = "controllers/fluentbit-forwarder-aggregator/aggregator.configmap/conf.d/filters/" ..
             "filter-nonsupported-levels.conf",
-        output = "controllers/fluentbit-forwarder-aggregator/aggregator.configmap/conf.d/outputs/output-http.conf",
+        routing = "controllers/fluentbit-forwarder-aggregator/aggregator.configmap/conf.d/filters/" ..
+            "filter-http-routing.conf",
     },
 }
 
@@ -158,7 +159,7 @@ for _, configuration in ipairs(configurations) do
         configuration.name .. " level filter Match_regex")
     assert_routing_conditional(filter, configuration.name .. " level filter")
 
-    local output = read_file(configuration.output)
-    assert_same_keys(routing_tags(output), expected_routing_tags, configuration.name .. " HTTP routing tags")
+    local routing = read_file(configuration.routing)
+    assert_same_keys(routing_tags(routing), expected_routing_tags, configuration.name .. " HTTP routing tags")
     print(configuration.name .. ": level filter routing tags passed")
 end

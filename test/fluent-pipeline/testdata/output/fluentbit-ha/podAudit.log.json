@@ -76,7 +76,7 @@
     "container": "fake-container",
     "nc_audit_label": "true",
     "source_level": "INFO",
-    "parse_format": "unknown"
+    "parse_format": "json"
   },
   {
     "_test": {
@@ -155,7 +155,7 @@
     "hostname": "fake-fluent",
     "container": "fake-container",
     "nc_audit_label": "true",
-    "parse_format": "unknown"
+    "parse_format": "json"
   },
   {
     "_test": {
@@ -234,6 +234,6 @@
     "container": "fake-container",
     "nc_audit_label": "true",
     "source_level": "ERROR",
-    "parse_format": "unknown"
+    "parse_format": "json"
   }
 ]

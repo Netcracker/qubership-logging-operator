@@ -12,7 +12,7 @@ COPY api/go.* api/
 RUN go mod download && go -C api mod download
 
 COPY api/ api/
-COPY controllers/ controllers/
+COPY internal/ internal/
 COPY test/fluent-pipeline/ test/fluent-pipeline/
 
 RUN CGO_ENABLED=0 GOOS="${TARGETOS}" GOARCH="${TARGETARCH}" GO111MODULE=on \

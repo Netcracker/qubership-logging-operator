@@ -1,0 +1,448 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  annotations:
+    anno: one
+  labels:
+    app.kubernetes.io/component: graylog
+    app.kubernetes.io/instance: graylog-logging
+    app.kubernetes.io/managed-by: operator
+    app.kubernetes.io/managed-by-operator: logging-operator
+    app.kubernetes.io/name: graylog
+    app.kubernetes.io/part-of: logging-service
+    app.kubernetes.io/technology: java-others
+    app.kubernetes.io/version: 5.2.12
+    name: graylog
+    team: obs
+  name: graylog
+  namespace: logging
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      name: graylog
+  serviceName: ""
+  template:
+    metadata:
+      annotations:
+        anno: one
+      labels:
+        app.kubernetes.io/component: graylog
+        app.kubernetes.io/instance: graylog-logging
+        app.kubernetes.io/managed-by: operator
+        app.kubernetes.io/managed-by-operator: logging-operator
+        app.kubernetes.io/name: graylog
+        app.kubernetes.io/part-of: logging-service
+        app.kubernetes.io/technology: java-others
+        app.kubernetes.io/version: 5.2.12
+        name: graylog
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: role
+                operator: In
+                values:
+                - logging
+      containers:
+      - command:
+        - /bin/sh
+        - -c
+        - |
+          mongod --wiredTigerEngineConfigString="cache_size=512M"
+        image: mongo:5.0.33
+        imagePullPolicy: IfNotPresent
+        name: mongo
+        ports:
+        - containerPort: 27017
+          name: mongo
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 500m
+            memory: 256Mi
+          requests:
+            cpu: 100m
+            memory: 256Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          runAsGroup: 1001
+          runAsNonRoot: true
+          runAsUser: 1001
+        volumeMounts:
+        - mountPath: /data/db
+          name: mongodb
+        - mountPath: /tmp
+          name: tmp
+      - command:
+        - /bin/sh
+        - -c
+        - |
+          if [ -f /tmp/kafka-logs/.lock ] ; then
+              rm /tmp/kafka-logs/.lock
+          fi
+
+          cp -a "/opt/java/openjdk/lib/security/cacerts" "/usr/share/graylog/data/ssl/cacerts.jks"
+          keytool -importcert -keystore /usr/share/graylog/data/ssl/cacerts.jks -storepass changeit -alias graylog-tls-ca -file /usr/share/graylog/data/ssl/http/tls.crt -noprompt
+
+
+          for FILE in /usr/share/graylog/data/ssl/cacerts/*; do keytool -importcert -keystore /usr/share/graylog/data/ssl/cacerts.jks -storepass changeit -alias "$FILE" -file "$FILE" -noprompt; done
+
+
+          /docker-entrypoint.sh
+        env:
+        - name: GRAYLOG_SERVER_JAVA_OPTS
+          value: |-
+            -Xms1g -Xmx1g
+            -Djavax.net.ssl.trustStore=/usr/share/graylog/data/ssl/cacerts.jks
+        - name: GRAYLOG_ELASTICSEARCH_HOSTS__FILE
+          value: /usr/share/graylog/data/k8s-graylog-secret/elasticsearchHost
+        - name: GRAYLOG_ROOT_USERNAME__FILE
+          value: /usr/share/graylog/data/k8s-graylog-secret/user
+        - name: GRAYLOG_ROOT_PASSWORD_SHA2__FILE
+          value: /usr/share/graylog/data/k8s-graylog-secret/rootPasswordSha2
+        - name: GRAYLOG_SNAPSHOT_DIRECTORY
+          value: /usr/share/opensearch/snapshots
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              key: awsAccessKey
+              name: graylog-secret
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              key: awsSecretKey
+              name: graylog-secret
+        image: graylog/graylog:5.2.12
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /
+            port: 9000
+            scheme: HTTPS
+          initialDelaySeconds: 120
+          periodSeconds: 30
+          successThreshold: 1
+          timeoutSeconds: 5
+        name: graylog
+        ports:
+        - containerPort: 9000
+          name: graylog
+          protocol: TCP
+        - containerPort: 514
+          name: graylog-udp
+          protocol: UDP
+        - containerPort: 12201
+          name: graylog-12201
+          protocol: TCP
+        - containerPort: 9833
+          name: graylog-metrics
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /
+            port: 9000
+            scheme: HTTPS
+          initialDelaySeconds: 120
+          periodSeconds: 30
+          successThreshold: 1
+          timeoutSeconds: 5
+        resources:
+          limits:
+            cpu: "1"
+            memory: 2Gi
+          requests:
+            cpu: 500m
+            memory: 1536Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            add:
+            - NET_BIND_SERVICE
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          runAsGroup: 1100
+          runAsNonRoot: true
+          runAsUser: 1100
+        volumeMounts:
+        - mountPath: /usr/share/graylog/data/k8s-graylog-secret
+          name: graylog-credentials-files
+          readOnly: true
+        - mountPath: /usr/share/graylog/data
+          name: data
+        - mountPath: /usr/share/graylog/plugin
+          name: plugins
+        - mountPath: /usr/share/graylog/plugins-merged
+          name: plugins-merged
+        - mountPath: /usr/share/graylog/data/config/log4j2.xml
+          name: logsconf
+          subPath: log4j2.xml
+        - mountPath: /usr/share/graylog/data/config/graylog.conf
+          name: graylogconf
+          subPath: graylog.conf
+        - mountPath: /usr/share/graylog/data/config/node-id
+          name: nodeid
+          subPath: node-id
+        - mountPath: /tmp
+          name: tmp
+        - mountPath: /usr/share/graylog/data/ssl/http/tls.crt
+          name: tls-cert-http
+          readOnly: true
+          subPath: tls.crt
+        - mountPath: /usr/share/graylog/data/ssl/http/tls.key
+          name: tls-key-http
+          readOnly: true
+          subPath: tls.key
+        - mountPath: /usr/share/graylog/data/ssl/cacerts
+          name: tls-cacerts
+          readOnly: true
+        - mountPath: /usr/share/graylog/data/ssl/input/tls.crt
+          name: tls-cert-input
+          readOnly: true
+          subPath: tls.crt
+        - mountPath: /usr/share/graylog/data/ssl/input/tls.key
+          name: tls-key-input
+          readOnly: true
+          subPath: tls.key
+      - command:
+        - /bin/sh
+        - -c
+        - |
+          python /usr/src/app/graylog_auth_proxy.py --config "./config.yaml"
+        env:
+        - name: PYTHONDONTWRITEBYTECODE
+          value: "1"
+        image: ghcr.io/auth-proxy:1.0
+        imagePullPolicy: IfNotPresent
+        name: graylog-auth-proxy
+        ports:
+        - containerPort: 8888
+          name: proxy
+          protocol: TCP
+        - containerPort: 8889
+          name: metrics
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 100m
+            memory: 128Mi
+          requests:
+            cpu: 50m
+            memory: 64Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          runAsGroup: 1001
+          runAsNonRoot: true
+          runAsUser: 1001
+        volumeMounts:
+        - mountPath: /usr/src/app/config.yaml
+          name: graylog-auth-proxy-config
+          readOnly: true
+          subPath: config.yaml
+        - mountPath: /usr/src/app/.htpasswd
+          name: graylog-auth-proxy-htpasswd
+          readOnly: true
+          subPath: password
+        - mountPath: /tmp
+          name: tmp
+        - mountPath: /usr/share/graylog/data/ssl/http/tls.crt
+          name: tls-cert-http
+          readOnly: true
+          subPath: tls.crt
+        - mountPath: /usr/share/graylog/data/ssl/http/tls.key
+          name: tls-key-http
+          readOnly: true
+          subPath: tls.key
+        - mountPath: /usr/share/graylog/data/ssl/http/ca.crt
+          name: tls-cacerts
+          readOnly: true
+          subPath: ca.crt
+        - mountPath: /usr/share/ssl/auth/ca.crt
+          name: graylog-auth-proxy-ca-cert
+          readOnly: true
+          subPath: ca.crt
+        - mountPath: /usr/share/ssl/auth/tls.crt
+          name: graylog-auth-proxy-client-cert
+          readOnly: true
+          subPath: tls.crt
+        - mountPath: /usr/share/ssl/auth/tls.key
+          name: graylog-auth-proxy-private-key
+          readOnly: true
+          subPath: tls.key
+      initContainers:
+      - command:
+        - /bin/sh
+        - -c
+        - |
+          chown -R 1001:1001 /data/db
+          chmod -R u=rwX,g=rwX,o= /data/db
+
+          chmod -R 0777 /usr/share/graylog/data/
+          chown -R 1100:1100 /usr/share/graylog/data
+          mkdir -p /usr/share/graylog/data/archives
+          chown -R 1100:1100 /usr/share/graylog/data/archives
+          mkdir -p /usr/share/graylog/data/config
+          touch /usr/share/graylog/data/config/directories.json
+          chmod 0666 /usr/share/graylog/data/config/directories.json
+          chown 1100:1100 /usr/share/graylog/data/config/directories.json
+          printf '{}\n' > /usr/share/graylog/data/config/directories.json
+
+          mkdir -p /usr/share/graylog/data/ssl
+          chmod -R 0777 /usr/share/graylog/data/ssl
+          chown -R 1100:1100 /usr/share/graylog/data/ssl
+        image: alpine:3.24
+        imagePullPolicy: IfNotPresent
+        name: setup
+        resources:
+          limits:
+            cpu: 100m
+            memory: 128Mi
+          requests:
+            cpu: 50m
+            memory: 64Mi
+        securityContext:
+          runAsNonRoot: false
+        volumeMounts:
+        - mountPath: /usr/share/graylog/data
+          name: data
+        - mountPath: /data/db
+          name: mongodb
+      - env:
+        - name: CUSTOM_PLUGINS
+          value: https://example.org/plugin.jar
+        - name: GRAYLOG_VERSION
+          value: "5"
+        image: ghcr.io/plugins-init:0.2.0
+        imagePullPolicy: IfNotPresent
+        name: download-plugins
+        resources:
+          limits:
+            cpu: 100m
+            memory: 128Mi
+          requests:
+            cpu: 50m
+            memory: 64Mi
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1001
+        volumeMounts:
+        - mountPath: /usr/share/graylog/plugin
+          name: plugins
+      nodeSelector:
+        role: logging
+      priorityClassName: high
+      securityContext:
+        fsGroup: 1001
+        fsGroupChangePolicy: OnRootMismatch
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: logging-graylog
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: graylog-claim
+      - emptyDir:
+          sizeLimit: 100Mi
+        name: plugins
+      - emptyDir:
+          sizeLimit: 100Mi
+        name: plugins-merged
+      - name: mongodb
+        persistentVolumeClaim:
+          claimName: mongo-claim
+      - configMap:
+          defaultMode: 292
+          items:
+          - key: log4j2.xml
+            path: log4j2.xml
+          name: graylog-service
+        name: logsconf
+      - configMap:
+          defaultMode: 292
+          items:
+          - key: graylog.conf
+            path: graylog.conf
+          name: graylog-service
+        name: graylogconf
+      - configMap:
+          defaultMode: 438
+          items:
+          - key: node-id
+            path: node-id
+          name: graylog-service
+        name: nodeid
+      - emptyDir:
+          sizeLimit: 100Mi
+        name: tmp
+      - name: graylog-credentials-files
+        secret:
+          defaultMode: 288
+          items:
+          - key: elasticsearchHost
+            path: elasticsearchHost
+          - key: user
+            path: user
+          - key: rootPasswordSha2
+            path: rootPasswordSha2
+          secretName: graylog-secret
+      - configMap:
+          defaultMode: 292
+          items:
+          - key: config.yaml
+            path: config.yaml
+          name: graylog-auth-proxy-config
+        name: graylog-auth-proxy-config
+      - name: graylog-auth-proxy-htpasswd
+        secret:
+          defaultMode: 420
+          secretName: bind-pass
+      - name: graylog-auth-proxy-ca-cert
+        secret:
+          defaultMode: 420
+          secretName: ap-ca
+      - name: graylog-auth-proxy-client-cert
+        secret:
+          defaultMode: 420
+          secretName: ap-crt
+      - name: graylog-auth-proxy-private-key
+        secret:
+          defaultMode: 420
+          secretName: ap-key
+      - name: tls-cert-http
+        secret:
+          defaultMode: 420
+          secretName: gl-crt
+      - name: tls-key-http
+        secret:
+          defaultMode: 420
+          secretName: gl-key
+      - name: tls-cacerts
+        secret:
+          defaultMode: 420
+          secretName: ca-bundle-secret
+      - name: tls-cert-input
+        secret:
+          defaultMode: 420
+          secretName: in-crt
+      - name: tls-key-input
+        secret:
+          defaultMode: 420
+          secretName: in-key
+  updateStrategy: {}
+status:
+  availableReplicas: 0
+  replicas: 0

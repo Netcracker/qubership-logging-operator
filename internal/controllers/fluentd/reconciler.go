@@ -1,0 +1,83 @@
+package fluentd
+
+import (
+	"context"
+
+	loggingService "github.com/Netcracker/qubership-logging-operator/api/v1"
+	"github.com/Netcracker/qubership-logging-operator/internal/defaults"
+	util "github.com/Netcracker/qubership-logging-operator/internal/utils"
+	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+)
+
+type FluentdReconciler struct {
+	*util.ComponentReconciler
+	ComponentList     *[]util.Component
+	DynamicParameters util.DynamicParameters
+	Defaults          *defaults.Defaults
+}
+
+func NewFluentdReconciler(client client.Client, scheme *runtime.Scheme, updater util.StatusUpdater,
+	pendingComponents *[]util.Component, dynamicParameters util.DynamicParameters, cfg *defaults.Defaults) FluentdReconciler {
+	return FluentdReconciler{
+		ComponentReconciler: &util.ComponentReconciler{
+			Client:        client,
+			Scheme:        scheme,
+			Log:           util.Logger("fluentd"),
+			StatusUpdater: updater,
+		},
+		ComponentList:     pendingComponents,
+		DynamicParameters: dynamicParameters,
+		Defaults:          cfg,
+	}
+}
+
+// Run reconciles fluentd custom resource.
+// Creates a DaemonSet, configuration Secret, and Service if they do not exist.
+func (r *FluentdReconciler) Run(ctx context.Context, cr *loggingService.LoggingService) error {
+	if !r.StatusUpdater.IsStatusFailed(util.FluentdStatus) {
+		r.StatusUpdater.UpdateStatus(util.FluentdStatus, util.InProgress, false, "Start reconcile of Fluentd")
+	}
+	r.Log.Info("Start Fluentd reconciliation")
+
+	if cr.Spec.Fluentd != nil && cr.Spec.Fluentd.IsInstall() {
+		if err := r.handleConfigSecret(cr); err != nil {
+			return err
+		}
+		if err := r.handleDaemonSet(ctx, cr); err != nil {
+			return err
+		}
+		if err := r.handleService(ctx, cr); err != nil {
+			return err
+		}
+		*r.ComponentList = append(
+			*r.ComponentList,
+			util.Component{
+				ComponentName: util.FluentdComponentName,
+				StatusName:    util.FluentdStatus,
+			},
+		)
+	} else {
+		r.Log.Info("Uninstalling component if exists")
+		r.uninstall(cr)
+		r.StatusUpdater.RemoveStatus(util.FluentdStatus)
+	}
+	r.Log.Info("Component reconciled")
+	return nil
+}
+
+// uninstall deletes all resources related to the component
+func (r *FluentdReconciler) uninstall(cr *loggingService.LoggingService) {
+	if err := r.deleteDaemonSet(cr); err != nil {
+		r.Log.Error(err, "Can not delete DaemonSet")
+	}
+	if err := r.deleteConfigSecret(cr); err != nil {
+		r.Log.Error(err, "Can not delete configuration Secret")
+	}
+	if err := r.DeleteLegacyConfigMap(cr.GetNamespace(), util.FluentdComponentName); err != nil {
+		r.Log.Error(err, "Can not delete the legacy Config Map")
+	}
+	if err := r.deleteService(cr); err != nil {
+		r.Log.Error(err, "Can not delete Service")
+	}
+}

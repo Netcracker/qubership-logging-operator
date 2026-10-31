@@ -1,0 +1,285 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  annotations:
+    fda: "true"
+  labels:
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/instance: logging-fluentd-logging
+    app.kubernetes.io/managed-by: operator
+    app.kubernetes.io/managed-by-operator: logging-operator
+    app.kubernetes.io/name: logging-fluentd
+    app.kubernetes.io/part-of: logging-service
+    app.kubernetes.io/technology: ruby
+    app.kubernetes.io/version: "1.0"
+    component: logging-fluentd
+    fd: x
+    name: logging-fluentd
+    provider: kubernetes
+  name: logging-fluentd
+  namespace: logging
+spec:
+  minReadySeconds: 60
+  selector:
+    matchLabels:
+      component: logging-fluentd
+      provider: kubernetes
+  template:
+    metadata:
+      annotations:
+        fda: "true"
+      labels:
+        app.kubernetes.io/component: backend
+        app.kubernetes.io/instance: logging-fluentd-logging
+        app.kubernetes.io/managed-by: operator
+        app.kubernetes.io/managed-by-operator: logging-operator
+        app.kubernetes.io/name: logging-fluentd
+        app.kubernetes.io/part-of: logging-service
+        app.kubernetes.io/technology: ruby
+        app.kubernetes.io/version: "1.0"
+        component: logging-fluentd
+        name: logging-fluentd
+        provider: kubernetes
+      name: logging-fluentd
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: role
+                operator: In
+                values:
+                - logging
+      containers:
+      - args:
+        - --volume-dir=/fluentd/etc
+        - --webhook-url=http://localhost:24444/api/config.reload
+        image: reload:1.0
+        name: configmap-reload
+        ports:
+        - containerPort: 9533
+          name: metrics
+        resources:
+          limits:
+            cpu: 50m
+            memory: 32Mi
+          requests:
+            cpu: 10m
+            memory: 16Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          runAsGroup: 1001
+          runAsNonRoot: true
+          runAsUser: 1001
+        volumeMounts:
+        - mountPath: /fluentd/etc
+          name: config
+          readOnly: true
+        - mountPath: /tmp
+          name: tmp
+      - command:
+        - /bin/sh
+        - -c
+        - |
+          mkdir -p -m 0700 /tmp/fluentd-work
+          export TMPDIR=/tmp/fluentd-work
+          exec tini -- /bin/entrypoint.sh /fluentd/entrypoint.sh
+        env:
+        - name: K8S_NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: GRAYLOG_HOST
+          value: graylog.logging.svc
+        - name: GRAYLOG_PORT
+          value: "12201"
+        - name: GRAYLOG_PROTOCOL
+          value: tcp
+        - name: QUEUE_LIMIT_LENGTH
+          value: "5000"
+        - name: WATCH_KUBERNETES_METADATA
+          value: "true"
+        - name: MA_HOST
+          value: 0.0.0.0
+        - name: RUBY_GC_HEAP_OLDOBJECT_LIMIT_FACTOR
+          value: "1.2"
+        - name: RUBY_GC_MALLOC_LIMIT
+          value: "4194304"
+        - name: RUBY_GC_MALLOC_LIMIT_MAX
+          value: "16777216"
+        - name: RUBY_GC_OLDMALLOC_LIMIT
+          value: "16777216"
+        - name: RUBY_GC_OLDMALLOC_LIMIT_MAX
+          value: "16777216"
+        image: fluentd:1.0
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /api/plugins.json
+            port: 24220
+            scheme: HTTP
+          initialDelaySeconds: 90
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 10
+        name: logging-fluentd
+        ports:
+        - containerPort: 24220
+          name: http
+          protocol: TCP
+        - containerPort: 24232
+          name: metrics
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 5
+          httpGet:
+            path: /api/plugins.json
+            port: 24220
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 10
+        resources:
+          limits:
+            cpu: "1"
+            memory: 1Gi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+        securityContext:
+          privileged: true
+          readOnlyRootFilesystem: true
+          runAsGroup: 0
+          runAsNonRoot: false
+          runAsUser: 0
+        volumeMounts:
+        - mountPath: /var/log
+          name: varlog
+        - mountPath: /fluentd/etc
+          name: config
+          readOnly: true
+        - mountPath: /tmp
+          name: tmp
+        - mountPath: /fluentd/tls/ca.crt
+          name: tls-ca
+          readOnly: true
+          subPath: ca.crt
+        - mountPath: /fluentd/tls/tls.crt
+          name: tls-cert
+          readOnly: true
+          subPath: tls.crt
+        - mountPath: /fluentd/tls/tls.key
+          name: tls-key
+          readOnly: true
+          subPath: tls.key
+        - mountPath: /fluentd/output/loki/tls/ca.crt
+          name: loki-tls-ca
+          readOnly: true
+          subPath: ca.crt
+        - mountPath: /fluentd/output/loki/tls/tls.crt
+          name: loki-tls-cert
+          readOnly: true
+          subPath: tls.crt
+        - mountPath: /fluentd/output/loki/tls/tls.key
+          name: loki-tls-key
+          readOnly: true
+          subPath: tls.key
+        - mountPath: /fluentd/output/http/tls/ca.crt
+          name: http-tls-ca
+          readOnly: true
+          subPath: ca.crt
+        - mountPath: /fluentd/output/http/tls/tls.crt
+          name: http-tls-cert
+          readOnly: true
+          subPath: tls.crt
+        - mountPath: /fluentd/output/http/tls/tls.key
+          name: http-tls-key
+          readOnly: true
+          subPath: tls.key
+        - mountPath: /opt/extra
+          name: extra
+          readOnly: true
+      nodeSelector:
+        kubernetes.io/os: linux
+      priorityClassName: fd-prio
+      securityContext:
+        fsGroup: 1000
+        runAsGroup: 0
+        runAsNonRoot: false
+        runAsUser: 0
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: logging-fluentd
+      terminationGracePeriodSeconds: 30
+      tolerations:
+      - effect: NoSchedule
+        key: dedicated
+        operator: Equal
+        value: logging
+      volumes:
+      - hostPath:
+          path: /var/log
+          type: ""
+        name: varlog
+      - name: config
+        secret:
+          defaultMode: 420
+          secretName: logging-fluentd
+      - emptyDir:
+          sizeLimit: 100Mi
+        name: tmp
+      - name: tls-ca
+        secret:
+          defaultMode: 420
+          secretName: fd-tls
+      - name: tls-cert
+        secret:
+          defaultMode: 420
+          secretName: fd-tls
+      - name: tls-key
+        secret:
+          defaultMode: 420
+          secretName: fd-tls
+      - name: loki-tls-ca
+        secret:
+          defaultMode: 420
+          secretName: ca-s
+      - name: loki-tls-cert
+        secret:
+          defaultMode: 420
+          secretName: crt-s
+      - name: loki-tls-key
+        secret:
+          defaultMode: 420
+          secretName: key-s
+      - name: http-tls-ca
+        secret:
+          defaultMode: 420
+          secretName: ca-s
+      - name: http-tls-cert
+        secret:
+          defaultMode: 420
+          secretName: crt-s
+      - name: http-tls-key
+        secret:
+          defaultMode: 420
+          secretName: key-s
+      - hostPath:
+          path: /opt/extra
+        name: extra
+  updateStrategy:
+    rollingUpdate:
+      maxUnavailable: 1
+    type: RollingUpdate
+status:
+  currentNumberScheduled: 0
+  desiredNumberScheduled: 0
+  numberMisscheduled: 0
+  numberReady: 0

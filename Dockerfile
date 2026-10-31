@@ -9,7 +9,7 @@ WORKDIR /workspace
 
 # Copy the Go sources
 COPY api/ api/
-COPY controllers/ controllers/
+COPY internal/ internal/
 COPY cmd/operator/main.go main.go
 COPY go.* /workspace/
 

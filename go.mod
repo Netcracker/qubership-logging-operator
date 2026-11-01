@@ -63,7 +63,7 @@ require (
 	sigs.k8s.io/yaml v1.6.0 // indirect
 )
 
-require github.com/Netcracker/qubership-logging-operator/api v0.0.0-20261031140539-1c1a2e8e0d7a
+require github.com/Netcracker/qubership-logging-operator/api v0.0.0-20261031203648-e23c35f31fe8
 
 require (
 	github.com/fsnotify/fsnotify v1.9.0 // indirect

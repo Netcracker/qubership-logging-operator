@@ -1450,7 +1450,7 @@ false
 "1024M"
 </pre>
 </td>
-			<td>The size limitation of output buffer</td>
+			<td>The maximum size of the output buffer on disk. It takes effect only with `storageProfile: node-persistent`, the profile that buffers on the node filesystem. The other profiles buffer in memory, where `inputMemBufLimit` limits each input instead. See storage.total_limit_size in https://docs.fluentbit.io/manual/administration/buffering-and-storage</td>
 		</tr>
 		<tr>
 			<td>fluentd</td>

@@ -189,4 +189,13 @@ assert(message_kv_code == 2, "kv_parse did not process a record with key-value t
 assert(message_kv_record.request_id == "abc", "kv_parse skipped a field before the message")
 assert(message_kv_record.late == nil, "kv_parse extracted key-value text from the message")
 
+-- filter-validate.conf renames log to original_log on records that the Kubernetes filter parsed.
+local renamed_record = {
+    original_log = "[2026-09-17T12:00:00Z] [INFO] [thread=main] message",
+    __qubership_candidate = "[",
+}
+local renamed_code, _, renamed_result = kv_parse("pods.test", 1008, renamed_record)
+assert(renamed_code == 2, "kv_parse did not process a record whose log was renamed to original_log")
+assert(renamed_result.thread == "main", "kv_parse did not extract a field from original_log")
+
 print("parse_key_value.lua tests passed")

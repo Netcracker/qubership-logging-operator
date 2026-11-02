@@ -9,7 +9,6 @@ import (
 	util "github.com/Netcracker/qubership-logging-operator/internal/utils"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/utils/ptr"
@@ -19,8 +18,9 @@ const storageVolume = "storage"
 
 // AggregatorStatefulSet returns the aggregator StatefulSet that receives logs from the
 // forwarders and sends them to the outputs. The caller checks that
-// cr.Spec.Fluentbit.Aggregator is set.
-func AggregatorStatefulSet(cr *loggingService.LoggingService, cfg *defaults.Defaults) *appsv1.StatefulSet {
+// cr.Spec.Fluentbit.Aggregator is set. It returns an error when the storage size limit
+// or the volume size is not a valid quantity.
+func AggregatorStatefulSet(cr *loggingService.LoggingService, cfg *defaults.Defaults) (*appsv1.StatefulSet, error) {
 	spec := cr.Spec.Fluentbit.Aggregator
 	def := cfg.Aggregator
 	openshift := cr.Spec.OpenshiftDeploy
@@ -28,7 +28,11 @@ func AggregatorStatefulSet(cr *loggingService.LoggingService, cfg *defaults.Defa
 
 	var volumes []corev1.Volume
 	if !bindVolume {
-		volumes = append(volumes, emptyDirVolume(storageVolume, resource.MustParse(spec.EffectiveStorageSizeLimit())))
+		size, err := parseQuantity("fluentbit.aggregator.storageSizeLimit", spec.EffectiveStorageSizeLimit())
+		if err != nil {
+			return nil, err
+		}
+		volumes = append(volumes, emptyDirVolume(storageVolume, size))
 	}
 	volumes = append(volumes, secretVolume(configVolume, aggregatorName), emptyDirVolume(tmpVolume, tmpVolumeSize))
 	mounts := []corev1.VolumeMount{
@@ -100,7 +104,11 @@ func AggregatorStatefulSet(cr *loggingService.LoggingService, cfg *defaults.Defa
 	statefulSet.Spec.Template.Name = aggregatorName
 	statefulSet.Spec.RevisionHistoryLimit = ptr.To(int32(10))
 	if bindVolume {
-		statefulSet.Spec.VolumeClaimTemplates = []corev1.PersistentVolumeClaim{storageClaim(spec.Volume, def)}
+		claim, err := storageClaim(spec.Volume, def)
+		if err != nil {
+			return nil, err
+		}
+		statefulSet.Spec.VolumeClaimTemplates = []corev1.PersistentVolumeClaim{claim}
 	}
 	util.SetLabelsForWorkload(statefulSet, &statefulSet.Spec.Template.Labels, util.LabelInput{
 		Name:            aggregatorName,
@@ -110,7 +118,7 @@ func AggregatorStatefulSet(cr *loggingService.LoggingService, cfg *defaults.Defa
 		Technology:      technology,
 		ComponentLabels: spec.Labels,
 	})
-	return statefulSet
+	return statefulSet, nil
 }
 
 // AggregatorService returns the Service the forwarders send logs to. The caller checks
@@ -139,10 +147,13 @@ func AggregatorService(cr *loggingService.LoggingService, _ *defaults.Defaults) 
 }
 
 // storageClaim returns the claim template of the aggregator buffer volume.
-func storageClaim(volume *loggingService.Volume, def defaults.FluentbitAggregatorDefaults) corev1.PersistentVolumeClaim {
+func storageClaim(volume *loggingService.Volume, def defaults.FluentbitAggregatorDefaults) (corev1.PersistentVolumeClaim, error) {
 	size := def.AggregatorVolumeSize
 	if volume.StorageSize != "" {
-		size = resource.MustParse(volume.StorageSize)
+		var err error
+		if size, err = parseQuantity("fluentbit.aggregator.volume.storageSize", volume.StorageSize); err != nil {
+			return corev1.PersistentVolumeClaim{}, err
+		}
 	}
 	claim := corev1.PersistentVolumeClaim{
 		ObjectMeta: metav1.ObjectMeta{Name: storageVolume},
@@ -156,7 +167,7 @@ func storageClaim(volume *loggingService.Volume, def defaults.FluentbitAggregato
 	if volume.StorageClassName != "" {
 		claim.Spec.StorageClassName = ptr.To(volume.StorageClassName)
 	}
-	return claim
+	return claim, nil
 }
 
 // outputTLSMounts returns the volumes and mounts of the TLS files for the enabled Loki,

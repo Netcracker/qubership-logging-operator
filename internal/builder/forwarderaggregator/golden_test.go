@@ -15,10 +15,18 @@ func TestGolden(t *testing.T) {
 		if cr.Spec.Fluentbit == nil || cr.Spec.Fluentbit.Aggregator == nil {
 			return nil
 		}
+		daemonSet, err := forwarderaggregator.ForwarderDaemonSet(cr, cfg)
+		if err != nil {
+			t.Fatalf("build the forwarder DaemonSet: %v", err)
+		}
+		statefulSet, err := forwarderaggregator.AggregatorStatefulSet(cr, cfg)
+		if err != nil {
+			t.Fatalf("build the aggregator StatefulSet: %v", err)
+		}
 		return map[string]any{
-			"forwarder-daemonset":    forwarderaggregator.ForwarderDaemonSet(cr, cfg),
+			"forwarder-daemonset":    daemonSet,
 			"forwarder-service":      forwarderaggregator.ForwarderService(cr, cfg),
-			"aggregator-statefulset": forwarderaggregator.AggregatorStatefulSet(cr, cfg),
+			"aggregator-statefulset": statefulSet,
 			"aggregator-service":     forwarderaggregator.AggregatorService(cr, cfg),
 		}
 	})

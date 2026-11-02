@@ -36,7 +36,7 @@ func TestHandleForwarderDaemonSetUpdatesTheCompletePodSpec(t *testing.T) {
 	}
 	dynamicParameters := util.DynamicParameters{ContainerRuntimeType: "containerd"}
 	cr.Spec.ContainerRuntimeType = dynamicParameters.ContainerRuntimeType
-	desired := forwarderaggregator.ForwarderDaemonSet(cr, defaults.Get())
+	desired := mustForwarderDaemonSet(t, cr)
 	existing := desired.DeepCopy()
 	existing.Labels = nil
 	existing.Spec.Template.Spec = corev1.PodSpec{PriorityClassName: "stale-priority"}
@@ -153,7 +153,7 @@ func TestCreateOrUpdateAggregatorStatefulSetCreatesMissingStatefulSet(t *testing
 
 func TestHandleAggregatorStatefulSetUpdatesAndWaitsForReadiness(t *testing.T) {
 	cr := newHAFluentHandlerLoggingService()
-	desired := forwarderaggregator.AggregatorStatefulSet(cr, defaults.Get())
+	desired := mustAggregatorStatefulSet(t, cr)
 	existing := desired.DeepCopy()
 	existing.Labels = nil
 	existing.Spec.Template.Spec.Containers = nil
@@ -262,7 +262,7 @@ func newHAFluentHandlerTestScheme(t *testing.T) *runtime.Scheme {
 
 func TestCreateOrUpdateAggregatorStatefulSetUpdatesHardeningFields(t *testing.T) {
 	cr := newHAFluentUpdateLoggingService()
-	desired := forwarderaggregator.AggregatorStatefulSet(cr, defaults.Get())
+	desired := mustAggregatorStatefulSet(t, cr)
 	existing := desired.DeepCopy()
 	staleReplicas := int32(1)
 	existing.Spec.Replicas = &staleReplicas
@@ -321,6 +321,52 @@ func newHAFluentUpdateLoggingService() *loggingService.LoggingService {
 				},
 			},
 		},
+	}
+}
+
+func mustForwarderDaemonSet(t *testing.T, cr *loggingService.LoggingService) *appsv1.DaemonSet {
+	t.Helper()
+	daemonSet, err := forwarderaggregator.ForwarderDaemonSet(cr, defaults.Get())
+	if err != nil {
+		t.Fatalf("build the forwarder DaemonSet: %v", err)
+	}
+	return daemonSet
+}
+
+func mustAggregatorStatefulSet(t *testing.T, cr *loggingService.LoggingService) *appsv1.StatefulSet {
+	t.Helper()
+	statefulSet, err := forwarderaggregator.AggregatorStatefulSet(cr, defaults.Get())
+	if err != nil {
+		t.Fatalf("build the aggregator StatefulSet: %v", err)
+	}
+	return statefulSet
+}
+
+// A malformed quantity reaches the reconciler as an error, so the component status
+// records the failure instead of the operator panicking.
+func TestHandlersReturnMalformedQuantityErrors(t *testing.T) {
+	testScheme := newHAFluentHandlerTestScheme(t)
+	reconciler := &HAFluentReconciler{
+		ComponentReconciler: &util.ComponentReconciler{
+			Client: fake.NewClientBuilder().WithScheme(testScheme).Build(),
+			Scheme: testScheme,
+			Log:    util.Logger("test-ha-fluent-malformed-quantity"),
+		},
+		DynamicParameters: util.DynamicParameters{ContainerRuntimeType: "containerd"},
+		Defaults:          defaults.Get(),
+	}
+
+	cr := newHAFluentHandlerLoggingService()
+	cr.Spec.Fluentbit.StorageProfile = loggingService.FluentbitStorageProfileMemoryOnly
+	cr.Spec.Fluentbit.MemoryOnlyStateSizeLimit = "not-a-quantity"
+	if err := reconciler.handleForwarderDaemonSet(context.Background(), cr); err == nil {
+		t.Error("expected an error for a malformed fluentbit.memoryOnlyStateSizeLimit")
+	}
+
+	cr = newHAFluentHandlerLoggingService()
+	cr.Spec.Fluentbit.Aggregator.StorageSizeLimit = "not-a-quantity"
+	if err := reconciler.applyAggregatorStatefulSet(context.Background(), cr); err == nil {
+		t.Error("expected an error for a malformed fluentbit.aggregator.storageSizeLimit")
 	}
 }
 

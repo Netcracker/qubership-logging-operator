@@ -27,15 +27,6 @@ func TestFirstNonNil(t *testing.T) {
 	}
 }
 
-func TestFirstSlice(t *testing.T) {
-	if got := FirstSlice([]int{1}, []int{2}); !reflect.DeepEqual(got, []int{1}) {
-		t.Errorf("FirstSlice([1], [2]) = %v, want [1]", got)
-	}
-	if got := FirstSlice(nil, []int{2}); !reflect.DeepEqual(got, []int{2}) {
-		t.Errorf("FirstSlice(nil, [2]) = %v, want [2]", got)
-	}
-}
-
 func TestFirstMap(t *testing.T) {
 	a, b := map[string]int{"a": 1}, map[string]int{"b": 2}
 	if got := FirstMap(a, b); !reflect.DeepEqual(got, a) {

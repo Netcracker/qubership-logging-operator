@@ -4,6 +4,8 @@
 package forwarderaggregator
 
 import (
+	"fmt"
+
 	loggingService "github.com/Netcracker/qubership-logging-operator/api/v1"
 	"github.com/Netcracker/qubership-logging-operator/internal/builder"
 	corev1 "k8s.io/api/core/v1"
@@ -121,6 +123,16 @@ func setMainContainerDefaults(container *corev1.Container) {
 	container.TerminationMessagePath = corev1.TerminationMessagePathDefault
 	container.TerminationMessagePolicy = corev1.TerminationMessageReadFile
 	container.ImagePullPolicy = corev1.PullIfNotPresent
+}
+
+// parseQuantity parses a quantity set in the custom resource. The CRD declares these
+// fields as plain strings, so the API server does not reject a malformed value.
+func parseQuantity(field, value string) (resource.Quantity, error) {
+	quantity, err := resource.ParseQuantity(value)
+	if err != nil {
+		return resource.Quantity{}, fmt.Errorf("invalid %s %q: %w", field, value, err)
+	}
+	return quantity, nil
 }
 
 func emptyDirVolume(name string, size resource.Quantity) corev1.Volume {

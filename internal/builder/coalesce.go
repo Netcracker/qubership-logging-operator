@@ -19,14 +19,6 @@ func FirstNonNil[T any](a, b *T) *T {
 	return b
 }
 
-// FirstSlice returns a when it is not empty, and b otherwise.
-func FirstSlice[T any](a, b []T) []T {
-	if len(a) > 0 {
-		return a
-	}
-	return b
-}
-
 // FirstMap returns a when it is not empty, and b otherwise.
 func FirstMap[K comparable, V any](a, b map[K]V) map[K]V {
 	if len(a) > 0 {

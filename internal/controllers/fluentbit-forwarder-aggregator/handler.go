@@ -38,7 +38,11 @@ func (r *HAFluentReconciler) handleForwarderDaemonSet(ctx context.Context, cr *l
 		return fmt.Errorf("fluentbit configuration in Logging Service %s is nil in the namespace %s", cr.GetName(), cr.GetNamespace())
 	}
 	cr.Spec.ContainerRuntimeType = r.DynamicParameters.ContainerRuntimeType
-	return reconcilers.DaemonSet(ctx, r.Client, r.Scheme, cr, forwarderaggregator.ForwarderDaemonSet(cr, r.Defaults))
+	daemonSet, err := forwarderaggregator.ForwarderDaemonSet(cr, r.Defaults)
+	if err != nil {
+		return err
+	}
+	return reconcilers.DaemonSet(ctx, r.Client, r.Scheme, cr, daemonSet)
 }
 
 func (r *HAFluentReconciler) handleForwarderService(ctx context.Context, cr *loggingService.LoggingService) error {
@@ -143,7 +147,11 @@ func (r *HAFluentReconciler) handleAggregatorStatefulSet(ctx context.Context, cr
 }
 
 func (r *HAFluentReconciler) applyAggregatorStatefulSet(ctx context.Context, cr *loggingService.LoggingService) error {
-	return reconcilers.StatefulSet(ctx, r.Client, r.Scheme, cr, forwarderaggregator.AggregatorStatefulSet(cr, r.Defaults))
+	statefulSet, err := forwarderaggregator.AggregatorStatefulSet(cr, r.Defaults)
+	if err != nil {
+		return err
+	}
+	return reconcilers.StatefulSet(ctx, r.Client, r.Scheme, cr, statefulSet)
 }
 
 func (r *HAFluentReconciler) waitForAggregator(cr *loggingService.LoggingService) error {

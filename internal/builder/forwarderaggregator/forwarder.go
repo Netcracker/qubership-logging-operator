@@ -9,20 +9,23 @@ import (
 	util "github.com/Netcracker/qubership-logging-operator/internal/utils"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/utils/ptr"
 )
 
 // ForwarderDaemonSet returns the forwarder DaemonSet that reads node logs and sends
 // them to the aggregator. The caller checks that cr.Spec.Fluentbit is set and sets
-// cr.Spec.ContainerRuntimeType to the detected container runtime.
-func ForwarderDaemonSet(cr *loggingService.LoggingService, cfg *defaults.Defaults) *appsv1.DaemonSet {
+// cr.Spec.ContainerRuntimeType to the detected container runtime. It returns an error
+// when fluentbit.memoryOnlyStateSizeLimit is not a valid quantity.
+func ForwarderDaemonSet(cr *loggingService.LoggingService, cfg *defaults.Defaults) (*appsv1.DaemonSet, error) {
 	spec := cr.Spec.Fluentbit
 	def := cfg.Aggregator
 	openshift := cr.Spec.OpenshiftDeploy
 
-	volumes, mounts := forwarderStorage(cr)
+	volumes, mounts, err := forwarderStorage(cr)
+	if err != nil {
+		return nil, err
+	}
 	tlsVolumes, tlsMounts := collectorTLSMounts(spec.TLS)
 	volumes = append(volumes, tlsVolumes...)
 	mounts = append(mounts, tlsMounts...)
@@ -80,7 +83,7 @@ func ForwarderDaemonSet(cr *loggingService.LoggingService, cfg *defaults.Default
 		Technology:      technology,
 		ComponentLabels: spec.Labels,
 	})
-	return daemonSet
+	return daemonSet, nil
 }
 
 // ForwarderService returns the Service in front of the forwarder pods. The caller
@@ -108,7 +111,7 @@ func ForwarderService(cr *loggingService.LoggingService, _ *defaults.Defaults) *
 
 // forwarderStorage returns the volumes and mounts for node logs, FluentBit state and
 // buffers, the configuration, and temporary files.
-func forwarderStorage(cr *loggingService.LoggingService) ([]corev1.Volume, []corev1.VolumeMount) {
+func forwarderStorage(cr *loggingService.LoggingService) ([]corev1.Volume, []corev1.VolumeMount, error) {
 	spec := cr.Spec.Fluentbit
 	var volumes []corev1.Volume
 	var mounts []corev1.VolumeMount
@@ -137,7 +140,10 @@ func forwarderStorage(cr *loggingService.LoggingService) ([]corev1.Volume, []cor
 	if spec.UsesPersistentOffsets() {
 		volumes = append(volumes, hostPathVolume(stateVolume, "/var/lib/fluent-bit/state", corev1.HostPathDirectoryOrCreate))
 	} else {
-		size := resource.MustParse(spec.EffectiveMemoryOnlyStateSizeLimit())
+		size, err := parseQuantity("fluentbit.memoryOnlyStateSizeLimit", spec.EffectiveMemoryOnlyStateSizeLimit())
+		if err != nil {
+			return nil, nil, err
+		}
 		volumes = append(volumes, corev1.Volume{
 			Name: stateVolume,
 			VolumeSource: corev1.VolumeSource{EmptyDir: &corev1.EmptyDirVolumeSource{
@@ -167,7 +173,7 @@ func forwarderStorage(cr *loggingService.LoggingService) ([]corev1.Volume, []cor
 		corev1.VolumeMount{Name: configVolume, MountPath: configDir, ReadOnly: true},
 		corev1.VolumeMount{Name: tmpVolume, MountPath: "/tmp"},
 	)
-	return volumes, mounts
+	return volumes, mounts, nil
 }
 
 // forwarderPodSecurityContext adds the spc_t SELinux type on OpenShift, where node logs

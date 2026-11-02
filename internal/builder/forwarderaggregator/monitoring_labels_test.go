@@ -26,14 +26,14 @@ func TestHAFluentbitPodsCarryNameLabel(t *testing.T) {
 
 	t.Run("forwarder", func(t *testing.T) {
 		cr.Spec.ContainerRuntimeType = "containerd"
-		ds := ForwarderDaemonSet(cr, defaults.Get())
+		ds := mustForwarderDaemonSet(t, cr, defaults.Get())
 		if got := ds.Spec.Template.Labels["app.kubernetes.io/name"]; got != util.ForwarderFluentbitComponentName {
 			t.Errorf("expected the pod label app.kubernetes.io/name=%s, got %q", util.ForwarderFluentbitComponentName, got)
 		}
 	})
 
 	t.Run("aggregator", func(t *testing.T) {
-		statefulSet := AggregatorStatefulSet(cr, defaults.Get())
+		statefulSet := mustAggregatorStatefulSet(t, cr, defaults.Get())
 		if got := statefulSet.Spec.Template.Labels["app.kubernetes.io/name"]; got != util.AggregatorFluentbitComponentName {
 			t.Errorf("expected the pod label app.kubernetes.io/name=%s, got %q", util.AggregatorFluentbitComponentName, got)
 		}

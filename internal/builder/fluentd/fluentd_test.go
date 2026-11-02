@@ -1,6 +1,7 @@
 package fluentd
 
 import (
+	"reflect"
 	"testing"
 
 	loggingService "github.com/Netcracker/qubership-logging-operator/api/v1"
@@ -116,6 +117,38 @@ func TestFluentdPodsCarryNameLabel(t *testing.T) {
 
 	if got := daemonSet.Spec.Template.Labels["app.kubernetes.io/name"]; got != util.FluentdComponentName {
 		t.Errorf("expected the pod label app.kubernetes.io/name=%s, got %q", util.FluentdComponentName, got)
+	}
+}
+
+// TestFluentdTolerations checks that only a nil list falls back to the default
+// tolerations. An explicit empty list keeps FluentD off tainted nodes.
+func TestFluentdTolerations(t *testing.T) {
+	custom := []corev1.Toleration{{Key: "dedicated", Operator: corev1.TolerationOpEqual, Value: "logging"}}
+	tests := []struct {
+		name       string
+		configured []corev1.Toleration
+		want       []corev1.Toleration
+	}{
+		{name: "nil uses defaults", configured: nil, want: defaults.Get().Fluentd.Tolerations},
+		{name: "explicit empty list", configured: []corev1.Toleration{}, want: []corev1.Toleration{}},
+		{name: "custom list", configured: custom, want: custom},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			cr := &loggingService.LoggingService{Spec: loggingService.LoggingServiceSpec{
+				Fluentd: &loggingService.Fluentd{
+					ConfigmapReload: &loggingService.ConfigmapReload{},
+					Tolerations:     test.configured,
+				},
+			}}
+			cr.Spec.ContainerRuntimeType = "containerd"
+
+			got := DaemonSet(cr, defaults.Get()).Spec.Template.Spec.Tolerations
+			if !reflect.DeepEqual(got, test.want) {
+				t.Errorf("tolerations = %#v, want %#v", got, test.want)
+			}
+		})
 	}
 }
 

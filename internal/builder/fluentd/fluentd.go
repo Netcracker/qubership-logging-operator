@@ -59,6 +59,11 @@ func DaemonSet(cr *loggingService.LoggingService, cfg *defaults.Defaults) *appsv
 	openshift := cr.Spec.OpenshiftDeploy
 
 	volumes, mounts := volumes(cr, def)
+	// An explicit empty list keeps FluentD off every tainted node, so only nil falls back.
+	tolerations := def.Tolerations
+	if spec.Tolerations != nil {
+		tolerations = spec.Tolerations
+	}
 	podSpec := corev1.PodSpec{
 		TerminationGracePeriodSeconds: ptr.To(int64(30)),
 		ServiceAccountName:            name,
@@ -66,7 +71,7 @@ func DaemonSet(cr *loggingService.LoggingService, cfg *defaults.Defaults) *appsv
 		Containers:                    []corev1.Container{reloadContainerSpec(spec, def), fluentdContainer(cr, def, mounts)},
 		Volumes:                       volumes,
 		NodeSelector:                  builder.NodeSelector(spec.NodeSelectorKey, spec.NodeSelectorValue),
-		Tolerations:                   builder.FirstSlice(spec.Tolerations, def.Tolerations),
+		Tolerations:                   tolerations,
 		Affinity:                      spec.Affinity,
 	}
 	if strings.TrimSpace(spec.PriorityClassName) != "" {

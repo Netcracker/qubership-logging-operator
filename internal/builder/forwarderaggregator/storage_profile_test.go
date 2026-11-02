@@ -53,7 +53,7 @@ func TestForwarderDaemonSetStorageProfiles(t *testing.T) {
 			}}
 
 			cr.Spec.ContainerRuntimeType = "containerd"
-			daemonSet := ForwarderDaemonSet(cr, defaults.Get())
+			daemonSet := mustForwarderDaemonSet(t, cr, defaults.Get())
 			assertForwarderStorageProfile(t, daemonSet.Spec.Template.Spec, test.expectedStateSizeLimit,
 				test.persistentOffsets, test.persistentInputBuffer)
 		})
@@ -69,11 +69,11 @@ func TestForwarderDaemonSetSecurityContext(t *testing.T) {
 	}}
 
 	cr.Spec.ContainerRuntimeType = "containerd"
-	daemonSet := ForwarderDaemonSet(cr, defaults.Get())
+	daemonSet := mustForwarderDaemonSet(t, cr, defaults.Get())
 	assertForwarderPodSecurity(t, daemonSet.Spec.Template.Spec)
 
 	cr.Spec.OpenshiftDeploy = true
-	openShiftDaemonSet := ForwarderDaemonSet(cr, defaults.Get())
+	openShiftDaemonSet := mustForwarderDaemonSet(t, cr, defaults.Get())
 	context := openShiftDaemonSet.Spec.Template.Spec.SecurityContext
 	if context == nil || context.SELinuxOptions == nil || context.SELinuxOptions.Type != "spc_t" {
 		t.Error("OpenShift forwarder pod must use spc_t to access host logs and persistent storage")

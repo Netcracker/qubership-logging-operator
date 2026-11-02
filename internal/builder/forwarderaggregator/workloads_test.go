@@ -20,14 +20,14 @@ func TestForwarderDaemonSetHardeningExceptions(t *testing.T) {
 	}
 
 	cr.Spec.ContainerRuntimeType = "containerd"
-	daemonSet := ForwarderDaemonSet(cr, defaults.Get())
+	daemonSet := mustForwarderDaemonSet(t, cr, defaults.Get())
 
 	podSpec := daemonSet.Spec.Template.Spec
 	assertForwarderPodContext(t, podSpec.SecurityContext)
 	assertForwarderContainerSecurity(t, podSpec.Containers[1])
 
 	cr.Spec.OpenshiftDeploy = true
-	openShiftDaemonSet := ForwarderDaemonSet(cr, defaults.Get())
+	openShiftDaemonSet := mustForwarderDaemonSet(t, cr, defaults.Get())
 	assertOpenShiftForwarderSecurity(t, openShiftDaemonSet.Spec.Template.Spec)
 }
 
@@ -84,7 +84,7 @@ func assertOpenShiftForwarderSecurity(t *testing.T, podSpec corev1.PodSpec) {
 func TestAggregatorStatefulSetSecurityContext(t *testing.T) {
 	for _, openshift := range []bool{false, true} {
 		t.Run(map[bool]string{false: "kubernetes", true: "openshift"}[openshift], func(t *testing.T) {
-			statefulSet := AggregatorStatefulSet(newAggregatorSecurityLoggingService(openshift), defaults.Get())
+			statefulSet := mustAggregatorStatefulSet(t, newAggregatorSecurityLoggingService(openshift), defaults.Get())
 
 			podSpec := statefulSet.Spec.Template.Spec
 			assertAggregatorPodContext(t, podSpec.SecurityContext)
@@ -107,7 +107,7 @@ func TestAggregatorStatefulSetStorageSizeLimit(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			cr := newAggregatorSecurityLoggingService(false)
 			cr.Spec.Fluentbit.Aggregator.StorageSizeLimit = test.configured
-			statefulSet := AggregatorStatefulSet(cr, defaults.Get())
+			statefulSet := mustAggregatorStatefulSet(t, cr, defaults.Get())
 
 			var storage *corev1.Volume
 			for index := range statefulSet.Spec.Template.Spec.Volumes {

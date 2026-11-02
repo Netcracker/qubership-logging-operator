@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	loggingService "github.com/Netcracker/qubership-logging-operator/api/v1"
-	util "github.com/Netcracker/qubership-logging-operator/controllers/utils"
+	util "github.com/Netcracker/qubership-logging-operator/internal/utils"
 
 	agents "github.com/Netcracker/qubership-logging-operator/test/fluent-pipeline/agent"
 	"k8s.io/apimachinery/pkg/runtime"

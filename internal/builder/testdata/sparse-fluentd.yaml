@@ -1,0 +1,27 @@
+# LoggingService for the builder golden-file tests.
+apiVersion: logging.netcracker.com/v1
+kind: LoggingService
+metadata:
+  name: logging-service
+  namespace: logging
+spec:
+  openshiftDeploy: false
+  containerRuntimeType: containerd
+  cloudEventsReader:
+    install: true
+  fluentd:
+    logLevel: info
+    systemLogging: true
+    systemLogType: varlogsyslog
+    cloudEventsReaderFormat: json
+    containerLogging: true
+    systemAuditLogging: true
+    kubeAuditLogging: true
+    kubeApiserverAuditLogging: true
+    billCycleConf: true
+    watchKubernetesMetadata: true
+    mockKubeData: true
+    multilineFirstLineRegexp: /(^\[\d{4}\-\d{2}\-\d{2})|(^\{")|(^*0m\d{2}\:\d{2}\:\d{2})/
+    graylogOutput: false
+    customOutputConf: "<match parsed.**>\n  @type file\n  path /fluentd-output/${hostname}\n  append true\n  <inject>\n    time_key fluentd_time\n    time_type string\n    time_format %Y-%m-%dT%H:%M:%S.%LZ\n\
+      \  </inject>\n  <format>\n    @type json\n  </format>\n  <buffer hostname>\n    flush_mode interval\n    flush_interval 1\n    timekey 1s\n    timekey_wait 0s\n  </buffer>\n</match>"

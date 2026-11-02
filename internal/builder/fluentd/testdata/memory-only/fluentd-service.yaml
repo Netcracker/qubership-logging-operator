@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/managed-by: operator
+    app.kubernetes.io/managed-by-operator: logging-operator
+    app.kubernetes.io/name: logging-fluentd
+    app.kubernetes.io/part-of: logging-service
+    component: logging-fluentd
+    fd: x
+    name: logging-fluentd
+    provider: kubernetes
+  name: logging-fluentd
+  namespace: logging
+spec:
+  ports:
+  - name: logging-fluentd
+    port: 24220
+    protocol: TCP
+    targetPort: 24220
+  selector:
+    name: logging-fluentd
+status:
+  loadBalancer: {}

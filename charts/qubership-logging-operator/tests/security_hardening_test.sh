@@ -4,7 +4,7 @@
 # workloads (operator, integration-tests) and the legacy PSP/SCC policies.
 #
 # The FluentBit/FluentD/Graylog/EventsReader workloads are rendered by the
-# operator itself (controllers/*/assets/*.yaml), not by this Helm chart, so
+# operator itself (internal/builder/), not by this Helm chart, so
 # they are out of scope for this script.
 set -euo pipefail
 

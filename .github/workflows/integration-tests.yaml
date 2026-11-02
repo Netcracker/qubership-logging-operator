@@ -12,7 +12,7 @@ on:
       - api/**
       - charts/**
       - cmd/**
-      - controllers/**
+      - internal/**
       - scripts/lua-tests/**
       - test/fluent-pipeline/**
       - test/robot-tests/**
@@ -72,7 +72,7 @@ jobs:
           api \
           charts \
           cmd \
-          controllers \
+          internal \
           test/robot-tests; then
           echo "run=false" >> "$GITHUB_OUTPUT"
         else
@@ -81,9 +81,9 @@ jobs:
         if git diff --quiet "$BASE_SHA" "$HEAD_SHA" -- \
           .github/workflows/integration-tests.yaml \
           api \
-          controllers/fluentbit \
-          controllers/fluentbit-forwarder-aggregator \
-          controllers/fluentd \
+          internal/controllers/fluentbit \
+          internal/controllers/fluentbit-forwarder-aggregator \
+          internal/controllers/fluentd \
           go.mod \
           go.sum \
           test/fluent-pipeline; then

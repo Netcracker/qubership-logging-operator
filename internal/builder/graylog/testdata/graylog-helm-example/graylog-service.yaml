@@ -1,0 +1,34 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/component: graylog
+    app.kubernetes.io/managed-by: operator
+    app.kubernetes.io/managed-by-operator: logging-operator
+    app.kubernetes.io/name: graylog-service
+    app.kubernetes.io/part-of: logging-service
+    name: graylog-service
+  name: graylog-service
+  namespace: logging
+spec:
+  ports:
+  - name: graylog
+    port: 9000
+    protocol: TCP
+    targetPort: 9000
+  - name: graylog-udp
+    port: 514
+    protocol: UDP
+    targetPort: 514
+  - name: graylog-12201
+    port: 12201
+    protocol: TCP
+    targetPort: 12201
+  - name: graylog-metrics
+    port: 9833
+    protocol: TCP
+    targetPort: 9833
+  selector:
+    name: graylog
+status:
+  loadBalancer: {}

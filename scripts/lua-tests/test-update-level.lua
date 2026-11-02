@@ -1,20 +1,20 @@
 -- Run from the repository root with Lua 5.1+ or LuaJIT.
 local script_paths = {
-    "controllers/fluentbit/fluentbit.configmap/conf.d/lua_scripts/update_level_syslog.lua",
-    "controllers/fluentbit-forwarder-aggregator/aggregator.configmap/conf.d/lua_scripts/update_level_syslog.lua",
+    "internal/controllers/fluentbit/fluentbit.configmap/conf.d/lua_scripts/update_level_syslog.lua",
+    "internal/controllers/fluentbit-forwarder-aggregator/aggregator.configmap/conf.d/lua_scripts/update_level_syslog.lua",
 }
 
 local configurations = {
     {
         name = "Fluent Bit",
-        filter = "controllers/fluentbit/fluentbit.configmap/conf.d/filters/filter-nonsupported-levels.conf",
-        routing = "controllers/fluentbit/fluentbit.configmap/conf.d/filters/filter-http-routing.conf",
+        filter = "internal/controllers/fluentbit/fluentbit.configmap/conf.d/filters/filter-nonsupported-levels.conf",
+        routing = "internal/controllers/fluentbit/fluentbit.configmap/conf.d/filters/filter-http-routing.conf",
     },
     {
         name = "Fluent Bit aggregator",
-        filter = "controllers/fluentbit-forwarder-aggregator/aggregator.configmap/conf.d/filters/" ..
+        filter = "internal/controllers/fluentbit-forwarder-aggregator/aggregator.configmap/conf.d/filters/" ..
             "filter-nonsupported-levels.conf",
-        routing = "controllers/fluentbit-forwarder-aggregator/aggregator.configmap/conf.d/filters/" ..
+        routing = "internal/controllers/fluentbit-forwarder-aggregator/aggregator.configmap/conf.d/filters/" ..
             "filter-http-routing.conf",
     },
 }

@@ -52,7 +52,7 @@ DaemonSet when the desired selector changes or keep mutable labels out of the se
 **Sources:**
 
 * Support ticket `PSUPCLPL-14999`, Gold 150 ticket export.
-* `controllers/fluentd/handler.go:35-60`.
+* `internal/builder/fluentd/fluentd.go` (`DaemonSet`) and `internal/reconcilers/reconcilers.go` (`DaemonSet`).
 * [DaemonSet API reference — Kubernetes](https://kubernetes.io/docs/reference/kubernetes-api/apps/daemon-set-v1/).
 
 ### Operator reports Graylog is not started although a pod is Running
@@ -95,8 +95,8 @@ timeout is shorter than actual startup.
 **Sources:**
 
 * Support ticket `PSUPCLPL-9209`, Gold 150 ticket export.
-* `controllers/graylog/handler.go:158-178`.
-* `controllers/utils/pod_manager.go:145-175`.
+* `internal/controllers/graylog/handler.go` (`handleStatefulset`).
+* `internal/utils/waiter.go` (`WaitForStatefulsetUpdated`).
 
 ## Events reader
 
@@ -195,7 +195,7 @@ unless a custom image already contains it.
 
 * `api/v1/loggingservice_types.go:296-308`.
 * `charts/qubership-logging-operator/templates/operator/loggingservice.observability.netcracker.com.yaml:983-993`.
-* `controllers/events-reader/assets/deployment.yaml:27-79`.
+* `internal/builder/eventsreader/eventsreader.go` (`Deployment`).
 * [Argument validation in Qubership kube events reader 2.9.1](https://github.com/Netcracker/qubership-kube-events-reader/blob/2.9.1/main.go#L39-L132).
 * [Flag validation in Qubership kube events reader 2.9.1](https://github.com/Netcracker/qubership-kube-events-reader/blob/2.9.1/pkg/utils/flags.go#L36-L47).
 
@@ -228,7 +228,7 @@ probes; an invalid or unavailable value prevents the health server from starting
 
 **Sources:**
 
-* `controllers/events-reader/assets/deployment.yaml:27-62`.
+* `internal/builder/eventsreader/eventsreader.go` (`Deployment`).
 * [Health endpoint in Qubership kube events reader 2.9.1](https://github.com/Netcracker/qubership-kube-events-reader/blob/2.9.1/pkg/utils/health.go#L15-L50).
 * [Health argument handling in Qubership kube events reader 2.9.1](https://github.com/Netcracker/qubership-kube-events-reader/blob/2.9.1/main.go#L50-L77).
 
@@ -262,7 +262,7 @@ the event workers, so the pod can remain Ready while queued events never reach a
 **Sources:**
 
 * `charts/qubership-logging-operator/values.yaml:1967-1973`.
-* `controllers/events-reader/assets/deployment.yaml:31-62`.
+* `internal/builder/eventsreader/eventsreader.go` (`Deployment`).
 * [Worker startup in Qubership kube events reader 2.9.1](https://github.com/Netcracker/qubership-kube-events-reader/blob/2.9.1/pkg/controller/events_reader_controller.go#L164-L181).
 
 ### Events reader is Ready but metrics-only output produces no event logs
@@ -293,7 +293,7 @@ stdout sink. The Logging pipeline depends on stdout records being collected by F
 **Sources:**
 
 * `docs/architecture.md:111-117`.
-* `controllers/events-reader/assets/deployment.yaml:27-38`.
+* `internal/builder/eventsreader/eventsreader.go` (`Deployment`).
 * [Sink selection in Qubership kube events reader 2.9.1](https://github.com/Netcracker/qubership-kube-events-reader/blob/2.9.1/main.go#L92-L135).
 
 ### Events reader omits namespaces not listed in its arguments
@@ -360,7 +360,7 @@ exact `KubernetesEvent` value, so a different schema does not enter the intended
 
 **Sources:**
 
-* `controllers/graylog/config/processing_rules/k8s_event_logs.rule:1-5`.
+* `internal/controllers/graylog/config/processing_rules/k8s_event_logs.rule:1-5`.
 * `docs/observability.md:101-108`.
 * [Event formatting in Qubership kube events reader 2.9.1](https://github.com/Netcracker/qubership-kube-events-reader/blob/2.9.1/pkg/format/event_format.go#L13-L50).
 
@@ -406,8 +406,8 @@ value entered in a deployment portal is not proof that it reached the rendered `
 **Sources:**
 
 * Support ticket `PSUPCLPL-10420`, Gold 150 ticket export.
-* `controllers/loggingservice_controller.go:155-187`.
-* `controllers/fluentd/assets/daemon-set.yaml:174-190` and `controllers/fluentd/assets/daemon-set.yaml:281-302`.
+* `internal/controllers/loggingservice_controller.go` (`updateDynamicParameters`).
+* `internal/builder/fluentd/fluentd.go` (`fluentdContainer` and `volumes`).
 
 ### FluentD exits with a Docker log-driver configuration error
 
@@ -465,8 +465,8 @@ Manage the Docker logging driver in one authoritative node configuration source.
 **Sources:**
 
 * `charts/qubership-logging-operator/templates/_helpers.tpl:313-326`.
-* `controllers/fluentd/assets/daemon-set.yaml:173-190` and `controllers/fluentd/assets/daemon-set.yaml:280-300`.
-* `controllers/fluentd/fluentd.configmap/conf.d/inputs/input-k8s-container.conf:1-27`.
+* `internal/builder/fluentd/fluentd.go` (`fluentdContainer` and `volumes`).
+* `internal/controllers/fluentd/fluentd.configmap/conf.d/inputs/input-k8s-container.conf:1-27`.
 * [Docker log-driver validation in Qubership FluentD 1.19.2-2](https://github.com/Netcracker/qubership-fluentd/blob/1.19.2-2/entrypoint.sh#L3-L29).
 
 ### FluentD probes fail with connection refused on port 24220
@@ -508,7 +508,7 @@ not completed startup. The probe error alone does not prove a repository or imag
 **Sources:**
 
 * Support ticket `PSUPCLPL-10784`, Gold 150 ticket export.
-* `controllers/fluentd/assets/daemon-set.yaml:68-96`.
+* `internal/builder/fluentd/fluentd.go` (`fluentdContainer`).
 
 ### FluentD worker exits with SIGKILL
 
@@ -547,7 +547,7 @@ queue growth.
 **Sources:**
 
 * `docs/troubleshooting.superseded.md:825-872`.
-* `controllers/fluentd/fluentd.configmap/conf.d/outputs/output-graylog.conf:41-52`.
+* `internal/controllers/fluentd/fluentd.configmap/conf.d/outputs/output-graylog.conf:41-52`.
 * [Buffer section — Fluentd documentation](https://docs.fluentd.org/configuration/buffer-section).
 
 ### FluentD causes high disk-read load after a worker restart
@@ -700,7 +700,7 @@ otherwise check output connectivity, backpressure, and tail state.
 **Sources:**
 
 * `docs/troubleshooting.superseded.md:1009-1058`.
-* `controllers/fluentbit/fluentbit.configmap/conf.d/filters/filter-rewrite-tag.conf:1-40`.
+* `internal/controllers/fluentbit/fluentbit.configmap/conf.d/filters/filter-rewrite-tag.conf:1-40`.
 * [Buffering — Fluent Bit 4.2 documentation](https://docs.fluentbit.io/manual/4.2/data-pipeline/buffering).
 
 ### HA forwarders cannot connect to aggregators on port 24224
@@ -756,9 +756,8 @@ The ticket wording alone does not choose among DNS, endpoints, TCP reachability,
 **Sources:**
 
 * Support ticket `PSUPCLPL-14264`, Gold 150 ticket export.
-* `controllers/fluentbit-forwarder-aggregator/forwarder.configmap/conf.d/upstreams/upstream-forward.conf:1-9`.
-* `controllers/fluentbit-forwarder-aggregator/assets/flb-aggregator-service.yaml:1-31`.
-* `controllers/fluentbit-forwarder-aggregator/assets/flb-aggregator-stateful-set.yaml:1-23`.
+* `internal/controllers/fluentbit-forwarder-aggregator/forwarder.configmap/conf.d/upstreams/upstream-forward.conf:1-9`.
+* `internal/builder/forwarderaggregator/aggregator.go` (`AggregatorService` and `AggregatorStatefulSet`).
 * [Forward output — Fluent Bit documentation](https://docs.fluentbit.io/manual/pipeline/outputs/forward).
 * [StatefulSet stable network identity — Kubernetes](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#stable-network-id).
 * [Buffering — Fluent Bit 4.2 documentation](https://docs.fluentbit.io/manual/4.2/data-pipeline/buffering).
@@ -1262,7 +1261,7 @@ Validate examples against the values schema and add a Helm schema rule that reje
 * `docs/user-guides/graylog-auth-proxy.md:394-420` and `docs/user-guides/graylog-auth-proxy.md:422-460`.
 * `charts/qubership-logging-operator/values.yaml:580-641`.
 * `charts/qubership-logging-operator/templates/graylog/auth-proxy/configmap.yaml:62-95`.
-* `controllers/graylog/assets/statefulset.yaml:463-480`.
+* `internal/builder/graylog/statefulset.go` (`authProxyContainer`).
 * [OAuth validation in Qubership Graylog auth proxy 0.2.3](https://github.com/Netcracker/qubership-graylog-auth-proxy/blob/0.2.3/config/oauth.py#L63-L91).
 
 ### LDAP user authenticates but Graylog auth proxy returns 401 when memberOf is empty

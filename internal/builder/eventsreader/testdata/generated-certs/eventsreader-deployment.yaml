@@ -1,0 +1,120 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    era: "true"
+  labels:
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/instance: events-reader-logging
+    app.kubernetes.io/managed-by: operator
+    app.kubernetes.io/managed-by-operator: logging-operator
+    app.kubernetes.io/name: events-reader
+    app.kubernetes.io/part-of: logging-service
+    app.kubernetes.io/technology: go
+    app.kubernetes.io/version: "1.0"
+    er: x
+    name: events-reader
+  name: events-reader
+  namespace: logging
+spec:
+  selector:
+    matchLabels:
+      name: events-reader
+  strategy:
+    rollingUpdate:
+      maxSurge: 25
+      maxUnavailable: 25
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        era: "true"
+      labels:
+        app.kubernetes.io/component: backend
+        app.kubernetes.io/instance: events-reader-logging
+        app.kubernetes.io/managed-by: operator
+        app.kubernetes.io/managed-by-operator: logging-operator
+        app.kubernetes.io/name: events-reader
+        app.kubernetes.io/part-of: logging-service
+        app.kubernetes.io/technology: go
+        app.kubernetes.io/version: "1.0"
+        name: events-reader
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: role
+                operator: In
+                values:
+                - logging
+      containers:
+      - args:
+        - -workers=2
+        - -format=json
+        command:
+        - /events-reader/eventsreader
+        env:
+        - name: OPENSHIFT_URL
+          value: https://kubernetes.default.svc
+        image: events-reader:1.0
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 1
+          httpGet:
+            path: /health
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 2
+        name: events-reader
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 1
+          httpGet:
+            path: /health
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 2
+        resources:
+          limits:
+            cpu: "1"
+            memory: 1Gi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          runAsGroup: 1000
+          runAsNonRoot: true
+          runAsUser: 1000
+        volumeMounts:
+        - mountPath: /tmp
+          name: tmp
+      nodeSelector:
+        kubernetes.io/os: linux
+      priorityClassName: er-prio
+      securityContext:
+        runAsGroup: 1000
+        runAsNonRoot: true
+        runAsUser: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: events-reader
+      volumes:
+      - emptyDir:
+          sizeLimit: 100Mi
+        name: tmp
+status: {}

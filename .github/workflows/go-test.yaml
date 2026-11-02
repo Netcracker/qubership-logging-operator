@@ -10,7 +10,7 @@ on:
       - .github/config/build-config.yaml
       - api/**
       - cmd/**
-      - controllers/**
+      - internal/**
       - go.*
       - Makefile
       - test/envtests/**
@@ -57,7 +57,7 @@ jobs:
     with:
       go-module-dir: '.'
       sonar-project-key: ${{ needs.prepare.outputs.sonar-project-key }}
-      cover-packages: './controllers/...'
+      cover-packages: './internal/...'
       skip-docker: true
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

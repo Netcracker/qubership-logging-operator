@@ -27,8 +27,8 @@ empty-message log records. Run it from the repository root against both producti
 
 ```bash
 lua scripts/lua-tests/test-kvs.lua \
-  controllers/fluentbit/fluentbit.configmap/conf.d/lua_scripts/parse_key_value.lua
+  internal/controllers/fluentbit/fluentbit.configmap/conf.d/lua_scripts/parse_key_value.lua
 
 lua scripts/lua-tests/test-kvs.lua \
-  controllers/fluentbit-forwarder-aggregator/aggregator.configmap/conf.d/lua_scripts/parse_key_value.lua
+  internal/controllers/fluentbit-forwarder-aggregator/aggregator.configmap/conf.d/lua_scripts/parse_key_value.lua
 ```

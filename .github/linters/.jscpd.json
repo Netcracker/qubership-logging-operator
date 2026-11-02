@@ -5,6 +5,6 @@
         "**/charts/*/templates/*/*.yaml",
         "**/charts/*/templates/*/*/*.yaml",
         "**/docs/**",
-        "**/controllers/**"
+        "**/internal/controllers/**"
     ]
 }

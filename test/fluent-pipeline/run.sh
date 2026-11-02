@@ -344,7 +344,7 @@ run_fluentd_test_logic() {
     echo "=> Prepare FluentD configurations"
 
     docker run --rm --security-opt label=disable --user "${HELPER_USER}" --name "${CONFIG_REPLACER_CONTAINER}" \
-        -v "${TEST_HOME_PATH}/controllers/fluentd/fluentd.configmap/":/config-templates.d:ro \
+        -v "${TEST_HOME_PATH}/internal/controllers/fluentd/fluentd.configmap/":/config-templates.d:ro \
         -v "${TEST_CONTENT_PATH}/config/":/configuration.d:rw \
         -v "${TEST_CONTENT_PATH}/logs/":/testdata:rw \
         -v "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/assets/fluentd.yaml":/assets/fluentd.yaml:ro \
@@ -418,7 +418,7 @@ run_fluentbit_test_logic() {
     echo "=> Prepare FluentBit configurations"
 
     docker run --rm --security-opt label=disable --user "${HELPER_USER}" --name "${CONFIG_REPLACER_CONTAINER}" \
-        -v "${TEST_HOME_PATH}/controllers/fluentbit/fluentbit.configmap/":/config-templates.d/:ro \
+        -v "${TEST_HOME_PATH}/internal/controllers/fluentbit/fluentbit.configmap/":/config-templates.d/:ro \
         -v "${TEST_CONTENT_PATH}/config/":/configuration.d/:z \
         -v "${TEST_CONTENT_PATH}/logs/":/testdata:z \
         -v "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/assets/fluentbit.yaml":/assets/fluentbit.yaml:ro \
@@ -499,7 +499,7 @@ run_fluentbit_ha_test_logic() {
     echo "=> Prepare FluentBit configurations"
 
     docker run --rm --security-opt label=disable --user "${HELPER_USER}" --name "${CONFIG_REPLACER_CONTAINER}" \
-        -v "${TEST_HOME_PATH}/controllers/fluentbit-forwarder-aggregator/forwarder.configmap/":/config-templates.d:ro \
+        -v "${TEST_HOME_PATH}/internal/controllers/fluentbit-forwarder-aggregator/forwarder.configmap/":/config-templates.d:ro \
         -v "${TEST_CONTENT_PATH}/forwarder-config/":/configuration.d:rw \
         -v "${TEST_CONTENT_PATH}/logs/":/testdata:rw \
         -v "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/assets/fluentbit-ha.yaml":/assets/fluentbit-ha.yaml:ro \
@@ -514,7 +514,7 @@ run_fluentbit_ha_test_logic() {
     speed_up_file_discovery "${TEST_CONTENT_PATH}/forwarder-config"
 
     docker run --rm --security-opt label=disable --user "${HELPER_USER}" --name "${CONFIG_REPLACER_CONTAINER}" \
-        -v "${TEST_HOME_PATH}/controllers/fluentbit-forwarder-aggregator/aggregator.configmap/":/config-templates.d:ro \
+        -v "${TEST_HOME_PATH}/internal/controllers/fluentbit-forwarder-aggregator/aggregator.configmap/":/config-templates.d:ro \
         -v "${TEST_CONTENT_PATH}/aggregator-config/":/configuration.d:rw \
         -v "${TEST_CONTENT_PATH}/logs/":/testdata:rw \
         -v "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/assets/fluentbit-ha.yaml":/assets/fluentbit-ha.yaml:ro \
@@ -627,7 +627,7 @@ run_kube_metadata_test_logic() {
 
     echo "=> Prepare FluentBit configurations"
     docker run --rm --security-opt label=disable --user "${HELPER_USER}" --name "${CONFIG_REPLACER_CONTAINER}" \
-        -v "${TEST_HOME_PATH}/controllers/fluentbit/fluentbit.configmap/":/config-templates.d/:ro \
+        -v "${TEST_HOME_PATH}/internal/controllers/fluentbit/fluentbit.configmap/":/config-templates.d/:ro \
         -v "${TEST_CONTENT_PATH}/config/":/configuration.d/:z \
         -v "${TEST_CONTENT_PATH}/logs/":/testdata:z \
         -v "${TEST_HOME_PATH}/test/fluent-pipeline/testdata/assets/kube-metadata.yaml":/assets/kube-metadata.yaml:ro \
@@ -838,7 +838,7 @@ run_render_test_logic() {
     for custom_resource in "${RENDER_ASSETS}"/fluentbit/*.yaml; do
         name=$(basename "${custom_resource}" .yaml)
         check_rendered_configuration "fluentbit/${name}" fluentbit \
-            "${TEST_HOME_PATH}/controllers/fluentbit/fluentbit.configmap/" "${custom_resource}" \
+            "${TEST_HOME_PATH}/internal/controllers/fluentbit/fluentbit.configmap/" "${custom_resource}" \
             validate_fluentbit_configuration
     done
 
@@ -846,10 +846,10 @@ run_render_test_logic() {
     for custom_resource in "${RENDER_ASSETS}"/fluentbit-ha/*.yaml; do
         name=$(basename "${custom_resource}" .yaml)
         check_rendered_configuration "forwarder/${name}" fluentbitforwarder \
-            "${TEST_HOME_PATH}/controllers/fluentbit-forwarder-aggregator/forwarder.configmap/" "${custom_resource}" \
+            "${TEST_HOME_PATH}/internal/controllers/fluentbit-forwarder-aggregator/forwarder.configmap/" "${custom_resource}" \
             validate_fluentbit_configuration
         check_rendered_configuration "aggregator/${name}" fluentbitaggregator \
-            "${TEST_HOME_PATH}/controllers/fluentbit-forwarder-aggregator/aggregator.configmap/" "${custom_resource}" \
+            "${TEST_HOME_PATH}/internal/controllers/fluentbit-forwarder-aggregator/aggregator.configmap/" "${custom_resource}" \
             validate_fluentbit_configuration
     done
 
@@ -857,7 +857,7 @@ run_render_test_logic() {
     for custom_resource in "${RENDER_ASSETS}"/fluentd/*.yaml; do
         name=$(basename "${custom_resource}" .yaml)
         check_rendered_configuration "fluentd/${name}" fluentd \
-            "${TEST_HOME_PATH}/controllers/fluentd/fluentd.configmap/" "${custom_resource}" \
+            "${TEST_HOME_PATH}/internal/controllers/fluentd/fluentd.configmap/" "${custom_resource}" \
             validate_fluentd_configuration
     done
 

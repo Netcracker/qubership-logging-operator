@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    agg: x
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/managed-by: operator
+    app.kubernetes.io/managed-by-operator: logging-operator
+    app.kubernetes.io/name: logging-fluentbit-aggregator
+    app.kubernetes.io/part-of: logging-service
+    component: logging-fluentbit-aggregator
+    name: logging-fluentbit-aggregator
+    provider: kubernetes
+  name: logging-fluentbit-aggregator
+  namespace: logging
+spec:
+  ports:
+  - name: logging-fluentbit
+    port: 2020
+    protocol: TCP
+    targetPort: 2020
+  - name: log-to-metrics
+    port: 2021
+    protocol: TCP
+    targetPort: 2021
+  - name: logging-fluentbit-aggregator
+    port: 24224
+    protocol: TCP
+    targetPort: 24224
+  selector:
+    name: logging-fluentbit-aggregator
+    provider: kubernetes
+  type: ClusterIP
+status:
+  loadBalancer: {}

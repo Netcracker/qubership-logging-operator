@@ -1,0 +1,150 @@
+# LoggingService for the builder golden-file tests.
+apiVersion: logging.netcracker.com/v1
+kind: LoggingService
+metadata:
+  name: logging
+  namespace: logging
+spec:
+  cloudURL: https://kubernetes.default.svc
+  openshiftDeploy: false
+  osKind: centos
+  ipv6: false
+  containerRuntimeType: docker
+  graylog:
+    dockerImage: docker.io/graylog/graylog:5.2.12@sha256:3f4aa0885cd3e30442e5f7e1b2361f57773831bb84515386eb5dfa6f426fc1d7
+    initSetupImage: docker.io/alpine:3.24.3
+    replicas: 1
+    mongoDBImage: docker.io/mongo:5.0.33@sha256:41108d183e972dcbf98d09ed83f6cfc89a471a3f15d06f9d64a95e45d9db8dd2
+    initContainerDockerImage: ghcr.io/netcracker/qubership-graylog-plugins-init:0.2.0
+    host: graylog.kubernetes.test.org/
+    inputPort: 12201
+    graylogResources:
+      requests:
+        cpu: 500m
+        memory: 1536Mi
+      limits:
+        cpu: 1000m
+        memory: 2048Mi
+    mongoResources:
+      requests:
+        cpu: 500m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 256Mi
+    initResources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 100m
+        memory: 256Mi
+    nodeSelectorKey: kubernetes.io/os
+    nodeSelectorValue: linux
+    graylogSecretName: graylog-secret
+    contentDeployPolicy: only-create
+    streams:
+    - name: System logs
+      install: true
+      rotationStrategy: sizeBased
+      maxSize: 1073741824
+    - name: Audit logs
+      install: true
+      rotationStrategy: timeBased
+      rotationPeriod: P1M
+      maxNumberOfIndices: 5
+    - name: Kubernetes events
+      install: true
+      rotationStrategy: timeBased
+      rotationPeriod: P1M
+      maxNumberOfIndices: 5
+    tls:
+      http:
+        enabled: false
+      input:
+        enabled: false
+    authProxy:
+      install: false
+      bindPasswordSecret:
+        key: bindPassword
+        name: graylog-auth-proxy-secret
+      resources:
+        requests:
+          cpu: 100m
+          memory: 128Mi
+        limits:
+          cpu: 200m
+          memory: 512Mi
+      image: ghcr.io/netcracker/qubership-graylog-auth-proxy:0.2.3
+    pathRepo: /usr/share/opensearch/snapshots/graylog/
+    s3Archive: false
+  fluentd:
+    dockerImage: ghcr.io/netcracker/qubership-fluentd:1.19.3-2
+    configmapReload:
+      dockerImage: ghcr.io/jimmidyson/configmap-reload:v0.15.0
+      resources:
+        requests:
+          cpu: 10m
+          memory: 10Mi
+        limits:
+          cpu: 50m
+          memory: 50Mi
+    systemLogging: true
+    systemLogType: varlogmessages
+    systemAuditLogging: true
+    kubeAuditLogging: true
+    kubeApiserverAuditLogging: true
+    containerLogging: true
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+    nodeSelectorKey: kubernetes.io/os
+    nodeSelectorValue: linux
+    securityContextPrivileged: false
+    graylogOutput: true
+    graylogHost: <graylog_dns_or_ip>
+    graylogPort: 12201
+    graylogProtocol: tcp
+    tls:
+      enabled: false
+      version: :TLSv1_2
+      noDefaultCA: false
+      allCiphers: true
+      rescueSslErrors: false
+      noVerify: false
+    totalLimitSize: 512MB
+    billCycleConf: false
+    customInputConf: ''
+    customFilterConf: ''
+    customOutputConf: ''
+    cloudEventsReaderFormat: json
+    watchKubernetesMetadata: true
+    tolerations:
+    - key: node-role.kubernetes.io/master
+      operator: Exists
+    - effect: NoExecute
+      operator: Exists
+    - effect: NoSchedule
+      operator: Exists
+    multilineFirstLineRegexp: /(^\[\d{4}\-\d{2}\-\d{2})|(^\{")|(^*0m\d{2}\:\d{2}\:\d{2})/
+    output:
+      loki:
+        enabled: false
+      http:
+        enabled: false
+  cloudEventsReader:
+    install: true
+    dockerImage: ghcr.io/netcracker/qubership-kube-events-reader:2.10.0
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 100m
+        memory: 128Mi
+    nodeSelectorKey: kubernetes.io/os
+    nodeSelectorValue: linux

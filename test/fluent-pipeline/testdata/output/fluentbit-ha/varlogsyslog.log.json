@@ -102,7 +102,6 @@
     "level": "info",
     "log": "run-containerd-runc-k8s.io-2f0a9bca0e081ef88fecfe56f81e0531c3c156d7848a40e87d2f8d9416ca0b7d-runc.ozV1ed.mount: Deactivated successfully.",
     "nodename": "fake-node",
-    "parse_level_unknown": "true",
     "short_message": "run-containerd-runc-k8s.io-2f0a9bca0e081ef88fecfe56f81e0531c3c156d7848a40e87d2f8d9416ca0b7d-runc.ozV1ed.mount: Deactivated successfully.",
     "syslog_host": "master-1",
     "syslog_ident": "systemd",
@@ -145,7 +144,6 @@
     "level": "info",
     "log": "IPv6: ADDRCONF(NETDEV_CHANGE): eth0: link becomes ready",
     "nodename": "fake-node",
-    "parse_level_unknown": "true",
     "short_message": "IPv6: ADDRCONF(NETDEV_CHANGE): eth0: link becomes ready",
     "syslog_host": "master-1",
     "syslog_ident": "kernel",
@@ -186,7 +184,6 @@
     "level": "info",
     "log": "pam_unix(cron:session): session closed for user root",
     "nodename": "fake-node",
-    "parse_level_unknown": "true",
     "short_message": "pam_unix(cron:session): session closed for user root",
     "syslog_host": "master-1",
     "syslog_ident": "cron",
@@ -204,7 +201,6 @@
     "level": "info",
     "log": "not a syslog line at all, just text a process wrote to the file",
     "nodename": "fake-node",
-    "parse_level_unknown": "true",
     "short_message": "not a syslog line at all, just text a process wrote to the file",
     "tag": "/var/log/syslog"
   }

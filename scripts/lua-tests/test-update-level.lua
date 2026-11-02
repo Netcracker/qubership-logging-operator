@@ -98,9 +98,9 @@ local function assert_same_keys(actual, expected, context)
     end
 end
 
-local function check(update, record, expected, context)
+local function check(update, record, expected, context, tag)
     local timestamp = 1234567890.125
-    local code, result_timestamp, result = update("custom.application", timestamp, record)
+    local code, result_timestamp, result = update(tag or "custom.application", timestamp, record)
     assert_equal(code, 2, context .. " return code")
     assert_equal(result_timestamp, timestamp, context .. " timestamp")
     assert_equal(result, record, context .. " record identity")
@@ -130,10 +130,21 @@ for _, path in ipairs(script_paths) do
         end
     end
 
-    check(update, { message = "unchanged" }, {
-        level = "info", detected_level = "info", parse_level_unknown = "true",
-    }, path .. " missing level")
-    count = count + 1
+    -- A missing level is a detection failure only on container records.
+    for _, tag in ipairs({ "pods.var.log.pods.ns_pod_uid.app.0.log", "klog.pods.var.log.pods.ns_pod_uid.app.0.log",
+        "pods.forwarder-0.var.log.pods.ns_pod_uid.app.0.log" }) do
+        check(update, { message = "unchanged" }, {
+            level = "info", detected_level = "info", parse_level_unknown = "true",
+        }, path .. " missing level tag=" .. tag, tag)
+        count = count + 1
+    end
+    for _, tag in ipairs({ "custom.application", "audit.var.log.audit.audit.log", "system.var.log.syslog",
+        "system.systemd" }) do
+        check(update, { message = "unchanged" }, {
+            level = "info", detected_level = "info",
+        }, path .. " missing level tag=" .. tag, tag)
+        count = count + 1
+    end
 
     -- Payload fields must not replace the level extracted by parsers as the normalization input.
     for _, source in ipairs({ "trace", "", false, 0 }) do
@@ -147,7 +158,7 @@ for _, path in ipairs(script_paths) do
 
     check(update, { source_level = "trace", message = "unchanged" }, {
         level = "info", detected_level = "info", source_level = "trace", parse_level_unknown = "true",
-    }, path .. " existing source_level without level")
+    }, path .. " existing source_level without level", "pods.var.log.pods.ns_pod_uid.app.0.log")
     count = count + 1
 
     print(path .. ": " .. count .. " cases passed")

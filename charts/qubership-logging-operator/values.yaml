@@ -1138,7 +1138,10 @@ fluentbit:
   # @default -- not set
   additionalVolumeMounts: []
 
-  # -- The size limitation of output buffer
+  # -- The maximum size of the output buffer on disk.
+  # It takes effect only with `storageProfile: node-persistent`, the profile that buffers on the node filesystem. The
+  # other profiles buffer in memory, where `inputMemBufLimit` limits each input instead.
+  # See storage.total_limit_size in https://docs.fluentbit.io/manual/administration/buffering-and-storage
   totalLimitSize: 1024M
 
   # -- The size limitation of backlog data.

@@ -202,7 +202,6 @@ type Fluentd struct {
 	Affinity                   *v1.Affinity             `json:"affinity,omitempty"`
 	QueueLimitLength           int                      `json:"queueLimitLength,omitempty"`
 	GraylogPort                int                      `json:"graylogPort,omitempty"`
-	BillCycleConf              bool                     `json:"billCycleConf,omitempty"`
 	SystemLogging              bool                     `json:"systemLogging,omitempty"`
 	SystemAuditLogging         bool                     `json:"systemAuditLogging,omitempty"`
 	KubeAuditLogging           bool                     `json:"kubeAuditLogging,omitempty"`
@@ -216,6 +215,10 @@ type Fluentd struct {
 	Compress                   string                   `json:"compress,omitempty"`
 	MockKubeData               bool                     `json:"mockKubeData,omitempty"`
 	Output                     *OutputFluentd           `json:"output,omitempty"`
+
+	// Deprecated: BillCycleConf has no effect. The filter it enabled was never shipped. Add the
+	// nc_bill_cycle_label field with customFilterConf to route records to the Bill Cycle logs stream.
+	BillCycleConf bool `json:"billCycleConf,omitempty"`
 }
 
 // Fluentbit contains Fluentbit-specific configuration
@@ -252,7 +255,6 @@ type Fluentbit struct {
 	WatchKubernetesMetadata   bool                     `json:"watchKubernetesMetadata,omitempty"`
 	MockKubeData              bool                     `json:"mockKubeData,omitempty"`
 	SystemLogging             bool                     `json:"systemLogging"`
-	BillCycleConf             bool                     `json:"billCycleConf,omitempty"`
 	GraylogOutput             bool                     `json:"graylogOutput"`
 	SystemAuditLogging        bool                     `json:"systemAuditLogging,omitempty"`
 	KubeAuditLogging          bool                     `json:"kubeAuditLogging,omitempty"`
@@ -285,6 +287,11 @@ type Fluentbit struct {
 	InputMemBufLimit string `json:"inputMemBufLimit,omitempty"`
 	// DB contains settings of the SQLite database which the input plugins use to keep the read offsets
 	DB FluentbitDB `json:"db,omitempty"`
+
+	// Deprecated: BillCycleConf has no effect. The filter it enabled was never shipped, and enabling it
+	// stopped Fluent Bit from starting. Add the nc_bill_cycle_label field with customFilterConf to route
+	// records to the Bill Cycle logs stream.
+	BillCycleConf bool `json:"billCycleConf,omitempty"`
 }
 
 // FluentbitDB contains settings of the SQLite database which the Fluentbit input plugins

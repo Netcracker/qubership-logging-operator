@@ -147,8 +147,10 @@ without that protection, so a payload value with the same name is replaced or ch
 | `kind`                        | Routes the record to the Kubernetes events category when it is `KubernetesEvent`                  |
 | `logType`, `log_type`         | Route the record to the access or integration category. See [Log categories](log-categories.md)   |
 
-Qubership `[key=value]` groups have no protection at all. A group such as `[pod=checkout]` replaces the `pod` field of
-the record. Use names that do not appear on this page.
+Qubership `[key=value]` groups follow the same rule as JSON payloads, with no exception for `level`. A group that
+names a field the record already has, such as `[pod=checkout]`, is stored as `parsed_pod`, and the record keeps its
+own `pod`. The same applies to `hostname`, `nodename`, `stream`, `log_category`, `parse_format`, `detected_level`,
+`source_level`, and `parse_level_unknown`, which the pipeline sets later. Use names that do not appear on this page.
 
 Do not start new field names with `log_`. The pipeline uses this prefix for `log_parsed`, `log_category`, and
 `log_time`. The `log_type` marker is the one exception, and it keeps its meaning.

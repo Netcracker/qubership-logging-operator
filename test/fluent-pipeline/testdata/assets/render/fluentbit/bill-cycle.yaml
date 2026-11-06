@@ -1,8 +1,5 @@
-# expect-failure: billCycleConf includes /fluent-bit/etc/filter-bill-cycle.conf, which no template renders
-# expect-stage: validation
-# expect-diagnostic: missing include: filter-bill-cycle\.conf
-# The bill cycle option of the Fluent Bit templates. Fluent Bit refuses the configuration because
-# the included file does not exist; the standalone and the aggregator templates share the include.
+# The deprecated bill cycle option of the Fluent Bit templates. It used to include a filter file that no template
+# renders, and Fluent Bit refused the configuration. The option has no effect now, and the configuration must load.
 apiVersion: logging.netcracker.com/v1
 kind: LoggingService
 metadata:

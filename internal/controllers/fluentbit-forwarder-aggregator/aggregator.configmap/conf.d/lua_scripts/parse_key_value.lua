@@ -1,5 +1,19 @@
 -- input: https://docs.fluentbit.io/manual/pipeline/filters/lua#function-arguments
 -- output: https://docs.fluentbit.io/manual/pipeline/filters/lua#return-values
+-- Fields the pipeline sets after this filter runs. A group with one of these names, like a group that names a field
+-- the record already has, keeps its value under parsed_<name>, the name the Kubernetes filter gives a JSON payload
+-- field that collides with a pipeline field. The record keeps the pipeline value.
+local pipeline_keys = {
+    hostname = true,
+    nodename = true,
+    stream = true,
+    log_category = true,
+    parse_format = true,
+    detected_level = true,
+    source_level = true,
+    parse_level_unknown = true,
+}
+
 function kv_parse(tag, timestamp, record)
     -- Markers from non-Qubership payloads are removed by modify filters before this function runs.
     if record["__qubership_candidate"] == nil then
@@ -20,6 +34,8 @@ function kv_parse(tag, timestamp, record)
         end
 
         local found = false
+        -- Keys this call has set. A later group with the same key replaces the earlier value.
+        local parsed_keys = {}
         local key, value, next_position = string.match(s, regex_kv, header_end + 1)
         while key ~= nil do
             found = true
@@ -27,6 +43,10 @@ function kv_parse(tag, timestamp, record)
             -- Quoted keys and values are not key-value fields, and empty values are skipped.
             if trimmed_value ~= "" and not string.find(key, "\"", 1, true) and
                 not string.find(trimmed_value, "\"", 1, true) then
+                if not parsed_keys[key] and (record[key] ~= nil or pipeline_keys[key]) then
+                    key = "parsed_" .. key
+                end
+                parsed_keys[key] = true
                 record[key] = trimmed_value
             end
             key, value, next_position = string.match(s, regex_kv, next_position)

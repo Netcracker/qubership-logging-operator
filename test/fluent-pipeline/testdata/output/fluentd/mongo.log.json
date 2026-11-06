@@ -107,7 +107,7 @@
     "log": "{\"t\":{\"$date\":\"2025-07-08T10:53:19.000+00:00\"},\"s\":\"I\",  \"c\":\"ACCESS\",   \"id\":20250,   \"ctx\":\"conn12\",\"msg\":\"Authentication succeeded\",\"attr\":{\"mechanism\":\"SCRAM-SHA-256\",\"user\":\"admin\",\"db\":\"admin\"}}",
     "msg": "Authentication succeeded",
     "namespace": "fake-namespace",
-    "nc_audit_label": "false",
+    "nc_audit_label": "true",
     "parse_level_unknown": "true",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "s": "I",

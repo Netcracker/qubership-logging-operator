@@ -189,4 +189,45 @@ assert(message_kv_code == 2, "kv_parse did not process a record with key-value t
 assert(message_kv_record.request_id == "abc", "kv_parse skipped a field before the message")
 assert(message_kv_record.late == nil, "kv_parse extracted key-value text from the message")
 
+-- A group that names a field the record already has keeps the record value and moves its own to parsed_<name>.
+local collision_record = {
+    log = "[2026-09-17T12:00:00Z] [INFO] [pod=checkout] [namespace=shop] [level=debug] [thread=main] message",
+    __qubership_candidate = "[",
+    pod = "payments-0",
+    namespace = "payments",
+    level = "INFO",
+}
+local collision_code, _, collided = kv_parse("pods.test", 1008, collision_record)
+assert(collision_code == 2, "kv_parse did not process a record with colliding fields")
+assert(collided.pod == "payments-0", "kv_parse overwrote the pod field")
+assert(collided.namespace == "payments", "kv_parse overwrote the namespace field")
+assert(collided.level == "INFO", "kv_parse overwrote the level field")
+assert(collided.parsed_pod == "checkout", "kv_parse did not keep the colliding pod value as parsed_pod")
+assert(collided.parsed_namespace == "shop", "kv_parse did not keep the colliding namespace value as parsed_namespace")
+assert(collided.parsed_level == "debug", "kv_parse did not keep the colliding level value as parsed_level")
+assert(collided.thread == "main", "kv_parse renamed a field that does not collide")
+
+-- Fields the pipeline sets after kv_parse are protected even when the record does not have them yet.
+local pipeline_code, pipeline_record = parse(
+    "[2026-09-17T12:00:00Z] [INFO] [hostname=app-host] [parse_format=custom] [source_level=TRACE] message",
+    1009
+)
+assert(pipeline_code == 2, "kv_parse did not process a record with pipeline field names")
+assert(pipeline_record.hostname == nil, "kv_parse set the hostname field")
+assert(pipeline_record.parse_format == nil, "kv_parse set the parse_format field")
+assert(pipeline_record.source_level == nil, "kv_parse set the source_level field")
+assert(pipeline_record.parsed_hostname == "app-host", "kv_parse did not keep hostname as parsed_hostname")
+assert(pipeline_record.parsed_parse_format == "custom", "kv_parse did not keep parse_format as parsed_parse_format")
+assert(pipeline_record.parsed_source_level == "TRACE", "kv_parse did not keep source_level as parsed_source_level")
+
+-- A repeated key replaces the value the same record set before, as it did before collisions were handled.
+local repeat_code, repeat_record = parse(
+    "[2026-09-17T12:00:00Z] [INFO] [thread=first] [thread=second] [pod=a] [pod=b] message",
+    1010
+)
+assert(repeat_code == 2, "kv_parse did not process a record with repeated keys")
+assert(repeat_record.thread == "second", "kv_parse did not let the last repeated key win")
+assert(repeat_record.parsed_pod == nil, "kv_parse renamed a pod group in a record without a pod field")
+assert(repeat_record.pod == "b", "kv_parse did not let the last repeated pod group win")
+
 print("parse_key_value.lua tests passed")

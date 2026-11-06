@@ -67,7 +67,9 @@ To begin using the Qubership Logging Operator:
 1. Review the [Installation Guide](installation.md) for deployment instructions
 2. Understand the [Architecture](architecture.md) and system components
 3. Configure your logging stack using the [Configuration Guide](graylog-configuration.md)
-4. Explore [Integration Options](integrations/aws-cloudwatch.md) for external systems
+4. Write service logs that the stack can parse with the [Logging guidelines](cookbook/log-formats.md) and
+   [Supported log formats](log-processing/log-formats.md)
+5. Explore [Integration Options](integrations/aws-cloudwatch.md) for external systems
 
 ## Use Cases
 

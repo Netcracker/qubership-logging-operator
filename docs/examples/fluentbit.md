@@ -176,7 +176,7 @@ This advanced configuration provides:
 | Parameter                       | Description                     | Use Case                   |
 | ------------------------------- | ------------------------------- | -------------------------- |
 | `fluentbit.install`             | Enable FluentBit deployment     | All scenarios              |
-| `fluentbit.systemLogType`       | System log source type          | `varlogsyslog`, `journald` |
+| `fluentbit.systemLogType`       | System log source type          | `varlogsyslog`, `systemd`  |
 | `fluentbit.containerLogging`    | Enable container log collection | Container environments     |
 | `fluentbit.graylogOutput`       | Enable Graylog output           | Graylog integration        |
 | `fluentbit.customLuaScriptConf` | Custom Lua processing scripts   | Advanced log processing    |

@@ -762,6 +762,108 @@ The ticket wording alone does not choose among DNS, endpoints, TCP reachability,
 * [StatefulSet stable network identity — Kubernetes](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#stable-network-id).
 * [Buffering — Fluent Bit 4.2 documentation](https://docs.fluentbit.io/manual/4.2/data-pipeline/buffering).
 
+## Log parsing
+
+### Records arrive unparsed with parse_status failed
+
+**Symptoms:**
+
+* Records of a pod have `parse_status: failed` and `parse_format: unknown`.
+* `short_message` holds the whole raw line, and fields such as `request_id` are missing.
+* The `fluentbit_parse_error_total` metric grows for the pod.
+
+**Root cause:**
+
+No FluentBit parser matched the line. The service writes a format the pipeline does not recognize, or a Qubership
+line breaks the format rules: a level outside `TRACE`, `DEBUG`, `INFO`, `WARN`, `WARNING`, `ERROR`, and `FATAL`, a
+timestamp without the `[` prefix, or JSON spread over several lines.
+
+**How to check:**
+
+1. Take a raw line of the pod with `kubectl logs <pod> -c <container> --tail=20`.
+2. Compare it with the rules in `docs/log-processing/log-formats.md`. Check the timestamp layout, the level, and
+   whether a JSON record fits on one line.
+3. Check whether the pod has a `fluentbit.io/parser` annotation that names a parser for another format.
+4. Query the metric by namespace and pod to see whether the failures are new or constant.
+
+**How to fix:**
+
+1. Change the service's log pattern to a supported format. This is the preferred fix.
+2. If the service cannot change, set the `fluentbit.io/parser` annotation to a parser that matches its format, or
+   remove an annotation that names the wrong one.
+3. For a format no parser covers, add a Lua script with `fluentbit.customLuaScriptConf` and call it from
+   `fluentbit.customFilterConf` (`fluentbit.aggregator.customFilterConf` in the HA mode).
+
+**Data to collect:**
+
+* Sample raw lines, the pod annotations, and the record as stored in the log backend.
+
+**Sources:**
+
+* `internal/controllers/fluentbit/fluentbit.configmap/conf.d/filters/filter-generic.conf`.
+* `internal/controllers/fluentbit/fluentbit.configmap/conf.d/filters/filter-unparsed-log-counter.conf`.
+
+### Multiline messages are split or merged
+
+**Symptoms:**
+
+* Each line of a stack trace is a separate record.
+* Or several messages, often a text message followed by JSON lines, are stored as one record.
+
+**Root cause:**
+
+FluentBit joins lines with the Qubership multiline rules first, then with the built-in Java, Go, and Python rules. A
+message whose first line does not start with `[YYYY-MM-DD` and is not a recognized stack trace is not joined. A custom
+`fluentbit.multilineOtherLinesRegexp` that does not exclude lines starting with `{` merges JSON records into the
+preceding text message. A `LoggingService` created without the Helm chart has empty multiline rules.
+
+**How to check:**
+
+1. Inspect `multilineFirstLineRegexp` and `multilineOtherLinesRegexp` in the `LoggingService`, under `fluentbit` or,
+   in the HA mode, `fluentbit.aggregator`.
+2. Compare the first line of an affected message with the first-line expression.
+3. Check that the continuation expression rejects every line the first-line expression accepts, and lines that start
+   with `{`.
+
+**How to fix:**
+
+1. Change the service to start each record with `[` and an ISO 8601 date, or adjust both expressions together as
+   described in `docs/log-processing/configure-parsing.md`.
+2. Restore the default expressions if a custom value is not needed. Upgrading the operator does not replace values
+   already stored in the custom resource.
+
+**Sources:**
+
+* `internal/controllers/fluentbit/fluentbit.configmap/conf.d/filters/filter-concat.conf`.
+* `internal/controllers/fluentbit/fluentbit.configmap/conf.d/parsers.conf`.
+
+### Records reach the Audit logs stream unexpectedly
+
+**Symptoms:**
+
+* Ordinary application records appear in the `Audit logs` stream and carry `nc_audit_label: true`.
+
+**Root cause:**
+
+FluentBit marks a container record as audit when its raw line matches one of the audit expressions anywhere in the
+line. The generic expression includes `AUDIT`, `access-control`, `PG_SERVICE`, and `database system is`, so a message
+that mentions one of them becomes an audit record.
+
+**How to check:**
+
+1. Search the affected record's message for the markers listed in `docs/log-processing/log-categories.md`.
+2. Check whether the JSON payload of the record itself sets `nc_audit_label`.
+
+**How to fix:**
+
+1. Change the message text so that it does not contain an audit marker, for example, by writing `audit` in lowercase.
+2. Remove `nc_audit_label` from the service's payload.
+
+**Sources:**
+
+* `internal/controllers/fluentbit/fluentbit.configmap/conf.d/filters/filter-post-generic.conf`.
+* `internal/controllers/graylog/config/processing_rules/audit_logs.rule`.
+
 ## Graylog
 
 ### Graylog UI is not reachable in a legacy VM deployment

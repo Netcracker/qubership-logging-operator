@@ -24,7 +24,9 @@ every pull request.
 ## Key-value parsing
 
 `test-kvs.lua` loads a production `parse_key_value.lua` file and exercises `kv_parse` with valid, malformed, and
-empty-message log records. Run it from the repository root against both production implementations:
+empty-message log records. It also checks that a group named after a field the record already has, or after a field
+the pipeline sets later, is stored as `parsed_<name>` and leaves the record field unchanged. Run it from the
+repository root against both production implementations:
 
 ```bash
 lua scripts/lua-tests/test-kvs.lua \
@@ -33,3 +35,5 @@ lua scripts/lua-tests/test-kvs.lua \
 lua scripts/lua-tests/test-kvs.lua \
   internal/controllers/fluentbit-forwarder-aggregator/aggregator.configmap/conf.d/lua_scripts/parse_key_value.lua
 ```
+
+The `lua_tests` job runs both commands on every pull request.

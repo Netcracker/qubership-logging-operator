@@ -254,7 +254,6 @@ _Appears in:_
 | `watchKubernetesMetadata` _boolean_ |  |  |  |
 | `mockKubeData` _boolean_ |  |  |  |
 | `systemLogging` _boolean_ |  |  |  |
-| `billCycleConf` _boolean_ |  |  |  |
 | `graylogOutput` _boolean_ |  |  |  |
 | `systemAuditLogging` _boolean_ |  |  |  |
 | `kubeAuditLogging` _boolean_ |  |  |  |
@@ -268,6 +267,7 @@ _Appears in:_
 | `memoryOnlyStateSizeLimit` _string_ | MemoryOnlyStateSizeLimit limits the memory-backed volume that stores read offset databases for the<br />"memory-only" profile. The default is "32Mi". |  |  |
 | `inputMemBufLimit` _string_ | InputMemBufLimit is the amount of memory that a single input plugin can hold for records that are not<br />flushed to the outputs yet. The input pauses reading when it reaches the limit. Size it so that the sum<br />over the enabled inputs, the emitter buffers of the multiline filters, and the base footprint of<br />Fluentbit fit into the container memory limit. The default is "10M".<br />See Mem_Buf_Limit in https://docs.fluentbit.io/manual/pipeline/inputs/tail |  |  |
 | `db` _[FluentbitDB](#fluentbitdb)_ | DB contains settings of the SQLite database which the input plugins use to keep the read offsets |  |  |
+| `billCycleConf` _boolean_ | Deprecated: BillCycleConf has no effect. The filter it enabled was never shipped, and enabling it<br />stopped Fluent Bit from starting. Add the nc_bill_cycle_label field with customFilterConf to route<br />records to the Bill Cycle logs stream. |  |  |
 
 
 #### FluentbitAggregator
@@ -480,7 +480,6 @@ _Appears in:_
 | `affinity` _[Affinity](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.35/#affinity-v1-core)_ |  |  |  |
 | `queueLimitLength` _integer_ |  |  |  |
 | `graylogPort` _integer_ |  |  |  |
-| `billCycleConf` _boolean_ |  |  |  |
 | `systemLogging` _boolean_ |  |  |  |
 | `systemAuditLogging` _boolean_ |  |  |  |
 | `kubeAuditLogging` _boolean_ |  |  |  |
@@ -494,6 +493,7 @@ _Appears in:_
 | `compress` _string_ |  |  |  |
 | `mockKubeData` _boolean_ |  |  |  |
 | `output` _[OutputFluentd](#outputfluentd)_ |  |  |  |
+| `billCycleConf` _boolean_ | Deprecated: BillCycleConf has no effect. The filter it enabled was never shipped. Add the<br />nc_bill_cycle_label field with customFilterConf to route records to the Bill Cycle logs stream. |  |  |
 
 
 #### FluentdHTTPRouting

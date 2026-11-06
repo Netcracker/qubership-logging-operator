@@ -129,8 +129,8 @@ CRI-O nodes. In the HA mode, the forwarder host name follows `pods.`. The expres
 
 ### Route records to the Bill Cycle stream
 
-The agents do not detect Bill Cycle records out of the box. This filter marks the records of the `billing` namespace
-whose message starts with `Invoice`:
+The agents do not detect Bill Cycle records out of the box, and the deprecated `billCycleConf` parameter has no
+effect. This filter marks the records of the `billing` namespace whose message starts with `Invoice`:
 
 ```yaml
 fluentbit:

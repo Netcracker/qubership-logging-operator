@@ -1,116 +1,60 @@
-This document describes log format agreements.
+# Logging guidelines for applications
 
-# Logs Collection in the Cloud
+Write logs to standard output in the Qubership text format or as one JSON object per line. The logging agent then
+splits each record into searchable fields, joins multiline messages, and routes special records, such as audit logs,
+to their own storage.
 
-This section provides information on how the logs are collected in the Cloud.
+This page is for service developers. For the exact parser rules, see [Supported log formats](../log-processing/log-formats.md).
 
-The high-level flow of logs collection is as follows:
+## How logs reach the storage
 
-1. The application in the Docker container writes logs to stdout.
-2. The Docker log driver, by default a JSON file, writes it to OpenShift node file system.
-3. The Log collector, Fluentd, reads this file.
-4. The Fluentd processes the log file content and sends the parsed logs to Graylog.
+1. The service writes each record to standard output or standard error.
+2. The container runtime (containerd, CRI-O, or Docker) writes the lines to a file on the node.
+3. FluentBit, or FluentD, reads the file, joins multiline records, parses each record, and adds the Kubernetes
+   metadata.
+4. The agent sends the record to Graylog, or to another configured output such as VictoriaLogs, Loki, or Splunk.
 
-There is another flow for direct logs streaming from application to Graylog.
-It can be done using the log4j/slf4j/logback GELF plugins.
+Do not write logs to files inside the container: the agent reads only what the runtime writes to the node.
 
-## Log Format for Applications
+## Choose a format
 
-It is necessary to have the same log format in all the applications to allow:
+| Format                           | Choose it when                                                     |
+| -------------------------------- | ------------------------------------------------------------------ |
+| [Qubership](#qubership-format)   | You write human-readable text logs                                 |
+| [JSON](#json-format)             | Your logging library can write one JSON object per line            |
+| logfmt                           | Your library writes `key=value` pairs and you cannot change it     |
 
-* Parsing of a log message into several fields for convenience of searching and filtering operations.
-* Concatenation of several lines of multiline log messages into one entry.
+All three give you a parsed level, a message, and named fields. Use one format per container.
 
-The following log format is a requirement:
+## Key principles
 
-`[%TIME%][%LEVEL%]%MESSAGE%`
+- **Rational granularity:** log only valuable events.
+- **Troubleshooting first:** logs must be enough to restore the context of an issue and find its root cause.
+- **Structured:** every record is either Qubership text with `[key=value]` fields or valid JSON.
+- **Correlation ready:** technical and business identifiers are always present.
+- **Lightweight:** logging must not slow the service down noticeably.
+- **Secure:** logs never contain passwords, tokens, or personal data.
 
-Where:
-
-* `%TIME% and %LEVEL%` are common core fields that contain the time of the event in `ISO8601` format
-  and the log level respectively.
-* `%MESSAGE%` is actual log message (can be multiline). It may contain any additional number of extra fields
-  in the following format:
-
-  * `[%KEY%=%VALUE%]` the key cannot contain spaces or be empty.
-
-These fields are processed by the fluent-plugin-fields-parser plugin.
-
-The base pattern for log4j2 is as follows:
-
-`[%d{ISO8601}][%p]%m%n`
-
-The following pattern should be used for earlier versions of log4j due to the incorrect date format when `%d{ISO8601}`
-is used:
-
-`[%d{yyyy-MM-dd'T'HH:mm:ss.SSS}][%p]%m%n`
-
-The main requirement is to have `[%d{yyyy-MM-dd'T'HH:mm:ss.SSS}][%p]` at the beginning and `%n` at the end.
-In this case all the features work.
-
-__Note:__ There are two important things in this pattern datetime format and two sections in square brackets at the beginning.
-
-__Note:__ In order to keep compatibility with SaaS microservice-framework,
-it also supports multiline logs for `YYYY-MM-DD %m%n` format.
-
-### Complex Format Example
-
-This section describes a complex format example.
-
-The log4j patterns cheat sheet is as follows:
-
-* %p - The log message priority.
-* %C - The Java class which wrote the log message.
-* %M - The method from which the log message was written.
-* %t - The name of the thread.
-* %m - The log message.
-
-`[%d{yyyy-MM-dd'T'HH:mm:ss,SSS}][%p][log_id=my_special_log][class=%C] %M thread=%t %m%n`
-
-The Fluentd sends each log message to Graylog in parsed form as a set of __field-value__ pairs.
-Each field is a separate column in Graylog which provides the ability to search, filter, and sort by a field.
-
-The message with the pattern above is sent as follows:
-
-* `[%d{yyyy-MM-dd'T'HH:mm:ss,SSS}]` at beginning and %n for a new line at the end are mandatory.
-  Otherwise, Fluentd ignores the message. %d goes to `time` field.
-* `[%p]` - Message level goes to `level` field.
-* `[log_id=my_special_log]` - Creates a custom field `log_id` with constant value "my_special_log".
-  This is helpful for searching only the special logs.
-* `[class=%C]` - Creates a custom field `class` with the class name in it.
-* `%M thread=%t %m` - This part interprets as a log message and goes to `message` field.
-  For example, a message "MySpecialMethod thread=my_thread1 my very important log".
-* It also has some metadata fields added by Kubernetes.
-
-### Qubership log format
-
-#### Key Principles
-
-* __Rational granularity__ – log only valuable events.
-* __Troubleshooting first__ – logs must be sufficient to restore context and root‑cause issues.
-* __Structured__ – every entry is either _key=value_ text or valid JSON.
-* __Correlation ready__ – technical & business identifiers always present.
-* __Lightweight__ – minimize performance overhead.
-* __Secure__ – no sensitive data leakage.
-
-#### Parsed format
+## Qubership format
 
 ```text
 [TIMESTAMP] [LEVEL] [key=value]... MESSAGE
 ```
 
-Only `TIMESTAMP` and `LEVEL` are required.
+Only `TIMESTAMP` and `LEVEL` are required:
 
-* `TIMESTAMP` accepts `T`, `t`, or a space as the date-time separator. Fractional seconds with `.` or `,` and up to
-  nine digits are optional. The time zone may be `Z`, `z`, `+HH`, `+HHMM`, or `+HH:MM` and is optional.
-* `LEVEL` is case-insensitive and accepts `TRACE`, `DEBUG`, `INFO`, `WARN`, `WARNING`, `ERROR`, or `FATAL`.
-* Zero or more `[key=value]` fields may follow in any order. Values may be empty and may contain spaces or `=`, but
-  cannot contain `[` or `]`. Escaping square brackets is not supported.
-* `MESSAGE` is optional. It follows `LEVEL` when no `[key=value]` fields are present, or the final field otherwise.
+- `TIMESTAMP` is an ISO 8601 date and time, such as `2025-05-02T09:16:53.541Z`. A space instead of `T`, a comma
+  instead of the decimal point, and a missing time zone are also accepted.
+- `LEVEL` is `TRACE`, `DEBUG`, `INFO`, `WARN`, `WARNING`, `ERROR`, or `FATAL`, in any case.
+- Each `[key=value]` group becomes a field. The groups must come right after the level.
+- `MESSAGE` is the rest of the record and can span several lines, such as a stack trace.
 
-#### Recommended application pattern
+A line that does not match is still stored, but as unparsed text: its fields are not extracted, and its level is
+found only if a bracketed level token appears in the line.
 
-Applications should include correlation and source fields when they are available:
+### Recommended fields
+
+Include the correlation and source fields that are available:
 
 ```text
 [TIMESTAMP] [LEVEL] [request_id=?] [tenant_id=?] [thread=?] [class=?]
@@ -118,46 +62,79 @@ Applications should include correlation and source fields when they are availabl
 [business_identifiers={key=value}] [traceId=?] [spanId=?] MESSAGE
 ```
 
-The fields may appear in any order. The parser does not require them for Qubership format classification.
+The fields can appear in any order.
 
-_JSON alternative in ndjson format_
+<!-- markdownlint-disable line-length -->
+| Field                  | When to use               | Note                     | Example                                                  |
+| ---------------------- | ------------------------- | ------------------------ | -------------------------------------------------------- |
+| `request_id`           | Request correlation       | Request ID               | `request_id=9f09fc89-…`                                  |
+| `tenant_id`            | Tenant context            | Current tenant or `-`    | `tenant_id=b0c3…`                                        |
+| `thread`               | Execution context         | Thread or goroutine name | `thread=TaskScheduler-1`                                 |
+| `class`                | Log source                | Class or module name     | `class=o.apa.kaf.cli.NetworkClient`                      |
+| `method`               | Java only                 | Method name              | `method=createOrder`                                     |
+| `version`              | Blue/Green deployments    | `x-version` header       | `version=v2`                                             |
+| `error_code`           | Error catalog             | Comma-separated list     | `error_code=PAY-401,DB-34`                               |
+| `originating_bi_id`    | Root business interaction | UUID                     | `originating_bi_id=c771005e-1a46-44ab-b004-6c2f6b9c13d7` |
+| `business_identifiers` | Up to 3 key-value pairs   | Runtime only             | `business_identifiers={object_id=12345,layer_id=98765}`  |
+| `traceId`, `spanId`    | Distributed tracing       | B3 or W3C headers        | `traceId=4a1ceb… spanId=7b2fae…`                         |
+| Custom `[key=value]`   | Exceptional needs         | Must follow parser rules | `[shard=eu-west-1a]`                                     |
+<!-- markdownlint-enable line-length -->
 
-```json
-{"time": "2025-05-02T09:16:53.018z", "level": "INFO", "request_id": "…", "tenant_id": "…", message: "…" }
+Follow these rules for every field:
+
+- A key cannot contain spaces, `[`, `]`, or `=`.
+- A value cannot contain `[` or `]`. Do not put JSON arrays or bracketed thread names in a field.
+- A field with an empty value, or with `"` in it, is skipped.
+- Do not use the names of the fields the pipeline sets, such as `namespace`, `pod`, `container`, `level`, or
+  `hostname`. See [Field names to avoid](../log-processing/log-fields.md#field-names-to-avoid).
+- Keep values short and their number of distinct values small. See [Limits and restrictions](restrictions.md).
+
+### Examples
+
+```text
+[2025-05-02T09:16:53.541Z] [WARN] [request_id=1682710824367.0.7602] [tenant_id=-] [thread=kafka-producer] [class=o.apa.kaf.cli.NetworkClient] Bootstrap broker kafka:9092 disconnected
 ```
 
-#### Field reference
+```text
+[2025-05-22T11:25:17.004Z] [INFO] [request_id=5f3e4e16] [tenant_id=demo] [thread=http-nio-8080-exec-3] [class=com.qubership.api.RequestController] [method=createRequest] [version=v2] [traceId=da2fae2d1] [spanId=7b2fae2d]
+Request created successfully
+```
 
-1. Required parser fields
+### Logging library patterns
 
-    |  Pos | Field       | Description | Example                     |
-    | ---: | ----------- | ----------- | --------------------------- |
-    |    1 | `TIMESTAMP` | Timestamp   | `[2025-05-02T09:16:53.018]` |
-    |    2 | `LEVEL`     | Log level   | `[INFO]`                    |
+Log4j 2:
 
-2. Recommended application fields (free order)
+```text
+[%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX}] [%p] [request_id=%X{requestId}] [thread=%t] [class=%c{1.}] %m%n
+```
 
-    <!-- markdownlint-disable line-length -->
-    | Field                  | When to use               | Note                     | Example                                                  |
-    | ---------------------- | ------------------------- | ------------------------ | -------------------------------------------------------- |
-    | `request_id`           | Request correlation       | Request ID               | `request_id=9f09fc89-…`                                  |
-    | `tenant_id`            | Tenant context            | Current tenant or `-`    | `tenant_id=b0c3…`                                        |
-    | `thread`               | Execution context         | Thread or goroutine name | `thread=TaskScheduler-1`                                 |
-    | `class`                | Log source                | Class or module name     | `class=o.apa.kaf.cli.NetworkClient`                      |
-    | `method`               | Java only                 | Method name              | `method=createOrder`                                     |
-    | `version`              | Blue/Green deployments    | `x-version` header       | `version=v2`                                             |
-    | `error_code`           | Error catalog             | Comma-separated list     | `error_code=PAY-401,DB-34`                               |
-    | `originating_bi_id`    | Root business interaction | UUID                     | `originating_bi_id=c771005e-1a46-44ab-b004-6c2f6b9c13d7` |
-    | `business_identifiers` | Up to 3 key-value pairs   | Runtime only             | `business_identifiers={object_id=12345,layer_id=98765}`  |
-    | `traceId`, `spanId`    | Distributed tracing       | B3 or W3C headers        | `traceId=4a1ceb… spanId=7b2fae…`                         |
-    | Custom `[key=value]`   | Exceptional needs         | Must follow parser rules | `[shard=eu-west-1a]`                                     |
-    <!-- markdownlint-enable line-length -->
+Logback:
 
-3. Optional free-text message
+```text
+[%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX}] [%level] [request_id=%X{requestId:-}] [thread=%thread] [class=%logger{36}] %msg%n
+```
 
-    The free-text message follows `LEVEL` when no key-value fields are present, or the final field otherwise.
+The record must start with `[` and the date: the agent uses that start to tell a new record from the next line of a
+multiline message.
 
-#### Log Levels
+## JSON format
+
+Write one JSON object per line:
+
+```json
+{"time":"2025-05-02T09:16:53.018Z","level":"INFO","request_id":"9f09fc89","tenant_id":"demo","message":"Order created"}
+```
+
+- Use `time`, `level`, and `message` (or `msg`) for the core fields, and the [recommended fields](#recommended-fields)
+  as top-level keys.
+- Keep the object flat. Nested objects are stored as is, and most log storages search them poorly.
+- Do not pretty-print: a JSON object that spans several lines is not parsed.
+- The stored event time is the time the runtime wrote the line. The `time` key is kept as `parsed_time`.
+
+The pipeline owns some field names and moves payload values with those names aside. See
+[Reserved fields](../log-processing/log-fields.md#reserved-fields).
+
+## Log levels
 
 | Level     | Purpose                                                            |
 | --------- | ------------------------------------------------------------------ |
@@ -169,136 +146,52 @@ _JSON alternative in ndjson format_
 | `DEBUG`   | Detailed execution flow for development and troubleshooting        |
 | `TRACE`   | Extremely fine-grained diagnostic information                      |
 
-#### Examples
+Run production at `INFO`. At `INFO`, log the outcome of successful operations briefly and the details of failed ones.
+Enable `DEBUG` or `TRACE` only to investigate a problem.
 
-```text
-[2025‑05‑02T09:16:53.541Z] [WARN] [request_id=1682710824367.0.7602] [tenant_id=-] [thread=kafka‑producer] [class=o.apa.kaf.cli.NetworkClient] Bootstrap broker kafka:9092 disconnected
-```
+The agent stores the level as a syslog name, so `FATAL` appears as `alert` and `ERROR` as `err`. See
+[Log levels](../log-processing/log-fields.md#log-levels) for the full mapping.
 
-```text
-[2025-05-22T11:25:17.004Z] [INFO] [request_id=5f3e4e16-…] [tenant_id=demo] [thread=http-nio-8080-exec-3] [class=com.qubership.api.RequestController] [method=createRequest] [version=v2] [originating_bi_id=7b2d8bf8-…] [business_identifiers={entity_id=12345,context_id=98765}] [traceId=da2fae2d…1] [spanId=7b2fae2d…]
-Request created successfully
-```
+## Request tracing
 
-### Logs Traceability
+Log the `X-Request-ID` HTTP header as `request_id` in every record, so you can follow a request across services. With
+Logback, read it from the MDC: `[request_id=%X{requestId:-}]`.
 
-In order to track operations across services, it is _mandatory_ to have the `X-Request-ID` HTTP header in the logs.
+Add `traceId` and `spanId` when the service uses distributed tracing.
 
-You can easily add it to the log pattern in the `%X{requestId:-no_request_id}` format.
-The pattern example is applicable for "logback" Java library.
+## Audit, integration, and access logs
 
-This field is parsed separately on Graylog side to `request_id` in each log entry.
+Mark special records with a `logType` field so they go to their own stream:
 
-__Note__: It is already included in the OOB configuration in the microservice-framework library.
+| `logType` value | Category    | Example                                         |
+| --------------- | ----------- | ----------------------------------------------- |
+| `audit`         | Audit       | `[logType=audit]` or `"logType":"audit"`        |
+| `int`           | Integration | `[logType=int]` or `"logType":"int"`            |
+| `access`        | Access      | `[logType=access]` or `"logType":"access"`      |
 
-### JSON logs
+Audit records have restricted access and longer retention. See [Log categories](../log-processing/log-categories.md)
+for every category and for the text patterns that mark a record as audit automatically.
 
-Logs in pure JSON format also supported.
-Such logs must be in single line JSON format.
-All fields are parsed on fluentd level and indexed in Graylog as standalone fields.
-Nice to have properties: level, message, time.
+## Logs from outside Kubernetes
 
-JSON log example:
+Services that do not run in the cluster can send logs to Graylog directly:
 
-```json
-{"level":"info","task_name":"77bbfc6a-bda7-438f-b75f-168e3749f173","task_uuid":"ed4ca56b-4abb-4482-9e24-d70241264b7a","work_item_uuid":"0acd8972-d8aa-41e5-b3f4-e869bf5533a6","time":"2020-07-16T06:22:43Z","message":"Processing task."}
-```
+- Use a GELF appender of your logging library, such as the Log4j or Logback GELF appenders, and point it to the
+  Graylog GELF input. These records carry no Kubernetes metadata.
+- Forward syslog to Graylog; see [Syslog](../integrations/syslog.md).
 
-### Special Log Categories
+Do not write to OpenSearch or Elasticsearch directly. Graylog owns its indices.
 
-Several special log categories are supported OOB. Based on some criteria logs are routed into separate streams in Graylog.
+## Best practices
 
-#### Audit Logs
+- Add context to every record: user, transaction, and thread identifiers help trace the cause of an error.
+- Keep stack traces.
+- Write messages a person can read and act on. Avoid messages such as `error` or `operation failed` with no details.
+- Log calls to other services and systems.
+- Do not log in tight loops. A high log volume slows down the whole logging stack.
 
-You need to add some marker for logs which contain messages that are sensitive and should be processed
-in a special way by Graylog.
+## Change the log level at runtime
 
-For example, `[logType=audit]` or any other keyword which can be easily parsed.
-For more information about how audit logs processing is configured on Graylog side, refer to
-_Cloud Platform Administrator's Guide_.
-
-The following criteria for audit logs are provided with Graylog OOB:
-
-* Services audit logs: The `message` field must match the regular expression `/access-control|PG_SERVICE|database\ssystem\sis|audit_log_type|AUDIT|logType[\":\s\t=]*audit|org\.qubership\.security\.audit.*CEF|org\.qubership\.cloud\.keycloak\.provider.*/`.
-* VMs audit logs: The `tag` field must match exactly `parsed.var.log.audit.audit.log`.
-* Graylog audit logs: The `container_name` field must match the regular expression `(graylog_web_1|graylog_graylog_1|graylog_mongo_1|graylog_elasticsearch_1)`.
-
-##### JSON Audit logs
-
-Logs in JSON format marked as Audit log if JSON body contains key-value `"logType":"audit"`.
-
-#### System Logs
-
-Some logs are interpreted as system logs. The system logs are not application logs but logs of low-level parts
-of the PaaS solution:
-
-* Operation system logs (journald)
-* OpenShift logs
-
-The criteria for audit logs provided with Graylog OOB is the `tag` field must exactly match `parsed.var.log.messages|parsed.var.log.syslog|systemd`.
-
-## Collecting Logs from Other Source
-
-The logs from any other source, not supported by OOB, can be routed to Graylog. The configuration depends on logs source.
-Following are some examples:
-
-* Graylog OOB supports syslog format. Any application, microservice or system can send logs to Graylog via `rsyslog`.
-* You can use the log4j GELF output plugin to directly send logs to Graylog from a Java application.
-  For example, it can be used for TOMS logs collection. This can be used for applications which are not hosted
-  as OpenShift pods, but as standalone or bare-metal deployments. Note that no OpenShift related metadata
-  information logs enrichment is performed.
-
-__Note__: It is not allowed to send direct logs to Graylog's Elasticsearch. Graylog encapsulates Elasticsearch
-and uses it as a backend log storage.
-
-## Best Practices for Logging
-
-This section provides information about best practices of logs content and configuration.
-
-### Log Amount and Content
-
-It is very important to understand about optimal log amount.
-Too many logs with a lot of information are not useful for quick and efficient analysis of errors and incidents.
-Similarly, too fewer logs are also not useful.
-
-It is important to write only logs that are necessary.
-
-To write optimal logs, you can follow some rules:
-
-* Add context information to logs, UserId, TransactionId, ThreadId and so on. It helps to track potential error causes.
-* Do not omit stack traces.
-* Huge log amount can slow down the Logging Service.
-* Use human friendly and readable messages.
-* Avoid logs such as "error", "operation failed" and so on which do not provide any useful information.
-  Provide helpful information for investigations later.
-* Track interaction with other services/systems.
-
-### Logging Levels
-
-You can use different log levels. Printing trace logs after each line of code can be helpful sometimes,
-but it is not possible to write such logs every time.
-
-Typical logging level on production is `INFO`.
-The `INFO` log level should contain high level information about the successful operations and detail information
-about the failed operations.
-
-In case of investigating floating and another tricky errors, it is possible to enable `DEBUG` or even `TRACE` level
-which write logs about every operation in the application.
-
-For example, log4j levels description:
-
-* `ERROR` - Designates error events that might still allow the application to continue running
-* `WARN` - Designates potentially harmful situations
-* `INFO` - Designates informational messages that highlight the progress of the application at coarse-grained level
-* `DEBUG` - Designates fine-grained informational events that are most useful to debug an application
-* `TRACE` - Designates finer-grained informational events than `DEBUG`
-
-### Log level configuration
-
-The application should provide an ability to change the logging settings anytime without changing the source code
-and without redeploying the application.
-
-You can do it by exposing the logging configuration to ENVs or to config-map.
-
-In order to apply logging configuration changes without redeploying/restarting microservice, it is possible
-to create special REST endpoint which trigger logging configuration re-initializing.
+Let operators change the log level without changing the code or redeploying the service. Read the logging
+configuration from environment variables or a ConfigMap, and reload it when it changes, for example through a REST
+endpoint that reinitializes the logging configuration.

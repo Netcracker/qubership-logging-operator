@@ -502,3 +502,52 @@ func assertMongoDBSelectors(t *testing.T, data map[string]string) {
 		t.Errorf("MongoDB selectors per file = %v, want %v", selectors, want)
 	}
 }
+
+// The Kubernetes filter looks up pod metadata only for records whose tag starts with Kube_Tag_Prefix, so the
+// container input of every runtime has to produce tags under that prefix.
+func TestForwarderContainerTagsMatchKubernetesTagPrefix(t *testing.T) {
+	tests := []struct {
+		runtime string
+		input   string
+		file    string
+	}{
+		{runtime: "docker", input: "input-docker.conf", file: "var.log.containers.app-0_shop_app-0123.log"},
+		{runtime: "containerd", input: "input-containerd.conf", file: "var.log.pods.shop_app-0_1234-ab.app.0.log"},
+		{runtime: "cri-o", input: "input-containerd.conf", file: "var.log.pods.shop_app-0_1234-ab.app.0.log"},
+	}
+
+	for _, test := range tests {
+		t.Run(test.runtime, func(t *testing.T) {
+			cr := &loggingService.LoggingService{Spec: loggingService.LoggingServiceSpec{
+				Fluentbit: &loggingService.Fluentbit{
+					ContainerLogging: true,
+					Aggregator:       &loggingService.FluentbitAggregator{},
+				},
+			}}
+			configMap, err := forwarderConfigMap(cr, util.DynamicParameters{ContainerRuntimeType: test.runtime})
+			if err != nil {
+				t.Fatalf("render Fluent Bit forwarder ConfigMap: %v", err)
+			}
+
+			tagPattern := configValue(t, configMap.Data[test.input], "Tag")
+			prefix := configValue(t, configMap.Data["filter-kubernetes.conf"], "Kube_Tag_Prefix")
+			// Fluent Bit replaces the asterisk with the file path, with slashes turned into dots.
+			tag := strings.Replace(tagPattern, "*", test.file, 1)
+			if !strings.HasPrefix(tag, prefix) {
+				t.Errorf("tag %q of %s does not start with Kube_Tag_Prefix %q", tag, test.input, prefix)
+			}
+		})
+	}
+}
+
+func configValue(t *testing.T, config, key string) string {
+	t.Helper()
+	for _, line := range strings.Split(config, "\n") {
+		fields := strings.Fields(line)
+		if len(fields) == 2 && strings.EqualFold(fields[0], key) {
+			return fields[1]
+		}
+	}
+	t.Fatalf("no %s line in configuration:\n%s", key, config)
+	return ""
+}

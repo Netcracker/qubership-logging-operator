@@ -1,6 +1,7 @@
 package fluentbit_forwarder_aggregator
 
 import (
+	"reflect"
 	"regexp"
 	"strings"
 	"testing"
@@ -450,14 +451,13 @@ func TestAggregatorRoutingFollowsLevelNormalizationAndFormatDetection(t *testing
 	}
 }
 
-// The MongoDB selectors must read the pod and container names from their own tag segments, so that a namespace
-// name never selects the MongoDB filters.
+// Every MongoDB selector must read the pod and container names from their own tag segments, so that a
+// namespace name never selects the MongoDB filters or the mongodb_structured format.
 func TestMongoDBSelectorsIgnoreNamespace(t *testing.T) {
-	data := renderAggregatorConfigData(t, &loggingService.FluentbitAggregator{GraylogOutput: true})
-	assertMongoDBSelectors(t, data["filter-generic.conf"])
+	assertMongoDBSelectors(t, renderAggregatorConfigData(t, &loggingService.FluentbitAggregator{GraylogOutput: true}))
 }
 
-func assertMongoDBSelectors(t *testing.T, config string) {
+func assertMongoDBSelectors(t *testing.T, data map[string]string) {
 	t.Helper()
 	dockerID := strings.Repeat("a", 64)
 	tags := map[string]bool{
@@ -477,24 +477,28 @@ func assertMongoDBSelectors(t *testing.T, config string) {
 		"pods.forwarder-0.var.log.containers.graylog-0_mongo-ns_graylog-" + dockerID + ".log": false,
 	}
 
-	var selectors int
-	for _, line := range strings.Split(config, "\n") {
-		fields := strings.Fields(line)
-		if len(fields) != 2 || !strings.EqualFold(fields[0], "Match_Regex") || !strings.Contains(fields[1], "cnfrs") {
-			continue
-		}
-		selectors++
-		matcher, err := regexp.Compile(fields[1])
-		if err != nil {
-			t.Fatalf("compile MongoDB selector %q: %v", fields[1], err)
-		}
-		for tag, want := range tags {
-			if got := matcher.MatchString(tag); got != want {
-				t.Errorf("selector %q: MatchString(%q) = %t, want %t", fields[1], tag, got, want)
+	selectors := map[string]int{}
+	for file, config := range data {
+		for _, line := range strings.Split(config, "\n") {
+			fields := strings.Fields(line)
+			if len(fields) != 2 || !strings.EqualFold(fields[0], "Match_Regex") || !strings.Contains(fields[1], "cnfrs") {
+				continue
+			}
+			selectors[file]++
+			matcher, err := regexp.Compile(fields[1])
+			if err != nil {
+				t.Fatalf("compile MongoDB selector %q in %s: %v", fields[1], file, err)
+			}
+			for tag, want := range tags {
+				if got := matcher.MatchString(tag); got != want {
+					t.Errorf("%s selector %q: MatchString(%q) = %t, want %t", file, fields[1], tag, got, want)
+				}
 			}
 		}
 	}
-	if selectors != 3 {
-		t.Errorf("expected 3 MongoDB selectors, got %d:\n%s", selectors, config)
+	// filter-generic.conf renames and lifts the MongoDB fields; filter-define-format.conf sets parse_format.
+	want := map[string]int{"filter-generic.conf": 3, "filter-define-format.conf": 1}
+	if !reflect.DeepEqual(selectors, want) {
+		t.Errorf("MongoDB selectors per file = %v, want %v", selectors, want)
 	}
 }

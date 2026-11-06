@@ -484,3 +484,52 @@ func TestFluentbitEnrichmentSkipsRoutedRecords(t *testing.T) {
 		}
 	}
 }
+
+// The MongoDB selectors must read the pod and container names from their own tag segments, so that a namespace
+// name never selects the MongoDB filters.
+func TestMongoDBSelectorsIgnoreNamespace(t *testing.T) {
+	data := renderConfigData(t, &loggingService.Fluentbit{GraylogOutput: true})
+	assertMongoDBSelectors(t, data["filter-generic.conf"])
+}
+
+func assertMongoDBSelectors(t *testing.T, config string) {
+	t.Helper()
+	dockerID := strings.Repeat("a", 64)
+	tags := map[string]bool{
+		"pods.var.log.pods.logging_graylog-0_1234-ab.mongo.0.log":                             true,
+		"pods.var.log.pods.db_cnfrs0-0_1234-ab.mongod.0.log":                                  true,
+		"pods.var.log.containers.graylog-0_logging_mongo-" + dockerID + ".log":                true,
+		"pods.var.log.containers.cnfrs0-0_db_mongod-" + dockerID + ".log":                     true,
+		"pods.forwarder-0.var.log.pods.logging_graylog-0_1234-ab.mongo.0.log":                 true,
+		"pods.forwarder-0.var.log.containers.graylog-0_logging_mongo-" + dockerID + ".log":    true,
+		"pods.var.log.pods.logging_graylog-0_1234-ab.graylog.0.log":                           false,
+		"pods.var.log.pods.mongo-observability_graylog-0_1234-ab.graylog.0.log":               false,
+		"pods.var.log.pods.graylog_app-0_1234-ab.mongo.0.log":                                 false,
+		"pods.var.log.pods.cnfrs_app-0_1234-ab.app.0.log":                                     false,
+		"pods.var.log.containers.graylog-0_mongo-observability_graylog-" + dockerID + ".log":  false,
+		"pods.var.log.containers.app-0_graylog_mongo-" + dockerID + ".log":                    false,
+		"pods.var.log.containers.app-0_cnfrs_app-" + dockerID + ".log":                        false,
+		"pods.forwarder-0.var.log.containers.graylog-0_mongo-ns_graylog-" + dockerID + ".log": false,
+	}
+
+	var selectors int
+	for _, line := range strings.Split(config, "\n") {
+		fields := strings.Fields(line)
+		if len(fields) != 2 || !strings.EqualFold(fields[0], "Match_Regex") || !strings.Contains(fields[1], "cnfrs") {
+			continue
+		}
+		selectors++
+		matcher, err := regexp.Compile(fields[1])
+		if err != nil {
+			t.Fatalf("compile MongoDB selector %q: %v", fields[1], err)
+		}
+		for tag, want := range tags {
+			if got := matcher.MatchString(tag); got != want {
+				t.Errorf("selector %q: MatchString(%q) = %t, want %t", fields[1], tag, got, want)
+			}
+		}
+	}
+	if selectors != 3 {
+		t.Errorf("expected 3 MongoDB selectors, got %d:\n%s", selectors, config)
+	}
+}

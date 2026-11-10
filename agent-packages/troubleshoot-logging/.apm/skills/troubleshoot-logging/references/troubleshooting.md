@@ -792,7 +792,9 @@ timestamp without the `[` prefix, or JSON spread over several lines.
 2. If the service cannot change, set the `fluentbit.io/parser` annotation to a parser that matches its format, or
    remove an annotation that names the wrong one.
 3. For a format no parser covers, add a Lua script with `fluentbit.customLuaScriptConf` and call it from
-   `fluentbit.customFilterConf` (`fluentbit.aggregator.customFilterConf` in the HA mode).
+   `fluentbit.customFilterConf`. In the HA mode, use `fluentbit.aggregator.customLuaScriptConf` and
+   `fluentbit.aggregator.customFilterConf`: parsing runs in the aggregator, and the aggregator does not load the
+   scripts from `fluentbit.customLuaScriptConf`.
 
 **Data to collect:**
 

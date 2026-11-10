@@ -46,7 +46,8 @@ Every container record that no other rule claims stays in `Default Stream`, whic
 
 ## Audit logs
 
-Audit records go to the `Audit logs` stream, which uses its own index set and is visible only to administrators.
+Audit records go to the `Audit logs` stream, which uses its own index set. Administrators and users with the
+`AuditViewer` role can read it; the `Operator` role cannot.
 
 ### Audit log files
 

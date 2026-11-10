@@ -335,8 +335,9 @@ To configure LDAP/AD integration, refer to the official Graylog documentation:
 
 ### Audit Logs
 
-Audit logs need restricted access and longer retention. The `Audit logs` stream is visible only to administrators and
-stores its records in the separate `Audit index set`.
+Audit logs need restricted access and longer retention. The `Audit logs` stream is visible to administrators and to
+users with the `AuditViewer` role, such as the default `auditViewer` user. It stores its records in the separate
+`Audit index set`.
 
 The stream collects:
 

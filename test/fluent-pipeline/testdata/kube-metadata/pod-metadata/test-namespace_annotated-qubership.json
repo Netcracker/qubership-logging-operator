@@ -1,0 +1,11 @@
+{
+  "kind": "Pod",
+  "apiVersion": "v1",
+  "metadata": {
+    "name": "annotated-qubership",
+    "namespace": "test-namespace",
+    "annotations": { "fluentbit.io/parser": "qubership" },
+    "labels": { "app.kubernetes.io/name": "annotated-qubership" }
+  },
+  "status": { "phase": "Running" }
+}

@@ -11,9 +11,9 @@ require (
 	github.com/google/go-cmp v0.7.0
 	go.uber.org/zap v1.28.0
 	golang.org/x/crypto v0.58.0 // indirect
-	k8s.io/api v0.37.1
-	k8s.io/apimachinery v0.37.1
-	k8s.io/client-go v0.37.1
+	k8s.io/api v0.37.2
+	k8s.io/apimachinery v0.37.2
+	k8s.io/client-go v0.37.2
 	sigs.k8s.io/controller-runtime v0.25.2
 )
 
@@ -58,12 +58,12 @@ require (
 	k8s.io/apiextensions-apiserver v0.37.0 // indirect
 	k8s.io/klog/v2 v2.140.0
 	k8s.io/kube-openapi v0.0.0-20260821135717-be32def86098 // indirect
-	k8s.io/utils v0.0.0-20260707023825-cf1189d6abe3
+	k8s.io/utils v0.0.0-20261023123148-ca04ba58ecab
 	sigs.k8s.io/json v0.0.0-20250730193827-2d320260d730 // indirect
 	sigs.k8s.io/yaml v1.6.0
 )
 
-require github.com/Netcracker/qubership-logging-operator/api v0.0.0-20261102092700-c373bebb994b
+require github.com/Netcracker/qubership-logging-operator/api v0.0.0-20261110152357-f2f8b560bf9e
 
 require (
 	github.com/fsnotify/fsnotify v1.9.0 // indirect

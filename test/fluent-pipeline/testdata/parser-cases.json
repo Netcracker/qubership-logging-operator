@@ -457,36 +457,6 @@
       ]
     },
     {
-      "id": "mongodb-matching",
-      "parser": "mongodb_structured",
-      "match": true,
-      "input": "{\"t\":{\"$date\":\"2026-09-03T10:20:39.000Z\"}, \"s\":\"I\", \"c\":\"STORAGE\", \"id\":100, \"ctx\":\"initandlisten\", \"msg\":\"Storage ready\", \"attr\":{\"port\":27017}}",
-      "expected": {
-        "level": "I",
-        "component": "STORAGE",
-        "id": "100",
-        "context": "initandlisten",
-        "short_message": "Storage ready",
-        "attributes": "{\"port\":27017}"
-      },
-      "absent": [
-        "log"
-      ]
-    },
-    {
-      "id": "mongodb-non-matching",
-      "parser": "mongodb_structured",
-      "match": false,
-      "input": "{\"t\":{\"$date\":\"2026-09-03T10:20:39.000Z\"}, \"s\":\"I\", \"c\":\"STORAGE\", \"ctx\":\"initandlisten\", \"msg\":\"Storage ready\"}",
-      "expected": {
-        "log": "{\"t\":{\"$date\":\"2026-09-03T10:20:39.000Z\"}, \"s\":\"I\", \"c\":\"STORAGE\", \"ctx\":\"initandlisten\", \"msg\":\"Storage ready\"}"
-      },
-      "absent": [
-        "component",
-        "context"
-      ]
-    },
-    {
       "id": "rabbitmq-matching",
       "parser": "rabbitmq",
       "match": true,

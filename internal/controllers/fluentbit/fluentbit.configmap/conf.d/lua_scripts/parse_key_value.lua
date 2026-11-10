@@ -28,9 +28,13 @@ function kv_parse(tag, timestamp, record)
         while key ~= nil do
             found = true
             local trimmed_value = value:gsub("^%s*(.-)%s*$", "%1")
+            -- The audit filters only ever set nc_audit_label to true. filter-validate.conf runs them before this
+            -- function sees original_log, so a group in the log must not clear the label they set.
+            local keeps_audit_label = key == "nc_audit_label" and record[key] == "true"
             -- Quoted keys and values are not key-value fields, and empty values are skipped.
             if trimmed_value ~= "" and not string.find(key, "\"", 1, true) and
-                not string.find(trimmed_value, "\"", 1, true) then
+                not string.find(trimmed_value, "\"", 1, true) and
+                not keeps_audit_label then
                 record[key] = trimmed_value
             end
             key, value, next_position = string.match(s, regex_kv, next_position)

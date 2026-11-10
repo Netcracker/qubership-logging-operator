@@ -198,4 +198,21 @@ local renamed_code, _, renamed_result = kv_parse("pods.test", 1008, renamed_reco
 assert(renamed_code == 2, "kv_parse did not process a record whose log was renamed to original_log")
 assert(renamed_result.thread == "main", "kv_parse did not extract a field from original_log")
 
+-- The audit filters in filter-validate.conf set nc_audit_label before kv_parse reads original_log.
+local audit_record = {
+    original_log = "[2026-11-02T12:00:00Z] [INFO] [nc_audit_label=false] [thread=main] AUDIT login",
+    __qubership_candidate = "[",
+    nc_audit_label = "true",
+}
+local _, _, audit_result = kv_parse("pods.test", 1009, audit_record)
+assert(audit_result.nc_audit_label == "true", "kv_parse cleared an audit label set by the audit filters")
+assert(audit_result.thread == "main", "kv_parse skipped a field after the nc_audit_label group")
+
+local label_code, label_record = parse(
+    "[2026-11-02T12:00:00Z] [INFO] [nc_audit_label=false] login",
+    1010
+)
+assert(label_code == 2, "kv_parse did not process a record with an nc_audit_label group")
+assert(label_record.nc_audit_label == "false", "kv_parse did not extract nc_audit_label from an unlabeled record")
+
 print("parse_key_value.lua tests passed")

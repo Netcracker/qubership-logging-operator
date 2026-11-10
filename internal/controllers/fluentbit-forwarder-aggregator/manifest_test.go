@@ -1,6 +1,7 @@
 package fluentbit_forwarder_aggregator
 
 import (
+	"reflect"
 	"regexp"
 	"strings"
 	"testing"
@@ -449,5 +450,57 @@ func TestAggregatorRoutingFollowsLevelNormalizationAndFormatDetection(t *testing
 	}
 	if strings.Contains(script, "routing_tags") {
 		t.Error("level normalization depends on routing tags")
+	}
+}
+
+// Every MongoDB selector must read the pod and container names from their own tag segments, so that a
+// namespace name never selects the MongoDB filters or the mongodb_structured format.
+func TestMongoDBSelectorsIgnoreNamespace(t *testing.T) {
+	assertMongoDBSelectors(t, renderAggregatorConfigData(t, &loggingService.FluentbitAggregator{GraylogOutput: true}))
+}
+
+func assertMongoDBSelectors(t *testing.T, data map[string]string) {
+	t.Helper()
+	dockerID := strings.Repeat("a", 64)
+	tags := map[string]bool{
+		"pods.var.log.pods.logging_graylog-0_1234-ab.mongo.0.log":                             true,
+		"pods.var.log.pods.db_cnfrs0-0_1234-ab.mongod.0.log":                                  true,
+		"pods.var.log.containers.graylog-0_logging_mongo-" + dockerID + ".log":                true,
+		"pods.var.log.containers.cnfrs0-0_db_mongod-" + dockerID + ".log":                     true,
+		"pods.forwarder-0.var.log.pods.logging_graylog-0_1234-ab.mongo.0.log":                 true,
+		"pods.forwarder-0.var.log.containers.graylog-0_logging_mongo-" + dockerID + ".log":    true,
+		"pods.var.log.pods.logging_graylog-0_1234-ab.graylog.0.log":                           false,
+		"pods.var.log.pods.mongo-observability_graylog-0_1234-ab.graylog.0.log":               false,
+		"pods.var.log.pods.graylog_app-0_1234-ab.mongo.0.log":                                 false,
+		"pods.var.log.pods.cnfrs_app-0_1234-ab.app.0.log":                                     false,
+		"pods.var.log.containers.graylog-0_mongo-observability_graylog-" + dockerID + ".log":  false,
+		"pods.var.log.containers.app-0_graylog_mongo-" + dockerID + ".log":                    false,
+		"pods.var.log.containers.app-0_cnfrs_app-" + dockerID + ".log":                        false,
+		"pods.forwarder-0.var.log.containers.graylog-0_mongo-ns_graylog-" + dockerID + ".log": false,
+	}
+
+	selectors := map[string]int{}
+	for file, config := range data {
+		for _, line := range strings.Split(config, "\n") {
+			fields := strings.Fields(line)
+			if len(fields) != 2 || !strings.EqualFold(fields[0], "Match_Regex") || !strings.Contains(fields[1], "cnfrs") {
+				continue
+			}
+			selectors[file]++
+			matcher, err := regexp.Compile(fields[1])
+			if err != nil {
+				t.Fatalf("compile MongoDB selector %q in %s: %v", fields[1], file, err)
+			}
+			for tag, want := range tags {
+				if got := matcher.MatchString(tag); got != want {
+					t.Errorf("%s selector %q: MatchString(%q) = %t, want %t", file, fields[1], tag, got, want)
+				}
+			}
+		}
+	}
+	// filter-generic.conf renames and lifts the MongoDB fields; filter-define-format.conf sets parse_format.
+	want := map[string]int{"filter-generic.conf": 3, "filter-define-format.conf": 1}
+	if !reflect.DeepEqual(selectors, want) {
+		t.Errorf("MongoDB selectors per file = %v, want %v", selectors, want)
 	}
 }

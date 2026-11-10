@@ -459,7 +459,9 @@ jobs:
           ready=$(echo "$pod" | jq -r '.status.conditions[] | select(.type == "Ready") | .status')
           scheduled=$(echo "$pod" | jq -r '.status.conditions[] | select(.type == "PodScheduled") | .status')
           pod_events=$(kubectl events -n ${{ env.namespace }} --for "pod/$pod_name" 2>/dev/null || true)
-          fatal_events=$(echo "$pod_events" | grep -E "FailedMount|FailedAttachVolume|FailedScheduling|CreateContainerError|CreateContainerConfigError|RunContainerError|CrashLoopBackOff|ErrImageNeverPull" || true)
+          # The kubelet retries failed mounts, so a mount warning is not fatal on its own.
+          # If the volume never mounts, the loop ends with "Maximum attempts reached".
+          fatal_events=$(echo "$pod_events" | grep -E "FailedScheduling|CreateContainerError|CreateContainerConfigError|RunContainerError|CrashLoopBackOff|ErrImageNeverPull" || true)
           if [[ -n "$fatal_events" ]]; then
             echo "::error::❌ Logging operator pod has fatal events"
             echo -e "Events for logging operator pod:\n$pod_events"
@@ -488,6 +490,7 @@ jobs:
         done
         if [[ "$ready" != "True" ]]; then
           echo "::error::❌ Maximum attempts reached. Logging operator is not ready."
+          echo -e "Events for pod $pod_name:\n$pod_events"
           exit 1
         fi
       shell: bash
@@ -521,7 +524,9 @@ jobs:
           ready=$(echo "$pod" | jq -r '.status.conditions[] | select(.type == "Ready") | .status')
           scheduled=$(echo "$pod" | jq -r '.status.conditions[] | select(.type == "PodScheduled") | .status')
           pod_events=$(kubectl events -n ${{ env.namespace }} --for "pod/$pod_name" 2>/dev/null || true)
-          fatal_events=$(echo "$pod_events" | grep -E "FailedMount|FailedAttachVolume|FailedScheduling|CreateContainerError|CreateContainerConfigError|RunContainerError|CrashLoopBackOff|ErrImageNeverPull" || true)
+          # The kubelet retries failed mounts, so a mount warning is not fatal on its own.
+          # If the volume never mounts, the loop ends with "Maximum attempts reached".
+          fatal_events=$(echo "$pod_events" | grep -E "FailedScheduling|CreateContainerError|CreateContainerConfigError|RunContainerError|CrashLoopBackOff|ErrImageNeverPull" || true)
           if [[ -n "$fatal_events" ]]; then
             echo "::error::❌ Graylog pod has fatal events"
             echo -e "Events for graylog pod:\n$pod_events"
@@ -552,6 +557,7 @@ jobs:
         done
         if [[ "$ready" != "True" ]]; then
           echo "::error::❌ Maximum attempts reached. Graylog is not ready."
+          echo -e "Events for pod $pod_name:\n$pod_events"
           exit 1
         fi
       shell: bash
@@ -581,7 +587,9 @@ jobs:
           ready=$(echo "$pod" | jq -r '.status.conditions[] | select(.type == "Ready") | .status')
           scheduled=$(echo "$pod" | jq -r '.status.conditions[] | select(.type == "PodScheduled") | .status')
           pod_events=$(kubectl events -n ${{ env.namespace }} --for "pod/$pod_name" 2>/dev/null || true)
-          fatal_events=$(echo "$pod_events" | grep -E "FailedMount|FailedAttachVolume|FailedScheduling|CreateContainerError|CreateContainerConfigError|RunContainerError|CrashLoopBackOff|ErrImageNeverPull" || true)
+          # The kubelet retries failed mounts, so a mount warning is not fatal on its own.
+          # If the volume never mounts, the loop ends with "Maximum attempts reached".
+          fatal_events=$(echo "$pod_events" | grep -E "FailedScheduling|CreateContainerError|CreateContainerConfigError|RunContainerError|CrashLoopBackOff|ErrImageNeverPull" || true)
           if [[ -n "$fatal_events" ]]; then
             echo "::error::❌ Integration tests pod has fatal events"
             echo -e "Events for integration tests pod:\n$pod_events"
@@ -610,6 +618,7 @@ jobs:
         done
         if [[ "$ready" != "True" ]]; then
           echo "::error::❌ Maximum attempts reached. Integration tests pod is not ready."
+          echo -e "Events for pod $pod_name:\n$pod_events"
           exit 1
         fi
       shell: bash

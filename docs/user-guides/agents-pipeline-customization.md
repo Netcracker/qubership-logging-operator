@@ -42,7 +42,6 @@ Parameters that affect out-of-box filters configuration:
 
 * `containerRuntimeType`
 * `fluentd.cloudEventsReaderFormat`
-* `fluentd.billCycleConf`
 * `fluentd.multilineFirstLineRegexp`
 
 You can find the full list of FluentD parameters in
@@ -261,7 +260,6 @@ GELF rejects a record without it.
 Parameters that affect out-of-box filters configuration:
 
 * `containerRuntimeType`
-* `fluentbit.billCycleConf`
 * `fluentbit.multilineFirstLineRegexp`
 * `fluentbit.multilineOtherLinesRegexp`
 
@@ -432,5 +430,4 @@ The way to customize the data pipeline in the FluentBit in Aggregator mode is al
 the standard [FluentBit](#fluentbit) except the following differences:
 
 * The aggregator configuration have fixed input config
-* The aggregator configuration doesn't have `billCycleConf`
 * You have to set parameters into the different `fluentbit.aggregator` section instead of `fluentbit`

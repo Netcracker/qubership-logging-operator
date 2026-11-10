@@ -5665,6 +5665,10 @@ spec:
                       type: string
                     type: object
                   billCycleConf:
+                    description: |-
+                      Deprecated: BillCycleConf has no effect. The filter it enabled was never shipped, and enabling it
+                      stopped Fluent Bit from starting. Add the nc_bill_cycle_label field with customFilterConf to route
+                      records to the Bill Cycle logs stream.
                     type: boolean
                   configmapReload:
                     properties:
@@ -9426,6 +9430,9 @@ spec:
                       type: string
                     type: object
                   billCycleConf:
+                    description: |-
+                      Deprecated: BillCycleConf has no effect. The filter it enabled was never shipped. Add the
+                      nc_bill_cycle_label field with customFilterConf to route records to the Bill Cycle logs stream.
                     type: boolean
                   cloudEventsReaderFormat:
                     type: string

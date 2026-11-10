@@ -183,7 +183,6 @@ To route other records to a stream of your own, add a stream and a rule in Grayl
 
 ## FluentD differences
 
-FluentD sets the category in `stream` for every output, and in `log_category` when the HTTP output is enabled. Its
-audit detection differs from FluentBit: only lines that contain `audit_log_type`, or `logType` followed by `audit`,
-are marked as audit, and every other container record gets `nc_audit_label: false`. The Grafana and MongoDB rules do
-not apply. The Graylog streams and rules are the same.
+FluentD sets the category in `stream` for every output, and in `log_category` when the HTTP output is enabled. It
+marks container records as audit with the same expressions as FluentBit, and sets `nc_audit_label: false` on every
+other container record. The Graylog streams and rules are the same.

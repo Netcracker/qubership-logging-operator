@@ -59,8 +59,8 @@ The `[key=value]` groups follow these rules:
 - A value can contain spaces and `=`, but not `[` or `]`. Escaping brackets is not supported.
 - Leading and trailing spaces of a value are trimmed.
 - A group with an empty value, or with a `"` in its key or value, is skipped.
-- Do not use the name of a field the pipeline sets, such as `namespace`, `pod`, or `level`, as a key. See
-  [Field names to avoid](log-fields.md#field-names-to-avoid).
+- A key that names a field the pipeline sets, such as `namespace`, `pod`, or `level`, is stored as `parsed_<key>`.
+  See [Field names to avoid](log-fields.md#field-names-to-avoid).
 
 For the recommended set of fields, such as `request_id` and `tenant_id`, see
 [Logging guidelines for applications](../cookbook/log-formats.md).

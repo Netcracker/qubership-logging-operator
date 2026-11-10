@@ -1,0 +1,50 @@
+[
+  {
+    "_test": {
+      "id": "annotated-qubership-audit-label-collision"
+    },
+    "container": "app",
+    "date": "2026-11-02T12:00:00Z",
+    "detected_level": "info",
+    "hostname": "fake-fluent",
+    "labels": {
+      "app.kubernetes.io/name": "annotated-qubership"
+    },
+    "level": "info",
+    "namespace": "test-namespace",
+    "nc_audit_label": "true",
+    "nodename": "fake-node",
+    "parse_format": "qubership",
+    "parse_status": "success",
+    "parsed_nc_audit_label": "false",
+    "pod": "annotated-qubership",
+    "short_message": "AUDIT login",
+    "source_level": "INFO",
+    "stdio_stream": "stdout",
+    "time": "2026-09-03T11:00:31.000007468Z"
+  },
+  {
+    "_test": {
+      "id": "annotated-qubership-audit"
+    },
+    "container": "app",
+    "date": "2026-11-02T12:00:01Z",
+    "detected_level": "info",
+    "hostname": "fake-fluent",
+    "labels": {
+      "app.kubernetes.io/name": "annotated-qubership"
+    },
+    "level": "info",
+    "namespace": "test-namespace",
+    "nc_audit_label": "true",
+    "nodename": "fake-node",
+    "parse_format": "qubership",
+    "parse_status": "success",
+    "pod": "annotated-qubership",
+    "short_message": "AUDIT login",
+    "source_level": "INFO",
+    "stdio_stream": "stdout",
+    "thread": "main",
+    "time": "2026-09-03T11:00:32.000007468Z"
+  }
+]

@@ -19,14 +19,18 @@ function kv_parse(tag, timestamp, record)
     if record["__qubership_candidate"] == nil then
         return 0, timestamp, record
     end
-    if record["log"] ~= nil and type(record["log"]) ~= "table" then
+    -- filter-validate.conf renames log to original_log on records that the Kubernetes filter parsed.
+    local s = record["log"]
+    if s == nil then
+        s = record["original_log"]
+    end
+    if s ~= nil and type(s) ~= "table" then
         -- The record matched the qubership parser:
         -- [<time>] [<level>] [key1=value1] ... [keyN=valueN] <message>
         -- Read the [key=value] groups that directly follow the header, the same groups the parser skips before
         -- short_message. The message can contain brackets of its own, so it never decides where the groups end.
         local regex_header = "^%s*%[[^%[%]]*%]%s*%[[^%[%]]*%]"
         local regex_kv = "^%s*%[%s*([^%[%]%s=]+)%s*=([^%[%]]*)%]()"
-        local s = record["log"]
 
         local _, header_end = string.find(s, regex_header)
         if header_end == nil then

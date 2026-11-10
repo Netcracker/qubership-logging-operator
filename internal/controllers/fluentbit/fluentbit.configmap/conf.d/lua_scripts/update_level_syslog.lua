@@ -66,13 +66,21 @@ local function normalize_levels(level)
   return normalized, detected, false
 end
 
+-- Container records are expected to carry a level, so a missing one is a detection failure. Audit,
+-- system, and custom input records may have no severity at all, and only an unrecognized level counts.
+local function expects_level(tag)
+  local prefix = string.sub(tag, 1, 5)
+  return prefix == "pods." or prefix == "klog."
+end
+
 function update_level(tag, timestamp, record)
+  local has_level = record["level"] ~= nil
   if record["source_level"] == nil then
     record["source_level"] = record["level"]
   end
   local level_unknown
   record["level"], record["detected_level"], level_unknown = normalize_levels(record["level"])
-  if level_unknown then
+  if level_unknown and (has_level or expects_level(tag)) then
     record["parse_level_unknown"] = "true"
   end
 

@@ -1,0 +1,2 @@
+# docs.redhat.com answers 403 to every non-browser client, including its home page.
+^https://docs\.redhat\.com/

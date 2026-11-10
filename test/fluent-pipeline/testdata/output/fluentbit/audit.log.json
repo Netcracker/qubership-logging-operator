@@ -10,7 +10,6 @@
     "tag": "/var/log/audit/audit.log",
     "detected_level": "info",
     "nc_audit_label": "true",
-    "parse_level_unknown": "true",
     "hostname": "fake-fluent",
     "log": "apparmor=\"DENIED\" operation=\"ptrace\" profile=\"cri-containerd.apparmor.d\" pid=106437 comm=\"node_exporter\" requested_mask=\"read\" denied_mask=\"read\" peer=\"unconfined\"",
     "type": "AVC",

@@ -171,56 +171,23 @@ This section describes different restrictions related to log parsing and using a
 
 ## Supported log levels
 
-FluentBit and FluentD by itself can parse any log and log levels in the logs. However, we are using Graylog
-as a centralized logging server. Output plugins used to send logs in Graylog restrict the list of supported
-log levels.
+Graylog and the GELF output accept only the eight syslog levels: `emerg`, `alert`, `crit`, `err`, `warning`, `notice`,
+`info`, and `debug`. FluentBit maps every level a service writes to one of them, and also writes a Grafana-style level
+to `detected_level`. For example, `FATAL` becomes `alert` and `TRACE` becomes `debug`.
 
-FluentD supports the following log levels (case insensitive):
-
-<!-- markdownlint-disable line-length -->
-| Log levels in logs     | Applicable levels     | Log level in Graylog |
-| ---------------------- | --------------------- | -------------------- |
-| `0` or start from `e`  | `emerg`, `emergency`  | `Unknown`            |
-| `1` or start from `a`  | `alert`               | `Unknown`            |
-| `2` or start from `c`  | `crit`, `critical`    | `Critical`           |
-| `3` or start from `er` | `error`               | `Error`              |
-| `4` or start from `w`  | `warn`, `warning`     | `Warning`            |
-| `5` or start from `n`  | `notice`              | `Informational`      |
-| `6` or start from `i`  | `info`, `information` | `Informational`      |
-| `7` or start from `d`  | `debug`               | `Debug`              |
-<!-- markdownlint-enable line-length -->
-
-'Fatal' log level is not supported. It's mapped as 'Unknown' with '1' Log level.
-The source code uses the Gelf output plugin:
-[https://github.com/hotschedules/fluent-plugin-gelf-hs/blob/master/lib/fluent/gelf_util.rb#L23-L51](https://github.com/hotschedules/fluent-plugin-gelf-hs/blob/master/lib/fluent/gelf_util.rb#L23-L51).
-
-FluentBit supports the following log levels (case insensitive):
-
-<!-- markdownlint-disable line-length -->
-| Log levels in logs | Log level in Graylog |
-| ------------------ | -------------------- |
-| `0` or `emerg`     | `Emergency`          |
-| `1` or `alert`     | `Alert`              |
-| `2` or `crit`      | `Critical`           |
-| `3` or `err`       | `Error`              |
-| `4` or `warning`   | `Warning`            |
-| `5` or `notice`    | `Notice`             |
-| `6` or `info`      | `Informational`      |
-| `7` or `debug`     | `Debug`              |
-<!-- markdownlint-enable line-length -->
-
-[https://github.com/fluent/fluent-bit/blob/master/src/flb_pack_gelf.c#L563-L592](https://github.com/fluent/fluent-bit/blob/master/src/flb_pack_gelf.c#L563-L592)
+See [Log levels](../log-processing/log-fields.md#log-levels) for the full mapping in FluentBit and FluentD.
 
 ## Default log level
 
-If Graylog doesn't receive the log level in the message, it will set `Informational` as the default.
+A record without a level, or with a level the agent does not recognize, gets `info`. FluentBit also sets
+`parse_level_unknown: true` on such container records.
 
 ## Content of fields/labels for text log format
 
 The field/label in logs can contain almost all symbols. However, there are two restrictions:
 
 * The max length of dynamic fields can be only `256` symbols (Graylog and OpenSearch limits)
-* When using text log format, it doesn't allow using `[` and `]` symbols inside the `[..text...]` (Fluent restriction)
+* When using the text log format, a `[key=value]` field cannot contain `[` or `]`
 
 Example of correct logs:
 
@@ -236,7 +203,8 @@ Example of **incorrect** logs:
 [2024-03-24T16:11:35.120][ERROR][thread=[CPS] worker thread] <message>
 ```
 
-Here the `thread` field/label has an incorrect value that **won't be parsed** and the whole log line **will be lost**.
+Here the `thread` field/label contains brackets, so it **is not parsed** as a field. The record is still stored, and
+the field text stays in the message.
 
 Example of **incorrect** logs:
 
@@ -244,8 +212,8 @@ Example of **incorrect** logs:
 [2024-03-24T16:11:35.120][ERROR][finishedAt=2022-08-31T13:46:30.845+03:00[Europe/Moscow]] <message>
 ```
 
-Here the `finishedAt` field/label has an incorrect value that **won't be parsed** and the whole log line **will be lost**.
-It doesn't matter where `[` or `]` are used inside the `[]`, it is still prohibited.
+Here the `finishedAt` field/label contains brackets, so it **is not parsed** as a field, and its text stays in the
+message. It doesn't matter where `[` or `]` are used inside the `[]`.
 
 Example of **incorrect** logs:
 
@@ -258,7 +226,7 @@ Here the `payload` field/label has two problems:
 * uses restricted symbols `[` and `]` inside the `[]` because it contains JSON
 * potentially this JSON payload can have a length greater than `256` symbols
 
-This log line **will be lost**.
+Neither the field nor the fields after it are parsed; their text stays in the message.
 
 Example of **incorrect** logs:
 
@@ -266,5 +234,5 @@ Example of **incorrect** logs:
 [2024-03-24T16:11:35.120][ERROR][XNIO-1 task-1] <message>
 ```
 
-Here the third field/label `[XNIO-1 task-1]` is not a `key=value` pair. It won't affect parsing, but this part of
-the log line **won't be parsed as a field/label** and can be used only in full-text search.
+Here the third field/label `[XNIO-1 task-1]` is not a `key=value` pair. FluentBit stops reading fields at this group,
+so it and every group after it stay in the message and can be used only in full-text search.

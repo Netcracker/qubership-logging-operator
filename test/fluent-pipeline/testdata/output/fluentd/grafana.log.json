@@ -11,7 +11,7 @@
     "level": "info",
     "log": "logger=authn.service t=2026-09-03T10:20:50.123+0000 level=info msg=\"Successful Login\" user=admin@localhost",
     "namespace": "fake-namespace",
-    "nc_audit_label": "false",
+    "nc_audit_label": "true",
     "parse_level_unknown": "true",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "source_level": null,

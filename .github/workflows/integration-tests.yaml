@@ -113,6 +113,14 @@ jobs:
     - name: Run level normalization tests
       run: lua5.4 scripts/lua-tests/test-update-level.lua
 
+    # Runs the key-value parser tests against both production copies of parse_key_value.lua
+    - name: Run key-value parsing tests
+      run: |
+        lua5.4 scripts/lua-tests/test-kvs.lua \
+          internal/controllers/fluentbit/fluentbit.configmap/conf.d/lua_scripts/parse_key_value.lua
+        lua5.4 scripts/lua-tests/test-kvs.lua \
+          internal/controllers/fluentbit-forwarder-aggregator/aggregator.configmap/conf.d/lua_scripts/parse_key_value.lua
+
   integration_tests:
     needs: changes
     if: ${{ always() && (github.event_name != 'pull_request' || needs.changes.outputs.run == 'true') }}

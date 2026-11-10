@@ -791,7 +791,7 @@ fluentd:
   # @default -- true
   # watchKubernetesMetadata: true
 
-  # -- FluentD filter for parsing bill-cycle-logs
+  # -- Deprecated, has no effect. Add the nc_bill_cycle_label field with customFilterConf instead.
   # @default -- false
   # billCycleConf: false
 
@@ -1220,7 +1220,7 @@ fluentbit:
   # "scriptname.lua": |-
   #    <script_content>
 
-  # -- FluentBit filter for parsing bill-cycle-logs
+  # -- Deprecated, has no effect. Add the nc_bill_cycle_label field with customFilterConf instead.
   # @default -- false
   #
   # billCycleConf: false

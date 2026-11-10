@@ -1098,7 +1098,7 @@
                 },
                 "billCycleConf": {
                     "default": false,
-                    "description": "FluentBit filter for parsing bill-cycle-logs",
+                    "description": "Deprecated, has no effect. Add the nc_bill_cycle_label field with customFilterConf instead.",
                     "type": "boolean"
                 },
                 "configmapReload": {
@@ -2068,7 +2068,7 @@
                 },
                 "billCycleConf": {
                     "default": false,
-                    "description": "Flag to enable FluentD filter for parsing bill-cycle-logs",
+                    "description": "Deprecated, has no effect. Add the nc_bill_cycle_label field with customFilterConf instead.",
                     "type": "boolean"
                 },
                 "cloudEventsReaderFormat": {

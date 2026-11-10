@@ -41,7 +41,7 @@ You can see more information about the deployment of the logging-operator in gen
 
 You must set `.Values.graylog.authProxy.install` to `true` to allow installation. In addition, you need to
 configure several parameters to properly connect to the SSO provider (e.g. to LDAP or OAuth server).
-You can find the list of parameters in the [installation guide](../installation.md#graylog-auth-proxy).
+You can find the list of parameters in the [installation guide](../installation-parameters.md#graylog-auth-proxy).
 
 ### Connecting to LDAP
 
@@ -279,7 +279,7 @@ graylog:
 If you want to use OAuth authorization server as an SSO provider, you have to specify parameter `authType` as `oauth`.
 
 Then you have to specify mandatory parameters for OAuth protocol. You can find the list of these parameters in
-[this section of the installation guide](../installation.md#graylog-auth-proxy-oauth).
+[this section of the installation guide](../installation-parameters.md#graylog-auth-proxy-oauth).
 
 The best way to explain these parameters is to configure the proxy for using a specific service as an example.
 You can find such example below.

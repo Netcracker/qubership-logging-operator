@@ -29,7 +29,7 @@
     "level": "info",
     "log": "2026-09-03 10:20:42 UTC LOG:  database system is ready to accept connections",
     "namespace": "fake-namespace",
-    "nc_audit_label": "false",
+    "nc_audit_label": "true",
     "parse_level_unknown": "true",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
     "source_level": null,

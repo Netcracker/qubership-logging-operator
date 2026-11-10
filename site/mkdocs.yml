@@ -96,8 +96,13 @@ markdown_extensions:
       pygments_style: default
       noclasses: false
   - pymdownx.inlinehilite
+  # Paths are relative to the directory mkdocs runs in, the repository root for `make build-site`.
+  # `docs` resolves the examples, and `.` resolves files outside the docs, such as chart READMEs.
   - pymdownx.snippets:
-      base_path: ../docs
+      base_path:
+        - docs
+        - .
+      check_paths: true
 
   # Mermaid diagrams support
   - pymdownx.superfences:
@@ -132,6 +137,15 @@ plugins:
   - search:
       separator: '[\s\-,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
 
+# Kept in the repository as the source that troubleshooting.md cites, but not published.
+exclude_docs: |
+  /troubleshooting.superseded.md
+
+# Placeholder pages without content stay out of the navigation until they are written.
+not_in_nav: |
+  /rbac/rbac.md
+  /user-guides/graylog-plugins/syslog-output.md
+
 # Navigation
 nav:
   - Home: README.md
@@ -139,6 +153,12 @@ nav:
   - Architecture & Components:
       - architecture.md
       - api.md
+  - Log Processing:
+      - cookbook/log-formats.md
+      - log-processing/log-formats.md
+      - log-processing/log-fields.md
+      - log-processing/log-categories.md
+      - log-processing/configure-parsing.md
       - fluentbit-log-pipeline.md
   - Configuration:
       - graylog-configuration.md
@@ -152,7 +172,6 @@ nav:
           - examples/fluentd.md
           - examples/graylog.md
       - Cookbook:
-          - cookbook/log-formats.md
           - cookbook/restrictions.md
   - Integrations:
       - integrations/aws-cloudwatch.md
@@ -164,14 +183,14 @@ nav:
   - Security:
       - user-guides/tls.md
       - user-guides/graylog-auth-proxy.md
-      - rbac/rbac.md
       - Graylog Plugins:
           - user-guides/graylog-plugins/archiving.md
           - user-guides/graylog-plugins/obfuscation.md
-          - user-guides/graylog-plugins/syslog-output.md
   - Operations:
       - maintenance.md
       - troubleshooting.md
+      - storage-capacity-planning.md
+      - log-storage-cleanup-recommendations.md
       - migration.md
       - observability.md
       - User Guides:

@@ -17,7 +17,7 @@ Parameters that affect out-of-box input configuration:
 * `fluentd.systemLogType`
 
 You can find the full list of FluentD parameters in
-[the installation guide](../installation.md#fluentd).
+[the installation parameters](../installation-parameters.md#fluentd).
 
 #### FluentD Custom input configuration
 
@@ -42,11 +42,10 @@ Parameters that affect out-of-box filters configuration:
 
 * `containerRuntimeType`
 * `fluentd.cloudEventsReaderFormat`
-* `fluentd.billCycleConf`
 * `fluentd.multilineFirstLineRegexp`
 
 You can find the full list of FluentD parameters in
-[the installation guide](../installation.md#fluentd).
+[the installation parameters](../installation-parameters.md#fluentd).
 
 #### Append fields to every log message
 
@@ -97,7 +96,7 @@ Parameters that affect out-of-box output configuration:
 * `fluentd.tls`
 
 You can find the full list of FluentD parameters in
-[the installation guide](../installation.md#fluentd).
+[the installation parameters](../installation-parameters.md#fluentd).
 
 #### FluentD Custom output configuration
 
@@ -209,10 +208,10 @@ fluentd:
        hec_host <splunk_host>
        hec_port <splunk_port>
        hec_token <splunk_token>
-    </match>
-  ```
+     </match>
+```
 
-  **Note:** These are just examples, not recommended configurations.
+**Note:** These are just examples, not recommended configurations.
 
 ## FluentBit
 
@@ -227,7 +226,7 @@ Parameters that affect out-of-box input configuration:
 * `fluentbit.systemLogType`
 
 You can find the full list of FluentBit parameters in
-[the installation guide](../installation.md#fluentbit).
+[the installation parameters](../installation-parameters.md#fluentbit).
 
 #### Custom input configuration
 
@@ -261,12 +260,13 @@ GELF rejects a record without it.
 Parameters that affect out-of-box filters configuration:
 
 * `containerRuntimeType`
-* `fluentbit.billCycleConf`
 * `fluentbit.multilineFirstLineRegexp`
 * `fluentbit.multilineOtherLinesRegexp`
 
+See [Configure log parsing](../log-processing/configure-parsing.md) for what these parameters change.
+
 You can find the full list of FluentBit parameters in
-[the installation guide](../installation.md#fluentbit).
+[the installation parameters](../installation-parameters.md#fluentbit).
 
 #### Append fields to every log message in FluentBit
 
@@ -317,7 +317,7 @@ Parameters that affect out-of-box output configuration:
 * `fluentbit.tls`
 
 You can find the full list of FluentBit parameters in
-[the installation guide](../installation.md#fluentbit).
+[the installation parameters](../installation-parameters.md#fluentbit).
 
 #### FluentBit HTTP stream routing
 
@@ -430,5 +430,4 @@ The way to customize the data pipeline in the FluentBit in Aggregator mode is al
 the standard [FluentBit](#fluentbit) except the following differences:
 
 * The aggregator configuration have fixed input config
-* The aggregator configuration doesn't have `billCycleConf`
 * You have to set parameters into the different `fluentbit.aggregator` section instead of `fluentbit`

@@ -16,6 +16,7 @@
     "nodename": "fake-node",
     "parse_format": "qubership",
     "parse_status": "success",
+    "parsed_nc_audit_label": "false",
     "pod": "annotated-qubership",
     "short_message": "AUDIT login",
     "source_level": "INFO",

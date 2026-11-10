@@ -179,49 +179,42 @@ This section provides detailed descriptions of logs collected in Graylog OOB.
 
 #### Log Fields
 
-The list of log fields is as follows:
+The fields you search on most often are:
 
-* `application_id` specifies the unique application ID in OpenShift. It is usually `project_name + POD_name`.
-* `container_name` specifies the Docker container name.
-* `docker` specifies the Docker container UUID.
-* `facility` specifies the logs' collector type. It is usually `fluentd`.
-* `host/hostname` specifies the hostname of the logs source. For example, OpenShift node name.
-* `kubernetes` specifies the technical meta-information from Kubernetes.
-* `labels-app` specifies the Kubernetes application name.
-* `labels-deployment` specifies the Kubernetes deployment name.
-* `labels-deploymentconfig` specifies the Kubernetes deployment config name.
-* `labels-site` specifies the OpenShift site name. This is applicable only for DR schema.
-* `level` specifies the logging level.
-* `message` specifies the original log message.
-* `namespace_id` specifies the OpenShift project UUID.
-* `namespace_name` specifies the OpenShift project name.
-* `pod_id` specifies the OpenShift POD UUID.
-* `pod_name` specifies the OpenShift POD name.
-* `source` specifies the name of fluentd POD, which sent the log to Graylog.
-* `tag` specifies the internal fluentd tag of the log.
-* `time` specifies the time of logs printing by the application.
-* `timestamp` specifies the timestamp when the log comes to Graylog. It can change with time due to network lag.
+* `short_message` (shown as `message`) holds the log message.
+* `level` holds the severity as a syslog name, such as `err` or `info`. `source_level` holds the level as the
+  service wrote it.
+* `namespace`, `pod`, `container`, and `pod_id` identify the source container.
+* Pod labels are fields of their own, with `/` in the label name replaced by `_`.
+* `nodename` holds the node, and `source` holds the FluentBit pod that sent the record.
+* `parse_status` and `parse_format` show whether and how the record was parsed.
+* `tag` holds the source file of system and audit records.
+* `timestamp` holds the time the container runtime wrote the line.
 
-All other fields are technical and can be ignored.
+[Log fields reference](log-processing/log-fields.md) describes every field and the field names services must not use.
 
 #### List of OOB streams
 
-The list of OOB streams is as follows:
+Graylog sorts records into streams with the processing rules of the `Logs routing` pipeline. Records that no rule
+routes stay in `Default Stream`, shown as `All messages`.
 
-* `Application logs` include `stdout` from Docker containers running in Kubernetes (PODs)
-* `System logs` include `/var/log/messages`, `/var/log/syslog` and `systemd` from Kubernetes nodes
-  and other infrastructure VMs such as Logging VM, Monitoring VM, and so on.
-* `Audit logs` include `/var/log/audit/audit.log` from Kubernetes nodes and other infrastructure VMs
-  such as Logging VM, Monitoring VM, and so on; `/var/log/ocp-audit.log` from Kubernetes nodes;
-  logs of Graylog Docker containers; and application's audit logs.
-* `Integration logs` include logs with marker `[logType=int]` or `[log_type=int]`.
-* `Kubernetes events` include logs with key-value `kind=KubernetesEvent`. The stream includes Kubernetes events sent as
-  logs to Graylog form cloud-events-reader.
+| Stream              | Records                                                                    | Created by default |
+| ------------------- | -------------------------------------------------------------------------- | ------------------ |
+| `System logs`       | `/var/log/messages`, `/var/log/syslog`, and the systemd journal            | Yes                |
+| `Audit logs`        | Node and Kubernetes audit files, and records with `nc_audit_label: true`   | Yes                |
+| `Kubernetes events` | Records with `kind: KubernetesEvent` from the Cloud Events Reader          | Yes                |
+| `Integration logs`  | Records with `logType` or `log_type` equal to `int`                        | No                 |
+| `Access logs`       | Records with `logType` or `log_type` equal to `access`                     | No                 |
+| `Nginx logs`        | Records from pods whose name contains `ingress-nginx`                      | No                 |
+| `Bill Cycle logs`   | Records with an `nc_bill_cycle_label` field                                | No                 |
+
+Enable the other streams with `graylog.streams`. See [Log categories](log-processing/log-categories.md) for the exact
+rules and for how a service marks its records.
 
 ### Cleaning Logs
 
-Graylog uses Elasticsearch indices that are grouped into Graylog index sets to store log messages.
-ach index set has its settings, which include index rotation and data retention.
+Graylog uses OpenSearch or Elasticsearch indices that are grouped into Graylog index sets to store log messages.
+Each index set has its settings, which include index rotation and data retention.
 
 Graylog contains the following index rotation policies:
 
@@ -235,12 +228,16 @@ Graylog contains the following retention policies:
 * Close index (Makes index unavailable for RW operations without deleting the logs. It is possible to restore a closed index.)
 * Do nothing
 
-By default,  Graylog is installed with the following retention politics:
+By default, Graylog is installed with the following retention policies:
 
-| Log stream name | Retention policy           |
-| --------------- | -------------------------- |
-| All messages    | Index size on disk = 20 Gb |
-| Audit logs      | Index size on disk = 5 Gb  |
+| Index set                     | Streams                                         | Rotation              | Indices kept |
+| ----------------------------- | ----------------------------------------------- | --------------------- | ------------ |
+| `Default index set`           | `All messages`, `System logs`                   | Index size of 1 GiB   | 20           |
+| `Audit index set`             | `Audit logs`                                    | Every month (`P1M`)   | 5            |
+| `Kubernetes events index set` | `Kubernetes events`                             | Every month (`P1M`)   | 5            |
+
+Set `graylog.maxSize` and `graylog.maxNumberOfIndices` for the default index set, and `graylog.streams` for the
+others. See [Graylog Streams](installation-parameters.md#graylog-streams).
 
 To view and edit the policies:
 
@@ -338,38 +335,25 @@ To configure LDAP/AD integration, refer to the official Graylog documentation:
 
 ### Audit Logs
 
-Sensitive or audit logs require special processing in terms of storing time and viewing permissions.
-Such processing is delivered to OOB.
+Audit logs need restricted access and longer retention. The `Audit logs` stream is visible to administrators and to
+users with the `AuditViewer` role, such as the default `auditViewer` user. It stores its records in the separate
+`Audit index set`.
 
-A special stream named `Audit logs` contains various audit logs. It has restricted permissions
-(only an administrator can view it), and a separate index set.
-The separate index set, the `Audit index set`, is responsible for the rotation of audit logs.
-By default, the rotation size is 5GB. It can be manually changed after deployment according to the project's needs.
+The stream collects:
 
-This stream has several OOB criteria, by which the platform audit logs are collected into the Audit stream.
+* `/var/log/audit/audit.log` from the Kubernetes nodes.
+* Kubernetes, kube-apiserver, and OpenShift API server audit logs.
+* Container records that the agent marks with `nc_audit_label: true`, such as PostgreSQL, MongoDB, and Grafana
+  audit messages.
 
-OOB criteria cover the following audit logs:
-
-* **/var/log/audit/audit.log** from VMs such as Kubernetes nodes, Logging VM, Monitoring VM, and so on.
-* Graylog audit logs
-* Kubernetes audit logs
-* Audit logs such as PostgreSQL audit, and so on.
-
-If you want to add custom audit logs into this stream, define the criteria by which Graylog can filter the audit logs.
-
-It is recommended to write audit logs that combine `log_id` with the value `audit`.
-Generally, more complicated and tricky criteria for audit logs can take place, depending on your application.
-An example of using `log_id` with the value `audit` is given in the following image.
-
-![Stream Rule](images/graylog/stream-rule.png)
+To send your service's audit records to the stream, add `logType=audit` to them. See
+[Log categories](log-processing/log-categories.md#audit-logs) for the patterns the agent detects automatically.
 
 ### System Logs
 
-Operation system logs from platform VMs such as Kubernetes nodes, Logging VM, Monitoring VM, and so on,
-are collected into a separate stream, `System logs`, which is provided to OOB.
-
-This stream contains `/var/log/messages` logs from the VMs.
-The stream logs are stored in the same `Default index set` as any other typical logs.
+The `System logs` stream collects the operating system logs of the Kubernetes nodes: `/var/log/messages`,
+`/var/log/syslog`, or the systemd journal, depending on `fluentbit.systemLogType`. The stream stores its records in
+`Default index set`, together with the application logs.
 
 ### Integration Logs
 
@@ -378,6 +362,8 @@ The stream contains all logs with one of the following markers:
 * `[logType=int]`
 * `[log_type=int]`
 
+The stream is not created by default. Enable it in `graylog.streams`.
+
 ### Access Logs
 
 The stream contains all logs with one of the following markers:
@@ -385,9 +371,12 @@ The stream contains all logs with one of the following markers:
 * `[logType=access]`
 * `[log_type=access]`
 
+The stream is not created by default. Enable it in `graylog.streams`.
+
 ### Ingress Nginx Logs
 
-The stream contains all logs from pods `ingress-nginx`.
+The stream contains all logs from pods whose name contains `ingress-nginx`. The stream is not created by default.
+Enable it in `graylog.streams`.
 
 ### Sending Logs to External Destination (SIEM)
 

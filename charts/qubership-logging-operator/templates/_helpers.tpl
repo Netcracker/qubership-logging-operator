@@ -293,7 +293,7 @@ Image can be found from:
     {{- printf "%s" .Values.fluentd.dockerImage -}}
   {{- else -}}
     {{- /* # renovate: datasource=github-releases depName=Netcracker/qubership-fluentd versioning=loose */ -}}
-    {{- print "ghcr.io/netcracker/qubership-fluentd:1.19.3-2" -}}
+    {{- print "ghcr.io/netcracker/qubership-fluentd:1.19.4-2" -}}
   {{- end -}}
 {{- end -}}
 
@@ -353,7 +353,7 @@ Image can be found from:
     {{- printf "%s" .Values.cloudEventsReader.dockerImage -}}
   {{- else -}}
     {{- /* # renovate: datasource=github-releases depName=Netcracker/qubership-kube-events-reader versioning=semver */ -}}
-    {{- print "ghcr.io/netcracker/qubership-kube-events-reader:2.10.0" -}}
+    {{- print "ghcr.io/netcracker/qubership-kube-events-reader:2.10.1" -}}
   {{- end -}}
 {{- end -}}
 

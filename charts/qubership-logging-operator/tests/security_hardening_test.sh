@@ -76,6 +76,7 @@ check_following_line "pathPrefix: /var/log" "readOnly: false" \
 check_absent "hostNetwork: true" "hostNetwork: true"
 check_absent "hostPID: true" "hostPID: true"
 check_absent "hostIPC: true" "hostIPC: true"
+check_absent "openshift.io/required-scc:" "OpenShift SCC annotation on Kubernetes"
 
 helm template "${CHART_DIR}" \
     --set openshiftDeploy=true \
@@ -96,6 +97,24 @@ if grep -q -- "runAsUser: 1000" "${OPENSHIFT_RENDERED}"; then
     fail=1
 else
     echo "PASS: OpenShift workloads do not pin UID 1000"
+fi
+
+operator_manifest=$(helm template "${CHART_DIR}" \
+    --show-only templates/operator/deployment.yaml \
+    --api-versions security.openshift.io/v1)
+if ! grep -q '^        openshift.io/required-scc: restricted-v2$' <<<"${operator_manifest}" ||
+    grep -q 'runAsUser:' <<<"${operator_manifest}"; then
+    echo "FAIL: the OpenShift operator Pod template must require restricted-v2 and leave the UID to admission"
+    fail=1
+fi
+
+custom_scc_manifest=$(helm template "${CHART_DIR}" \
+    --show-only templates/operator/deployment.yaml \
+    --set openshiftDeploy=true \
+    --set-string 'annotations.openshift\.io/required-scc=custom-nonroot')
+if ! grep -q '^        openshift.io/required-scc: custom-nonroot$' <<<"${custom_scc_manifest}"; then
+    echo "FAIL: the OpenShift operator Pod template must honor an explicitly selected SCC"
+    fail=1
 fi
 
 # Graylog's legacy PSP and SCC must permit a writable root filesystem for the

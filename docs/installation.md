@@ -294,6 +294,14 @@ metadata:
 
 #### OpenShift
 
+On OpenShift 4.14 or later, the logging operator requests the `restricted-v2` Security Context Constraint (SCC) so
+OpenShift assigns it a non-root UID from the project's range. If your cluster requires a different non-root SCC, set
+the `openshift.io/required-scc` key under `annotations` in the Helm values. The operator's service account must have
+permission to use the selected SCC.
+
+On earlier OpenShift versions, SCC selection follows cluster policy. If the operator receives UID `0`, check which SCC
+its service account can use and remove access to the policy that assigns UID `0`.
+
 To deploy in OpenShift you need to:
 
 * Run FluentBit/FluentD in `privileged` mode

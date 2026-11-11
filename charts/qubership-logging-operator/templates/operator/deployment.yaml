@@ -1,5 +1,10 @@
 {{- $instance := cat "logging-operator-" .Release.Namespace | nospace | trunc 63 | trimSuffix "-" }}
 {{- $image := include "logging-operator.image" . }}
+{{- $openshift := or .Values.openshiftDeploy (.Capabilities.APIVersions.Has "security.openshift.io/v1") }}
+{{- $podAnnotations := .Values.annotations | default dict }}
+{{- if $openshift }}
+  {{- $podAnnotations = mergeOverwrite (dict "openshift.io/required-scc" "restricted-v2") $podAnnotations }}
+{{- end }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -29,9 +34,9 @@ spec:
         app.kubernetes.io/version: {{ splitList ":" $image | last | quote }}
         app.kubernetes.io/technology: go
         {{- include "logging.extraLabels" . | nindent 8 }}
-      {{- if .Values.annotations }}
+      {{- with $podAnnotations }}
       annotations:
-        {{ toYaml .Values.annotations | nindent 8 }}
+        {{- toYaml . | nindent 8 }}
       {{- end }}
     spec:
       serviceAccountName: logging-operator
@@ -51,7 +56,7 @@ spec:
         runAsGroup: 1000
         seccompProfile:
           type: RuntimeDefault
-        {{- if not (or .Values.openshiftDeploy (.Capabilities.APIVersions.Has "security.openshift.io/v1")) }}
+        {{- if not $openshift }}
         runAsUser: 2001
         {{- end }}
       volumes:

@@ -11,6 +11,7 @@
     "short_message": "buffer overflow detected, old records will be dropped",
     "date": "2023/11/15 08:30:47",
     "stdio_stream": "stdout",
+    "stream": "container",
     "time": "2023-11-15T08:30:47.456007468Z",
     "nodename": "fake-node",
     "labels": {
@@ -36,6 +37,7 @@
     "short_message": "HTTP Status=200 URL=http://example.com/api",
     "date": "2023/11/15 08:30:48",
     "stdio_stream": "stdout",
+    "stream": "container",
     "time": "2023-11-15T08:30:48.456007468Z",
     "nodename": "fake-node",
     "labels": {
@@ -61,6 +63,7 @@
     "short_message": "Filter plugin 'grep' initialized",
     "date": "2023/11/15 08:30:49",
     "stdio_stream": "stdout",
+    "stream": "container",
     "time": "2023-11-15T08:30:49.456007468Z",
     "nodename": "fake-node",
     "labels": {
@@ -86,6 +89,7 @@
     "short_message": "Elasticsearch connection failed, retrying in 30 seconds",
     "date": "2023/11/15 08:30:50",
     "stdio_stream": "stdout",
+    "stream": "container",
     "time": "2023-11-15T08:30:50.456007468Z",
     "nodename": "fake-node",
     "labels": {
@@ -111,6 +115,7 @@
     "short_message": "Unexpected signal 11 (Segmentation fault) received",
     "date": "2023/11/15 08:30:52",
     "stdio_stream": "stdout",
+    "stream": "container",
     "time": "2023-11-15T08:30:52.456007468Z",
     "nodename": "fake-node",
     "labels": {

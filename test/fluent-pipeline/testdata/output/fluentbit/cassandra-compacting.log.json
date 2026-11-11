@@ -10,6 +10,7 @@
     "namespace": "fake-namespace",
     "source_level": "INFO",
     "stdio_stream": "stdout",
+    "stream": "container",
     "container": "fake-container",
     "time": "2024-09-05T12:19:31.575007468Z",
     "labels": {

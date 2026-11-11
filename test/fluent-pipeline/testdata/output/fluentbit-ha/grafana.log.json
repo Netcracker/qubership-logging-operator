@@ -24,6 +24,7 @@
     "pod_id": "f5186c8e-4476-4cf4-bd56-d1dc5aa5408d",
     "short_message": "Successful Login",
     "source_level": "info",
+    "stream": "audit",
     "t": "2026-09-03T10:20:50.123+0000",
     "stdio_stream": "stdout",
     "time": "2026-09-03T10:20:50.000007468Z",
@@ -56,6 +57,7 @@
     "short_message": "Request Completed",
     "source_level": "info",
     "status": "200",
+    "stream": "container",
     "t": "2026-09-03T10:20:51.123+0000",
     "stdio_stream": "stdout",
     "time": "2026-09-03T10:20:51.000007468Z"

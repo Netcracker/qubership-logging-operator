@@ -4,6 +4,7 @@
       "id": "java-1"
     },
     "parse_status": "success",
+    "stream": "container",
     "thread": "pool-86-thread-4",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
@@ -31,6 +32,7 @@
     },
     "detected_level": "info",
     "parse_status": "success",
+    "stream": "container",
     "time": "2023-12-21T09:18:48.918576888Z",
     "nodename": "fake-node",
     "labels": {
@@ -55,6 +57,7 @@
       "id": "java-3"
     },
     "parse_status": "success",
+    "stream": "container",
     "time": "2024-04-10T13:44:20.618576888Z",
     "detected_level": "error",
     "labels": {
@@ -79,6 +82,7 @@
       "id": "java-4"
     },
     "parse_status": "success",
+    "stream": "container",
     "time": "2024-04-10T13:44:20.697007468Z",
     "detected_level": "error",
     "labels": {
@@ -103,6 +107,7 @@
       "id": "java-5"
     },
     "parse_status": "success",
+    "stream": "container",
     "time": "2024-04-10T13:44:20.618578953Z",
     "detected_level": "info",
     "labels": {

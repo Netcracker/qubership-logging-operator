@@ -21,6 +21,7 @@
     "hostname": "fake-fluent",
     "container": "fake-container",
     "stdio_stream": "stderr",
+    "stream": "container",
     "time": "2024-06-14T08:33:57.630003297Z",
     "source_level": "W",
     "parse_format": "klog"
@@ -47,6 +48,7 @@
     "hostname": "fake-fluent",
     "container": "fake-container",
     "stdio_stream": "stderr",
+    "stream": "container",
     "time": "2024-06-14T08:33:57.630711319Z",
     "source_level": "W",
     "parse_format": "klog"
@@ -73,6 +75,7 @@
     "hostname": "fake-fluent",
     "container": "fake-container",
     "stdio_stream": "stderr",
+    "stream": "container",
     "time": "2024-06-14T08:33:57.631388352Z",
     "source_level": "I",
     "parse_format": "klog"
@@ -99,6 +102,7 @@
     "hostname": "fake-fluent",
     "container": "fake-container",
     "stdio_stream": "stderr",
+    "stream": "container",
     "time": "2024-06-14T08:33:59.146293383Z",
     "source_level": "I",
     "parse_format": "klog"
@@ -125,6 +129,7 @@
     "hostname": "fake-fluent",
     "container": "fake-container",
     "stdio_stream": "stderr",
+    "stream": "container",
     "time": "2024-06-14T08:33:59.146941221Z",
     "source_level": "I",
     "parse_format": "klog"
@@ -144,6 +149,7 @@
     "size": "331",
     "method": "GET",
     "parse_level_unknown": "true",
+    "stream": "container",
     "user": "-",
     "detected_level": "info",
     "short_message": "10.10.10.10 - - [26/Jun/2024:11:27:51 +0000] \"GET /opensearch?prefix=backup-storage%2F20240620T230000%2F.lock&max-keys=1&encoding-type=url HTTP/1.1\" 200",
@@ -183,6 +189,7 @@
     "size": "6727",
     "method": "GET",
     "parse_level_unknown": "true",
+    "stream": "container",
     "user": "-",
     "detected_level": "info",
     "short_message": "10.10.10.10 - - [24/Jun/2024:07:13:01 +0000] \"GET /api/v1/namespace HTTP/2.0\" 200",

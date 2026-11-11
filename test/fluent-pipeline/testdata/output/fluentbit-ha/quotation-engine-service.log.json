@@ -4,6 +4,7 @@
       "id": "qes-1"
     },
     "parse_status": "success",
+    "stream": "container",
     "time": "2024-06-17T15:58:02.219007468Z",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
@@ -38,6 +39,7 @@
       "id": "qes-2"
     },
     "parse_status": "success",
+    "stream": "container",
     "time": "2024-06-17T15:58:02.771007468Z",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
@@ -72,6 +74,7 @@
       "id": "qes-3"
     },
     "parse_status": "success",
+    "stream": "container",
     "time": "2024-06-17T15:58:02.772007468Z",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
@@ -106,6 +109,7 @@
       "id": "qes-4"
     },
     "parse_status": "success",
+    "stream": "container",
     "time": "2024-06-17T15:58:04.045007468Z",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
@@ -140,6 +144,7 @@
       "id": "qes-5"
     },
     "parse_status": "success",
+    "stream": "container",
     "time": "2024-06-17T15:58:24.426007468Z",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
@@ -174,6 +179,7 @@
       "id": "qes-6"
     },
     "parse_status": "success",
+    "stream": "container",
     "time": "2024-06-17T15:58:50.440007468Z",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
@@ -208,6 +214,7 @@
       "id": "qes-7"
     },
     "parse_status": "success",
+    "stream": "container",
     "time": "2024-06-17T15:59:10.376007468Z",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
@@ -242,6 +249,7 @@
       "id": "qes-8"
     },
     "parse_status": "success",
+    "stream": "container",
     "thread": "main",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
@@ -276,6 +284,7 @@
       "id": "qes-9"
     },
     "parse_status": "success",
+    "stream": "container",
     "thread": "0.0-8080-exec-5",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
@@ -310,6 +319,7 @@
       "id": "qes-10"
     },
     "parse_status": "success",
+    "stream": "container",
     "thread": "0.0-8080-exec-6",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
@@ -344,6 +354,7 @@
       "id": "qes-11"
     },
     "parse_status": "success",
+    "stream": "container",
     "thread": "0.0-8080-exec-6",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
@@ -378,6 +389,7 @@
       "id": "qes-12"
     },
     "parse_status": "success",
+    "stream": "container",
     "thread": "0.0-8080-exec-9",
     "labels": {
       "metadata.app": "fluent-pipeline-test",

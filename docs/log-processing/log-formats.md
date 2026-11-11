@@ -94,7 +94,10 @@ A logfmt record is a line of `key=value` pairs separated by spaces, as described
 time=2025-05-02T09:16:53Z level=info msg="Order created" request_id=9f09fc89
 ```
 
-- The whole line must consist of pairs. A key starts with a letter or `_`. A value with spaces must be quoted.
+- The whole line must consist of pairs. A key starts with a letter or `_`, followed by letters, digits, `_`, `.`, or
+  `-`, as in `trace.id` or `user-id`. A value with spaces must be quoted.
+- A value may be empty, as in `err=`, and becomes `true`. Whitespace at the start or end of the line is ignored.
+- Only a line that passes this check reaches the logfmt parser.
 - A line that also contains a `[key=value]` group is not treated as logfmt.
 - `msg`, or else `message`, becomes `short_message`.
 - A `time` key does not change the event time.
@@ -180,7 +183,7 @@ FluentBit tries the parsers in a fixed order and stops at the first one that mat
 5. **JSON.** The generic JSON parser.
 6. **Argo CD, Fluent Bit, and OpenSearch,** each on the pods it selects.
 7. **Qubership.** On every pod except OpenSearch pods.
-8. **logfmt.** On every pod.
+8. **logfmt.** On every pod, for lines that pass the [logfmt](#logfmt) check.
 9. **Calico.** On `calico-node` pods.
 
 In the HA mode, the aggregator runs the generic JSON parser before the Cassandra, Consul, and PostgreSQL parsers.

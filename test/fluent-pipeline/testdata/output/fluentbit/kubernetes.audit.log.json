@@ -8,6 +8,7 @@
     },
     "stage": "ResponseComplete",
     "requestURI": "/api/v1/namespaces/postgres-ek/configmaps/patroni-leader",
+    "stream": "audit",
     "verb": "patch",
     "source_level": "Metadata",
     "user": {
@@ -68,6 +69,7 @@
     },
     "stage": "ResponseComplete",
     "requestURI": "/api/v1/namespaces/cloudberry/configmaps/cloudberry-common-leader",
+    "stream": "audit",
     "verb": "patch",
     "source_level": "Metadata",
     "user": {

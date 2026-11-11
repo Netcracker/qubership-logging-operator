@@ -20,6 +20,7 @@
     "short_message": "duplicate key value violates unique constraint",
     "source_level": "ERROR",
     "stdio_stream": "stdout",
+    "stream": "container",
     "time": "2026-09-03T10:20:41.000007468Z"
   },
   {
@@ -45,6 +46,7 @@
     "short_message": "database system is ready to accept connections",
     "source_level": "LOG",
     "stdio_stream": "stdout",
+    "stream": "audit",
     "time": "2026-09-03T10:20:42.000007468Z"
   }
 ]

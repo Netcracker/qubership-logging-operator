@@ -5,6 +5,7 @@
     },
     "date": "2025-07-08T10:53:16.089+00:00",
     "stdio_stream": "stdout",
+    "stream": "container",
     "time": "2025-07-08T10:53:16.090040268Z",
     "id": 22315,
     "context": "initandlisten",
@@ -35,6 +36,7 @@
     },
     "date": "2025-07-08T10:53:18.438+00:00",
     "stdio_stream": "stdout",
+    "stream": "container",
     "time": "2025-07-08T10:53:18.438549961Z",
     "id": 22430,
     "context": "initandlisten",
@@ -65,6 +67,7 @@
     },
     "date": "2025-07-08T10:53:18.438+00:00",
     "stdio_stream": "stdout",
+    "stream": "container",
     "time": "2025-07-08T10:53:18.438611709Z",
     "id": 22430,
     "context": "initandlisten",
@@ -120,6 +123,7 @@
     "short_message": "Authentication succeeded",
     "source_level": "I",
     "stdio_stream": "stdout",
+    "stream": "audit",
     "time": "2025-07-08T10:53:19.000007468Z"
   }
 ]

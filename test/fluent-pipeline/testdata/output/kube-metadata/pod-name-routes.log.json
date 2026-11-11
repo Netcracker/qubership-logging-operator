@@ -18,6 +18,7 @@
     "short_message": "\"Successfully bound pod to node\" pod=\"demo/app-0\"",
     "source_level": "I",
     "stdio_stream": "stdout",
+    "stream": "container",
     "time": "2026-09-03T11:00:03.000007468Z"
   },
   {
@@ -39,6 +40,7 @@
     "short_message": "\"Reconcile completed\" cluster=\"demo\"",
     "source_level": "I",
     "stdio_stream": "stdout",
+    "stream": "container",
     "time": "2026-09-03T11:00:04.000007468Z"
   }
 ]

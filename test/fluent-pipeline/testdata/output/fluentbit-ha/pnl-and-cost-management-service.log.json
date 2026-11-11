@@ -4,6 +4,7 @@
       "id": "pnl-cms-1"
     },
     "parse_status": "success",
+    "stream": "container",
     "time": "2024-06-17T23:05:02.575007468Z",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
@@ -32,6 +33,7 @@
       "id": "pnl-cms-2"
     },
     "parse_status": "success",
+    "stream": "container",
     "time": "2024-06-17T23:05:06.786007468Z",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
@@ -61,6 +63,7 @@
       "id": "pnl-cms-3"
     },
     "parse_status": "success",
+    "stream": "container",
     "time": "2024-06-17T23:05:06.883007468Z",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
@@ -90,6 +93,7 @@
       "id": "pnl-cms-4"
     },
     "parse_status": "success",
+    "stream": "container",
     "time": "2024-06-17T23:05:06.894007468Z",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
@@ -119,6 +123,7 @@
       "id": "pnl-cms-5"
     },
     "parse_status": "success",
+    "stream": "container",
     "time": "2024-06-17T23:05:08.699007468Z",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
@@ -148,6 +153,7 @@
       "id": "pnl-cms-6"
     },
     "parse_status": "success",
+    "stream": "container",
     "time": "2024-06-17T23:05:08.702007468Z",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
@@ -176,6 +182,7 @@
       "id": "pnl-cms-7"
     },
     "parse_status": "success",
+    "stream": "container",
     "time": "2024-06-17T23:05:08.972007468Z",
     "labels": {
       "metadata.app": "fluent-pipeline-test",
@@ -205,6 +212,7 @@
       "id": "pnl-cms-8"
     },
     "parse_status": "success",
+    "stream": "container",
     "time": "2024-06-18T23:28:10.987007468Z",
     "labels": {
       "metadata.app": "fluent-pipeline-test",

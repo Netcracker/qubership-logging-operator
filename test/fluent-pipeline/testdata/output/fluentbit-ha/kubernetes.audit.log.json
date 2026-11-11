@@ -15,6 +15,7 @@
     "auditID": "00000000-0000-0000-0000-000000000000",
     "stage": "ResponseComplete",
     "requestURI": "/api/v1/namespaces/postgres-ek/configmaps/patroni-leader",
+    "stream": "audit",
     "verb": "patch",
     "parse_level_unknown": "true",
     "user": {
@@ -75,6 +76,7 @@
     "auditID": "00000000-0000-0000-0000-000000000000",
     "stage": "ResponseComplete",
     "requestURI": "/api/v1/namespaces/cloudberry/configmaps/cloudberry-common-leader",
+    "stream": "audit",
     "verb": "patch",
     "parse_level_unknown": "true",
     "user": {

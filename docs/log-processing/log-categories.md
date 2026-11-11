@@ -28,7 +28,7 @@ so a record can land in more than one stream. Every rule removes the record from
 
 ## Category field
 
-With the Loki, OpenTelemetry, or HTTP output enabled, FluentBit writes the basic category to the record:
+FluentBit writes the basic category of every record to the `stream` field, whichever outputs are enabled:
 
 | Value       | Records                                                     |
 | ----------- | ----------------------------------------------------------- |
@@ -36,8 +36,9 @@ With the Loki, OpenTelemetry, or HTTP output enabled, FluentBit writes the basic
 | `audit`     | Audit file records, and container records marked as audit   |
 | `system`    | System log records                                          |
 
-The field is `stream` with the Loki or OpenTelemetry output, and `log_category` when the HTTP output is enabled. With
-only the Graylog output, neither field exists: Graylog uses the rules below instead.
+With the HTTP output enabled, FluentBit also copies the value to `log_category`, which the HTTP output reads. The
+other outputs keep reading `stream`, so the Loki label map and the OpenTelemetry stream fields work alongside the
+HTTP output. Graylog receives both fields but does not route by them: its streams use the rules below.
 
 ## Application logs
 

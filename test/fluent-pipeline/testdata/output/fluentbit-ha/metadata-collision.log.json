@@ -21,6 +21,7 @@
     "short_message": "metadata collision payload",
     "source_level": "error",
     "stdio_stream": "stdout",
+    "stream": "container",
     "time": "2026-09-03T19:21:00.123456789Z"
   }
 ]

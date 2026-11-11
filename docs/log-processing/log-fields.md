@@ -30,18 +30,14 @@ A record read from a container log carries the fields below, plus the fields the
 | `hostname`            | The FluentBit pod that sent the record. In the HA mode, the forwarder pod that read it                                                  |
 | `nodename`            | The node the FluentBit pod runs on                                                                                                      |
 | `nc_audit_label`      | `true` when the record is an audit record. Absent otherwise. See [Audit logs](log-categories.md#audit-logs)                             |
+| `stream`              | The category of the record: `container`, `audit`, or `system`. See [Log categories](log-categories.md)                                  |
 <!-- markdownlint-enable line-length -->
 
 The parsers add fields of their own. For example, the Qubership parser adds `date` with the application timestamp, the
 klog parser adds `klog_date`, `pid`, and `file`, and the ingress-nginx parser adds `method`, `path`, and `code`.
 
-Some outputs add one more field:
-
-- With the Loki or OpenTelemetry output enabled, `stream` holds the category of the record: `container`, `audit`, or
-  `system`.
-- With the HTTP output enabled, the same value is in `log_category` instead of `stream`, for every output of the agent.
-
-See [Log categories](log-categories.md) for how the category is chosen.
+With the HTTP output enabled, `log_category` holds a copy of `stream`, for every output of the agent. See
+[Log categories](log-categories.md) for how the category is chosen.
 
 Records from the Cloud Events Reader are container records too. When the Cloud Events Reader is installed,
 `namespace` holds the namespace of the object the event is about, and `pod`, `container`, and `labels` are removed.
@@ -138,7 +134,7 @@ without that protection, so a payload value with the same name is replaced or ch
 | ----------------------------- | ------------------------------------------------------------------------------------------------- |
 | `hostname`, `nodename`        | Replaced by the agent's values                                                                    |
 | Keys of `extraFields`         | Replaced by the configured values                                                                 |
-| `stream`, `log_category`      | Conflict with the category field when the Loki, OpenTelemetry, or HTTP output is enabled          |
+| `stream`, `log_category`      | Replaced by the category. `log_category` is replaced only when the HTTP output is enabled         |
 | `short_message`               | Used as the message instead of `msg` or `message`                                                 |
 | `parse_format`                | Replaced when the pipeline detects a format; kept instead of `unknown` otherwise                  |
 | `source_level`                | Kept as the original level, even if it differs from `level`                                       |

@@ -9,6 +9,7 @@
     "source_level": "I",
     "date": "2025-07-08T10:53:16.089+00:00",
     "stdio_stream": "stdout",
+    "stream": "container",
     "time": "2025-07-08T10:53:16.090040268Z",
     "container": "fake-container",
     "short_message": "Opening WiredTiger",
@@ -39,6 +40,7 @@
     "source_level": "I",
     "date": "2025-07-08T10:53:18.438+00:00",
     "stdio_stream": "stdout",
+    "stream": "container",
     "time": "2025-07-08T10:53:18.438549961Z",
     "container": "fake-container",
     "short_message": "WiredTiger message",
@@ -70,6 +72,7 @@
     "source_level": "I",
     "namespace": "fake-namespace",
     "stdio_stream": "stdout",
+    "stream": "container",
     "time": "2025-07-08T10:53:18.438611709Z",
     "container": "fake-container",
     "pod": "fake-fluent-577d48c6cb-4gfmp",
@@ -120,6 +123,7 @@
     "short_message": "Authentication succeeded",
     "source_level": "I",
     "stdio_stream": "stdout",
+    "stream": "audit",
     "time": "2025-07-08T10:53:19.000007468Z"
   }
 ]

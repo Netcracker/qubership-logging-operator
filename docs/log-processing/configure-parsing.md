@@ -120,7 +120,8 @@ before level normalization and format classification. At that point:
 
 - The raw `log` field of a container record is gone. Read the message from `short_message`.
 - The payload fields are already at the top level of the record.
-- The `stream` or `log_category` field, if any, is already set.
+- The `stream` field is already set. With the HTTP output enabled, `log_category` is copied from it after your
+  filters run, so a change to `stream` reaches both fields.
 - A `level` you set is normalized afterward, like any other level.
 
 Container record tags have the form `pods.var.log.pods.<namespace>_<pod>_<uid>.<container>.<n>.log` on containerd and

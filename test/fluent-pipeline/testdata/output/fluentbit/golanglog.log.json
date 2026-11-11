@@ -8,6 +8,7 @@
     "nodename": "fake-node",
     "source_level": "TRACE",
     "stdio_stream": "stdout",
+    "stream": "container",
     "detected_level": "trace",
     "date": "2023-12-20T12:51:32.270",
     "time": "2023-12-20T12:51:32.270507468Z",

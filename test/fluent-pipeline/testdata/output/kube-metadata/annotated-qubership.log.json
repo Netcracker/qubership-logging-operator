@@ -21,6 +21,7 @@
     "short_message": "AUDIT login",
     "source_level": "INFO",
     "stdio_stream": "stdout",
+    "stream": "audit",
     "time": "2026-09-03T11:00:31.000007468Z"
   },
   {
@@ -44,6 +45,7 @@
     "short_message": "AUDIT login",
     "source_level": "INFO",
     "stdio_stream": "stdout",
+    "stream": "audit",
     "thread": "main",
     "time": "2026-09-03T11:00:32.000007468Z"
   }

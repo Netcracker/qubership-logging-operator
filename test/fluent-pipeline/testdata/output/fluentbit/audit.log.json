@@ -7,6 +7,7 @@
       ]
     },
     "short_message": "apparmor=\"DENIED\" operation=\"ptrace\" profile=\"cri-containerd.apparmor.d\" pid=106437 comm=\"node_exporter\" requested_mask=\"read\" denied_mask=\"read\" peer=\"unconfined\"",
+    "stream": "audit",
     "tag": "/var/log/audit/audit.log",
     "detected_level": "info",
     "nc_audit_label": "true",

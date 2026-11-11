@@ -21,6 +21,7 @@
     "short_message": "first line matches multilineFirstLineRegexp\n  continuation that matches multilineOtherLinesRegexp",
     "source_level": "ERROR",
     "stdio_stream": "stdout",
+    "stream": "container",
     "time": "2026-09-03T10:21:00.000007468Z"
   },
   {
@@ -45,6 +46,7 @@
     "short_message": "a second first line ends the previous record",
     "source_level": "INFO",
     "stdio_stream": "stdout",
+    "stream": "container",
     "time": "2026-09-03T10:21:00.200007468Z"
   }
 ]

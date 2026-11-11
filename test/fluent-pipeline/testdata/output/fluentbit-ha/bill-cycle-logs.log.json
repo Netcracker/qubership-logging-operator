@@ -4,6 +4,7 @@
       "id": "bill-cycle-1"
     },
     "parse_status": "success",
+    "stream": "container",
     "time": "2024-07-20T11:51:31.234007468Z",
     "detected_level": "info",
     "labels": {
@@ -28,6 +29,7 @@
       "id": "bill-cycle-2"
     },
     "parse_status": "success",
+    "stream": "container",
     "time": "2024-07-20T11:51:32.234007468Z",
     "detected_level": "info",
     "labels": {
@@ -52,6 +54,7 @@
       "id": "bill-cycle-3"
     },
     "parse_status": "success",
+    "stream": "container",
     "time": "2024-07-20T11:51:33.234007468Z",
     "detected_level": "warn",
     "labels": {
@@ -77,6 +80,7 @@
     },
     "detected_level": "warn",
     "parse_status": "success",
+    "stream": "container",
     "time": "2024-07-20T11:51:34.234007468Z",
     "labels": {
       "metadata.app": "fluent-pipeline-test",

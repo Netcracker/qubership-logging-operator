@@ -17,6 +17,8 @@ on:
   pull_request:
     types: [ opened, synchronize, reopened ]
 
+permissions: {}
+
 jobs:
   prepare:
     runs-on: ubuntu-latest

@@ -41,6 +41,8 @@ env:
   max_attempts: 100
   delay: 10
 
+permissions: {}
+
 jobs:
   changes:
     if: github.event_name == 'pull_request'

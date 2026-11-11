@@ -27,6 +27,9 @@ on:
         default: false
         required: false
         description: "Lint all codebase"
+
+permissions: {}
+
 jobs:
   prepare-configs:
     runs-on: ubuntu-latest

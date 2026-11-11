@@ -293,7 +293,7 @@ Image can be found from:
     {{- printf "%s" .Values.fluentd.dockerImage -}}
   {{- else -}}
     {{- /* # renovate: datasource=github-releases depName=Netcracker/qubership-fluentd versioning=loose */ -}}
-    {{- print "ghcr.io/netcracker/qubership-fluentd:1.19.4-1" -}}
+    {{- print "ghcr.io/netcracker/qubership-fluentd:1.19.4-2" -}}
   {{- end -}}
 {{- end -}}
 

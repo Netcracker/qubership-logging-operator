@@ -11,11 +11,12 @@ permissions:
 
 jobs:
   CLAAssistant:
+    # Signatures go to Netcracker/cla-storage with CLA_ACCESS_TOKEN. GITHUB_TOKEN only
+    # comments on and locks the pull request and reruns this workflow after a signature.
     permissions:
       actions: write
-      contents: write
+      contents: read
       pull-requests: write
-      statuses: write
     runs-on: ubuntu-latest
     steps:
       - name: "CLA Assistant"

@@ -23,6 +23,9 @@ on:
         default: false
         type: boolean
 
+# The job authenticates with the GH_RWD_PACKAGE_TOKEN secret, so GITHUB_TOKEN needs no permissions.
+permissions: {}
+
 jobs:
   cleanup:
     runs-on: ubuntu-latest

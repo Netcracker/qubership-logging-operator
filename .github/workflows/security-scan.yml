@@ -49,6 +49,8 @@ on:
         default: true
         type: boolean
 
+permissions: {}
+
 jobs:
   debug-packages:
     runs-on: ubuntu-latest

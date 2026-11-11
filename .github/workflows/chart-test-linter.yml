@@ -17,6 +17,8 @@ concurrency:
   group: helm-chart-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions: {}
+
 jobs:
   changes:
     if: github.event_name == 'pull_request'

@@ -96,6 +96,7 @@ The pipeline uses these fields while it processes a record and removes them befo
 | `_parser_input`         | The copy of the line that the generic parsers read                    |
 | `original_log`          | The raw line of a record that the Kubernetes filter parsed            |
 | `logfmt_candidate`      | Marks a line that looks like logfmt                                   |
+| `_logfmt_input`         | The copy of a logfmt candidate that the logfmt parser reads           |
 | `__qubership_candidate` | Marks a line that matched the Qubership parser                        |
 
 A service must not write these names. The pipeline discards a payload `_record_metadata` before it extracts the

@@ -1,0 +1,2 @@
+2026-09-03T10:21:10.000007468Z stdout F level=warn msg="cache miss" trace.id=4bf92f3577b34da6 user-id=42
+2026-09-03T10:21:11.000007468Z stdout F starting worker pool with size=4
